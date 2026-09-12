@@ -59,14 +59,47 @@ func GetIPLimitBannedPrevLogPath() string {
 	return config.GetLogFolder() + "/3xipl-banned.prev.log"
 }
 
-// GetAccessPersistentLogPath returns the path to the persistent access log file.
+// AccessPersistentLogRetentionDays controls how many days of per-day
+// persistent access logs ClearLogsJob keeps before deleting them. Bump
+// this single constant to keep a longer or shorter history.
+const AccessPersistentLogRetentionDays = 7
+
+const (
+	accessPersistentLogPrefix     = "3xipl-ap-"
+	accessPersistentLogSuffix     = ".log"
+	accessPersistentLogDateFormat = "2006-01-02"
+)
+
+// GetAccessPersistentLogPath returns today's persistent access log file
+// path. Logs are split into one file per calendar day - instead of the
+// single ever-growing file used before - so ClearLogsJob can delete old
+// days by filename without ever truncating a file still being written to.
 func GetAccessPersistentLogPath() string {
-	return config.GetLogFolder() + "/3xipl-ap.log"
+	return config.GetLogFolder() + "/" + accessPersistentLogPrefix + time.Now().Format(accessPersistentLogDateFormat) + accessPersistentLogSuffix
 }
 
-// GetAccessPersistentPrevLogPath returns the path to the previous persistent access log file.
-func GetAccessPersistentPrevLogPath() string {
-	return config.GetLogFolder() + "/3xipl-ap.prev.log"
+// AccessPersistentLogGlob returns a glob pattern matching every persistent
+// access log file on disk, for ClearLogsJob to enumerate when pruning old
+// ones.
+func AccessPersistentLogGlob() string {
+	return config.GetLogFolder() + "/" + accessPersistentLogPrefix + "*" + accessPersistentLogSuffix
+}
+
+// ParseAccessPersistentLogDate extracts the calendar date encoded in a
+// persistent access log file name produced by GetAccessPersistentLogPath.
+// ok is false if path doesn't look like a persistent access log file name.
+func ParseAccessPersistentLogDate(path string) (date time.Time, ok bool) {
+	base := filepath.Base(path)
+	if !strings.HasPrefix(base, accessPersistentLogPrefix) || !strings.HasSuffix(base, accessPersistentLogSuffix) {
+		return time.Time{}, false
+	}
+
+	dateStr := strings.TrimSuffix(strings.TrimPrefix(base, accessPersistentLogPrefix), accessPersistentLogSuffix)
+	parsed, err := time.ParseInLocation(accessPersistentLogDateFormat, dateStr, time.Local)
+	if err != nil {
+		return time.Time{}, false
+	}
+	return parsed, true
 }
 
 // GetAccessLogPath reads the Xray config and returns the access log file path.
