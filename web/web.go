@@ -286,8 +286,17 @@ func (s *Server) initRouter() (*gin.Engine, error) {
 		c.JSON(http.StatusOK, gin.H{})
 	})
 
-	// Add a catch-all route to handle undefined paths and return 404
+	// Any request that doesn't match a registered route - most notably the
+	// bare domain root when basePath is a random secret path - renders a
+	// generic decoy page instead of a 404, so a passive scan of the domain
+	// looks like an ordinary, unrelated website rather than a panel that
+	// rejected the request. A small, barely visible link on that page leads
+	// back to the real login page at basePath.
 	engine.NoRoute(func(c *gin.Context) {
+		if c.Request.Method == http.MethodGet || c.Request.Method == http.MethodHead {
+			c.HTML(http.StatusOK, "decoy.html", gin.H{"base_path": basePath})
+			return
+		}
 		c.AbortWithStatus(http.StatusNotFound)
 	})
 
