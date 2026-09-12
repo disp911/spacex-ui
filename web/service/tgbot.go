@@ -299,6 +299,7 @@ func (t *Tgbot) createRobustFastHTTPClient(proxyUrl string) *fasthttp.Client {
 		DisableHeaderNamesNormalizing: false,
 		DisablePathNormalizing:        false,
 		// Retry on connection errors
+		//lint:ignore SA1019 RetryIf kept for behavior parity; not migrating to RetryIfErr in this fork
 		RetryIf: func(request *fasthttp.Request) bool {
 			// Retry on connection errors for GET requests
 			return string(request.Header.Method()) == "GET" || string(request.Header.Method()) == "POST"
