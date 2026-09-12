@@ -765,23 +765,41 @@ func (s *ServerService) GetXrayLogs(
 	freedoms []string,
 	blackholes []string) []LogEntry {
 
+	countInt, _ := strconv.Atoi(count)
+	var entries []LogEntry
+
+	// Xray's raw access log gets folded into today's persistent log file
+	// (xray.GetAccessPersistentLogPath) roughly every hour by
+	// CheckClientIpJob.clearAccessLog, so the raw file alone only ever
+	// holds up to an hour of history. Read today's persistent log first,
+	// then the raw file's not-yet-folded tail, so the panel shows the
+	// whole day without losing entries to that rotation.
+	appendXrayLogEntries(&entries, xray.GetAccessPersistentLogPath(), filter, freedoms, blackholes, showDirect, showBlocked, showProxy)
+
+	if pathToAccessLog, err := xray.GetAccessLogPath(); err == nil {
+		appendXrayLogEntries(&entries, pathToAccessLog, filter, freedoms, blackholes, showDirect, showBlocked, showProxy)
+	}
+
+	if len(entries) > countInt {
+		entries = entries[len(entries)-countInt:]
+	}
+
+	return entries
+}
+
+// appendXrayLogEntries scans one Xray access-log file and appends matching
+// entries to entries. A missing file is skipped silently - the persistent
+// log may not exist yet on a fresh install or right after midnight.
+func appendXrayLogEntries(entries *[]LogEntry, path string, filter string, freedoms []string, blackholes []string, showDirect, showBlocked, showProxy string) {
 	const (
 		Direct = iota
 		Blocked
 		Proxied
 	)
 
-	countInt, _ := strconv.Atoi(count)
-	var entries []LogEntry
-
-	pathToAccessLog, err := xray.GetAccessLogPath()
+	file, err := os.Open(path)
 	if err != nil {
-		return nil
-	}
-
-	file, err := os.Open(pathToAccessLog)
-	if err != nil {
-		return nil
+		return
 	}
 	defer file.Close()
 
@@ -843,18 +861,12 @@ func (s *ServerService) GetXrayLogs(
 			entry.Event = Proxied
 		}
 
-		entries = append(entries, entry)
+		*entries = append(*entries, entry)
 	}
 
 	if err := scanner.Err(); err != nil {
-		return nil
+		logger.Warning("Failed to read Xray log file:", path, "-", err)
 	}
-
-	if len(entries) > countInt {
-		entries = entries[len(entries)-countInt:]
-	}
-
-	return entries
 }
 
 func logEntryContains(line string, suffixes []string) bool {
