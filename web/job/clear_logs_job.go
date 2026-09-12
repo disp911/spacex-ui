@@ -4,7 +4,9 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"time"
 
+	"github.com/mhsanaei/3x-ui/v2/config"
 	"github.com/mhsanaei/3x-ui/v2/logger"
 	"github.com/mhsanaei/3x-ui/v2/xray"
 )
@@ -34,8 +36,8 @@ func ensureFileExists(path string) error {
 
 // Here Run is an interface method of the Job interface
 func (j *ClearLogsJob) Run() {
-	logFiles := []string{xray.GetIPLimitLogPath(), xray.GetIPLimitBannedLogPath(), xray.GetAccessPersistentLogPath()}
-	logFilesPrev := []string{xray.GetIPLimitBannedPrevLogPath(), xray.GetAccessPersistentPrevLogPath()}
+	logFiles := []string{xray.GetIPLimitLogPath(), xray.GetIPLimitBannedLogPath()}
+	logFilesPrev := []string{xray.GetIPLimitBannedPrevLogPath()}
 
 	// Ensure all log files and their paths exist
 	for _, path := range append(logFiles, logFilesPrev...) {
@@ -73,6 +75,54 @@ func (j *ClearLogsJob) Run() {
 		err := os.Truncate(logFiles[i], 0)
 		if err != nil {
 			logger.Warning("Failed to truncate log file:", logFiles[i], "-", err)
+		}
+	}
+
+	migrateLegacyAccessPersistentLog()
+	pruneOldAccessPersistentLogs()
+}
+
+// migrateLegacyAccessPersistentLog moves a pre-upgrade single "3xipl-ap.log"
+// file (from before persistent access logs were split by date) into today's
+// dated file, so its content isn't silently lost the first time this job
+// runs after upgrading.
+func migrateLegacyAccessPersistentLog() {
+	legacyPath := config.GetLogFolder() + "/3xipl-ap.log"
+	if _, err := os.Stat(legacyPath); err != nil {
+		// No legacy file, nothing to migrate.
+		return
+	}
+
+	todayPath := xray.GetAccessPersistentLogPath()
+	if _, err := os.Stat(todayPath); err == nil {
+		// Today's dated file already exists; leave the legacy file alone
+		// rather than overwriting or guessing how to merge them.
+		return
+	}
+
+	if err := os.Rename(legacyPath, todayPath); err != nil {
+		logger.Warning("Failed to migrate legacy persistent access log:", err)
+	}
+}
+
+// pruneOldAccessPersistentLogs deletes per-day persistent access log files
+// older than xray.AccessPersistentLogRetentionDays, so they don't
+// accumulate on disk forever.
+func pruneOldAccessPersistentLogs() {
+	matches, err := filepath.Glob(xray.AccessPersistentLogGlob())
+	if err != nil {
+		logger.Warning("Failed to list persistent access logs:", err)
+		return
+	}
+
+	cutoff := time.Now().AddDate(0, 0, -xray.AccessPersistentLogRetentionDays)
+	for _, path := range matches {
+		date, ok := xray.ParseAccessPersistentLogDate(path)
+		if !ok || !date.Before(cutoff) {
+			continue
+		}
+		if err := os.Remove(path); err != nil {
+			logger.Warning("Failed to remove old persistent access log:", path, "-", err)
 		}
 	}
 }
