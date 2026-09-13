@@ -2,7 +2,6 @@ package service
 
 import (
 	"archive/zip"
-	"bufio"
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -15,6 +14,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -22,6 +22,7 @@ import (
 
 	"github.com/mhsanaei/3x-ui/v2/config"
 	"github.com/mhsanaei/3x-ui/v2/database"
+	"github.com/mhsanaei/3x-ui/v2/database/model"
 	"github.com/mhsanaei/3x-ui/v2/logger"
 	"github.com/mhsanaei/3x-ui/v2/util/common"
 	"github.com/mhsanaei/3x-ui/v2/util/sys"
@@ -34,6 +35,7 @@ import (
 	"github.com/shirou/gopsutil/v4/load"
 	"github.com/shirou/gopsutil/v4/mem"
 	"github.com/shirou/gopsutil/v4/net"
+	"gorm.io/gorm"
 )
 
 // ProcessState represents the current state of a system process.
@@ -756,126 +758,173 @@ func (s *ServerService) GetLogs(count string, level string, syslog string) []str
 	return lines
 }
 
+// xrayLogPageSize is how many access log rows one page of the viewer holds.
+// The panel renders a page into a single HTML table, so this also bounds how
+// much DOM the browser ever has to build.
+const xrayLogPageSize = 200
+
+// XrayLogPage is one page of the Xray access log plus what the panel needs to
+// render the date picker, the client picker and the pager.
+type XrayLogPage struct {
+	Entries  []LogEntry `json:"entries"`
+	Total    int64      `json:"total"`
+	Page     int        `json:"page"`
+	PageSize int        `json:"pageSize"`
+	Date     string     `json:"date"`
+	Dates    []string   `json:"dates"`
+	Email    string     `json:"email"`
+	Clients  []string   `json:"clients"`
+}
+
+// GetXrayLogs returns one page of stored access log entries for a single day.
+// Entries are ingested into the log database by XrayLogIngestJob, so this is
+// a plain indexed query rather than a scan of the log files.
 func (s *ServerService) GetXrayLogs(
-	count string,
+	date string,
+	page int,
+	email string,
 	filter string,
 	showDirect string,
 	showBlocked string,
 	showProxy string,
 	freedoms []string,
-	blackholes []string) []LogEntry {
+	blackholes []string) XrayLogPage {
 
-	countInt, _ := strconv.Atoi(count)
-	var entries []LogEntry
-
-	// Xray's raw access log gets folded into today's persistent log file
-	// (xray.GetAccessPersistentLogPath) roughly every hour by
-	// CheckClientIpJob.clearAccessLog, so the raw file alone only ever
-	// holds up to an hour of history. Read today's persistent log first,
-	// then the raw file's not-yet-folded tail, so the panel shows the
-	// whole day without losing entries to that rotation.
-	appendXrayLogEntries(&entries, xray.GetAccessPersistentLogPath(), filter, freedoms, blackholes, showDirect, showBlocked, showProxy)
-
-	if pathToAccessLog, err := xray.GetAccessLogPath(); err == nil {
-		appendXrayLogEntries(&entries, pathToAccessLog, filter, freedoms, blackholes, showDirect, showBlocked, showProxy)
-	}
-
-	if len(entries) > countInt {
-		entries = entries[len(entries)-countInt:]
-	}
-
-	return entries
-}
-
-// appendXrayLogEntries scans one Xray access-log file and appends matching
-// entries to entries. A missing file is skipped silently - the persistent
-// log may not exist yet on a fresh install or right after midnight.
-func appendXrayLogEntries(entries *[]LogEntry, path string, filter string, freedoms []string, blackholes []string, showDirect, showBlocked, showProxy string) {
 	const (
 		Direct = iota
 		Blocked
 		Proxied
 	)
 
-	file, err := os.Open(path)
+	result := XrayLogPage{
+		Entries:  []LogEntry{},
+		Page:     max(page, 1),
+		PageSize: xrayLogPageSize,
+		Email:    email,
+	}
+
+	db := database.GetLogDB()
+	if db == nil {
+		return result
+	}
+
+	result.Dates = xrayLogDates(db)
+	result.Clients = xrayLogClients(db)
+	result.Date = date
+	if !slices.Contains(result.Dates, result.Date) {
+		if len(result.Dates) == 0 {
+			return result
+		}
+		result.Date = result.Dates[0]
+	}
+
+	query := db.Model(&model.XrayLogEntry{}).Where("day = ?", result.Date)
+
+	if email != "" {
+		query = query.Where("email = ?", email)
+	}
+
+	if filter != "" {
+		like := "%" + escapeSQLLike(filter) + "%"
+		query = query.Where(
+			`(from_address LIKE ? ESCAPE '\' OR to_address LIKE ? ESCAPE '\' OR inbound LIKE ? ESCAPE '\' OR outbound LIKE ? ESCAPE '\' OR email LIKE ? ESCAPE '\')`,
+			like, like, like, like, like)
+	}
+
+	// The three checkboxes select on the outbound tag, which is what decides
+	// whether a connection went out directly, was blackholed, or was proxied.
+	if showDirect == "false" && len(freedoms) > 0 {
+		query = query.Where("outbound NOT IN ?", freedoms)
+	}
+	if showBlocked == "false" && len(blackholes) > 0 {
+		query = query.Where("outbound NOT IN ?", blackholes)
+	}
+	if showProxy == "false" {
+		handled := append(append([]string{}, freedoms...), blackholes...)
+		if len(handled) == 0 {
+			return result
+		}
+		query = query.Where("outbound IN ?", handled)
+	}
+
+	// Count and the page read share these conditions. GORM documents a chain as
+	// unsafe to reuse after a finisher such as Count, so freeze it in a Session.
+	query = query.Session(&gorm.Session{})
+
+	if err := query.Count(&result.Total).Error; err != nil {
+		logger.Warning("Failed to count Xray log entries:", err)
+		return result
+	}
+
+	var rows []model.XrayLogEntry
+	err := query.Order("timestamp desc").
+		Limit(result.PageSize).
+		Offset((result.Page - 1) * result.PageSize).
+		Find(&rows).Error
 	if err != nil {
-		return
+		logger.Warning("Failed to read Xray log entries:", err)
+		return result
 	}
-	defer file.Close()
 
-	scanner := bufio.NewScanner(file)
-
-	for scanner.Scan() {
-		line := strings.TrimSpace(scanner.Text())
-
-		if line == "" || strings.Contains(line, "api -> api") {
-			//skipping empty lines and api calls
-			continue
+	for _, row := range rows {
+		entry := LogEntry{
+			DateTime:    time.UnixMicro(row.Timestamp).UTC(),
+			FromAddress: row.FromAddress,
+			ToAddress:   row.ToAddress,
+			Inbound:     row.Inbound,
+			Outbound:    row.Outbound,
+			Email:       row.Email,
+			Event:       Proxied,
 		}
-
-		if filter != "" && !strings.Contains(line, filter) {
-			//applying filter if it's not empty
-			continue
-		}
-
-		var entry LogEntry
-		parts := strings.Fields(line)
-
-		for i, part := range parts {
-
-			if i == 0 {
-				dateTime, err := time.ParseInLocation("2006/01/02 15:04:05.999999", parts[0]+" "+parts[1], time.Local)
-				if err != nil {
-					continue
-				}
-				entry.DateTime = dateTime.UTC()
-			}
-
-			if part == "from" {
-				entry.FromAddress = strings.TrimLeft(parts[i+1], "/")
-			} else if part == "accepted" {
-				entry.ToAddress = strings.TrimLeft(parts[i+1], "/")
-			} else if strings.HasPrefix(part, "[") {
-				entry.Inbound = part[1:]
-			} else if strings.HasSuffix(part, "]") {
-				entry.Outbound = part[:len(part)-1]
-			} else if part == "email:" {
-				entry.Email = parts[i+1]
-			}
-		}
-
-		if logEntryContains(line, freedoms) {
-			if showDirect == "false" {
-				continue
-			}
+		if slices.Contains(freedoms, row.Outbound) {
 			entry.Event = Direct
-		} else if logEntryContains(line, blackholes) {
-			if showBlocked == "false" {
-				continue
-			}
+		} else if slices.Contains(blackholes, row.Outbound) {
 			entry.Event = Blocked
-		} else {
-			if showProxy == "false" {
-				continue
-			}
-			entry.Event = Proxied
 		}
-
-		*entries = append(*entries, entry)
+		result.Entries = append(result.Entries, entry)
 	}
 
-	if err := scanner.Err(); err != nil {
-		logger.Warning("Failed to read Xray log file:", path, "-", err)
-	}
+	return result
 }
 
-func logEntryContains(line string, suffixes []string) bool {
-	for _, sfx := range suffixes {
-		if strings.Contains(line, sfx+"]") {
-			return true
-		}
+// xrayLogDates lists the days that currently have stored entries, newest
+// first. The day column is indexed, so this stays cheap as the table grows.
+func xrayLogDates(db *gorm.DB) []string {
+	var days []string
+	err := db.Model(&model.XrayLogEntry{}).
+		Distinct().
+		Order("day desc").
+		Pluck("day", &days).Error
+	if err != nil {
+		logger.Warning("Failed to list Xray log days:", err)
+		return nil
 	}
-	return false
+	return days
+}
+
+// xrayLogClients lists every client that appears anywhere in the stored logs.
+// The list deliberately spans all retained days rather than just the selected
+// one: a stable list means switching dates never silently drops the client
+// the user picked, and a day where that client was idle is a meaningful
+// answer in its own right.
+func xrayLogClients(db *gorm.DB) []string {
+	var emails []string
+	err := db.Model(&model.XrayLogEntry{}).
+		Where("email <> ''").
+		Distinct().
+		Order("email asc").
+		Pluck("email", &emails).Error
+	if err != nil {
+		logger.Warning("Failed to list Xray log clients:", err)
+		return nil
+	}
+	return emails
+}
+
+// escapeSQLLike neutralises the wildcards in a user supplied filter so that it
+// matches literally.
+func escapeSQLLike(value string) string {
+	return strings.NewReplacer(`\`, `\\`, `%`, `\%`, `_`, `\_`).Replace(value)
 }
 
 func (s *ServerService) GetConfigJson() (any, error) {

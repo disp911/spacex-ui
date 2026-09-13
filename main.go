@@ -51,6 +51,12 @@ func runWebServer() {
 		log.Fatalf("Error initializing database: %v", err)
 	}
 
+	// A failure here is not fatal: without the log database the panel runs
+	// normally and only the Xray log viewer comes up empty.
+	if err := database.InitLogDB(); err != nil {
+		logger.Warning("Error initializing Xray log database:", err)
+	}
+
 	var server *web.Server
 	server = web.NewServer()
 	global.SetWebServer(server)

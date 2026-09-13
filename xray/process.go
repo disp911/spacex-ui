@@ -64,10 +64,13 @@ func GetIPLimitBannedPrevLogPath() string {
 // this single constant to keep a longer or shorter history.
 const AccessPersistentLogRetentionDays = 7
 
+// AccessPersistentLogDateFormat is the layout of the date segment in a
+// persistent access log file name, and of the day column in the log database.
+const AccessPersistentLogDateFormat = "2006-01-02"
+
 const (
-	accessPersistentLogPrefix     = "3xipl-ap-"
-	accessPersistentLogSuffix     = ".log"
-	accessPersistentLogDateFormat = "2006-01-02"
+	accessPersistentLogPrefix = "3xipl-ap-"
+	accessPersistentLogSuffix = ".log"
 )
 
 // GetAccessPersistentLogPath returns today's persistent access log file
@@ -75,7 +78,7 @@ const (
 // single ever-growing file used before - so ClearLogsJob can delete old
 // days by filename without ever truncating a file still being written to.
 func GetAccessPersistentLogPath() string {
-	return config.GetLogFolder() + "/" + accessPersistentLogPrefix + time.Now().Format(accessPersistentLogDateFormat) + accessPersistentLogSuffix
+	return config.GetLogFolder() + "/" + accessPersistentLogPrefix + time.Now().Format(AccessPersistentLogDateFormat) + accessPersistentLogSuffix
 }
 
 // AccessPersistentLogGlob returns a glob pattern matching every persistent
@@ -95,7 +98,7 @@ func ParseAccessPersistentLogDate(path string) (date time.Time, ok bool) {
 	}
 
 	dateStr := strings.TrimSuffix(strings.TrimPrefix(base, accessPersistentLogPrefix), accessPersistentLogSuffix)
-	parsed, err := time.ParseInLocation(accessPersistentLogDateFormat, dateStr, time.Local)
+	parsed, err := time.ParseInLocation(AccessPersistentLogDateFormat, dateStr, time.Local)
 	if err != nil {
 		return time.Time{}, false
 	}

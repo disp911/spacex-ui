@@ -60,7 +60,7 @@ func (a *ServerController) initRouter(g *gin.RouterGroup) {
 	g.POST("/updateGeofile", a.updateGeofile)
 	g.POST("/updateGeofile/:fileName", a.updateGeofile)
 	g.POST("/logs/:count", a.getLogs)
-	g.POST("/xraylogs/:count", a.getXrayLogs)
+	g.POST("/xraylogs", a.getXrayLogs)
 	g.POST("/importDB", a.importDB)
 	g.POST("/getNewEchCert", a.getNewEchCert)
 }
@@ -215,9 +215,12 @@ func (a *ServerController) getLogs(c *gin.Context) {
 	jsonObj(c, logs, nil)
 }
 
-// getXrayLogs retrieves Xray logs with filtering options for direct, blocked, and proxy traffic.
+// getXrayLogs retrieves one page of Xray logs for a single day, with filtering
+// options for client, direct, blocked, and proxy traffic.
 func (a *ServerController) getXrayLogs(c *gin.Context) {
-	count := c.Param("count")
+	date := c.PostForm("date")
+	page, _ := strconv.Atoi(c.PostForm("page"))
+	email := c.PostForm("email")
 	filter := c.PostForm("filter")
 	showDirect := c.PostForm("showDirect")
 	showBlocked := c.PostForm("showBlocked")
@@ -256,7 +259,7 @@ func (a *ServerController) getXrayLogs(c *gin.Context) {
 		blackholes = []string{"blocked"}
 	}
 
-	logs := a.serverService.GetXrayLogs(count, filter, showDirect, showBlocked, showProxy, freedoms, blackholes)
+	logs := a.serverService.GetXrayLogs(date, page, email, filter, showDirect, showBlocked, showProxy, freedoms, blackholes)
 	jsonObj(c, logs, nil)
 }
 

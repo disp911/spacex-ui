@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/mhsanaei/3x-ui/v2/config"
+	"github.com/mhsanaei/3x-ui/v2/database"
+	"github.com/mhsanaei/3x-ui/v2/database/model"
 	"github.com/mhsanaei/3x-ui/v2/logger"
 	"github.com/mhsanaei/3x-ui/v2/xray"
 )
@@ -80,6 +82,7 @@ func (j *ClearLogsJob) Run() {
 
 	migrateLegacyAccessPersistentLog()
 	pruneOldAccessPersistentLogs()
+	pruneOldXrayLogRows()
 }
 
 // migrateLegacyAccessPersistentLog moves a pre-upgrade single "3xipl-ap.log"
@@ -124,5 +127,20 @@ func pruneOldAccessPersistentLogs() {
 		if err := os.Remove(path); err != nil {
 			logger.Warning("Failed to remove old persistent access log:", path, "-", err)
 		}
+	}
+}
+
+// pruneOldXrayLogRows drops access log rows past the retention window. The
+// window matches the one used for the files so the viewer's date list and the
+// files on disk stay in step.
+func pruneOldXrayLogRows() {
+	db := database.GetLogDB()
+	if db == nil {
+		return
+	}
+
+	cutoff := time.Now().AddDate(0, 0, -xray.AccessPersistentLogRetentionDays).UnixMicro()
+	if err := db.Where("timestamp < ?", cutoff).Delete(&model.XrayLogEntry{}).Error; err != nil {
+		logger.Warning("Failed to prune old Xray log rows:", err)
 	}
 }
