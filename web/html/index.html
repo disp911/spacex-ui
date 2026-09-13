@@ -1063,13 +1063,7 @@
       this.total = data?.total ?? 0;
       this.page = data?.page ?? 1;
       this.pageSize = data?.pageSize ?? 200;
-      if (this.logs.length === 0) {
-        this.formattedLogs = "No Record...";
-        return;
-      }
-      const pages = Math.max(1, Math.ceil(this.total / this.pageSize));
-      const header = `<div style="padding: 2px 15px; opacity: .7;">${escapeHtml(this.date)} — ${this.total} records, page ${this.page} of ${pages}</div>`;
-      this.formattedLogs = header + this.formatLogs(this.logs);
+      this.formattedLogs = this.logs.length > 0 ? this.formatLogs(this.logs) : "No Record...";
     },
     formatLogs(logs) {
       let formattedLogs = `
