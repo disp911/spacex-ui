@@ -2,6 +2,7 @@ package service
 
 import (
 	"archive/zip"
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -776,6 +777,15 @@ type XrayLogPage struct {
 	Clients  []string   `json:"clients"`
 }
 
+// Event values of a LogEntry: how the connection left the server.
+const (
+	xrayLogDirect = iota
+	xrayLogBlocked
+	xrayLogProxied
+)
+
+var xrayLogEventNames = [...]string{"DIRECT", "BLOCKED", "PROXY"}
+
 // GetXrayLogs returns one page of stored access log entries for a single day.
 // Entries are ingested into the log database by XrayLogIngestJob, so this is
 // a plain indexed query rather than a scan of the log files.
@@ -789,12 +799,6 @@ func (s *ServerService) GetXrayLogs(
 	showProxy string,
 	freedoms []string,
 	blackholes []string) XrayLogPage {
-
-	const (
-		Direct = iota
-		Blocked
-		Proxied
-	)
 
 	result := XrayLogPage{
 		Entries:  []LogEntry{},
@@ -810,15 +814,128 @@ func (s *ServerService) GetXrayLogs(
 
 	result.Dates = xrayLogDates(db)
 	result.Clients = xrayLogClients(db)
-	result.Date = date
-	if !slices.Contains(result.Dates, result.Date) {
-		if len(result.Dates) == 0 {
-			return result
-		}
-		result.Date = result.Dates[0]
+	result.Date = resolveXrayLogDay(result.Dates, date)
+	if result.Date == "" {
+		return result
 	}
 
-	query := db.Model(&model.XrayLogEntry{}).Where("day = ?", result.Date)
+	query, ok := xrayLogQuery(db, result.Date, email, filter, showDirect, showBlocked, showProxy, freedoms, blackholes)
+	if !ok {
+		return result
+	}
+
+	if err := query.Count(&result.Total).Error; err != nil {
+		logger.Warning("Failed to count Xray log entries:", err)
+		return result
+	}
+
+	var rows []model.XrayLogEntry
+	err := query.Order("timestamp desc").
+		Limit(result.PageSize).
+		Offset((result.Page - 1) * result.PageSize).
+		Find(&rows).Error
+	if err != nil {
+		logger.Warning("Failed to read Xray log entries:", err)
+		return result
+	}
+
+	for _, row := range rows {
+		result.Entries = append(result.Entries, LogEntry{
+			DateTime:    time.UnixMicro(row.Timestamp).UTC(),
+			FromAddress: row.FromAddress,
+			ToAddress:   row.ToAddress,
+			Inbound:     row.Inbound,
+			Outbound:    row.Outbound,
+			Email:       row.Email,
+			Event:       xrayLogEvent(row.Outbound, freedoms, blackholes),
+		})
+	}
+
+	return result
+}
+
+// ResolveXrayLogDay maps a requested day onto the days that have stored
+// entries, the same way the viewer does. It returns "" when nothing is stored.
+func (s *ServerService) ResolveXrayLogDay(date string) string {
+	db := database.GetLogDB()
+	if db == nil {
+		return ""
+	}
+	return resolveXrayLogDay(xrayLogDates(db), date)
+}
+
+// ExportXrayLogs writes every stored entry of day that matches the filters to
+// w, oldest first, one line per entry. Rows are streamed from the database, so
+// a busy day never has to fit in memory.
+func (s *ServerService) ExportXrayLogs(
+	w io.Writer,
+	day string,
+	email string,
+	filter string,
+	showDirect string,
+	showBlocked string,
+	showProxy string,
+	freedoms []string,
+	blackholes []string) error {
+
+	db := database.GetLogDB()
+	if db == nil || day == "" {
+		return nil
+	}
+
+	query, ok := xrayLogQuery(db, day, email, filter, showDirect, showBlocked, showProxy, freedoms, blackholes)
+	if !ok {
+		return nil
+	}
+
+	rows, err := query.Order("timestamp asc").Rows()
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	out := bufio.NewWriter(w)
+	for rows.Next() {
+		var row model.XrayLogEntry
+		if err := db.ScanRows(rows, &row); err != nil {
+			return err
+		}
+		if err := writeXrayLogLine(out, &row, xrayLogEvent(row.Outbound, freedoms, blackholes)); err != nil {
+			return err
+		}
+	}
+	if err := rows.Err(); err != nil {
+		return err
+	}
+	return out.Flush()
+}
+
+// resolveXrayLogDay picks date if entries exist for it and the newest stored
+// day otherwise; "" means nothing is stored at all.
+func resolveXrayLogDay(days []string, date string) string {
+	if slices.Contains(days, date) {
+		return date
+	}
+	if len(days) == 0 {
+		return ""
+	}
+	return days[0]
+}
+
+// xrayLogQuery builds the filtered query for one day that both the viewer and
+// the export run. ok is false when the filters cannot match any row.
+func xrayLogQuery(
+	db *gorm.DB,
+	day string,
+	email string,
+	filter string,
+	showDirect string,
+	showBlocked string,
+	showProxy string,
+	freedoms []string,
+	blackholes []string) (*gorm.DB, bool) {
+
+	query := db.Model(&model.XrayLogEntry{}).Where("day = ?", day)
 
 	if email != "" {
 		query = query.Where("email = ?", email)
@@ -842,49 +959,40 @@ func (s *ServerService) GetXrayLogs(
 	if showProxy == "false" {
 		handled := append(append([]string{}, freedoms...), blackholes...)
 		if len(handled) == 0 {
-			return result
+			return nil, false
 		}
 		query = query.Where("outbound IN ?", handled)
 	}
 
-	// Count and the page read share these conditions. GORM documents a chain as
-	// unsafe to reuse after a finisher such as Count, so freeze it in a Session.
-	query = query.Session(&gorm.Session{})
+	// The viewer runs Count and then the page read on these conditions. GORM
+	// documents a chain as unsafe to reuse after a finisher, so freeze it.
+	return query.Session(&gorm.Session{}), true
+}
 
-	if err := query.Count(&result.Total).Error; err != nil {
-		logger.Warning("Failed to count Xray log entries:", err)
-		return result
+// xrayLogEvent classifies a connection by the outbound tag it left through.
+func xrayLogEvent(outbound string, freedoms []string, blackholes []string) int {
+	if slices.Contains(freedoms, outbound) {
+		return xrayLogDirect
 	}
-
-	var rows []model.XrayLogEntry
-	err := query.Order("timestamp desc").
-		Limit(result.PageSize).
-		Offset((result.Page - 1) * result.PageSize).
-		Find(&rows).Error
-	if err != nil {
-		logger.Warning("Failed to read Xray log entries:", err)
-		return result
+	if slices.Contains(blackholes, outbound) {
+		return xrayLogBlocked
 	}
+	return xrayLogProxied
+}
 
-	for _, row := range rows {
-		entry := LogEntry{
-			DateTime:    time.UnixMicro(row.Timestamp).UTC(),
-			FromAddress: row.FromAddress,
-			ToAddress:   row.ToAddress,
-			Inbound:     row.Inbound,
-			Outbound:    row.Outbound,
-			Email:       row.Email,
-			Event:       Proxied,
-		}
-		if slices.Contains(freedoms, row.Outbound) {
-			entry.Event = Direct
-		} else if slices.Contains(blackholes, row.Outbound) {
-			entry.Event = Blocked
-		}
-		result.Entries = append(result.Entries, entry)
+// writeXrayLogLine writes one exported entry. The timestamp is in the server's
+// local time and in Xray's own layout, so exported lines match the log files.
+func writeXrayLogLine(w *bufio.Writer, row *model.XrayLogEntry, event int) error {
+	line := time.UnixMicro(row.Timestamp).Format("2006/01/02 15:04:05.000000") +
+		" FROM=" + row.FromAddress +
+		" TO=" + row.ToAddress +
+		" INBOUND=" + row.Inbound +
+		" OUTBOUND=" + row.Outbound
+	if row.Email != "" {
+		line += " Email=" + row.Email
 	}
-
-	return result
+	_, err := w.WriteString(line + " EVENT=" + xrayLogEventNames[event] + "\n")
+	return err
 }
 
 // xrayLogDates lists the days that currently have stored entries, newest

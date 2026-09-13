@@ -517,7 +517,7 @@
         <a-checkbox v-model="xraylogModal.showProxy" @change="openXrayLogs(1)">Proxy</a-checkbox>
       </a-form-item>
       <a-form-item style="float: right;">
-        <a-button type="primary" icon="download" @click="downloadXrayLogs"></a-button>
+        <a-button type="primary" icon="download" :loading="xraylogModal.downloading" @click="downloadXrayLogs"></a-button>
       </a-form-item>
     </a-form>
     <div class="ant-input log-container" v-html="xraylogModal.formattedLogs"></div>
@@ -1053,6 +1053,7 @@
     showBlocked: true,
     showProxy: true,
     loading: false,
+    downloading: false,
     show(data) {
       this.visible = true;
       this.logs = data?.entries ?? [];
@@ -1513,29 +1514,25 @@
         await PromiseUtil.sleep(500);
         xraylogModal.loading = false;
       },
-      downloadXrayLogs() {
-        if (!Array.isArray(this.xraylogModal.logs) || this.xraylogModal.logs.length === 0) {
-          FileManager.downloadTextFile('', 'x-ui.log');
-          return;
+      async downloadXrayLogs() {
+        xraylogModal.downloading = true;
+        try {
+          const resp = await axios.post('/panel/api/server/xraylogs/download', {
+            date: xraylogModal.date,
+            email: xraylogModal.email || '',
+            filter: xraylogModal.filter,
+            showDirect: xraylogModal.showDirect,
+            showBlocked: xraylogModal.showBlocked,
+            showProxy: xraylogModal.showProxy
+          }, { responseType: 'blob' });
+          const name = /filename="([^"]+)"/.exec(resp.headers['content-disposition'] || '')?.[1] || 'xray.log';
+          FileManager.downloadTextFile(resp.data, name);
+        } catch (error) {
+          console.error('Xray log download failed:', error);
+          Vue.prototype.$message.error(error.message || 'Download failed');
+        } finally {
+          xraylogModal.downloading = false;
         }
-        const lines = this.xraylogModal.logs.map(l => {
-          try {
-            const dt = l.DateTime ? new Date(l.DateTime) : null;
-            const dateStr = dt && !isNaN(dt.getTime()) ? dt.toISOString() : '';
-            const eventMap = {
-              0: 'DIRECT',
-              1: 'BLOCKED',
-              2: 'PROXY'
-            };
-            const eventText = eventMap[l.Event] || String(l.Event ?? '');
-            const emailPart = l.Email ? ` Email=${l.Email}` : '';
-            return `${dateStr} FROM=${l.FromAddress || ''} TO=${l.ToAddress || ''} INBOUND=${l.Inbound || ''} OUTBOUND=${l.Outbound || ''}${emailPart} EVENT=${eventText}`
-              .trim();
-          } catch (e) {
-            return JSON.stringify(l);
-          }
-        }).join('\n');
-        FileManager.downloadTextFile(lines, 'x-ui.log');
       },
       async openConfig() {
         this.loading(true);

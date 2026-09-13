@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/mhsanaei/3x-ui/v2/logger"
 	"github.com/mhsanaei/3x-ui/v2/web/global"
 	"github.com/mhsanaei/3x-ui/v2/web/service"
 	"github.com/mhsanaei/3x-ui/v2/web/websocket"
@@ -15,6 +16,8 @@ import (
 )
 
 var filenameRegex = regexp.MustCompile(`^[a-zA-Z0-9_\-.]+$`)
+
+var unsafeFilenameChars = regexp.MustCompile(`[^a-zA-Z0-9_\-.]`)
 
 // ServerController handles server management and status-related operations.
 type ServerController struct {
@@ -61,6 +64,7 @@ func (a *ServerController) initRouter(g *gin.RouterGroup) {
 	g.POST("/updateGeofile/:fileName", a.updateGeofile)
 	g.POST("/logs/:count", a.getLogs)
 	g.POST("/xraylogs", a.getXrayLogs)
+	g.POST("/xraylogs/download", a.downloadXrayLogs)
 	g.POST("/importDB", a.importDB)
 	g.POST("/getNewEchCert", a.getNewEchCert)
 }
@@ -218,18 +222,50 @@ func (a *ServerController) getLogs(c *gin.Context) {
 // getXrayLogs retrieves one page of Xray logs for a single day, with filtering
 // options for client, direct, blocked, and proxy traffic.
 func (a *ServerController) getXrayLogs(c *gin.Context) {
-	date := c.PostForm("date")
 	page, _ := strconv.Atoi(c.PostForm("page"))
+	freedoms, blackholes := a.xrayOutboundTags()
+
+	logs := a.serverService.GetXrayLogs(c.PostForm("date"), page, c.PostForm("email"), c.PostForm("filter"),
+		c.PostForm("showDirect"), c.PostForm("showBlocked"), c.PostForm("showProxy"), freedoms, blackholes)
+	jsonObj(c, logs, nil)
+}
+
+// downloadXrayLogs streams every entry of the selected day that matches the
+// viewer's filters as a text file.
+func (a *ServerController) downloadXrayLogs(c *gin.Context) {
+	freedoms, blackholes := a.xrayOutboundTags()
+	day := a.serverService.ResolveXrayLogDay(c.PostForm("date"))
 	email := c.PostForm("email")
-	filter := c.PostForm("filter")
-	showDirect := c.PostForm("showDirect")
-	showBlocked := c.PostForm("showBlocked")
-	showProxy := c.PostForm("showProxy")
 
-	var freedoms []string
-	var blackholes []string
+	c.Header("Content-Type", "text/plain; charset=utf-8")
+	c.Header("Content-Disposition", `attachment; filename="`+xrayLogFilename(day, email)+`"`)
+	c.Status(http.StatusOK)
 
-	//getting tags for freedom and blackhole outbounds
+	err := a.serverService.ExportXrayLogs(c.Writer, day, email, c.PostForm("filter"),
+		c.PostForm("showDirect"), c.PostForm("showBlocked"), c.PostForm("showProxy"), freedoms, blackholes)
+	if err != nil {
+		logger.Warning("Failed to export Xray logs:", err)
+	}
+}
+
+// xrayLogFilename names an exported log after its day and, when one is
+// selected, its client. The client name is user-controlled and ends up in a
+// response header, so everything outside a plain filename charset is replaced.
+func xrayLogFilename(day string, email string) string {
+	if day == "" {
+		return "xray.log"
+	}
+	name := "xray-" + day
+	if email != "" {
+		name += "-" + unsafeFilenameChars.ReplaceAllString(email, "_")
+	}
+	return name + ".log"
+}
+
+// xrayOutboundTags returns the tags of the freedom and blackhole outbounds in
+// the Xray config, which decide whether a logged connection counts as direct
+// or blocked.
+func (a *ServerController) xrayOutboundTags() (freedoms []string, blackholes []string) {
 	config, err := a.settingService.GetDefaultXrayConfig()
 	if err == nil && config != nil {
 		if cfgMap, ok := config.(map[string]any); ok {
@@ -258,9 +294,7 @@ func (a *ServerController) getXrayLogs(c *gin.Context) {
 	if len(blackholes) == 0 {
 		blackholes = []string{"blocked"}
 	}
-
-	logs := a.serverService.GetXrayLogs(date, page, email, filter, showDirect, showBlocked, showProxy, freedoms, blackholes)
-	jsonObj(c, logs, nil)
+	return freedoms, blackholes
 }
 
 // getConfigJson retrieves the Xray configuration as JSON.
