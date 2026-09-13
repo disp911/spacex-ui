@@ -336,6 +336,9 @@ func (s *Server) startTask() {
 	// check client ips from log file every day
 	s.cron.AddJob("@daily", job.NewClearLogsJob())
 
+	// ingest Xray access log lines into the log database every 10 sec
+	s.cron.AddJob("@every 10s", job.NewXrayLogIngestJob())
+
 	// Inbound traffic reset jobs
 	// Run every hour
 	s.cron.AddJob("@hourly", job.NewPeriodicTrafficResetJob("hourly"))

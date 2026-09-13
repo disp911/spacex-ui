@@ -153,3 +153,18 @@ type Client struct {
 	CreatedAt  int64          `json:"created_at,omitempty"`         // Creation timestamp
 	UpdatedAt  int64          `json:"updated_at,omitempty"`         // Last update timestamp
 }
+
+// XrayLogEntry is one parsed line of Xray's access log. These rows live in
+// their own database (see database.GetLogDB) rather than in x-ui.db: they are
+// high-volume, disposable operational data, and keeping them out of the panel
+// database keeps backups small and log writes off the configuration database.
+type XrayLogEntry struct {
+	Id          int64  `json:"id" gorm:"primaryKey;autoIncrement"`
+	Day         string `json:"day" gorm:"size:10;not null;index:idx_xray_log_day_ts,priority:1"`
+	Timestamp   int64  `json:"timestamp" gorm:"not null;index:idx_xray_log_day_ts,priority:2;uniqueIndex:idx_xray_log_dedupe,priority:1"`
+	FromAddress string `json:"fromAddress" gorm:"uniqueIndex:idx_xray_log_dedupe,priority:2"`
+	ToAddress   string `json:"toAddress" gorm:"uniqueIndex:idx_xray_log_dedupe,priority:3"`
+	Inbound     string `json:"inbound"`
+	Outbound    string `json:"outbound" gorm:"index"`
+	Email       string `json:"email" gorm:"index"`
+}

@@ -492,30 +492,37 @@
     </template>
     <a-form layout="inline">
       <a-form-item class="mr-05">
-        <a-input-group compact>
-          <a-select size="small" v-model="xraylogModal.rows" :style="{ width: '70px' }" @change="openXrayLogs()"
-            :dropdown-class-name="themeSwitcher.currentTheme">
-            <a-select-option value="10">10</a-select-option>
-            <a-select-option value="20">20</a-select-option>
-            <a-select-option value="50">50</a-select-option>
-            <a-select-option value="100">100</a-select-option>
-            <a-select-option value="500">500</a-select-option>
-          </a-select>
-        </a-input-group>
+        <a-select size="small" v-model="xraylogModal.date" :style="{ width: '130px' }" @change="openXrayLogs(1)"
+          :dropdown-class-name="themeSwitcher.currentTheme">
+          <a-select-option :value="d" v-for="d in xraylogModal.dates" :key="d">
+            <span v-text="d"></span>
+          </a-select-option>
+        </a-select>
+      </a-form-item>
+      <a-form-item class="mr-05">
+        <a-select size="small" v-model="xraylogModal.email" :style="{ width: '170px' }" @change="openXrayLogs(1)"
+          :dropdown-class-name="themeSwitcher.currentTheme">
+          <a-select-option value="">All clients</a-select-option>
+          <a-select-option :value="e" v-for="e in xraylogModal.clients" :key="e">
+            <span v-text="e"></span>
+          </a-select-option>
+        </a-select>
       </a-form-item>
       <a-form-item label="Filter:">
-        <a-input size="small" v-model="xraylogModal.filter" @keyup.enter="openXrayLogs()"></a-input>
+        <a-input size="small" v-model="xraylogModal.filter" @keyup.enter="openXrayLogs(1)"></a-input>
       </a-form-item>
       <a-form-item>
-        <a-checkbox v-model="xraylogModal.showDirect" @change="openXrayLogs()">Direct</a-checkbox>
-        <a-checkbox v-model="xraylogModal.showBlocked" @change="openXrayLogs()">Blocked</a-checkbox>
-        <a-checkbox v-model="xraylogModal.showProxy" @change="openXrayLogs()">Proxy</a-checkbox>
+        <a-checkbox v-model="xraylogModal.showDirect" @change="openXrayLogs(1)">Direct</a-checkbox>
+        <a-checkbox v-model="xraylogModal.showBlocked" @change="openXrayLogs(1)">Blocked</a-checkbox>
+        <a-checkbox v-model="xraylogModal.showProxy" @change="openXrayLogs(1)">Proxy</a-checkbox>
       </a-form-item>
       <a-form-item style="float: right;">
         <a-button type="primary" icon="download" @click="downloadXrayLogs"></a-button>
       </a-form-item>
     </a-form>
     <div class="ant-input log-container" v-html="xraylogModal.formattedLogs"></div>
+    <a-pagination size="small" class="mt-5" :current="xraylogModal.page" :page-size="xraylogModal.pageSize"
+      :total="xraylogModal.total" @change="openXrayLogs"></a-pagination>
   </a-modal>
   <a-modal id="backup-modal" v-model="backupModal.visible" title='{{ i18n "pages.index.backupTitle" }}' :closable="true"
     footer="" :class="themeSwitcher.currentTheme">
@@ -1035,15 +1042,34 @@
   const xraylogModal = {
     visible: false,
     logs: [],
-    rows: 20,
+    dates: [],
+    date: '',
+    clients: [],
+    email: '',
+    total: 0,
+    page: 1,
+    pageSize: 200,
     showDirect: true,
     showBlocked: true,
     showProxy: true,
     loading: false,
-    show(logs) {
+    show(data) {
       this.visible = true;
-      this.logs = logs;
-      this.formattedLogs = this.logs?.length > 0 ? this.formatLogs(this.logs) : "No Record...";
+      this.logs = data?.entries ?? [];
+      this.dates = data?.dates ?? [];
+      this.date = data?.date ?? '';
+      this.clients = data?.clients ?? [];
+      this.email = data?.email ?? '';
+      this.total = data?.total ?? 0;
+      this.page = data?.page ?? 1;
+      this.pageSize = data?.pageSize ?? 200;
+      if (this.logs.length === 0) {
+        this.formattedLogs = "No Record...";
+        return;
+      }
+      const pages = Math.max(1, Math.ceil(this.total / this.pageSize));
+      const header = `<div style="padding: 2px 15px; opacity: .7;">${escapeHtml(this.date)} — ${this.total} records, page ${this.page} of ${pages}</div>`;
+      this.formattedLogs = header + this.formatLogs(this.logs);
     },
     formatLogs(logs) {
       let formattedLogs = `
@@ -1069,7 +1095,7 @@
     </tr>
 `;
 
-      logs.reverse().forEach((log, index) => {
+      logs.forEach((log, index) => {
         let outboundColor = '';
         if (log.Event === 1) {
           outboundColor = ' style="color: #e04141;"'; //red for blocked
@@ -1469,9 +1495,12 @@
         await PromiseUtil.sleep(500);
         logModal.loading = false;
       },
-      async openXrayLogs() {
+      async openXrayLogs(page) {
         xraylogModal.loading = true;
-        const msg = await HttpUtil.post('/panel/api/server/xraylogs/' + xraylogModal.rows, {
+        const msg = await HttpUtil.post('/panel/api/server/xraylogs', {
+          date: xraylogModal.date,
+          page: page || 1,
+          email: xraylogModal.email || '',
           filter: xraylogModal.filter,
           showDirect: xraylogModal.showDirect,
           showBlocked: xraylogModal.showBlocked,
