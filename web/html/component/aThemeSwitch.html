@@ -1,27 +1,3 @@
-{{define "component/themeSwitchTemplate"}}
-<template>
-  <a-menu :theme="themeSwitcher.currentTheme" mode="inline" selected-keys="">
-    <a-sub-menu>
-      <span slot="title">
-        <a-icon type="bulb" :theme="themeSwitcher.isDarkTheme ? 'filled' : 'outlined'"></a-icon>
-        <span>{{ i18n "menu.theme" }}</span>
-      </span>
-      <a-menu-item id="change-theme" class="ant-menu-theme-switch" @mousedown="themeSwitcher.animationsOff()">
-        <span>{{ i18n "menu.dark" }}</span>
-        <a-switch :style="{ marginLeft: '2px' }" size="small" :default-checked="themeSwitcher.isDarkTheme"
-          @change="themeSwitcher.toggleTheme()"></a-switch>
-      </a-menu-item>
-      <a-menu-item id="change-theme-ultra" v-if="themeSwitcher.isDarkTheme" class="ant-menu-theme-switch"
-        @mousedown="themeSwitcher.animationsOffUltra()">
-        <span>{{ i18n "menu.ultraDark" }}</span>
-        <a-checkbox :style="{ marginLeft: '2px' }" :checked="themeSwitcher.isUltra"
-          @click="themeSwitcher.toggleUltra()"></a-checkbox>
-      </a-menu-item>
-    </a-sub-menu>
-  </a-menu>
-</template>
-{{end}}
-
 {{define "component/themeSwitchTemplateLogin"}}
 <template>
   <a-space @mousedown="themeSwitcher.animationsOff()" id="change-theme" direction="vertical" :size="10"
@@ -61,16 +37,6 @@
           document.documentElement.removeAttribute('data-theme-animations');
         });
       },
-      animationsOffUltra() {
-        document.documentElement.setAttribute('data-theme-animations', 'off');
-        const themeAnimationsUltra = document.querySelector('#change-theme-ultra');
-        themeAnimationsUltra.addEventListener('mouseleave', () => {
-          document.documentElement.removeAttribute('data-theme-animations');
-        });
-        themeAnimationsUltra.addEventListener('touchend', () => {
-          document.documentElement.removeAttribute('data-theme-animations');
-        });
-      },
       isDarkTheme,
       isUltra,
       get currentTheme() {
@@ -94,18 +60,6 @@
     };
   }
   const themeSwitcher = createThemeSwitcher();
-  Vue.component('a-theme-switch', {
-    template: `{{template "component/themeSwitchTemplate" .}}`,
-    data: () => ({
-      themeSwitcher
-    }),
-    mounted() {
-      this.$message.config({
-        getContainer: () => document.getElementById('message')
-      });
-      document.getElementById('message').className = themeSwitcher.currentTheme;
-    }
-  });
   Vue.component('a-theme-switch-login', {
     template: `{{template "component/themeSwitchTemplateLogin" .}}`,
     data: () => ({

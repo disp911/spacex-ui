@@ -3,7 +3,6 @@
     <div class="ant-sidebar">
         <a-layout-sider :theme="themeSwitcher.currentTheme" collapsible :collapsed="collapsed"
             @collapse="(isCollapsed, type) => collapseHandle(isCollapsed, type)" breakpoint="md">
-            <a-theme-switch></a-theme-switch>
             <a-menu :theme="themeSwitcher.currentTheme" mode="inline" :selected-keys="activeTab"
                 @click="({key}) => openLink(key)">
                 <a-menu-item v-for="tab in tabs" :key="tab.key">
@@ -17,7 +16,6 @@
             <div class="drawer-handle" @click="toggleDrawer" slot="handle">
                 <a-icon :type="visible ? 'close' : 'menu-fold'"></a-icon>
             </div>
-            <a-theme-switch></a-theme-switch>
             <a-menu :theme="themeSwitcher.currentTheme" mode="inline" :selected-keys="activeTab"
                 @click="({key}) => openLink(key)">
                 <a-menu-item v-for="tab in tabs" :key="tab.key">
@@ -75,6 +73,13 @@
                 visible: false,
                 collapsed: JSON.parse(localStorage.getItem(SIDEBAR_COLLAPSED_KEY)),
             }
+        },
+        mounted() {
+            // Every panel page has the sidebar, so it sets up where toast messages render.
+            this.$message.config({
+                getContainer: () => document.getElementById('message')
+            });
+            document.getElementById('message').className = themeSwitcher.currentTheme;
         },
         methods: {
             openLink(key) {
