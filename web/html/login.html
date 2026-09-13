@@ -51,8 +51,7 @@
               <a-col :style="{ width: '100%' }">
                 <h2 class="title headline zoom">
                   <span class="words-wrapper">
-                    <b class="is-visible">{{ i18n "pages.login.hello" }}</b>
-                    <b>{{ i18n "pages.login.title" }}</b>
+                    <b class="is-visible">{{ i18n "pages.login.title" }}</b>
                   </span>
                 </h2>
               </a-col>
@@ -118,8 +117,7 @@
         twoFactorCode: ""
       },
       twoFactorEnable: false,
-      lang: "",
-      animationStarted: false
+      lang: ""
     },
     async mounted() {
       this.lang = LanguageManager.getLanguage();
@@ -139,41 +137,8 @@
         if (msg.success) {
           this.twoFactorEnable = msg.obj;
           this.loadingStates.fetched = true;
-          this.$nextTick(() => {
-            if (!this.animationStarted) {
-              this.animationStarted = true;
-              this.initHeadline();
-            }
-          });
           return msg.obj;
         }
-      },
-      initHeadline() {
-        const animationDelay = 2000;
-        const rootEl = this.$el instanceof Element ? this.$el : document.getElementById('app');
-        if (!rootEl || typeof rootEl.querySelectorAll !== 'function') {
-          return;
-        }
-        const headlines = rootEl.querySelectorAll('.headline');
-        headlines.forEach((headline) => {
-          const first = headline.querySelector('.is-visible');
-          if (!first) return;
-          setTimeout(() => this.hideWord(first, animationDelay), animationDelay);
-        });
-      },
-      hideWord(word, delay) {
-        const nextWord = this.takeNext(word);
-        this.switchWord(word, nextWord);
-        setTimeout(() => this.hideWord(nextWord, delay), delay);
-      },
-      takeNext(word) {
-        return word.nextElementSibling || word.parentElement.firstElementChild;
-      },
-      switchWord(oldWord, newWord) {
-        oldWord.classList.remove('is-visible');
-        oldWord.classList.add('is-hidden');
-        newWord.classList.remove('is-hidden');
-        newWord.classList.add('is-visible');
       }
     },
   });
