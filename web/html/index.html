@@ -1068,13 +1068,14 @@
     formatLogs(logs) {
       let formattedLogs = `
 <style>
-  table {
+  .log-container table {
     border-collapse: collapse;
     width: auto;
   }
 
-  table td, table th {
-    padding: 2px 15px;
+  .log-container table td, .log-container table th {
+    padding: 2px 8px;
+    white-space: nowrap;
   }
 </style>
 
@@ -1102,12 +1103,17 @@
           text = `<td>${escapeHtml(log.Email)}</td>`;
         }
 
+        // Xray tags its own traffic xray.system.<random uuid>; the uuid would only stretch the column.
+        const inbound = log.Inbound.startsWith('xray.system.')
+          ? `<td title="${escapeHtml(log.Inbound)}">xray.system</td>`
+          : `<td>${escapeHtml(log.Inbound)}</td>`;
+
         formattedLogs += `
 <tr ${outboundColor}>
     <td><b>${escapeHtml(IntlUtil.formatDate(log.DateTime))}</b></td>
     <td>${escapeHtml(log.FromAddress)}</td>
     <td>${escapeHtml(log.ToAddress)}</td>
-    <td>${escapeHtml(log.Inbound)}</td>
+    ${inbound}
     <td>${escapeHtml(log.Outbound)}</td>
     ${text}
 </tr>
