@@ -262,7 +262,11 @@ func TestManagerRestartsCrashedProcessOnSync(t *testing.T) {
 		t.Fatal(err)
 	}
 	eventually(t, "restart", func() bool { return env.count("start") == 2 && env.mgr.Running(3) })
+	// The restarted process keeps writing output through OnLog, so read the
+	// captured lines under the same lock the hook takes.
+	logMu.Lock()
 	joined := strings.Join(logged, "\n")
+	logMu.Unlock()
 	if !strings.Contains(joined, "3:ERROR bind failed") || !strings.Contains(joined, "3:INFO fake telemt listening") {
 		t.Fatalf("OnLog should receive every output line with the inbound id: %q", joined)
 	}
