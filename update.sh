@@ -851,6 +851,7 @@ update_x-ui() {
     fi
 
     chmod +x x-ui bin/xray-linux-$(arch) > /dev/null 2>&1
+    chmod +x bin/telemt-linux-$(arch) > /dev/null 2>&1
 
     echo -e "${green}Downloading and installing x-ui.sh script...${plain}"
     ${curl_bin} -fLRo /usr/bin/x-ui https://raw.githubusercontent.com/disp911/spacex-ui/main/x-ui.sh > /dev/null 2>&1

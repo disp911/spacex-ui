@@ -85,6 +85,8 @@
                         .randomShadowsocksPassword(inbound.settings.method)));
                 case Protocols.HYSTERIA:
                     return clients.push(new Inbound.HysteriaSettings.Hysteria());
+                case Protocols.MTPROTO:
+                    return clients.push(new Inbound.MTProtoSettings.MTProto());
                 default:
                     return null;
             }

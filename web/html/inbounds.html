@@ -108,11 +108,15 @@
               <a-card hoverable>
                 <template #title>
                   <a-space direction="horizontal">
-                    <a-button type="primary" icon="plus" @click="openAddInbound">
+                    <!-- ant-design-vue decides "icon only" once at mount; keying the
+                         buttons on isMobile re-creates them when the label appears or
+                         disappears, so they never keep the round icon-only shape. -->
+                    <a-button :key="isMobile ? 'add-mobile' : 'add'" type="primary" icon="plus"
+                      @click="openAddInbound">
                       <template v-if="!isMobile">{{ i18n
                         "pages.inbounds.addInbound" }}</template>
                     </a-button>
-                    <a-dropdown :trigger="['click']">
+                    <a-dropdown :key="isMobile ? 'actions-mobile' : 'actions'" :trigger="['click']">
                       <a-button type="primary" icon="menu">
                         <template v-if="!isMobile">{{ i18n
                           "pages.inbounds.generalActions" }}</template>
@@ -1198,7 +1202,7 @@
           to_inbound = dbInbound.toInbound()
           this.inbounds.push(to_inbound);
           this.dbInbounds.push(dbInbound);
-          if ([Protocols.VMESS, Protocols.VLESS, Protocols.TROJAN, Protocols.SHADOWSOCKS, Protocols.HYSTERIA].includes(inbound
+          if ([Protocols.VMESS, Protocols.VLESS, Protocols.TROJAN, Protocols.SHADOWSOCKS, Protocols.HYSTERIA, Protocols.MTPROTO].includes(inbound
             .protocol)) {
             if (dbInbound.isSS && (!to_inbound.isSSMultiUser)) {
               continue;

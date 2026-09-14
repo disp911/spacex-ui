@@ -119,6 +119,11 @@ class RandomUtil {
         return lengths.map(len => this.randomSeq(len, { type: "hex" })).join(',');
     }
 
+    // An MTProto proxy secret: 16 random bytes as lowercase hex.
+    static randomMTProtoSecret() {
+        return this.randomSeq(32, { type: "hex" });
+    }
+
     static randomLowerAndNum(len) {
         return this.randomSeq(len, { hasUppercase: false });
     }

@@ -225,6 +225,8 @@
                         .shadowsockses[0].method);
                 case Protocols.HYSTERIA:
                     return new Inbound.HysteriaSettings.Hysteria();
+                case Protocols.MTPROTO:
+                    return new Inbound.MTProtoSettings.MTProto();
                 default:
                     return null;
             }

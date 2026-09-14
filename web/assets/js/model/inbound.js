@@ -9,6 +9,7 @@ const Protocols = {
     HTTP: 'http',
     TUNNEL: 'tunnel',
     TUN: 'tun',
+    MTPROTO: 'mtproto',
 };
 
 const SSMethods = {
@@ -1628,6 +1629,7 @@ class Inbound extends XrayCommonClass {
             case Protocols.TROJAN: return this.settings.trojans;
             case Protocols.SHADOWSOCKS: return this.isSSMultiUser ? this.settings.shadowsockses : null;
             case Protocols.HYSTERIA: return this.settings.hysterias;
+            case Protocols.MTPROTO: return this.settings.mtprotos;
             default: return null;
         }
     }
@@ -2176,6 +2178,14 @@ class Inbound extends XrayCommonClass {
         return url.toString();
     }
 
+    // Telegram opens tg://proxy links; the ee prefix selects Fake-TLS and
+    // the masking domain is appended to the secret as hex.
+    genMTProtoLink(address = '', port = this.port, secret = '') {
+        const domainHex = Array.from(new TextEncoder().encode(this.settings.tlsDomain || ''))
+            .map(b => b.toString(16).padStart(2, '0')).join('');
+        return `tg://proxy?server=${address}&port=${port}&secret=ee${secret}${domainHex}`;
+    }
+
     getWireguardTxt(address, port, remark, peerId) {
         let txt = `[Interface]\n`
         txt += `PrivateKey = ${this.settings.peers[peerId].privateKey}\n`
@@ -2252,6 +2262,8 @@ class Inbound extends XrayCommonClass {
                 return this.genTrojanLink(address, port, forceTls, remark, client.password);
             case Protocols.HYSTERIA:
                 return this.genHysteriaLink(address, port, remark, client.auth.length > 0 ? client.auth : this.stream.hysteria.auth);
+            case Protocols.MTPROTO:
+                return this.genMTProtoLink(address, port, client.id);
             default: return '';
         }
     }
@@ -2321,7 +2333,8 @@ class Inbound extends XrayCommonClass {
 
     toJson() {
         let streamSettings;
-        if (this.canEnableStream() || this.stream?.sockopt) {
+        // mtproto has no Xray transport but keeps External Proxy addresses there.
+        if (this.canEnableStream() || this.stream?.sockopt || this.protocol === Protocols.MTPROTO) {
             streamSettings = this.stream.toJson();
         }
         return {
@@ -2355,6 +2368,7 @@ Inbound.Settings = class extends XrayCommonClass {
             case Protocols.WIREGUARD: return new Inbound.WireguardSettings(protocol);
             case Protocols.TUN: return new Inbound.TunSettings(protocol);
             case Protocols.HYSTERIA: return new Inbound.HysteriaSettings(protocol);
+            case Protocols.MTPROTO: return new Inbound.MTProtoSettings(protocol);
             default: return null;
         }
     }
@@ -2371,6 +2385,7 @@ Inbound.Settings = class extends XrayCommonClass {
             case Protocols.WIREGUARD: return Inbound.WireguardSettings.fromJson(json);
             case Protocols.TUN: return Inbound.TunSettings.fromJson(json);
             case Protocols.HYSTERIA: return Inbound.HysteriaSettings.fromJson(json);
+            case Protocols.MTPROTO: return Inbound.MTProtoSettings.fromJson(json);
             default: return null;
         }
     }
@@ -2889,6 +2904,53 @@ Inbound.HysteriaSettings.Hysteria = class extends Inbound.ClientBase {
     static fromJson(json = {}) {
         return new Inbound.HysteriaSettings.Hysteria(
             json.auth,
+            ...Inbound.ClientBase.commonArgsFromJson(json),
+        );
+    }
+};
+
+Inbound.MTProtoSettings = class extends Inbound.Settings {
+    constructor(protocol, tlsDomain = '', mtprotos = [new Inbound.MTProtoSettings.MTProto()]) {
+        super(protocol);
+        this.tlsDomain = tlsDomain;
+        this.mtprotos = mtprotos;
+    }
+
+    static fromJson(json = {}) {
+        return new Inbound.MTProtoSettings(
+            Protocols.MTPROTO,
+            json.tlsDomain ?? '',
+            (json.clients || []).map(client => Inbound.MTProtoSettings.MTProto.fromJson(client)),
+        );
+    }
+
+    toJson() {
+        return {
+            tlsDomain: this.tlsDomain,
+            clients: Inbound.MTProtoSettings.toJsonArray(this.mtprotos),
+        };
+    }
+};
+
+Inbound.MTProtoSettings.MTProto = class extends Inbound.ClientBase {
+    constructor(
+        id = RandomUtil.randomMTProtoSecret(),
+        email, limitIp, totalGB, expiryTime, enable, tgId, subId, comment, reset, created_at, updated_at,
+    ) {
+        super(email, limitIp, totalGB, expiryTime, enable, tgId, subId, comment, reset, created_at, updated_at);
+        this.id = id;
+    }
+
+    toJson() {
+        return {
+            id: this.id,
+            ...this._clientBaseToJson(),
+        };
+    }
+
+    static fromJson(json = {}) {
+        return new Inbound.MTProtoSettings.MTProto(
+            json.id,
             ...Inbound.ClientBase.commonArgsFromJson(json),
         );
     }

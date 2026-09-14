@@ -4,8 +4,8 @@ package model
 import (
 	"fmt"
 
-	"github.com/mhsanaei/3x-ui/v2/util/json_util"
-	"github.com/mhsanaei/3x-ui/v2/xray"
+	"github.com/disp911/spacex-ui/v2/util/json_util"
+	"github.com/disp911/spacex-ui/v2/xray"
 )
 
 // Protocol represents the protocol type for Xray inbounds.
@@ -27,7 +27,15 @@ const (
 	// accepts both.
 	Hysteria  Protocol = "hysteria"
 	Hysteria2 Protocol = "hysteria2"
+	// MTProto inbounds are served by the bundled telemt proxy for Telegram,
+	// not by Xray; every Xray API call and config build must skip them.
+	MTProto Protocol = "mtproto"
 )
+
+// IsXrayProtocol reports whether inbounds of protocol p run inside Xray.
+func IsXrayProtocol(p Protocol) bool {
+	return p != MTProto
+}
 
 // IsHysteria returns true for both "hysteria" and "hysteria2".
 // Use instead of a bare ==model.Hysteria check: a v2 inbound stored

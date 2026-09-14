@@ -6,10 +6,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/mhsanaei/3x-ui/v2/database/model"
-	"github.com/mhsanaei/3x-ui/v2/web/service"
-	"github.com/mhsanaei/3x-ui/v2/web/session"
-	"github.com/mhsanaei/3x-ui/v2/web/websocket"
+	"github.com/disp911/spacex-ui/v2/database/model"
+	"github.com/disp911/spacex-ui/v2/web/service"
+	"github.com/disp911/spacex-ui/v2/web/session"
+	"github.com/disp911/spacex-ui/v2/web/websocket"
 
 	"github.com/gin-gonic/gin"
 )
@@ -18,6 +18,7 @@ import (
 type InboundController struct {
 	inboundService service.InboundService
 	xrayService    service.XrayService
+	telemtService  service.TelemtService
 }
 
 // NewInboundController creates a new InboundController and sets up its routes.
@@ -57,6 +58,14 @@ func (a *InboundController) broadcastInboundsUpdate(userId int) {
 
 // initRouter initializes the routes for inbound-related operations.
 func (a *InboundController) initRouter(g *gin.RouterGroup) {
+	// Any change to inbounds or clients may concern an mtproto inbound, so
+	// bring the telemt proxies in line right away instead of on the next tick.
+	g.Use(func(c *gin.Context) {
+		c.Next()
+		if c.Request.Method == "POST" {
+			go a.telemtService.Sync()
+		}
+	})
 
 	g.GET("/list", a.getInbounds)
 	g.GET("/get/:id", a.getInbound)

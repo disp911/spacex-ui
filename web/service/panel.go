@@ -13,8 +13,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/mhsanaei/3x-ui/v2/config"
-	"github.com/mhsanaei/3x-ui/v2/logger"
+	"github.com/disp911/spacex-ui/v2/config"
+	"github.com/disp911/spacex-ui/v2/logger"
 )
 
 // PanelService provides business logic for panel management operations.

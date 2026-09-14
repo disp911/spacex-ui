@@ -6,8 +6,9 @@ import (
 	"runtime"
 	"sync"
 
-	"github.com/mhsanaei/3x-ui/v2/logger"
-	"github.com/mhsanaei/3x-ui/v2/xray"
+	"github.com/disp911/spacex-ui/v2/database/model"
+	"github.com/disp911/spacex-ui/v2/logger"
+	"github.com/disp911/spacex-ui/v2/xray"
 
 	"go.uber.org/atomic"
 )
@@ -110,7 +111,7 @@ func (s *XrayService) GetXrayConfig() (*xray.Config, error) {
 		return nil, err
 	}
 	for _, inbound := range inbounds {
-		if !inbound.Enable {
+		if !inbound.Enable || !model.IsXrayProtocol(inbound.Protocol) {
 			continue
 		}
 		// get settings clients

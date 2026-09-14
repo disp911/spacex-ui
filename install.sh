@@ -850,6 +850,7 @@ install_x-ui() {
         chmod +x bin/xray-linux-arm
     fi
     chmod +x x-ui bin/xray-linux-$(arch)
+    chmod +x bin/telemt-linux-$(arch) 2> /dev/null
 
     # Update x-ui cli and se set permission
     mv -f /usr/bin/x-ui-temp /usr/bin/x-ui

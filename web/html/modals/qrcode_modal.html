@@ -192,6 +192,10 @@
                 `Endpoint = ${ipv4}:${match[2]}`
               );
             }
+          } else if (qrModal.inbound.protocol == Protocols.MTPROTO) {
+            // tg://proxy links carry the server address as a query parameter
+            url.searchParams.set('server', ipv4);
+            row.link = url.toString();
           } else {
             // For other protocols using URL format
             url.hostname = ipv4;
@@ -264,7 +268,7 @@
         // Reset the flag when modal is closed so it will fetch again next time
         this.statusFetched = false;
       }
-      if (qrModal.client && qrModal.client.subId) {
+      if (qrModal.client && qrModal.client.subId && qrModal.inbound.protocol !== Protocols.MTPROTO) {
         qrModal.subId = qrModal.client.subId;
         this.setQrCode("qrCode-sub", this.genSubLink(qrModal.subId));
         if (app.subSettings.subJsonEnable) {

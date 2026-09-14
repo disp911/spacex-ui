@@ -16,16 +16,16 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mhsanaei/3x-ui/v2/config"
-	"github.com/mhsanaei/3x-ui/v2/logger"
-	"github.com/mhsanaei/3x-ui/v2/util/common"
-	"github.com/mhsanaei/3x-ui/v2/web/controller"
-	"github.com/mhsanaei/3x-ui/v2/web/job"
-	"github.com/mhsanaei/3x-ui/v2/web/locale"
-	"github.com/mhsanaei/3x-ui/v2/web/middleware"
-	"github.com/mhsanaei/3x-ui/v2/web/network"
-	"github.com/mhsanaei/3x-ui/v2/web/service"
-	"github.com/mhsanaei/3x-ui/v2/web/websocket"
+	"github.com/disp911/spacex-ui/v2/config"
+	"github.com/disp911/spacex-ui/v2/logger"
+	"github.com/disp911/spacex-ui/v2/util/common"
+	"github.com/disp911/spacex-ui/v2/web/controller"
+	"github.com/disp911/spacex-ui/v2/web/job"
+	"github.com/disp911/spacex-ui/v2/web/locale"
+	"github.com/disp911/spacex-ui/v2/web/middleware"
+	"github.com/disp911/spacex-ui/v2/web/network"
+	"github.com/disp911/spacex-ui/v2/web/service"
+	"github.com/disp911/spacex-ui/v2/web/websocket"
 
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-contrib/sessions"
@@ -104,6 +104,7 @@ type Server struct {
 	xrayService      service.XrayService
 	settingService   service.SettingService
 	tgbotService     service.Tgbot
+	telemtService    service.TelemtService
 	customGeoService *service.CustomGeoService
 
 	wsHub *websocket.Hub
@@ -314,6 +315,11 @@ func (s *Server) startTask() {
 	// Check whether xray is running every second
 	s.cron.AddJob("@every 1s", job.NewCheckXrayRunningJob())
 
+	// Run the telemt proxies behind mtproto inbounds, keep them in sync with
+	// the database and record their traffic
+	s.telemtService.Sync()
+	s.cron.AddJob("@every 10s", job.NewTelemtJob())
+
 	// Check if xray needs to be restarted every 30 seconds
 	s.cron.AddFunc("@every 30s", func() {
 		if s.xrayService.IsNeedRestartAndSetFalse() {
@@ -480,6 +486,7 @@ func (s *Server) Stop() error {
 	if s.cron != nil {
 		s.cron.Stop()
 	}
+	s.telemtService.StopAll()
 	if s.tgbotService.IsRunning() {
 		s.tgbotService.Stop()
 	}

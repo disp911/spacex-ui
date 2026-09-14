@@ -85,7 +85,15 @@
         </table>
       </template>
     </a-col>
-    <template v-if="dbInbound.hasLink()">
+    <table v-if="dbInbound.isMTProto" :style="{ marginBottom: '10px' }">
+      <tr>
+        <td>{{ i18n "pages.inbounds.mtprotoDomain" }}</td>
+        <td>
+          <a-tag color="green">[[ inbound.settings.tlsDomain ]]</a-tag>
+        </td>
+      </tr>
+    </table>
+    <template v-if="dbInbound.hasLink() && !dbInbound.isMTProto">
       {{ i18n "security" }}
       <a-tag :color="inbound.stream.security == 'none' ? 'red' : 'green'">[[
         inbound.stream.security ]]</a-tag>
@@ -318,7 +326,7 @@
           </td>
         </tr>
       </table>
-      <template v-if="app.subSettings.enable && infoModal.clientSettings.subId">
+      <template v-if="app.subSettings.enable && infoModal.clientSettings.subId && !dbInbound.isMTProto">
         <a-divider>Subscription URL</a-divider>
         <tr-info-row class="tr-info-row">
           <tr-info-title class="tr-info-title">
