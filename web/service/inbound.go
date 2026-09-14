@@ -1370,7 +1370,7 @@ func (s *InboundService) AddTraffic(inboundTraffics []*xray.Traffic, clientTraff
 	if err != nil {
 		return false, false, err
 	}
-	if p != nil {
+	if p != nil && onlineClients != nil {
 		p.SetOnlineClients(onlineClients)
 	}
 
@@ -1476,9 +1476,10 @@ func (s *InboundService) addClientTraffic(tx *gorm.DB, traffics []*xray.ClientTr
 		return onlineClients, err
 	}
 
-	// Avoid empty slice error
+	// Avoid empty slice error. A nil list tells AddTraffic to leave the online
+	// clients as they were.
 	if len(dbClientTraffics) == 0 {
-		return onlineClients, nil
+		return nil, nil
 	}
 
 	dbClientTraffics, err = s.adjustTraffics(tx, dbClientTraffics)
@@ -3071,11 +3072,15 @@ func (s *InboundService) MigrateDB() {
 
 // GetOnlineClients returns the emails of clients online in Xray or telemt.
 func (s *InboundService) GetOnlineClients() []string {
-	var online []string
+	telemtOnline := (&TelemtService{}).OnlineClients()
+	if len(telemtOnline) == 0 && p != nil {
+		return p.GetOnlineClients()
+	}
+	online := make([]string, 0)
 	if p != nil {
 		online = append(online, p.GetOnlineClients()...)
 	}
-	return append(online, (&TelemtService{}).OnlineClients()...)
+	return append(online, telemtOnline...)
 }
 
 func (s *InboundService) GetClientsLastOnline() (map[string]int64, error) {
