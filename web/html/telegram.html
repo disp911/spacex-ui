@@ -1,0 +1,430 @@
+{{ template "page/head_start" .}}
+<style>
+  .telemt-page .telemt-status {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 16px;
+  }
+
+  .telemt-link {
+    word-break: break-all;
+    font-family: monospace;
+    font-size: 12px;
+  }
+
+  .telemt-qr {
+    display: block;
+    margin: 0 auto 12px;
+    width: 260px;
+    max-width: 100%;
+    background: #fff;
+    border-radius: 8px;
+  }
+
+  .dark .telemt-form .ant-form-extra {
+    color: var(--dark-color-text-primary);
+    opacity: 0.6;
+  }
+
+  .telemt-page .ant-table-wrapper {
+    overflow-x: auto;
+  }
+</style>
+{{ template "page/head_end" .}}
+
+{{ template "page/body_start" .}}
+<a-layout id="app" v-cloak :class="themeSwitcher.currentTheme + ' telemt-page'">
+  <a-sidebar></a-sidebar>
+  <a-layout id="content-layout">
+    <a-layout-content>
+      <a-spin :spinning="loading" :delay="500" tip='{{ i18n "loading"}}' size="large">
+        <a-row :gutter="[isMobile ? 8 : 16, isMobile ? 8 : 12]">
+          <a-col :span="24">
+            <a-card hoverable>
+              <template #title>
+                <div class="telemt-status">
+                  <span>{{ i18n "pages.telemt.title" }}</span>
+                  <a-tag v-if="!overview.installed" color="orange">{{ i18n "pages.telemt.notInstalled" }}</a-tag>
+                  <a-tag v-else-if="overview.running" color="green">{{ i18n "pages.telemt.running" }}</a-tag>
+                  <a-tag v-else color="red">{{ i18n "pages.telemt.stopped" }}</a-tag>
+                  <span v-if="overview.version">v[[ overview.version ]]</span>
+                  <span v-if="overview.running">{{ i18n "pages.telemt.uptime" }}: [[ uptime ]]</span>
+                </div>
+              </template>
+              <template #extra>
+                <a-space>
+                  <a-button icon="file-text" @click="openLogs">{{ i18n "pages.telemt.logs" }}</a-button>
+                  <a-button icon="reload" :disabled="!overview.installed || !overview.settings.enable"
+                    @click="restart">{{ i18n "pages.telemt.restart" }}</a-button>
+                </a-space>
+              </template>
+
+              <a-alert v-if="!overview.installed" type="warning" show-icon :style="{ marginBottom: '12px' }"
+                message='{{ i18n "pages.telemt.notInstalledDesc" }}'></a-alert>
+              <a-alert v-if="overview.installed && overview.settings.enable && overview.users.length === 0"
+                type="info" show-icon :style="{ marginBottom: '12px' }"
+                message='{{ i18n "pages.telemt.noUsersDesc" }}'></a-alert>
+              <a-alert v-if="overview.lastError" type="error" show-icon :style="{ marginBottom: '12px' }"
+                :message="overview.lastError"></a-alert>
+
+              <a-list item-layout="horizontal">
+                <a-setting-list-item paddings="small">
+                  <template #title>{{ i18n "pages.telemt.enable" }}</template>
+                  <template #description>{{ i18n "pages.telemt.enableDesc" }}</template>
+                  <template #control>
+                    <a-switch v-model="settings.enable" :disabled="!overview.installed"></a-switch>
+                  </template>
+                </a-setting-list-item>
+                <a-setting-list-item paddings="small">
+                  <template #title>{{ i18n "pages.telemt.port" }}</template>
+                  <template #description>{{ i18n "pages.telemt.portDesc" }}</template>
+                  <template #control>
+                    <a-input-number v-model="settings.port" :min="1" :max="65535" :style="{ width: '100%' }">
+                    </a-input-number>
+                  </template>
+                </a-setting-list-item>
+                <a-setting-list-item paddings="small">
+                  <template #title>{{ i18n "pages.telemt.tlsDomain" }}</template>
+                  <template #description>{{ i18n "pages.telemt.tlsDomainDesc" }}</template>
+                  <template #control>
+                    <a-input v-model.trim="settings.tlsDomain" placeholder="www.example.com"></a-input>
+                  </template>
+                </a-setting-list-item>
+                <a-setting-list-item paddings="small">
+                  <template #title>{{ i18n "pages.telemt.publicHost" }}</template>
+                  <template #description>{{ i18n "pages.telemt.publicHostDesc" }}</template>
+                  <template #control>
+                    <a-input v-model.trim="settings.publicHost" placeholder="1.2.3.4"></a-input>
+                  </template>
+                </a-setting-list-item>
+              </a-list>
+              <a-button type="primary" :disabled="!settingsChanged" :style="{ marginTop: '12px' }"
+                @click="saveSettings">{{ i18n "save" }}</a-button>
+            </a-card>
+          </a-col>
+
+          <a-col :span="24">
+            <a-card hoverable>
+              <template #title>{{ i18n "pages.telemt.users" }}</template>
+              <template #extra>
+                <a-button type="primary" icon="plus" :disabled="!overview.installed" @click="openAddUser">
+                  {{ i18n "pages.telemt.addUser" }}</a-button>
+              </template>
+              <a-table :columns="isMobile ? mobileColumns : columns" :data-source="overview.users" row-key="id"
+                :pagination="false" :size="isMobile ? 'small' : 'middle'" :locale="{ emptyText: '{{ i18n "noData" }}' }">
+                <template slot="actions" slot-scope="text, user">
+                  <a-space>
+                    <a-tooltip title='{{ i18n "pages.telemt.link" }}'>
+                      <a-button size="small" icon="qrcode" @click="openLink(user)"></a-button>
+                    </a-tooltip>
+                    <a-dropdown :trigger="['click']">
+                      <a-button size="small" icon="more"></a-button>
+                      <a-menu slot="overlay" :class="themeSwitcher.currentTheme" @click="({ key }) => userAction(key, user)">
+                        <a-menu-item key="edit"><a-icon type="edit"></a-icon>{{ i18n "edit" }}</a-menu-item>
+                        <a-menu-item key="rotate"><a-icon type="key"></a-icon>{{ i18n "pages.telemt.rotateSecret" }}</a-menu-item>
+                        <a-menu-item key="resetTraffic" :disabled="!overview.running"><a-icon type="undo"></a-icon>{{ i18n "pages.telemt.resetTraffic" }}</a-menu-item>
+                        <a-menu-item key="delete"><a-icon type="delete" :style="{ color: '#ff4d4f' }"></a-icon>{{ i18n "delete" }}</a-menu-item>
+                      </a-menu>
+                    </a-dropdown>
+                  </a-space>
+                </template>
+                <template slot="enable" slot-scope="text, user">
+                  <a-switch size="small" :checked="user.enable" @change="checked => setEnable(user, checked)"></a-switch>
+                </template>
+                <template slot="username" slot-scope="text, user">
+                  <div>[[ user.username ]]</div>
+                  <div v-if="user.comment" :style="{ opacity: 0.6, fontSize: '12px' }">[[ user.comment ]]</div>
+                </template>
+                <template slot="connections" slot-scope="text, user">
+                  <a-tooltip v-if="user.activeIps && user.activeIps.length" :title="user.activeIps.join(', ')">
+                    <a-tag color="green">[[ user.connections ]]</a-tag>
+                  </a-tooltip>
+                  <a-tag v-else>[[ user.connections ]]</a-tag>
+                </template>
+                <template slot="traffic" slot-scope="text, user">
+                  <a-tag :color="quotaColor(user)">[[ sizeFormat(user.traffic) ]] / [[ user.totalBytes > 0 ?
+                    sizeFormat(user.totalBytes) : '∞' ]]</a-tag>
+                </template>
+                <template slot="expiry" slot-scope="text, user">
+                  <a-tag v-if="user.expiryTime <= 0" color="purple">∞</a-tag>
+                  <a-tag v-else :color="isExpired(user) ? 'red' : 'blue'">[[ formatDate(user.expiryTime) ]]</a-tag>
+                </template>
+                <template slot="limitIp" slot-scope="text, user">
+                  [[ user.limitIp > 0 ? user.limitIp : '∞' ]]
+                </template>
+              </a-table>
+            </a-card>
+          </a-col>
+        </a-row>
+      </a-spin>
+    </a-layout-content>
+  </a-layout>
+
+  <a-modal v-model="userModal.visible" :title="userModal.isEdit ? '{{ i18n "pages.telemt.editUser" }}' : '{{ i18n "pages.telemt.addUser" }}'"
+    :confirm-loading="userModal.saving" :class="themeSwitcher.currentTheme" ok-text='{{ i18n "save" }}'
+    cancel-text='{{ i18n "cancel" }}' @ok="saveUser">
+    <a-form class="telemt-form" :colon="false" :label-col="{ md: { span: 8 } }" :wrapper-col="{ md: { span: 14 } }">
+      <a-form-item label='{{ i18n "enable" }}'>
+        <a-switch v-model="userModal.form.enable"></a-switch>
+      </a-form-item>
+      <a-form-item label='{{ i18n "pages.telemt.username" }}' extra='{{ i18n "pages.telemt.usernameDesc" }}'>
+        <a-input v-model.trim="userModal.form.username"></a-input>
+      </a-form-item>
+      <a-form-item label='{{ i18n "comment" }}'>
+        <a-input v-model.trim="userModal.form.comment"></a-input>
+      </a-form-item>
+      <a-form-item label='{{ i18n "pages.telemt.quota" }}' extra='{{ i18n "pages.telemt.zeroUnlimited" }}'>
+        <a-input-number v-model="userModal.form.quotaGB" :min="0" :step="1" :precision="2" :style="{ width: '100%' }">
+        </a-input-number>
+      </a-form-item>
+      <a-form-item label='{{ i18n "pages.telemt.expiry" }}' extra='{{ i18n "pages.telemt.expiryDesc" }}'>
+        <a-date-picker :show-time="{ format: 'HH:mm' }" format="YYYY-MM-DD HH:mm" :style="{ width: '100%' }"
+          :dropdown-class-name="themeSwitcher.currentTheme" v-model="userModal.form.expiry"></a-date-picker>
+      </a-form-item>
+      <a-form-item label='{{ i18n "pages.telemt.limitIp" }}' extra='{{ i18n "pages.telemt.zeroUnlimited" }}'>
+        <a-input-number v-model="userModal.form.limitIp" :min="0" :step="1" :precision="0" :style="{ width: '100%' }">
+        </a-input-number>
+      </a-form-item>
+      <a-form-item v-if="!userModal.isEdit" label='{{ i18n "pages.telemt.secret" }}' extra='{{ i18n "pages.telemt.secretDesc" }}'>
+        <a-input v-model.trim="userModal.form.secret" placeholder="0123456789abcdef0123456789abcdef"></a-input>
+      </a-form-item>
+    </a-form>
+  </a-modal>
+
+  <a-modal v-model="linkModal.visible" :title="linkModal.username" :footer="null" :class="themeSwitcher.currentTheme">
+    <template v-if="linkModal.link">
+      <canvas ref="qrCanvas" class="telemt-qr"></canvas>
+      <div class="telemt-link">[[ linkModal.link ]]</div>
+      <a-button type="primary" icon="copy" block :style="{ marginTop: '12px' }" @click="copy(linkModal.link)">
+        {{ i18n "copy" }}</a-button>
+    </template>
+    <a-alert v-else type="info" show-icon message='{{ i18n "pages.telemt.noLink" }}'></a-alert>
+  </a-modal>
+
+  <a-modal v-model="logsModal.visible" title='{{ i18n "pages.telemt.logs" }}' width="900px"
+    :class="themeSwitcher.currentTheme">
+    <a-input type="textarea" :value="logsModal.content" read-only :auto-size="{ minRows: 12, maxRows: 24 }"
+      :style="{ fontFamily: 'monospace', fontSize: '12px' }"></a-input>
+    <template slot="footer">
+      <a-button icon="reload" :loading="logsModal.loading" @click="loadLogs">{{ i18n "update" }}</a-button>
+      <a-button type="primary" @click="logsModal.visible = false">{{ i18n "close" }}</a-button>
+    </template>
+  </a-modal>
+</a-layout>
+{{template "page/body_scripts" .}}
+<script src="{{ .base_path }}assets/qrcode/qrious2.min.js?{{ .cur_ver }}"></script>
+{{template "component/aSidebar" .}}
+{{template "component/aThemeSwitch" .}}
+{{template "component/aSettingListItem" .}}
+<script>
+  const TELEMT_API = '/panel/api/telemt';
+  const ONE_GB = 1024 * 1024 * 1024;
+
+  function emptyTelemtSettings() {
+    return { enable: false, port: 8443, tlsDomain: '', publicHost: '' };
+  }
+
+  const app = new Vue({
+    delimiters: ['[[', ']]'],
+    mixins: [MediaQueryMixin],
+    el: '#app',
+    data: {
+      themeSwitcher,
+      loading: false,
+      now: Date.now(),
+      overview: { installed: true, running: false, version: '', startedAt: 0, lastError: '', users: [], settings: emptyTelemtSettings() },
+      settings: emptyTelemtSettings(),
+      savedSettings: JSON.stringify(emptyTelemtSettings()),
+      userModal: { visible: false, isEdit: false, saving: false, id: 0, form: {} },
+      linkModal: { visible: false, username: '', link: '' },
+      logsModal: { visible: false, loading: false, content: '' },
+      columns: [
+        { title: '', align: 'center', width: 90, scopedSlots: { customRender: 'actions' } },
+        { title: '{{ i18n "enable" }}', align: 'center', width: 110, scopedSlots: { customRender: 'enable' } },
+        { title: '{{ i18n "pages.telemt.username" }}', scopedSlots: { customRender: 'username' } },
+        { title: '{{ i18n "pages.telemt.connections" }}', align: 'center', scopedSlots: { customRender: 'connections' } },
+        { title: '{{ i18n "pages.telemt.traffic" }}', align: 'center', scopedSlots: { customRender: 'traffic' } },
+        { title: '{{ i18n "pages.telemt.expiry" }}', align: 'center', scopedSlots: { customRender: 'expiry' } },
+        { title: '{{ i18n "pages.telemt.limitIp" }}', align: 'center', scopedSlots: { customRender: 'limitIp' } },
+      ],
+      mobileColumns: [
+        { title: '', align: 'center', width: 80, scopedSlots: { customRender: 'actions' } },
+        { title: '{{ i18n "enable" }}', align: 'center', width: 90, scopedSlots: { customRender: 'enable' } },
+        { title: '{{ i18n "pages.telemt.username" }}', scopedSlots: { customRender: 'username' } },
+        { title: '{{ i18n "pages.telemt.traffic" }}', align: 'center', scopedSlots: { customRender: 'traffic' } },
+      ],
+    },
+    computed: {
+      settingsChanged() {
+        return JSON.stringify(this.settings) !== this.savedSettings;
+      },
+      uptime() {
+        if (!this.overview.startedAt) return '';
+        const seconds = Math.max(0, Math.floor((this.now - this.overview.startedAt) / 1000));
+        const d = Math.floor(seconds / 86400), h = Math.floor(seconds % 86400 / 3600), m = Math.floor(seconds % 3600 / 60);
+        return d > 0 ? `${d}d ${h}h ${m}m` : `${h}h ${m}m`;
+      },
+    },
+    methods: {
+      sizeFormat(size) {
+        return SizeFormatter.sizeFormat(size);
+      },
+      formatDate(ms) {
+        return IntlUtil.formatDate(ms);
+      },
+      isExpired(user) {
+        return user.expiryTime > 0 && user.expiryTime <= this.now;
+      },
+      quotaColor(user) {
+        if (user.totalBytes <= 0) return 'green';
+        const ratio = user.traffic / user.totalBytes;
+        return ratio >= 1 ? 'red' : ratio >= 0.8 ? 'orange' : 'green';
+      },
+      async loadOverview(withSpinner) {
+        if (withSpinner) this.loading = true;
+        const msg = await HttpUtil.get(`${TELEMT_API}/overview`);
+        this.loading = false;
+        if (!msg.success || !msg.obj) return;
+        const settingsDirty = this.settingsChanged;
+        this.overview = msg.obj;
+        this.now = Date.now();
+        if (!settingsDirty) {
+          this.settings = { ...msg.obj.settings };
+          this.savedSettings = JSON.stringify(this.settings);
+        }
+      },
+      async saveSettings() {
+        this.loading = true;
+        const msg = await HttpUtil.post(`${TELEMT_API}/settings`, this.settings);
+        this.loading = false;
+        if (msg.success) {
+          this.savedSettings = JSON.stringify(this.settings);
+        }
+        await this.loadOverview(false);
+      },
+      async restart() {
+        this.loading = true;
+        await HttpUtil.post(`${TELEMT_API}/restart`);
+        await this.loadOverview(false);
+      },
+      openAddUser() {
+        this.userModal = {
+          visible: true, isEdit: false, saving: false, id: 0,
+          form: { enable: true, username: '', comment: '', quotaGB: 0, expiry: null, limitIp: 0, secret: '' },
+        };
+      },
+      openEditUser(user) {
+        this.userModal = {
+          visible: true, isEdit: true, saving: false, id: user.id,
+          form: {
+            enable: user.enable,
+            username: user.username,
+            comment: user.comment,
+            quotaGB: user.totalBytes > 0 ? Math.round(user.totalBytes / ONE_GB * 100) / 100 : 0,
+            expiry: user.expiryTime > 0 ? moment(user.expiryTime) : null,
+            limitIp: user.limitIp,
+            secret: '',
+          },
+        };
+      },
+      async saveUser() {
+        const f = this.userModal.form;
+        const data = {
+          enable: f.enable,
+          username: f.username,
+          comment: f.comment,
+          totalBytes: Math.round((f.quotaGB || 0) * ONE_GB),
+          expiryTime: f.expiry ? f.expiry.valueOf() : 0,
+          limitIp: f.limitIp || 0,
+          secret: this.userModal.isEdit ? '' : f.secret,
+        };
+        const url = this.userModal.isEdit ? `${TELEMT_API}/users/update/${this.userModal.id}` : `${TELEMT_API}/users/add`;
+        this.userModal.saving = true;
+        const msg = await HttpUtil.post(url, data);
+        this.userModal.saving = false;
+        if (msg.success) {
+          this.userModal.visible = false;
+        }
+        await this.loadOverview(false);
+      },
+      async setEnable(user, enable) {
+        await HttpUtil.post(`${TELEMT_API}/users/enable/${user.id}`, { enable });
+        await this.loadOverview(false);
+      },
+      userAction(key, user) {
+        switch (key) {
+          case 'edit':
+            this.openEditUser(user);
+            break;
+          case 'rotate':
+            this.confirm('{{ i18n "pages.telemt.rotateSecretConfirm" }}', user, () =>
+              HttpUtil.post(`${TELEMT_API}/users/rotateSecret/${user.id}`));
+            break;
+          case 'resetTraffic':
+            this.confirm('{{ i18n "pages.telemt.resetTrafficConfirm" }}', user, () =>
+              HttpUtil.post(`${TELEMT_API}/users/resetTraffic/${user.id}`));
+            break;
+          case 'delete':
+            this.confirm('{{ i18n "pages.telemt.deleteUserConfirm" }}', user, () =>
+              HttpUtil.post(`${TELEMT_API}/users/del/${user.id}`));
+            break;
+        }
+      },
+      confirm(content, user, action) {
+        this.$confirm({
+          title: user.username,
+          content,
+          class: themeSwitcher.currentTheme,
+          okText: '{{ i18n "sure" }}',
+          cancelText: '{{ i18n "cancel" }}',
+          onOk: async () => {
+            await action();
+            await this.loadOverview(false);
+          },
+        });
+      },
+      openLink(user) {
+        this.linkModal = { visible: true, username: user.username, link: user.link };
+        if (!user.link) return;
+        this.$nextTick(() => {
+          new QRious({
+            element: this.$refs.qrCanvas,
+            size: 400,
+            value: user.link,
+            background: 'white',
+            foreground: 'black',
+            padding: 12,
+            level: 'L',
+          });
+        });
+      },
+      copy(content) {
+        ClipboardManager.copyText(content).then(() => {
+          this.$message.success('{{ i18n "copied" }}');
+        });
+      },
+      async openLogs() {
+        this.logsModal.visible = true;
+        await this.loadLogs();
+      },
+      async loadLogs() {
+        this.logsModal.loading = true;
+        const msg = await HttpUtil.get(`${TELEMT_API}/logs`);
+        this.logsModal.loading = false;
+        if (msg.success) {
+          this.logsModal.content = (msg.obj || []).join('\n') || '{{ i18n "noData" }}';
+        }
+      },
+    },
+    async mounted() {
+      await this.loadOverview(true);
+      setInterval(() => {
+        if (!document.hidden && !this.userModal.visible) {
+          this.loadOverview(false);
+        }
+      }, 10000);
+    },
+  });
+</script>
+{{ template "page/body_end" .}}

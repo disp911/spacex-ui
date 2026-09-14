@@ -129,6 +129,20 @@ type CustomGeoResource struct {
 	UpdatedAt     int64  `json:"updatedAt" gorm:"autoUpdateTime;column:updated_at"`
 }
 
+// TelemtUser is one account of the bundled Telegram MTProto proxy. The panel
+// renders these rows into telemt's config file; telemt itself keeps no copy.
+type TelemtUser struct {
+	Id         int    `json:"id" gorm:"primaryKey;autoIncrement"`
+	Username   string `json:"username" gorm:"not null;uniqueIndex"`
+	Secret     string `json:"secret" gorm:"not null"`
+	Enable     bool   `json:"enable" gorm:"not null"`
+	ExpiryTime int64  `json:"expiryTime" gorm:"not null;default:0"` // Unix milliseconds; 0 means never
+	TotalBytes int64  `json:"totalBytes" gorm:"not null;default:0"` // Traffic quota; 0 means unlimited
+	LimitIp    int    `json:"limitIp" gorm:"not null;default:0"`    // Unique source IPs; 0 means unlimited
+	Comment    string `json:"comment"`
+	CreatedAt  int64  `json:"createdAt" gorm:"autoCreateTime"`
+}
+
 type ClientReverse struct {
 	Tag string `json:"tag"`
 }

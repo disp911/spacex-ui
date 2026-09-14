@@ -107,6 +107,13 @@ var defaultValueMap = map[string]string{
 	"ldapDefaultTotalGB":    "0",
 	"ldapDefaultExpiryDays": "0",
 	"ldapDefaultLimitIP":    "0",
+
+	// Telegram MTProto proxy (bundled telemt) defaults
+	"telemtEnable":     "false",
+	"telemtPort":       "8443",
+	"telemtTlsDomain":  "",
+	"telemtPublicHost": "",
+	"telemtApiPort":    "9091",
 }
 
 // SettingService provides business logic for application settings management.

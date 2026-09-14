@@ -104,6 +104,7 @@ type Server struct {
 	xrayService      service.XrayService
 	settingService   service.SettingService
 	tgbotService     service.Tgbot
+	telemtService    service.TelemtService
 	customGeoService *service.CustomGeoService
 
 	wsHub *websocket.Hub
@@ -314,6 +315,12 @@ func (s *Server) startTask() {
 	// Check whether xray is running every second
 	s.cron.AddJob("@every 1s", job.NewCheckXrayRunningJob())
 
+	// Start the Telegram MTProto proxy if it is enabled, and keep it running
+	if err := s.telemtService.Apply(); err != nil {
+		logger.Warning("start telemt failed:", err)
+	}
+	s.cron.AddJob("@every 15s", job.NewCheckTelemtRunningJob())
+
 	// Check if xray needs to be restarted every 30 seconds
 	s.cron.AddFunc("@every 30s", func() {
 		if s.xrayService.IsNeedRestartAndSetFalse() {
@@ -480,6 +487,7 @@ func (s *Server) Stop() error {
 	if s.cron != nil {
 		s.cron.Stop()
 	}
+	s.telemtService.Stop()
 	if s.tgbotService.IsRunning() {
 		s.tgbotService.Stop()
 	}

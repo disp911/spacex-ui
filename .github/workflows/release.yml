@@ -20,6 +20,10 @@ on:
       - "x-ui.service.rhel"
   pull_request:
 
+env:
+  # telemt MTProto proxy release bundled into Linux amd64/arm64 builds
+  TELEMT_VERSION: "3.5.7"
+
 jobs:
   analyze:
     name: Analyze Go code
@@ -57,6 +61,17 @@ jobs:
 
       - name: Run tests
         run: go test -race -shuffle=on ./...
+
+      - name: Test against the bundled telemt release
+        run: |
+          TELEMT_ASSET="telemt-x86_64-linux-musl.tar.gz"
+          cd /tmp
+          wget -q "https://github.com/telemt/telemt/releases/download/${TELEMT_VERSION}/${TELEMT_ASSET}" \
+            "https://github.com/telemt/telemt/releases/download/${TELEMT_VERSION}/${TELEMT_ASSET}.sha256"
+          sha256sum -c "${TELEMT_ASSET}.sha256"
+          tar -xzf "$TELEMT_ASSET" telemt
+          cd -
+          TELEMT_BIN=/tmp/telemt go test -count=1 -v -run TestRealTelemt ./telemt/
 
   build:
     needs: analyze
@@ -164,6 +179,24 @@ jobs:
           wget -q -O geoip_RU.dat https://github.com/runetfreedom/russia-v2ray-rules-dat/releases/latest/download/geoip.dat
           wget -q -O geosite_RU.dat https://github.com/runetfreedom/russia-v2ray-rules-dat/releases/latest/download/geosite.dat
           mv xray xray-linux-${{ matrix.platform }}
+
+          # Bundle the telemt MTProto proxy for Telegram (unmodified upstream
+          # release; only published for these two architectures)
+          case "${{ matrix.platform }}" in
+            amd64) TELEMT_ASSET="telemt-x86_64-linux-musl.tar.gz" ;;
+            arm64) TELEMT_ASSET="telemt-aarch64-linux-musl.tar.gz" ;;
+            *) TELEMT_ASSET="" ;;
+          esac
+          if [ -n "$TELEMT_ASSET" ]; then
+            TELEMT_URL="https://github.com/telemt/telemt/releases/download/${TELEMT_VERSION}"
+            wget -q "${TELEMT_URL}/${TELEMT_ASSET}" "${TELEMT_URL}/${TELEMT_ASSET}.sha256"
+            sha256sum -c "${TELEMT_ASSET}.sha256"
+            tar -xzf "$TELEMT_ASSET" telemt
+            rm -f "$TELEMT_ASSET" "${TELEMT_ASSET}.sha256"
+            mv telemt telemt-linux-${{ matrix.platform }}
+            chmod +x telemt-linux-${{ matrix.platform }}
+            wget -q -O telemt-LICENSE "https://raw.githubusercontent.com/telemt/telemt/${TELEMT_VERSION}/LICENSE"
+          fi
           cd ../..
 
       - name: Package
