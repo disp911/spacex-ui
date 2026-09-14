@@ -34,15 +34,11 @@ func GetBinaryPath() string {
 	return filepath.Join(config.GetBinFolderPath(), GetBinaryName())
 }
 
-// GetConfigPath returns the path of the generated telemt config file.
-func GetConfigPath() string {
-	return filepath.Join(config.GetBinFolderPath(), "telemt.toml")
-}
-
-// GetWorkDir returns telemt's working directory, which holds its TLS-front
-// cache and persisted quota counters.
-func GetWorkDir() string {
-	return filepath.Join(config.GetBinFolderPath(), "telemt-data")
+// GetInstanceDir returns the directory of the telemt instance serving one
+// inbound. It holds the generated config and telemt's working files (its
+// TLS-front cache and quota state).
+func GetInstanceDir(inboundID int) string {
+	return filepath.Join(config.GetBinFolderPath(), "telemt", fmt.Sprintf("inbound-%d", inboundID))
 }
 
 // IsInstalled reports whether a telemt binary is bundled for this platform.
@@ -83,7 +79,7 @@ type process struct {
 }
 
 // startProcess launches binary with the config at configPath.
-func startProcess(binary, configPath, workDir string) (*process, error) {
+func startProcess(binary, configPath, workDir string, onLine func(string)) (*process, error) {
 	// The process runs inside workDir, so relative paths (the bin folder is
 	// "bin" by default) would otherwise resolve against the wrong directory.
 	var err error
@@ -97,6 +93,7 @@ func startProcess(binary, configPath, workDir string) (*process, error) {
 		return nil, err
 	}
 	logs := newLogBuffer(logLines)
+	logs.onLine = onLine
 	cmd := exec.Command(binary, configPath)
 	cmd.Dir = workDir
 	cmd.Stdout = logs
@@ -156,6 +153,8 @@ type logBuffer struct {
 	max     int
 	lines   []string
 	partial string
+	// onLine, when set, receives every complete line as it is written.
+	onLine func(string)
 }
 
 func newLogBuffer(max int) *logBuffer {
@@ -177,6 +176,9 @@ func (b *logBuffer) Write(data []byte) (int, error) {
 			continue
 		}
 		b.lines = append(b.lines, line)
+		if b.onLine != nil {
+			b.onLine(line)
+		}
 	}
 	if extra := len(b.lines) - b.max; extra > 0 {
 		b.lines = append([]string(nil), b.lines[extra:]...)

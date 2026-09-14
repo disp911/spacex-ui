@@ -50,9 +50,6 @@ func (a *APIController) initRouter(g *gin.RouterGroup, customGeo *service.Custom
 
 	NewCustomGeoController(api.Group("/custom-geo"), customGeo)
 
-	// Telegram MTProto proxy API
-	NewTelemtController(api.Group("/telemt"))
-
 	// Extra routes
 	api.GET("/backuptotgbot", a.BackuptoTgbot)
 }

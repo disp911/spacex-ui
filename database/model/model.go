@@ -27,7 +27,15 @@ const (
 	// accepts both.
 	Hysteria  Protocol = "hysteria"
 	Hysteria2 Protocol = "hysteria2"
+	// MTProto inbounds are served by the bundled telemt proxy for Telegram,
+	// not by Xray; every Xray API call and config build must skip them.
+	MTProto Protocol = "mtproto"
 )
+
+// IsXrayProtocol reports whether inbounds of protocol p run inside Xray.
+func IsXrayProtocol(p Protocol) bool {
+	return p != MTProto
+}
 
 // IsHysteria returns true for both "hysteria" and "hysteria2".
 // Use instead of a bare ==model.Hysteria check: a v2 inbound stored
@@ -127,20 +135,6 @@ type CustomGeoResource struct {
 	LastModified  string `json:"lastModified" gorm:"column:last_modified"`
 	CreatedAt     int64  `json:"createdAt" gorm:"autoCreateTime;column:created_at"`
 	UpdatedAt     int64  `json:"updatedAt" gorm:"autoUpdateTime;column:updated_at"`
-}
-
-// TelemtUser is one account of the bundled Telegram MTProto proxy. The panel
-// renders these rows into telemt's config file; telemt itself keeps no copy.
-type TelemtUser struct {
-	Id         int    `json:"id" gorm:"primaryKey;autoIncrement"`
-	Username   string `json:"username" gorm:"not null;uniqueIndex"`
-	Secret     string `json:"secret" gorm:"not null"`
-	Enable     bool   `json:"enable" gorm:"not null"`
-	ExpiryTime int64  `json:"expiryTime" gorm:"not null;default:0"` // Unix milliseconds; 0 means never
-	TotalBytes int64  `json:"totalBytes" gorm:"not null;default:0"` // Traffic quota; 0 means unlimited
-	LimitIp    int    `json:"limitIp" gorm:"not null;default:0"`    // Unique source IPs; 0 means unlimited
-	Comment    string `json:"comment"`
-	CreatedAt  int64  `json:"createdAt" gorm:"autoCreateTime"`
 }
 
 type ClientReverse struct {

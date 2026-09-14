@@ -1,145 +1,280 @@
 package telemt
 
 import (
+	"context"
+	"os"
+	"path/filepath"
 	"sync"
-	"time"
 )
 
-// Status describes the proxy process for the panel.
-type Status struct {
-	Installed bool      `json:"installed"`
-	Running   bool      `json:"running"`
-	StartedAt time.Time `json:"startedAt"`
-	LastError string    `json:"lastError"`
+// Instance is the desired state of the telemt process serving one inbound.
+type Instance struct {
+	InboundID int
+	Tag       string
+	Listen    string
+	Port      int
+	TLSDomain string
+	// Users maps telemt user names to the panel client emails they stand for.
+	Users  []User
+	Emails map[string]string
 }
 
-// Manager owns the telemt process and keeps it in line with the panel's
-// desired state. It is safe for concurrent use.
-type Manager struct {
-	binary     string
-	configPath string
-	workDir    string
+// ClientTraffic is the traffic of one client since the previous collection.
+type ClientTraffic struct {
+	Email    string
+	Up, Down int64
+	Online   bool
+}
 
-	mu         sync.Mutex
-	proc       *process
-	runningKey string
-	wanted     bool
-	lastErr    string
+// InboundTraffic is the traffic of one inbound since the previous collection.
+type InboundTraffic struct {
+	Tag      string
+	Up, Down int64
+	Clients  []ClientTraffic
+}
+
+// Manager runs one telemt process per mtproto inbound and keeps the set of
+// processes in line with the panel's inbounds. It is safe for concurrent use.
+type Manager struct {
+	binary  string
+	baseDir func(inboundID int) string
+	// OnLog, when set, receives every output line of every process.
+	OnLog func(inboundID int, line string)
+
+	mu        sync.Mutex
+	instances map[int]*instance
+}
+
+type instance struct {
+	proc        *process
+	desired     Instance
+	metricsPort int
+	runningKey  string
+	config      []byte
+	lastErr     string
+	// seen holds the counters of the previous collection, per telemt user.
+	seen map[string]UserCounters
 }
 
 // NewManager returns a manager for the bundled binary and default paths.
 func NewManager() *Manager {
-	return newManager(GetBinaryPath(), GetConfigPath(), GetWorkDir())
+	return newManager(GetBinaryPath(), GetInstanceDir)
 }
 
-func newManager(binary, configPath, workDir string) *Manager {
-	return &Manager{binary: binary, configPath: configPath, workDir: workDir}
+func newManager(binary string, baseDir func(int) string) *Manager {
+	return &Manager{binary: binary, baseDir: baseDir, instances: map[int]*instance{}}
 }
 
-// Apply makes the process match the desired state. A disabled proxy, or one
-// without users, is stopped. When only users changed, the running process
-// reloads its config in place so existing Telegram sessions stay up; a change
-// to port, TLS domain, public host or API credentials restarts it.
-func (m *Manager) Apply(enabled bool, s Settings, users []User) error {
-	return m.apply(enabled, s, users, false)
+// Installed reports whether the telemt binary is present.
+func (m *Manager) Installed() bool {
+	return fileExists(m.binary)
 }
 
-// Restart is Apply that always restarts a running process.
-func (m *Manager) Restart(enabled bool, s Settings, users []User) error {
-	return m.apply(enabled, s, users, true)
-}
-
-func (m *Manager) apply(enabled bool, s Settings, users []User, force bool) error {
+// Sync makes the running processes match want. Inbounds missing from want
+// are stopped. For each wanted inbound, a change in users is written to the
+// config and hot-reloaded, so Telegram sessions stay up; a change to listen
+// address, port or TLS domain restarts the process, as does a process that
+// has exited. Errors are recorded per inbound and the first one is returned.
+func (m *Manager) Sync(want []Instance) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	if !enabled || len(users) == 0 {
-		m.wanted = false
-		m.stopLocked()
-		m.lastErr = ""
+	wanted := make(map[int]bool, len(want))
+	var firstErr error
+	for _, w := range want {
+		wanted[w.InboundID] = true
+		if err := m.syncLocked(w); err != nil && firstErr == nil {
+			firstErr = err
+		}
+	}
+	for id, inst := range m.instances {
+		if !wanted[id] {
+			if inst.proc != nil {
+				inst.proc.stop()
+			}
+			delete(m.instances, id)
+			_ = os.RemoveAll(m.baseDir(id))
+		}
+	}
+	return firstErr
+}
+
+func (m *Manager) syncLocked(w Instance) error {
+	inst := m.instances[w.InboundID]
+	if inst == nil {
+		inst = &instance{}
+		m.instances[w.InboundID] = inst
+	}
+	inst.desired = w
+
+	if len(w.Users) == 0 {
+		// telemt cannot run without users; the inbound simply serves nobody.
+		if inst.proc != nil {
+			inst.proc.stop()
+		}
+		inst.lastErr = ""
 		return nil
 	}
 
-	data, err := BuildConfig(s, users)
-	if err != nil {
-		return err
-	}
-	m.wanted = true
-
-	if !force && m.proc != nil && m.proc.running() && m.runningKey == s.restartKey() {
-		if err := writeConfig(m.configPath, data); err != nil {
+	running := inst.proc != nil && inst.proc.running()
+	if !running || inst.metricsPort == 0 {
+		port, err := freeLoopbackPort()
+		if err != nil {
+			inst.lastErr = err.Error()
 			return err
 		}
-		return m.proc.reload()
+		inst.metricsPort = port
+	}
+	s := Settings{Listen: w.Listen, Port: w.Port, TLSDomain: w.TLSDomain, MetricsPort: inst.metricsPort}
+	data, err := BuildConfig(s, w.Users)
+	if err != nil {
+		inst.lastErr = err.Error()
+		return err
 	}
 
-	m.stopLocked()
-	if err := writeConfig(m.configPath, data); err != nil {
-		m.lastErr = err.Error()
+	dir := m.baseDir(w.InboundID)
+	configPath := filepath.Join(dir, "telemt.toml")
+	if running && inst.runningKey == s.restartKey() {
+		if string(data) == string(inst.config) {
+			return nil
+		}
+		if err := writeConfig(configPath, data); err != nil {
+			inst.lastErr = err.Error()
+			return err
+		}
+		inst.config = data
+		return inst.proc.reload()
+	}
+
+	if inst.proc != nil {
+		inst.proc.stop()
+	}
+	if err := writeConfig(configPath, data); err != nil {
+		inst.lastErr = err.Error()
 		return err
 	}
-	proc, err := startProcess(m.binary, m.configPath, m.workDir)
+	var onLine func(string)
+	if m.OnLog != nil {
+		id, hook := w.InboundID, m.OnLog
+		onLine = func(line string) { hook(id, line) }
+	}
+	proc, err := startProcess(m.binary, configPath, dir, onLine)
 	if err != nil {
-		m.lastErr = err.Error()
+		inst.lastErr = err.Error()
 		return err
 	}
-	m.proc = proc
-	m.runningKey = s.restartKey()
-	m.lastErr = ""
+	inst.proc = proc
+	inst.runningKey = s.restartKey()
+	inst.config = data
+	inst.seen = nil
+	inst.lastErr = ""
 	return nil
 }
 
-// Stop terminates the process, for example on panel shutdown.
-func (m *Manager) Stop() {
+// StopAll stops every process, for panel shutdown.
+func (m *Manager) StopAll() {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	m.wanted = false
-	m.stopLocked()
-}
-
-func (m *Manager) stopLocked() {
-	if m.proc != nil {
-		m.proc.stop()
+	for id, inst := range m.instances {
+		if inst.proc != nil {
+			inst.proc.stop()
+		}
+		delete(m.instances, id)
 	}
 }
 
-// Crashed reports whether the process should be running but is not.
-func (m *Manager) Crashed() bool {
+// Running reports whether the process of an inbound is up.
+func (m *Manager) Running(inboundID int) bool {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	return m.wanted && (m.proc == nil || !m.proc.running())
+	inst := m.instances[inboundID]
+	return inst != nil && inst.proc != nil && inst.proc.running()
 }
 
-// Running reports whether the process is up.
-func (m *Manager) Running() bool {
+// LastError returns the last start or exit error of an inbound's process.
+func (m *Manager) LastError(inboundID int) string {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	return m.proc != nil && m.proc.running()
-}
-
-// Status returns the current process state.
-func (m *Manager) Status() Status {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-	st := Status{Installed: fileExists(m.binary), LastError: m.lastErr}
-	if m.proc == nil {
-		return st
+	inst := m.instances[inboundID]
+	if inst == nil {
+		return ""
 	}
-	if m.proc.running() {
-		st.Running = true
-		st.StartedAt = m.proc.startedAt
-	} else if m.wanted && st.LastError == "" && m.proc.exitErr != nil {
-		st.LastError = m.proc.exitErr.Error()
+	if inst.lastErr == "" && inst.proc != nil && !inst.proc.running() && inst.proc.exitErr != nil {
+		return inst.proc.exitErr.Error()
 	}
-	return st
+	return inst.lastErr
 }
 
-// Logs returns the recent output of the current or last process.
-func (m *Manager) Logs() []string {
+// Logs returns the recent output of an inbound's current or last process.
+func (m *Manager) Logs(inboundID int) []string {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	if m.proc == nil {
+	inst := m.instances[inboundID]
+	if inst == nil || inst.proc == nil {
 		return nil
 	}
-	return m.proc.logs.snapshot()
+	return inst.proc.logs.snapshot()
+}
+
+// CollectTraffic scrapes every running process and returns the traffic since
+// the previous call. Counters that went backwards (a restarted process) are
+// taken as new traffic from zero.
+func (m *Manager) CollectTraffic(ctx context.Context) []InboundTraffic {
+	type target struct {
+		id     int
+		port   int
+		tag    string
+		emails map[string]string
+		proc   *process
+	}
+	m.mu.Lock()
+	targets := make([]target, 0, len(m.instances))
+	for id, inst := range m.instances {
+		if inst.proc != nil && inst.proc.running() {
+			targets = append(targets, target{id, inst.metricsPort, inst.desired.Tag, inst.desired.Emails, inst.proc})
+		}
+	}
+	m.mu.Unlock()
+
+	var result []InboundTraffic
+	for _, t := range targets {
+		scrapeCtx, cancel := context.WithTimeout(ctx, metricsTimeout)
+		counters, err := FetchUserCounters(scrapeCtx, t.port)
+		cancel()
+		if err != nil {
+			continue
+		}
+
+		m.mu.Lock()
+		inst := m.instances[t.id]
+		if inst == nil || inst.proc != t.proc {
+			m.mu.Unlock()
+			continue
+		}
+		prev := inst.seen
+		inst.seen = counters
+		m.mu.Unlock()
+
+		it := InboundTraffic{Tag: t.tag}
+		for user, c := range counters {
+			email, ok := t.emails[user]
+			if !ok {
+				continue
+			}
+			old := prev[user]
+			up, down := delta(c.Up, old.Up), delta(c.Down, old.Down)
+			it.Up += up
+			it.Down += down
+			it.Clients = append(it.Clients, ClientTraffic{Email: email, Up: up, Down: down, Online: c.Connections > 0})
+		}
+		result = append(result, it)
+	}
+	return result
+}
+
+func delta(now, before uint64) int64 {
+	if now < before {
+		return int64(now)
+	}
+	return int64(now - before)
 }

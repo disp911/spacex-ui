@@ -150,6 +150,11 @@
     {{template "form/hysteria" .}}
 </template>
 
+<!-- mtproto (telemt) -->
+<template v-if="inbound.protocol === Protocols.MTPROTO">
+    {{template "form/mtproto" .}}
+</template>
+
 <!-- stream settings -->
 <template v-if="inbound.canEnableStream()">
     {{template "form/streamSettings" .}}
@@ -162,7 +167,7 @@
 </template>
 
 <!-- sniffing -->
-<a-collapse>
+<a-collapse v-if="inbound.protocol !== Protocols.MTPROTO">
     <a-collapse-panel header='Sniffing'>
         {{template "form/sniffing" .}}
     </a-collapse-panel>

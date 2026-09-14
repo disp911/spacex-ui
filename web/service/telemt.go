@@ -2,447 +2,224 @@ package service
 
 import (
 	"context"
-	"crypto/rand"
-	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"net"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/disp911/spacex-ui/v2/database"
 	"github.com/disp911/spacex-ui/v2/database/model"
 	"github.com/disp911/spacex-ui/v2/logger"
 	"github.com/disp911/spacex-ui/v2/telemt"
-	"github.com/disp911/spacex-ui/v2/util/random"
-
-	"gorm.io/gorm"
+	"github.com/disp911/spacex-ui/v2/xray"
 )
 
 var (
 	// telemtManager is created on first use, after the panel has loaded the
 	// environment that decides where the bin folder is.
-	telemtManager = sync.OnceValue(telemt.NewManager)
-	// telemtAPIToken authorizes the panel against telemt's loopback API. A
-	// fresh token per panel process is enough: telemt runs as a child of the
-	// panel and gets the token in the config written when it starts.
-	telemtAPIToken = random.Seq(32)
+	telemtManager = sync.OnceValue(func() *telemt.Manager {
+		m := telemt.NewManager()
+		m.OnLog = logTelemtLine
+		return m
+	})
+
+	telemtState struct {
+		sync.Mutex
+		online    []string
+		lastError map[int]string
+	}
 )
 
-// telemtAPICallTimeout bounds the live statistics lookup of one page load.
-const telemtAPICallTimeout = 3 * time.Second
-
-// TelemtService manages the bundled Telegram MTProto proxy: its settings,
-// its users and the telemt process.
+// TelemtService runs the telemt proxies behind mtproto inbounds and feeds
+// their traffic into the same client statistics Xray inbounds use.
 type TelemtService struct {
-	settingService SettingService
+	inboundService InboundService
 }
 
-// TelemtSettings are the proxy options edited on the Telegram page.
-type TelemtSettings struct {
-	Enable     bool   `json:"enable" form:"enable"`
-	Port       int    `json:"port" form:"port"`
-	TlsDomain  string `json:"tlsDomain" form:"tlsDomain"`
-	PublicHost string `json:"publicHost" form:"publicHost"`
+// mtprotoSettings is the settings JSON of an mtproto inbound.
+type mtprotoSettings struct {
+	TlsDomain string         `json:"tlsDomain"`
+	Clients   []model.Client `json:"clients"`
 }
 
-// TelemtUserView is a user row enriched with live proxy statistics.
-type TelemtUserView struct {
-	model.TelemtUser
-	Link        string   `json:"link"`
-	Connections uint64   `json:"connections"`
-	ActiveIps   []string `json:"activeIps"`
-	Traffic     uint64   `json:"traffic"`
+// validateMTProtoInbound checks an mtproto inbound before it is saved; other
+// protocols pass unchanged.
+func validateMTProtoInbound(inbound *model.Inbound, clients []model.Client) error {
+	if inbound.Protocol != model.MTProto {
+		return nil
+	}
+	if !telemt.IsInstalled() {
+		return errors.New("mtproto is not available: this build has no telemt binary for this platform")
+	}
+	var settings mtprotoSettings
+	if err := json.Unmarshal([]byte(inbound.Settings), &settings); err != nil {
+		return err
+	}
+	if !telemt.ValidTLSDomain(settings.TlsDomain) {
+		return fmt.Errorf("invalid masking domain %q", settings.TlsDomain)
+	}
+	if inbound.Listen != "" && net.ParseIP(inbound.Listen) == nil {
+		return fmt.Errorf("mtproto listen address must be an IP, got %q", inbound.Listen)
+	}
+	return validateMTProtoClients(inbound.Protocol, clients)
 }
 
-// TelemtOverview is everything the Telegram page shows.
-type TelemtOverview struct {
-	Settings  TelemtSettings   `json:"settings"`
-	Installed bool             `json:"installed"`
-	Running   bool             `json:"running"`
-	Version   string           `json:"version"`
-	StartedAt int64            `json:"startedAt"`
-	LastError string           `json:"lastError"`
-	Users     []TelemtUserView `json:"users"`
-}
-
-// GetSettings reads the proxy settings.
-func (s *TelemtService) GetSettings() (TelemtSettings, error) {
-	var ts TelemtSettings
-	var err error
-	if ts.Enable, err = s.settingService.getBool("telemtEnable"); err != nil {
-		return ts, err
+// validateMTProtoClients checks the secrets of clients of an mtproto inbound.
+func validateMTProtoClients(protocol model.Protocol, clients []model.Client) error {
+	if protocol != model.MTProto {
+		return nil
 	}
-	if ts.Port, err = s.settingService.getInt("telemtPort"); err != nil {
-		return ts, err
-	}
-	if ts.TlsDomain, err = s.settingService.getString("telemtTlsDomain"); err != nil {
-		return ts, err
-	}
-	if ts.PublicHost, err = s.settingService.getString("telemtPublicHost"); err != nil {
-		return ts, err
-	}
-	return ts, nil
-}
-
-// SaveSettings validates and stores the proxy settings, then applies them.
-func (s *TelemtService) SaveSettings(ts TelemtSettings) error {
-	ts.TlsDomain = strings.ToLower(strings.TrimSpace(ts.TlsDomain))
-	ts.PublicHost = strings.TrimSpace(ts.PublicHost)
-
-	if ts.Enable && !telemt.IsInstalled() {
-		return errors.New("telemt is not bundled for this platform")
-	}
-	if ts.Enable || ts.TlsDomain != "" {
-		rs, err := s.runtimeSettings(ts)
-		if err != nil {
-			return err
+	for _, c := range clients {
+		if !telemt.ValidSecret(c.ID) {
+			return fmt.Errorf("client %q: secret must be 32 lowercase hex characters", c.Email)
 		}
-		if err := rs.Validate(); err != nil {
-			return err
-		}
-	}
-	if err := s.checkPortFree(ts.Port); err != nil {
-		return err
-	}
-
-	if err := s.settingService.setBool("telemtEnable", ts.Enable); err != nil {
-		return err
-	}
-	if err := s.settingService.setInt("telemtPort", ts.Port); err != nil {
-		return err
-	}
-	if err := s.settingService.setString("telemtTlsDomain", ts.TlsDomain); err != nil {
-		return err
-	}
-	if err := s.settingService.setString("telemtPublicHost", ts.PublicHost); err != nil {
-		return err
-	}
-	return s.Apply()
-}
-
-// checkPortFree rejects a proxy port the panel already uses elsewhere.
-func (s *TelemtService) checkPortFree(port int) error {
-	if port < 1 || port > 65535 {
-		return fmt.Errorf("invalid proxy port %d", port)
-	}
-	if webPort, err := s.settingService.GetPort(); err == nil && webPort == port {
-		return fmt.Errorf("port %d is used by the panel", port)
-	}
-	if subEnable, err := s.settingService.GetSubEnable(); err == nil && subEnable {
-		if subPort, err := s.settingService.GetSubPort(); err == nil && subPort == port {
-			return fmt.Errorf("port %d is used by the subscription server", port)
-		}
-	}
-	if apiPort, err := s.settingService.getInt("telemtApiPort"); err == nil && apiPort == port {
-		return fmt.Errorf("port %d is reserved for the proxy API", port)
-	}
-	var count int64
-	if err := database.GetDB().Model(&model.Inbound{}).Where("port = ?", port).Count(&count).Error; err != nil {
-		return err
-	}
-	if count > 0 {
-		return fmt.Errorf("port %d is used by an inbound", port)
 	}
 	return nil
 }
 
-func (s *TelemtService) runtimeSettings(ts TelemtSettings) (telemt.Settings, error) {
-	apiPort, err := s.settingService.getInt("telemtApiPort")
-	if err != nil {
-		return telemt.Settings{}, err
+// desiredInstances builds the telemt instances every enabled mtproto inbound
+// should run, with the clients that are enabled and not depleted.
+func (s *TelemtService) desiredInstances() ([]telemt.Instance, error) {
+	db := database.GetDB()
+	var inbounds []*model.Inbound
+	if err := db.Model(model.Inbound{}).Where("protocol = ? AND enable = ?", model.MTProto, true).Find(&inbounds).Error; err != nil {
+		return nil, err
 	}
-	return telemt.Settings{
-		Port:       ts.Port,
-		TLSDomain:  ts.TlsDomain,
-		PublicHost: ts.PublicHost,
-		APIPort:    apiPort,
-		APIToken:   telemtAPIToken,
-	}, nil
-}
-
-func (s *TelemtService) getUsers() ([]model.TelemtUser, error) {
-	var users []model.TelemtUser
-	err := database.GetDB().Order("id asc").Find(&users).Error
-	return users, err
-}
-
-// desiredState loads everything the proxy process should run with.
-func (s *TelemtService) desiredState() (bool, telemt.Settings, []telemt.User, error) {
-	ts, err := s.GetSettings()
-	if err != nil {
-		return false, telemt.Settings{}, nil, err
-	}
-	rs, err := s.runtimeSettings(ts)
-	if err != nil {
-		return false, telemt.Settings{}, nil, err
-	}
-	rows, err := s.getUsers()
-	if err != nil {
-		return false, telemt.Settings{}, nil, err
-	}
-	users := make([]telemt.User, 0, len(rows))
-	for _, row := range rows {
-		u := telemt.User{
-			Name:         row.Username,
-			Secret:       row.Secret,
-			Enabled:      row.Enable,
-			QuotaBytes:   row.TotalBytes,
-			MaxUniqueIPs: row.LimitIp,
+	instances := make([]telemt.Instance, 0, len(inbounds))
+	for _, inbound := range inbounds {
+		var settings mtprotoSettings
+		if err := json.Unmarshal([]byte(inbound.Settings), &settings); err != nil {
+			logger.Warning("telemt: bad settings of inbound", inbound.Id, err)
+			continue
 		}
-		if row.ExpiryTime > 0 {
-			u.ExpiresAt = time.UnixMilli(row.ExpiryTime)
+		var traffics []xray.ClientTraffic
+		if err := db.Model(xray.ClientTraffic{}).Select("email, enable").Where("inbound_id = ?", inbound.Id).Find(&traffics).Error; err != nil {
+			return nil, err
 		}
-		users = append(users, u)
+		depleted := make(map[string]bool, len(traffics))
+		for _, t := range traffics {
+			if !t.Enable {
+				depleted[t.Email] = true
+			}
+		}
+
+		inst := telemt.Instance{
+			InboundID: inbound.Id,
+			Tag:       inbound.Tag,
+			Listen:    inbound.Listen,
+			Port:      inbound.Port,
+			TLSDomain: settings.TlsDomain,
+			Emails:    map[string]string{},
+		}
+		for _, c := range settings.Clients {
+			if !c.Enable || c.Email == "" || depleted[c.Email] || !telemt.ValidSecret(c.ID) {
+				continue
+			}
+			name := telemt.UserName(c.Email)
+			if _, dup := inst.Emails[name]; dup {
+				continue
+			}
+			inst.Emails[name] = c.Email
+			inst.Users = append(inst.Users, telemt.User{Name: name, Secret: c.ID, MaxUniqueIPs: c.LimitIP})
+		}
+		instances = append(instances, inst)
 	}
-	return ts.Enable && telemt.IsInstalled(), rs, users, nil
+	return instances, nil
 }
 
-// Apply brings the proxy process in line with the stored settings and users.
-func (s *TelemtService) Apply() error {
-	enabled, rs, users, err := s.desiredState()
+// Sync starts, reloads, restarts or stops telemt processes to match the
+// mtproto inbounds in the database. It is cheap when nothing changed.
+func (s *TelemtService) Sync() {
+	want, err := s.desiredInstances()
 	if err != nil {
-		return err
-	}
-	return telemtManager().Apply(enabled, rs, users)
-}
-
-// Restart restarts the proxy process with the stored settings and users.
-func (s *TelemtService) Restart() error {
-	enabled, rs, users, err := s.desiredState()
-	if err != nil {
-		return err
-	}
-	return telemtManager().Restart(enabled, rs, users)
-}
-
-// Stop stops the proxy process, for panel shutdown.
-func (s *TelemtService) Stop() {
-	telemtManager().Stop()
-}
-
-// RestartIfCrashed restarts the proxy when it should run but has exited.
-func (s *TelemtService) RestartIfCrashed() {
-	if !telemtManager().Crashed() {
+		logger.Warning("telemt: load mtproto inbounds:", err)
 		return
 	}
-	logger.Warning("telemt is not running, restarting it")
-	if err := s.Restart(); err != nil {
-		logger.Error("restart telemt failed:", err)
+	m := telemtManager()
+	if !m.Installed() {
+		if len(want) > 0 {
+			reportTelemtError(0, "telemt binary is missing; mtproto inbounds cannot run on this platform")
+		}
+		return
+	}
+	_ = m.Sync(want)
+	for _, w := range want {
+		reportTelemtError(w.InboundID, m.LastError(w.InboundID))
 	}
 }
 
-// Logs returns the recent output of the proxy process.
-func (s *TelemtService) Logs() []string {
-	return telemtManager().Logs()
+// reportTelemtError logs a telemt error once per change, not on every sync.
+func reportTelemtError(inboundID int, msg string) {
+	telemtState.Lock()
+	defer telemtState.Unlock()
+	if telemtState.lastError == nil {
+		telemtState.lastError = map[int]string{}
+	}
+	if telemtState.lastError[inboundID] == msg {
+		return
+	}
+	telemtState.lastError[inboundID] = msg
+	if msg != "" {
+		logger.Warningf("telemt (inbound %d): %s", inboundID, msg)
+	}
 }
 
-// GetOverview returns settings, process state and users with live stats.
-func (s *TelemtService) GetOverview() (*TelemtOverview, error) {
-	ts, err := s.GetSettings()
-	if err != nil {
-		return nil, err
-	}
-	rows, err := s.getUsers()
-	if err != nil {
-		return nil, err
-	}
-	st := telemtManager().Status()
-	ov := &TelemtOverview{
-		Settings:  ts,
-		Installed: st.Installed,
-		Running:   st.Running,
-		LastError: st.LastError,
-		Users:     make([]TelemtUserView, 0, len(rows)),
-	}
-	if st.Running {
-		ov.StartedAt = st.StartedAt.UnixMilli()
-	}
-
-	stats := map[string]telemt.UserStats{}
-	if st.Running {
-		rs, err := s.runtimeSettings(ts)
-		if err == nil {
-			ctx, cancel := context.WithTimeout(context.Background(), telemtAPICallTimeout)
-			defer cancel()
-			client := telemt.NewAPIClient(rs)
-			if info, err := client.SystemInfo(ctx); err == nil {
-				ov.Version = info.Version
+// CollectTraffic records the traffic of all telemt processes since the last
+// call, then re-syncs if a client ran out of quota or time.
+func (s *TelemtService) CollectTraffic() {
+	traffics := telemtManager().CollectTraffic(context.Background())
+	var inboundTraffics []*xray.Traffic
+	var clientTraffics []*xray.ClientTraffic
+	online := make([]string, 0)
+	for _, it := range traffics {
+		if it.Up+it.Down > 0 {
+			inboundTraffics = append(inboundTraffics, &xray.Traffic{IsInbound: true, Tag: it.Tag, Up: it.Up, Down: it.Down})
+		}
+		for _, c := range it.Clients {
+			if c.Online {
+				online = append(online, c.Email)
 			}
-			if list, err := client.Users(ctx); err == nil {
-				for _, u := range list {
-					stats[u.Username] = u
-				}
-			} else {
-				logger.Debug("telemt users API:", err)
+			if c.Up+c.Down > 0 {
+				clientTraffics = append(clientTraffics, &xray.ClientTraffic{Email: c.Email, Up: c.Up, Down: c.Down})
 			}
 		}
 	}
+	telemtState.Lock()
+	telemtState.online = online
+	telemtState.Unlock()
 
-	for _, row := range rows {
-		view := TelemtUserView{TelemtUser: row}
-		if u, ok := stats[row.Username]; ok {
-			view.Connections = u.CurrentConnections
-			view.ActiveIps = u.ActiveIPs
-			view.Traffic = u.TotalOctets
-			if len(u.Links.TLS) > 0 {
-				view.Link = u.Links.TLS[0]
-			}
-		}
-		if view.Link == "" && ts.PublicHost != "" && ts.TlsDomain != "" {
-			view.Link = telemt.Link(ts.PublicHost, ts.Port, row.Secret, ts.TlsDomain)
-		}
-		ov.Users = append(ov.Users, view)
+	if len(clientTraffics) == 0 && len(inboundTraffics) == 0 {
+		return
 	}
-	return ov, nil
-}
-
-func newTelemtSecret() (string, error) {
-	buf := make([]byte, 16)
-	if _, err := rand.Read(buf); err != nil {
-		return "", err
-	}
-	return hex.EncodeToString(buf), nil
-}
-
-func normalizeTelemtUser(u *model.TelemtUser) error {
-	u.Username = strings.TrimSpace(u.Username)
-	u.Secret = strings.ToLower(strings.TrimSpace(u.Secret))
-	u.Comment = strings.TrimSpace(u.Comment)
-	if !telemt.ValidUserName(u.Username) {
-		return errors.New("user name must be 1-64 characters: letters, digits, '_', '.' or '-'")
-	}
-	if u.Secret != "" && !telemt.ValidSecret(u.Secret) {
-		return errors.New("secret must be 32 hex characters")
-	}
-	if u.ExpiryTime < 0 || u.TotalBytes < 0 || u.LimitIp < 0 {
-		return errors.New("limits cannot be negative")
-	}
-	return nil
-}
-
-func (s *TelemtService) usernameTaken(username string, exceptID int) (bool, error) {
-	var count int64
-	err := database.GetDB().Model(&model.TelemtUser{}).
-		Where("username = ? AND id <> ?", username, exceptID).Count(&count).Error
-	return count > 0, err
-}
-
-// AddUser creates a proxy user, generating a secret when none is given.
-func (s *TelemtService) AddUser(u *model.TelemtUser) error {
-	if err := normalizeTelemtUser(u); err != nil {
-		return err
-	}
-	if taken, err := s.usernameTaken(u.Username, 0); err != nil {
-		return err
-	} else if taken {
-		return fmt.Errorf("user %q already exists", u.Username)
-	}
-	if u.Secret == "" {
-		secret, err := newTelemtSecret()
-		if err != nil {
-			return err
-		}
-		u.Secret = secret
-	}
-	u.Id = 0
-	if err := database.GetDB().Create(u).Error; err != nil {
-		return err
-	}
-	return s.Apply()
-}
-
-// UpdateUser replaces the editable fields of the user with id.
-func (s *TelemtService) UpdateUser(id int, u *model.TelemtUser) error {
-	if err := normalizeTelemtUser(u); err != nil {
-		return err
-	}
-	var existing model.TelemtUser
-	if err := database.GetDB().First(&existing, id).Error; err != nil {
-		return err
-	}
-	if taken, err := s.usernameTaken(u.Username, id); err != nil {
-		return err
-	} else if taken {
-		return fmt.Errorf("user %q already exists", u.Username)
-	}
-	if u.Secret == "" {
-		u.Secret = existing.Secret
-	}
-	err := database.GetDB().Model(&existing).
-		Updates(map[string]any{
-			"username":    u.Username,
-			"secret":      u.Secret,
-			"enable":      u.Enable,
-			"expiry_time": u.ExpiryTime,
-			"total_bytes": u.TotalBytes,
-			"limit_ip":    u.LimitIp,
-			"comment":     u.Comment,
-		}).Error
+	_, clientsDisabled, err := s.inboundService.AddTelemtTraffic(inboundTraffics, clientTraffics)
 	if err != nil {
-		return err
+		logger.Warning("telemt: add traffic:", err)
+		return
 	}
-	return s.Apply()
+	if clientsDisabled {
+		s.Sync()
+	}
 }
 
-// SetUserEnable switches one user on or off.
-func (s *TelemtService) SetUserEnable(id int, enable bool) error {
-	res := database.GetDB().Model(&model.TelemtUser{}).Where("id = ?", id).Update("enable", enable)
-	if res.Error != nil {
-		return res.Error
-	}
-	if res.RowsAffected == 0 {
-		return gorm.ErrRecordNotFound
-	}
-	return s.Apply()
+// OnlineClients returns the emails of clients with a live telemt connection.
+func (s *TelemtService) OnlineClients() []string {
+	telemtState.Lock()
+	defer telemtState.Unlock()
+	return append([]string(nil), telemtState.online...)
 }
 
-// DeleteUser removes the user with id.
-func (s *TelemtService) DeleteUser(id int) error {
-	res := database.GetDB().Delete(&model.TelemtUser{}, id)
-	if res.Error != nil {
-		return res.Error
-	}
-	if res.RowsAffected == 0 {
-		return gorm.ErrRecordNotFound
-	}
-	return s.Apply()
+// StopAll stops every telemt process, for panel shutdown.
+func (s *TelemtService) StopAll() {
+	telemtManager().StopAll()
 }
 
-// RotateSecret gives the user a new secret, invalidating the old link.
-func (s *TelemtService) RotateSecret(id int) error {
-	secret, err := newTelemtSecret()
-	if err != nil {
-		return err
+func logTelemtLine(inboundID int, line string) {
+	msg := fmt.Sprintf("telemt (inbound %d): %s", inboundID, line)
+	if strings.Contains(line, "ERROR") || strings.Contains(line, "WARN") {
+		logger.Warning(msg)
+	} else {
+		logger.Debug(msg)
 	}
-	res := database.GetDB().Model(&model.TelemtUser{}).Where("id = ?", id).Update("secret", secret)
-	if res.Error != nil {
-		return res.Error
-	}
-	if res.RowsAffected == 0 {
-		return gorm.ErrRecordNotFound
-	}
-	return s.Apply()
-}
-
-// ResetTraffic zeroes the user's consumed quota in the running proxy.
-func (s *TelemtService) ResetTraffic(id int) error {
-	var user model.TelemtUser
-	if err := database.GetDB().First(&user, id).Error; err != nil {
-		return err
-	}
-	if !telemtManager().Running() {
-		return errors.New("telemt is not running")
-	}
-	ts, err := s.GetSettings()
-	if err != nil {
-		return err
-	}
-	rs, err := s.runtimeSettings(ts)
-	if err != nil {
-		return err
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), telemtAPICallTimeout)
-	defer cancel()
-	return telemt.NewAPIClient(rs).ResetQuota(ctx, user.Username)
 }

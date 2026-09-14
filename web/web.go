@@ -315,11 +315,10 @@ func (s *Server) startTask() {
 	// Check whether xray is running every second
 	s.cron.AddJob("@every 1s", job.NewCheckXrayRunningJob())
 
-	// Start the Telegram MTProto proxy if it is enabled, and keep it running
-	if err := s.telemtService.Apply(); err != nil {
-		logger.Warning("start telemt failed:", err)
-	}
-	s.cron.AddJob("@every 15s", job.NewCheckTelemtRunningJob())
+	// Run the telemt proxies behind mtproto inbounds, keep them in sync with
+	// the database and record their traffic
+	s.telemtService.Sync()
+	s.cron.AddJob("@every 10s", job.NewTelemtJob())
 
 	// Check if xray needs to be restarted every 30 seconds
 	s.cron.AddFunc("@every 30s", func() {
@@ -487,7 +486,7 @@ func (s *Server) Stop() error {
 	if s.cron != nil {
 		s.cron.Stop()
 	}
-	s.telemtService.Stop()
+	s.telemtService.StopAll()
 	if s.tgbotService.IsRunning() {
 		s.tgbotService.Stop()
 	}

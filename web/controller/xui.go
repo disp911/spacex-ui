@@ -28,7 +28,6 @@ func (a *XUIController) initRouter(g *gin.RouterGroup) {
 	g.GET("/inbounds", a.inbounds)
 	g.GET("/settings", a.settings)
 	g.GET("/xray", a.xraySettings)
-	g.GET("/telegram", a.telegram)
 
 	a.settingController = NewSettingController(g)
 	a.xraySettingController = NewXraySettingController(g)
@@ -47,11 +46,6 @@ func (a *XUIController) inbounds(c *gin.Context) {
 // settings renders the settings management page.
 func (a *XUIController) settings(c *gin.Context) {
 	html(c, "settings.html", "pages.settings.title", nil)
-}
-
-// telegram renders the Telegram MTProto proxy page.
-func (a *XUIController) telegram(c *gin.Context) {
-	html(c, "telegram.html", "pages.telemt.title", nil)
 }
 
 // xraySettings renders the Xray settings page.
