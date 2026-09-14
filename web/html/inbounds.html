@@ -993,7 +993,7 @@
   }];
 
   const innerColumns = [
-    { title: '{{ i18n "pages.inbounds.operate" }}', width: 140, scopedSlots: { customRender: 'actions' } },
+    { title: '{{ i18n "pages.inbounds.operate" }}', width: 160, className: 'client-actions', scopedSlots: { customRender: 'actions' } },
     { title: '{{ i18n "pages.inbounds.enable" }}', width: 60, scopedSlots: { customRender: 'enable' } },
     { title: '{{ i18n "online" }}', width: 80, scopedSlots: { customRender: 'online' } },
     { title: '{{ i18n "pages.inbounds.client" }}', width: 160, scopedSlots: { customRender: 'client' } },
@@ -2245,6 +2245,12 @@
     #content-layout>.ant-layout-content>.ant-spin-nested-loading>div>.ant-spin {
       left: 50vw !important;
     }
+  }
+
+  /* Client action icons (QR, edit, info, reset, delete) stay on one line;
+     the column is sized for all five so the last one is not clipped. */
+  .inbounds-page .client-actions {
+    white-space: nowrap;
   }
 
   /* Protocol cell — wrap tags into a flex grid with consistent gap so
