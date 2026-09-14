@@ -10,11 +10,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mhsanaei/3x-ui/v2/database"
-	"github.com/mhsanaei/3x-ui/v2/database/model"
-	"github.com/mhsanaei/3x-ui/v2/logger"
-	"github.com/mhsanaei/3x-ui/v2/telemt"
-	"github.com/mhsanaei/3x-ui/v2/util/random"
+	"github.com/disp911/spacex-ui/v2/database"
+	"github.com/disp911/spacex-ui/v2/database/model"
+	"github.com/disp911/spacex-ui/v2/logger"
+	"github.com/disp911/spacex-ui/v2/telemt"
+	"github.com/disp911/spacex-ui/v2/util/random"
 
 	"gorm.io/gorm"
 )

@@ -15,13 +15,13 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/mhsanaei/3x-ui/v2/logger"
-	"github.com/mhsanaei/3x-ui/v2/util/common"
-	webpkg "github.com/mhsanaei/3x-ui/v2/web"
-	"github.com/mhsanaei/3x-ui/v2/web/locale"
-	"github.com/mhsanaei/3x-ui/v2/web/middleware"
-	"github.com/mhsanaei/3x-ui/v2/web/network"
-	"github.com/mhsanaei/3x-ui/v2/web/service"
+	"github.com/disp911/spacex-ui/v2/logger"
+	"github.com/disp911/spacex-ui/v2/util/common"
+	webpkg "github.com/disp911/spacex-ui/v2/web"
+	"github.com/disp911/spacex-ui/v2/web/locale"
+	"github.com/disp911/spacex-ui/v2/web/middleware"
+	"github.com/disp911/spacex-ui/v2/web/network"
+	"github.com/disp911/spacex-ui/v2/web/service"
 
 	"github.com/gin-gonic/gin"
 )

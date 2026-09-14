@@ -7,9 +7,9 @@ import (
 	"net/netip"
 	"strings"
 
-	"github.com/mhsanaei/3x-ui/v2/config"
-	"github.com/mhsanaei/3x-ui/v2/logger"
-	"github.com/mhsanaei/3x-ui/v2/web/entity"
+	"github.com/disp911/spacex-ui/v2/config"
+	"github.com/disp911/spacex-ui/v2/logger"
+	"github.com/disp911/spacex-ui/v2/web/entity"
 
 	"github.com/gin-gonic/gin"
 )

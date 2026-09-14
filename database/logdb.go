@@ -4,8 +4,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/mhsanaei/3x-ui/v2/config"
-	"github.com/mhsanaei/3x-ui/v2/database/model"
+	"github.com/disp911/spacex-ui/v2/config"
+	"github.com/disp911/spacex-ui/v2/database/model"
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"

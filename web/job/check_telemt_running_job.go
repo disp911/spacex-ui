@@ -1,7 +1,7 @@
 package job
 
 import (
-	"github.com/mhsanaei/3x-ui/v2/web/service"
+	"github.com/disp911/spacex-ui/v2/web/service"
 )
 
 // CheckTelemtRunningJob restarts the Telegram proxy if it exits unexpectedly.
