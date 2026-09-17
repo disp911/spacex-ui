@@ -28,6 +28,32 @@
       font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Vazirmatn', 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
     }
 
+    /* Every dialog opens centred on screen and never taller than it: auto
+       margins centre the window and collapse when it does not fit, and a tall
+       dialog scrolls inside its own body instead of pushing its buttons below
+       the fold and making the page scroll. */
+    .ant-modal-wrap {
+      display: flex;
+    }
+
+    .ant-modal-wrap .ant-modal {
+      /* Beats the inline top offset a few dialogs set for themselves. */
+      top: 0 !important;
+      margin: auto;
+      padding-bottom: 0;
+      max-width: calc(100vw - 32px);
+    }
+
+    .ant-modal-wrap .ant-modal-content {
+      display: flex;
+      flex-direction: column;
+      max-height: calc(100vh - 32px);
+    }
+
+    .ant-modal-wrap .ant-modal-body {
+      overflow: auto;
+    }
+
     /* mobile touch scrolling for tabs */
     @media (max-width: 576px) {
       .ant-tabs-nav-container {

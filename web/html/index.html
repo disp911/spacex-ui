@@ -3,6 +3,13 @@
 
 {{ template "page/body_start" .}}
 <style>
+  /* Both log windows size their table to the height left on screen, instead
+     of a fixed 500px that makes the window scroll as well as the records. */
+  .index-page~div .log-container {
+    max-height: calc(100vh - 260px);
+    min-height: 160px;
+  }
+
   body.dark .custom-geo-section code.custom-geo-ext-code {
     color: var(--dark-color-text-primary, rgba(255, 255, 255, 0.85));
     background: var(--dark-color-surface-200, #222d42);
