@@ -63,17 +63,6 @@ type wrapAssetsFile struct {
 	fs.File
 }
 
-// Seek passes through to the embedded file. Without it net/http cannot sniff
-// the type of a file its MIME table does not know (fonts, on systems without
-// a mime.types entry for them) or serve a byte range, and answers 500.
-func (f *wrapAssetsFile) Seek(offset int64, whence int) (int64, error) {
-	seeker, ok := f.File.(io.Seeker)
-	if !ok {
-		return 0, fs.ErrInvalid
-	}
-	return seeker.Seek(offset, whence)
-}
-
 func (f *wrapAssetsFile) Stat() (fs.FileInfo, error) {
 	info, err := f.File.Stat()
 	if err != nil {

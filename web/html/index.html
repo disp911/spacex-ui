@@ -17,6 +17,12 @@
     padding: 2px 6px;
     border-radius: 3px;
   }
+
+  html[data-theme="ultra-dark"] body.dark .custom-geo-section code.custom-geo-ext-code {
+    color: var(--dark-color-text-primary, rgba(255, 255, 255, 0.88));
+    background: var(--dark-color-surface-700, #111929);
+    border-color: var(--dark-color-stroke, #2c3950);
+  }
 </style>
 <a-layout id="app" v-cloak :class="themeSwitcher.currentTheme + ' index-page'">
   <a-sidebar></a-sidebar>

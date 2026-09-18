@@ -91,6 +91,7 @@
 [menu]
 "theme" = "Theme"
 "dark" = "Dark"
+"ultraDark" = "Ultra Dark"
 "dashboard" = "Overview"
 "inbounds" = "Inbounds"
 "settings" = "Panel Settings"
@@ -100,24 +101,14 @@
 
 [pages.login]
 "hello" = "Hello"
-"title" = "Sign in"
-"server" = "Server"
-"username" = "Username"
-"showPassword" = "Show password"
-"hidePassword" = "Hide password"
-"submit" = "Sign in to panel"
-"checking" = "Checking…"
-"success" = "Signed in"
-"networkError" = "Network or server error"
-"ping" = "Ping"
-"ms" = "ms"
-"language" = "Interface language"
-"toggleTheme" = "Switch theme"
+"title" = "Welcome"
 "loginAgain" = "Your session has expired, please log in again"
 
 [pages.login.toasts]
 "invalidFormData" = "The Input data format is invalid."
-"wrongUsernameOrPassword" = "Invalid username or password"
+"emptyUsername" = "Username is required"
+"emptyPassword" = "Password is required"
+"wrongUsernameOrPassword" = "Invalid username or password or two-factor code."
 "successLogin" = " You have successfully logged into your account."
 
 [pages.index]
