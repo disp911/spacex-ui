@@ -214,6 +214,9 @@ jobs:
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ github.ref_name }}
+          # Named after the tag alone; an unnamed release is listed with the
+          # tagged commit message tacked on.
+          release_name: ${{ github.ref_name }}
           file: x-ui-linux-${{ matrix.platform }}.tar.gz
           asset_name: x-ui-linux-${{ matrix.platform }}.tar.gz
           overwrite: true
@@ -310,6 +313,9 @@ jobs:
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ github.ref_name }}
+          # Named after the tag alone; an unnamed release is listed with the
+          # tagged commit message tacked on.
+          release_name: ${{ github.ref_name }}
           file: x-ui-windows-amd64.zip
           asset_name: x-ui-windows-amd64.zip
           overwrite: true
