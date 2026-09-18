@@ -220,7 +220,9 @@ jobs:
           file: x-ui-linux-${{ matrix.platform }}.tar.gz
           asset_name: x-ui-linux-${{ matrix.platform }}.tar.gz
           overwrite: true
-          prerelease: false
+          # Tags with a suffix (v2.10.0-beta.1) are test builds: a pre-release
+          # is never the latest release that installs and updates pick up.
+          prerelease: ${{ contains(github.ref_name, '-') }}
 
   # =================================
   #  Windows Build
@@ -319,4 +321,6 @@ jobs:
           file: x-ui-windows-amd64.zip
           asset_name: x-ui-windows-amd64.zip
           overwrite: true
-          prerelease: false
+          # Tags with a suffix (v2.10.0-beta.1) are test builds: a pre-release
+          # is never the latest release that installs and updates pick up.
+          prerelease: ${{ contains(github.ref_name, '-') }}
