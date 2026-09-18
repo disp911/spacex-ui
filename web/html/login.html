@@ -151,12 +151,16 @@
     background: #F4F6F7;
   }
 
+  /* The panel stylesheet keeps html and body from scrolling, so the page
+     scrolls itself when the form is taller than the screen, while the glow
+     and the waves stay pinned to the bottom of the screen. */
   .login-page {
     position: relative;
     display: flex;
-    min-height: 100vh;
-    min-height: 100dvh;
-    overflow: hidden;
+    height: 100vh;
+    height: 100dvh;
+    overflow-x: hidden;
+    overflow-y: auto;
     background: var(--bg);
     color: var(--text);
     font-family: 'IBM Plex Sans', system-ui, sans-serif;
@@ -170,7 +174,7 @@
   }
 
   .login-glow {
-    position: absolute;
+    position: fixed;
     inset: 0;
     background: radial-gradient(120% 90% at 50% 118%, var(--glow) 0%, transparent 62%);
   }
@@ -178,7 +182,7 @@
   /* Three wave layers, each twice the screen wide and drifting by half its
      width, so the loop has no visible seam. The middle one runs backwards. */
   .login-waves {
-    position: absolute;
+    position: fixed;
     left: 0;
     right: 0;
     bottom: 0;
