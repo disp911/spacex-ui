@@ -160,9 +160,13 @@ func isNewerVersion(latest string, current string) bool {
 	return cmp > 0
 }
 
+// compareVersionStrings compares two x.y.z versions, each optionally with a
+// pre-release suffix such as 2.10.0-beta.1. A pre-release comes before the
+// release it leads up to, and pre-releases of one version compare field by
+// field (numbers numerically), so beta.2 < beta.10 < rc.1.
 func compareVersionStrings(a string, b string) (int, bool) {
-	aParts, okA := parseVersionParts(a)
-	bParts, okB := parseVersionParts(b)
+	aParts, aPre, okA := parseVersionParts(a)
+	bParts, bPre, okB := parseVersionParts(b)
 	if !okA || !okB {
 		return 0, false
 	}
@@ -174,23 +178,67 @@ func compareVersionStrings(a string, b string) (int, bool) {
 			return -1, true
 		}
 	}
-	return 0, true
+	return comparePreRelease(aPre, bPre), true
 }
 
-func parseVersionParts(version string) ([3]int, bool) {
+func parseVersionParts(version string) ([3]int, string, bool) {
 	var result [3]int
-	parts := strings.Split(normalizeVersionTag(version), ".")
+	core, pre, hasPre := strings.Cut(normalizeVersionTag(version), "-")
+	if hasPre && pre == "" {
+		return result, "", false
+	}
+	parts := strings.Split(core, ".")
 	if len(parts) != 3 {
-		return result, false
+		return result, "", false
 	}
 	for i, part := range parts {
 		n, err := strconv.Atoi(part)
 		if err != nil {
-			return result, false
+			return result, "", false
 		}
 		result[i] = n
 	}
-	return result, true
+	return result, pre, true
+}
+
+func comparePreRelease(a string, b string) int {
+	switch {
+	case a == b:
+		return 0
+	case a == "":
+		return 1
+	case b == "":
+		return -1
+	}
+	aFields, bFields := strings.Split(a, "."), strings.Split(b, ".")
+	for i := 0; i < len(aFields) && i < len(bFields); i++ {
+		aNum, aErr := strconv.Atoi(aFields[i])
+		bNum, bErr := strconv.Atoi(bFields[i])
+		switch {
+		case aErr == nil && bErr == nil:
+			if aNum != bNum {
+				if aNum > bNum {
+					return 1
+				}
+				return -1
+			}
+		case aErr == nil:
+			return -1
+		case bErr == nil:
+			return 1
+		default:
+			if c := strings.Compare(aFields[i], bFields[i]); c != 0 {
+				return c
+			}
+		}
+	}
+	switch {
+	case len(aFields) > len(bFields):
+		return 1
+	case len(aFields) < len(bFields):
+		return -1
+	}
+	return 0
 }
 
 func normalizeVersionTag(version string) string {

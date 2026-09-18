@@ -13,6 +13,16 @@ func TestIsNewerVersion(t *testing.T) {
 		{"v2.9.3", "2.9.3", false},
 		{"v2.9.2", "2.9.3", false},
 		{"v3.0.0", "2.9.3", true},
+		// A test build ahead of the stable line is not offered the older
+		// stable release, and is offered the final release it leads up to.
+		{"v2.9.12", "2.10.0-beta.1", false},
+		{"v2.9.13", "2.10.0-beta.1", false},
+		{"v2.10.0", "2.10.0-beta.1", true},
+		{"v2.10.0-beta.2", "2.10.0-beta.1", true},
+		{"v2.10.0-beta.10", "2.10.0-beta.2", true},
+		{"v2.10.0-rc.1", "2.10.0-beta.10", true},
+		{"v2.10.0-beta.1", "2.10.0", false},
+		{"v2.10.0-beta.1", "2.10.0-beta.1", false},
 	}
 
 	for _, tc := range cases {
@@ -28,6 +38,9 @@ func TestCompareVersionStringsRejectsUnexpectedFormats(t *testing.T) {
 	}
 	if _, ok := compareVersionStrings("v2.9", "2.9.3"); ok {
 		t.Fatal("expected short version to be rejected")
+	}
+	if _, ok := compareVersionStrings("v2.10.0-", "2.9.3"); ok {
+		t.Fatal("expected an empty pre-release suffix to be rejected")
 	}
 }
 
