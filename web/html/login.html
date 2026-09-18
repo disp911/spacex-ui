@@ -1,226 +1,1280 @@
 {{ template "page/head_start" .}}
-{{ template "page/head_end" .}}
+<link rel="stylesheet" href="{{ .base_path }}assets/css/fonts.css?{{ .cur_ver }}">
+<style>
+  /* Theme tokens. Every colour on the page comes from here, so the rules
+     below are the same for both themes. */
+  .login-page.dark {
+    --bg: #0B0E13;
+    --glow: rgba(47, 212, 160, .16);
+    --glow-mobile: rgba(47, 212, 160, .16);
+    --text: #E6E9EF;
+    --muted: #8A91A0;
+    --logo-bg: #2FD4A0;
+    --logo-ink: #06201A;
+    --control-bg: #161B24;
+    --control-border: rgba(255, 255, 255, .1);
+    --control-fg: #C7CCD6;
+    --control-hover-bg: #1A2B28;
+    --control-hover-fg: #E6E9EF;
+    --theme-bg: rgba(255, 255, 255, .04);
+    --theme-hover-bg: rgba(47, 212, 160, .09);
+    --caret: #6E7787;
+    --accent-border: rgba(47, 212, 160, .5);
+    --glow-shadow: 0 0 0 3px rgba(47, 212, 160, .12), 0 0 14px rgba(47, 212, 160, .3);
+    --sheet-bg: rgba(19, 23, 31, .86);
+    --sheet-border: rgba(255, 255, 255, .08);
+    --menu-shadow: 0 18px 44px rgba(0, 0, 0, .45);
+    --card-shadow: 0 24px 60px rgba(0, 0, 0, .45);
+    --menu-title: #8A91A0;
+    --row-fg: #C7CCD6;
+    --row-hover: #1C2130;
+    --row-on-bg: #172A26;
+    --row-on-fg: #2FD4A0;
+    --subtitle: #6E7787;
+    --subtitle-mobile: #8A91A0;
+    --host: #C7CCD6;
+    --label: #6E7787;
+    --field-bg: #111520;
+    --field-bg-mobile: #151924;
+    --field-border: #242938;
+    --field-fg: #C7CCD6;
+    --pass-fg: #E6E9EF;
+    --eye: #8A91A0;
+    --eye-hover: #2FD4A0;
+    --danger: #F2555A;
+    --danger-ring: 0 0 0 3px rgba(242, 85, 90, .13);
+    --banner-bg: rgba(242, 85, 90, .11);
+    --banner-border: rgba(242, 85, 90, .32);
+    --banner-icon: #FF9498;
+    --banner-text: #FF9498;
+    --banner-close: #C79B9E;
+    --otp-bg: #111520;
+    --otp-bg-mobile: #151924;
+    --otp-filled-border: #242938;
+    --otp-filled-fg: #E6E9EF;
+    --otp-empty-border: #1C2130;
+    --otp-empty-fg: #4E5563;
+    --otp-active-border: #2FD4A0;
+    --otp-active-ring: 0 0 0 3px rgba(47, 212, 160, .12);
+    --btn-bg: #2FD4A0;
+    --btn-fg: #06201A;
+    --btn-hover-bg: #45E0AF;
+    --btn-hover-shadow: 0 0 0 4px rgba(47, 212, 160, .16), 0 0 22px rgba(47, 212, 160, .4);
+    --btn-loading-bg: #27C295;
+    --spinner-track: rgba(6, 32, 26, .28);
+    --spinner-head: #06201A;
+    --footer-border: rgba(255, 255, 255, .07);
+    --footer-fg: #9AA3B2;
+    --wave-3: #0F2E2A;
+    --wave-1-opacity: .30;
+    --wave-2-opacity: .20;
+    --wave-3-opacity: .42;
+    --wave-2-opacity-mobile: .21;
+    --wave-3-opacity-mobile: .42;
+  }
 
+  .login-page.light {
+    --bg: #F4F6F7;
+    --glow: rgba(18, 168, 123, .14);
+    --glow-mobile: rgba(18, 168, 123, .14);
+    --text: #14161A;
+    --muted: #6B7280;
+    --logo-bg: #12A87B;
+    --logo-ink: #FFFFFF;
+    --control-bg: #FFFFFF;
+    --control-border: rgba(0, 0, 0, .1);
+    --control-fg: #3A4049;
+    --control-hover-bg: #F1FAF6;
+    --control-hover-fg: #0E8A65;
+    --theme-bg: rgba(255, 255, 255, .8);
+    --theme-hover-bg: rgba(18, 168, 123, .07);
+    --caret: #9096A2;
+    --accent-border: rgba(18, 168, 123, .5);
+    --glow-shadow: 0 0 0 3px rgba(18, 168, 123, .11), 0 0 14px rgba(18, 168, 123, .24);
+    --sheet-bg: rgba(255, 255, 255, .9);
+    --sheet-border: rgba(0, 0, 0, .07);
+    --menu-shadow: 0 18px 44px rgba(16, 24, 40, .16);
+    --card-shadow: 0 24px 60px rgba(16, 24, 40, .13);
+    --menu-title: #5C6473;
+    --row-fg: #3A4049;
+    --row-hover: #F2F4F6;
+    --row-on-bg: #ECFAF4;
+    --row-on-fg: #0E8A65;
+    --subtitle: #6B7280;
+    --subtitle-mobile: #6B7280;
+    --host: #3A4049;
+    --label: #6B7280;
+    --field-bg: #FFFFFF;
+    --field-bg-mobile: #FFFFFF;
+    --field-border: #E1E4E9;
+    --field-fg: #3A4049;
+    --pass-fg: #14161A;
+    --eye: #6B7280;
+    --eye-hover: #12A87B;
+    --danger: #D94B50;
+    --danger-ring: 0 0 0 3px rgba(217, 75, 80, .13);
+    --banner-bg: #FDECEC;
+    --banner-border: #F4C7C9;
+    --banner-icon: #C0343A;
+    --banner-text: #B3262C;
+    --banner-close: #8E3B3F;
+    --otp-bg: #FAFBFC;
+    --otp-bg-mobile: #FFFFFF;
+    --otp-filled-border: #E1E4E9;
+    --otp-filled-fg: #14161A;
+    --otp-empty-border: #EAECEF;
+    --otp-empty-fg: #9096A2;
+    --otp-active-border: #12A87B;
+    --otp-active-ring: 0 0 0 3px rgba(18, 168, 123, .13);
+    --btn-bg: #12A87B;
+    --btn-fg: #FFFFFF;
+    --btn-hover-bg: #0E8A65;
+    --btn-hover-shadow: 0 0 0 4px rgba(18, 168, 123, .16), 0 0 22px rgba(18, 168, 123, .32);
+    --btn-loading-bg: #0E8A65;
+    --spinner-track: rgba(255, 255, 255, .38);
+    --spinner-head: #FFFFFF;
+    --footer-border: rgba(0, 0, 0, .07);
+    --footer-fg: #5C6473;
+    --wave-3: #12A87B;
+    --wave-1-opacity: .34;
+    --wave-2-opacity: .22;
+    --wave-3-opacity: .30;
+    --wave-2-opacity-mobile: .21;
+    --wave-3-opacity-mobile: .30;
+  }
+
+  body.dark {
+    background: #0B0E13;
+  }
+
+  body.light {
+    background: #F4F6F7;
+  }
+
+  /* The panel stylesheet keeps html and body from scrolling, so the page
+     scrolls itself when the form is taller than the screen, while the glow
+     and the waves stay pinned to the bottom of the screen. */
+  .login-page {
+    position: relative;
+    display: flex;
+    height: 100vh;
+    height: 100dvh;
+    overflow-x: hidden;
+    overflow-y: auto;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .login-page *,
+  .login-page *::before,
+  .login-page *::after {
+    box-sizing: border-box;
+  }
+
+  .login-glow {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(120% 90% at 50% 118%, var(--glow) 0%, transparent 62%);
+  }
+
+  /* Three wave layers, each twice the screen wide and drifting by half its
+     width, so the loop has no visible seam. The middle one runs backwards. */
+  .login-waves {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 440px;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .login-wave {
+    position: absolute;
+    left: 0;
+    width: 200%;
+    height: 100%;
+  }
+
+  .login-wave svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .login-wave-1 {
+    bottom: -6px;
+    opacity: var(--wave-1-opacity);
+    animation: loginWaveDriftA 26s linear infinite;
+  }
+
+  .login-wave-2 {
+    bottom: -14px;
+    opacity: var(--wave-2-opacity);
+    animation: loginWaveDriftB 17s linear infinite;
+  }
+
+  .login-wave-3 {
+    bottom: -20px;
+    opacity: var(--wave-3-opacity);
+    animation: loginWaveDriftC 11s linear infinite;
+  }
+
+  .login-wave-3 path {
+    fill: var(--wave-3);
+  }
+
+  .login-content {
+    position: relative;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 34px 44px;
+  }
+
+  /* Header sits above the card so the language menu and its scrim cover it. */
+  .login-header {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+  }
+
+  .login-logo {
+    display: block;
+    flex: none;
+    width: 32px;
+    height: 32px;
+  }
+
+  .login-logo rect {
+    fill: var(--logo-bg);
+  }
+
+  .login-logo ellipse {
+    stroke: var(--logo-ink);
+  }
+
+  .login-logo circle {
+    fill: var(--logo-ink);
+  }
+
+  .login-wordmark {
+    font-weight: 600;
+    font-size: 15.5px;
+    letter-spacing: -.3px;
+  }
+
+  .login-wordmark span {
+    font-weight: 450;
+    color: var(--muted);
+  }
+
+  .login-controls {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .login-lang {
+    position: relative;
+  }
+
+  .login-control {
+    display: flex;
+    align-items: center;
+    height: 30px;
+    margin: 0;
+    border: 1px solid var(--control-border);
+    border-radius: 9px;
+    background: var(--control-bg);
+    color: var(--control-fg);
+    font: inherit;
+    cursor: pointer;
+    outline: none;
+    transition: box-shadow .22s ease, border-color .22s ease, background .22s ease;
+  }
+
+  .login-control:hover,
+  .login-control:focus-visible {
+    border-color: var(--accent-border);
+    background: var(--control-hover-bg);
+    box-shadow: var(--glow-shadow);
+    color: var(--control-hover-fg);
+  }
+
+  /* Kept opaque on purpose: the button stays above the blurred scrim. */
+  .login-lang-button {
+    position: relative;
+    z-index: 6;
+    gap: 7px;
+    padding: 0 9px 0 10px;
+  }
+
+  .login-lang-button svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .login-lang-code {
+    font-weight: 500;
+    font-size: 11.5px;
+  }
+
+  .login-lang-caret {
+    font: 400 9px 'IBM Plex Mono', monospace;
+    color: var(--caret);
+  }
+
+  .login-scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 4;
+    background: rgba(8, 11, 16, .14);
+    backdrop-filter: blur(3px) saturate(.92);
+    -webkit-backdrop-filter: blur(3px) saturate(.92);
+    animation: loginScrimIn .16s ease-out;
+  }
+
+  .login-lang-menu {
+    position: absolute;
+    top: 36px;
+    right: 0;
+    z-index: 5;
+    width: 232px;
+    padding: 6px;
+    border: 1px solid var(--sheet-border);
+    border-radius: 12px;
+    background: var(--sheet-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: var(--menu-shadow);
+    animation: loginSheetUp .14s ease-out;
+  }
+
+  .login-lang-title {
+    padding: 7px 9px 6px;
+    font: 500 9.5px 'IBM Plex Mono', monospace;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+    color: var(--menu-title);
+  }
+
+  .login-lang-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+
+  .login-lang-row {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    width: 100%;
+    margin: 0;
+    padding: 8px 10px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--row-fg);
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+    outline: none;
+  }
+
+  .login-lang-row:hover,
+  .login-lang-row:focus-visible {
+    background: var(--row-hover);
+  }
+
+  .login-lang-row.is-active {
+    background: var(--row-on-bg);
+    color: var(--row-on-fg);
+  }
+
+  .login-lang-name {
+    flex: 1;
+    min-width: 0;
+    font-weight: 450;
+    font-size: 12.5px;
+  }
+
+  .login-lang-row-code {
+    font: 500 10px 'IBM Plex Mono', monospace;
+    color: var(--muted);
+  }
+
+  .login-lang-check {
+    width: 12px;
+    font: 600 11px 'IBM Plex Mono', monospace;
+    color: transparent;
+  }
+
+  .login-lang-row.is-active .login-lang-check {
+    color: inherit;
+  }
+
+  .login-theme-button {
+    justify-content: center;
+    width: 30px;
+    padding: 0;
+    background: var(--theme-bg);
+  }
+
+  .login-theme-button:hover,
+  .login-theme-button:focus-visible {
+    background: var(--theme-hover-bg);
+  }
+
+  /* Moon and sun sit on top of each other; switching spins the outgoing
+     one away and the incoming one in with a slight overshoot. */
+  .login-theme-icons {
+    position: relative;
+    width: 16px;
+    height: 16px;
+  }
+
+  .login-theme-icons svg {
+    position: absolute;
+    inset: 0;
+    transition: transform .42s cubic-bezier(.34, 1.32, .5, 1), opacity .26s ease;
+  }
+
+  .login-theme-icons .is-hidden-sun {
+    transform: rotate(90deg) scale(.55);
+    opacity: 0;
+  }
+
+  .login-theme-icons .is-hidden-moon {
+    transform: rotate(-90deg) scale(.55);
+    opacity: 0;
+  }
+
+  .login-main {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-bottom: 40px;
+  }
+
+  .login-card {
+    flex: none;
+    width: 424px;
+    padding: 30px 32px;
+    border: 1px solid var(--sheet-border);
+    border-radius: 16px;
+    background: var(--sheet-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: var(--card-shadow);
+  }
+
+  .login-title {
+    margin: 0 0 5px;
+    color: inherit;
+    font-weight: 600;
+    font-size: 19px;
+    line-height: normal;
+    letter-spacing: -.4px;
+  }
+
+  .login-subtitle {
+    margin-bottom: 24px;
+    font-size: 12.5px;
+    color: var(--subtitle);
+  }
+
+  .login-subtitle span {
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--host);
+  }
+
+  .login-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .login-label {
+    display: block;
+    margin-bottom: 7px;
+    font: 500 10.5px 'IBM Plex Mono', monospace;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+    color: var(--label);
+  }
+
+  .login-field {
+    display: flex;
+    align-items: center;
+    height: 42px;
+    padding: 0 13px;
+    border: 1px solid var(--field-border);
+    border-radius: 10px;
+    background: var(--field-bg);
+    transition: box-shadow .22s ease, border-color .22s ease;
+  }
+
+  .login-field:hover,
+  .login-field:focus-within {
+    border-color: var(--accent-border);
+    box-shadow: var(--glow-shadow);
+  }
+
+  /* An error outranks hover and focus, so it stays visible while the
+     password is typed again. */
+  .login-field.is-error,
+  .login-field.is-error:hover,
+  .login-field.is-error:focus-within {
+    border-color: var(--danger);
+    box-shadow: none;
+  }
+
+  .login-field.is-error.has-ring {
+    box-shadow: var(--danger-ring);
+  }
+
+  .login-field input {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    outline: none;
+    background: transparent;
+    color: var(--field-fg);
+    font: 450 13px 'IBM Plex Sans', sans-serif;
+  }
+
+  .login-field input.is-secret {
+    color: var(--pass-fg);
+    font: 500 13px 'IBM Plex Mono', monospace;
+  }
+
+  /* Keep browser autofill from painting its own colours over the field. */
+  .login-field input:-webkit-autofill {
+    -webkit-text-fill-color: var(--field-fg);
+    -webkit-box-shadow: 0 0 0 1000px var(--field-bg) inset;
+    caret-color: var(--field-fg);
+    transition: background-color 9999s ease-out;
+  }
+
+  .login-field input.is-secret:-webkit-autofill {
+    -webkit-text-fill-color: var(--pass-fg);
+  }
+
+  .login-eye {
+    display: flex;
+    align-items: center;
+    flex: none;
+    margin: 0 0 0 auto;
+    padding: 0;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--eye);
+    cursor: pointer;
+    outline: none;
+  }
+
+  .login-eye:hover,
+  .login-eye:focus-visible {
+    color: var(--eye-hover);
+  }
+
+  .login-eye svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  /* One input under six painted cells: autofill and pasting a whole code
+     work as in any single field. */
+  .login-otp {
+    position: relative;
+    display: flex;
+    gap: 7px;
+  }
+
+  .login-otp-cell {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 40px;
+    border: 1px solid var(--otp-empty-border);
+    border-radius: 9px;
+    background: var(--otp-bg);
+    color: var(--otp-empty-fg);
+    font: 500 15px 'IBM Plex Mono', monospace;
+  }
+
+  .login-otp-cell.is-filled {
+    border-color: var(--otp-filled-border);
+    color: var(--otp-filled-fg);
+  }
+
+  .login-otp-cell.is-active {
+    border-color: var(--otp-active-border);
+    box-shadow: var(--otp-active-ring);
+    color: var(--otp-filled-fg);
+  }
+
+  .login-otp input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    outline: none;
+    background: transparent;
+    color: transparent;
+    caret-color: transparent;
+    font-size: 16px;
+    cursor: text;
+  }
+
+  .login-otp input::selection {
+    background: transparent;
+  }
+
+  .login-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-top: 14px;
+    padding: 11px 12px;
+    border: 1px solid var(--banner-border);
+    border-radius: 10px;
+    background: var(--banner-bg);
+  }
+
+  .login-banner svg {
+    flex: none;
+    width: 16px;
+    height: 16px;
+    margin-top: 1px;
+    color: var(--banner-icon);
+  }
+
+  .login-banner-text {
+    flex: 1;
+    min-width: 0;
+    font-weight: 500;
+    font-size: 12.5px;
+    color: var(--banner-text);
+  }
+
+  .login-banner-close {
+    flex: none;
+    margin: 0;
+    padding: 0 2px;
+    border: 0;
+    background: transparent;
+    color: var(--banner-close);
+    font: 400 12px 'IBM Plex Mono', monospace;
+    cursor: pointer;
+  }
+
+  .login-submit {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    width: 100%;
+    height: 46px;
+    margin: 16px 0 0;
+    padding: 0;
+    border: 0;
+    border-radius: 12px;
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+    font: 600 14px 'IBM Plex Sans', sans-serif;
+    cursor: pointer;
+    outline: none;
+    transition: background .2s ease, box-shadow .22s ease;
+  }
+
+  .login-submit:hover,
+  .login-submit:focus-visible {
+    background: var(--btn-hover-bg);
+    box-shadow: var(--btn-hover-shadow);
+  }
+
+  .login-submit.is-loading,
+  .login-submit.is-loading:hover {
+    background: var(--btn-loading-bg);
+  }
+
+  .login-submit.is-success {
+    animation: loginBtnPop .3s ease-out;
+  }
+
+  .login-spinner {
+    flex: none;
+    width: 17px;
+    height: 17px;
+    border: 2px solid var(--spinner-track);
+    border-top-color: var(--spinner-head);
+    border-radius: 9px;
+    animation: loginSpin .7s linear infinite;
+  }
+
+  .login-check {
+    flex: none;
+    width: 19px;
+    height: 19px;
+  }
+
+  .login-check path {
+    stroke-dasharray: 24;
+    stroke-dashoffset: 24;
+    animation: loginCheckDraw .25s .05s ease-out forwards;
+  }
+
+  .login-footer {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--footer-border);
+  }
+
+  .login-ping {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-weight: 450;
+    font-size: 12px;
+    color: var(--footer-fg);
+  }
+
+  .login-ping-dot {
+    flex: none;
+    width: 6px;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--logo-bg);
+    animation: loginPulseDot 2.4s .8s infinite;
+  }
+
+  /* Phones: no card, the form lies on the background. */
+  @media (max-width: 639px) {
+    .login-glow {
+      background: radial-gradient(130% 80% at 50% 116%, var(--glow-mobile) 0%, transparent 64%);
+    }
+
+    .login-waves {
+      height: 330px;
+    }
+
+    .login-wave-1 {
+      bottom: -4px;
+    }
+
+    .login-wave-2 {
+      bottom: -10px;
+      opacity: var(--wave-2-opacity-mobile);
+    }
+
+    .login-wave-3 {
+      bottom: -14px;
+      opacity: var(--wave-3-opacity-mobile);
+    }
+
+    .login-content {
+      padding: 6px 22px 30px;
+    }
+
+    .login-header {
+      gap: 10px;
+      min-height: 44px;
+    }
+
+    .login-logo {
+      width: 28px;
+      height: 28px;
+    }
+
+    .login-wordmark {
+      font-size: 14.5px;
+    }
+
+    .login-controls {
+      gap: 7px;
+    }
+
+    .login-lang-button {
+      gap: 6px;
+      padding: 0 8px 0 9px;
+    }
+
+    .login-lang-button svg {
+      width: 13px;
+      height: 13px;
+    }
+
+    .login-lang-caret {
+      display: none;
+    }
+
+    .login-lang-menu {
+      width: 196px;
+    }
+
+    .login-main {
+      flex-direction: column;
+      align-items: stretch;
+      padding-bottom: 16px;
+    }
+
+    .login-card {
+      width: auto;
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: none;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      box-shadow: none;
+    }
+
+    .login-title {
+      font-size: 26px;
+      line-height: 1.15;
+      letter-spacing: -.7px;
+    }
+
+    .login-subtitle {
+      color: var(--subtitle-mobile);
+    }
+
+    .login-field {
+      height: 48px;
+      padding: 0 14px;
+      border-radius: 12px;
+      background: var(--field-bg-mobile);
+    }
+
+    .login-field input,
+    .login-field input.is-secret {
+      font-size: 13.5px;
+    }
+
+    .login-field input:-webkit-autofill {
+      -webkit-box-shadow: 0 0 0 1000px var(--field-bg-mobile) inset;
+    }
+
+    .login-eye svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .login-check {
+      width: 20px;
+      height: 20px;
+    }
+
+    .login-otp-cell {
+      height: 46px;
+      border-radius: 10px;
+      background: var(--otp-bg-mobile);
+      font-size: 16px;
+    }
+
+    .login-submit {
+      height: 50px;
+      border-radius: 13px;
+      font-size: 14.5px;
+    }
+
+    .login-footer {
+      margin-top: 22px;
+      padding-top: 0;
+      border-top: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .login-wave,
+    .login-ping-dot,
+    .login-submit.is-success {
+      animation: none;
+    }
+  }
+
+  @keyframes loginWaveDriftA {
+    from { transform: translate3d(0, 0, 0); }
+    to { transform: translate3d(-50%, 0, 0); }
+  }
+
+  @keyframes loginWaveDriftB {
+    from { transform: translate3d(-50%, 0, 0); }
+    to { transform: translate3d(0, 0, 0); }
+  }
+
+  @keyframes loginWaveDriftC {
+    from { transform: translate3d(0, 0, 0); }
+    to { transform: translate3d(-50%, 0, 0); }
+  }
+
+  @keyframes loginPulseDot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: .35; }
+  }
+
+  @keyframes loginSheetUp {
+    from { transform: translateY(24px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  @keyframes loginScrimIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes loginSpin {
+    to { transform: rotate(360deg); }
+  }
+
+  @keyframes loginCheckDraw {
+    to { stroke-dashoffset: 0; }
+  }
+
+  @keyframes loginBtnPop {
+    0% { transform: scale(1); }
+    40% { transform: scale(.975); }
+    100% { transform: scale(1); }
+  }
+</style>
+{{ template "page/head_end" .}}
 {{ template "page/body_start" .}}
-<a-layout id="app" v-cloak :class="themeSwitcher.currentTheme + ' login-app'">
-  <transition name="list" appear>
-    <a-layout-content class="under min-h-0">
-      <div class="waves-header">
-        <div class="waves-inner-header"></div>
-        <svg class="waves" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
-          viewBox="0 24 150 28" preserveAspectRatio="none" shape-rendering="auto">
-          <defs>
-            <path id="gentle-wave" d="M-160 44c30 0 58-18 88-18s 58 18 88 18 58-18 88-18 58 18 88 18 v44h-352z" />
-          </defs>
-          <g class="parallax">
-            <use xlink:href="#gentle-wave" x="48" y="0" fill="rgba(0, 135, 113, 0.08)" />
-            <use xlink:href="#gentle-wave" x="48" y="3" fill="rgba(0, 135, 113, 0.08)" />
-            <use xlink:href="#gentle-wave" x="48" y="5" fill="rgba(0, 135, 113, 0.08)" />
-            <use xlink:href="#gentle-wave" x="48" y="7" fill="#c7ebe2" />
-          </g>
-        </svg>
+<div id="app" v-cloak :class="['login-page', themeSwitcher.currentTheme]">
+  <div class="login-glow"></div>
+  <div class="login-waves" aria-hidden="true">
+    <div class="login-wave login-wave-1">
+      <svg viewBox="0 0 2880 340" preserveAspectRatio="none">
+        <path d="M0 196 C 240 138 480 254 720 196 C 960 138 1200 254 1440 196 C 1680 138 1920 254 2160 196 C 2400 138 2640 254 2880 196 L2880 340 L0 340 Z" fill="#2FD4A0" />
+      </svg>
+    </div>
+    <div class="login-wave login-wave-2">
+      <svg viewBox="0 0 2880 340" preserveAspectRatio="none">
+        <path d="M0 232 C 120 190 360 274 480 232 C 600 190 840 274 960 232 C 1080 190 1320 274 1440 232 C 1560 190 1800 274 1920 232 C 2040 190 2280 274 2400 232 C 2520 190 2760 274 2880 232 L2880 340 L0 340 Z" fill="#35B9E8" />
+      </svg>
+    </div>
+    <div class="login-wave login-wave-3">
+      <svg viewBox="0 0 2880 340" preserveAspectRatio="none">
+        <path d="M0 268 C 90 242 270 294 360 268 C 450 242 630 294 720 268 C 810 242 990 294 1080 268 C 1170 242 1350 294 1440 268 C 1530 242 1710 294 1800 268 C 1890 242 2070 294 2160 268 C 2250 242 2430 294 2520 268 C 2610 242 2790 294 2880 268 L2880 340 L0 340 Z" />
+      </svg>
+    </div>
+  </div>
+
+  <div class="login-content">
+    <header class="login-header">
+      <svg class="login-logo" viewBox="0 0 32 32" aria-hidden="true">
+        <rect x="0" y="0" width="32" height="32" rx="9" />
+        <ellipse cx="16" cy="16" rx="11" ry="4.6" transform="rotate(-32 16 16)" fill="none" stroke-width="1.7" opacity=".9" />
+        <circle cx="16" cy="16" r="3.2" />
+        <circle cx="25.2" cy="10.6" r="1.9" />
+      </svg>
+      <div class="login-wordmark">SpaceX <span>panel</span></div>
+      <div class="login-controls">
+        <div class="login-lang">
+          <button type="button" class="login-control login-lang-button" aria-haspopup="true"
+            :aria-expanded="langMenuOpen ? 'true' : 'false'" @click="langMenuOpen = !langMenuOpen">
+            <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <circle cx="8" cy="8" r="6.4" stroke="currentColor" stroke-width="1.4" />
+              <path d="M1.6 8h12.8M8 1.6c3.4 3.6 3.4 9.2 0 12.8M8 1.6C4.6 5.2 4.6 10.8 8 14.4" stroke="currentColor" stroke-width="1.2" />
+            </svg>
+            <span class="login-lang-code">[[ langCode(lang) ]]</span>
+            <span class="login-lang-caret" aria-hidden="true">[[ langMenuOpen ? '▲' : '▼' ]]</span>
+          </button>
+          <template v-if="langMenuOpen">
+            <div class="login-scrim" @click="langMenuOpen = false"></div>
+            <div class="login-lang-menu" role="menu">
+              <div class="login-lang-title">{{ i18n "pages.login.language" }}</div>
+              <div class="login-lang-list">
+                <button v-for="l in languages" :key="l.value" type="button" role="menuitemradio"
+                  :aria-checked="l.value === lang ? 'true' : 'false'"
+                  :class="['login-lang-row', { 'is-active': l.value === lang }]" @click="pickLanguage(l.value)">
+                  <span class="login-lang-name">[[ l.name ]]</span>
+                  <span class="login-lang-row-code">[[ langCode(l.value) ]]</span>
+                  <span class="login-lang-check" aria-hidden="true">✓</span>
+                </button>
+              </div>
+            </div>
+          </template>
+        </div>
+        <button type="button" class="login-control login-theme-button" title='{{ i18n "pages.login.toggleTheme" }}'
+          aria-label='{{ i18n "pages.login.toggleTheme" }}' @click="themeSwitcher.toggleTheme()">
+          <span class="login-theme-icons" aria-hidden="true">
+            <svg viewBox="0 0 16 16" fill="none" :class="{ 'is-hidden-moon': !themeSwitcher.isDarkTheme }">
+              <path d="M13.4 10.2A5.8 5.8 0 0 1 5.8 2.6a5.9 5.9 0 1 0 7.6 7.6Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" />
+            </svg>
+            <svg viewBox="0 0 16 16" fill="none" :class="{ 'is-hidden-sun': themeSwitcher.isDarkTheme }">
+              <circle cx="8" cy="8" r="3.4" stroke="currentColor" stroke-width="1.4" />
+              <path d="M8 1v1.8M8 13.2V15M1 8h1.8M13.2 8H15M3.1 3.1l1.3 1.3M11.6 11.6l1.3 1.3M12.9 3.1l-1.3 1.3M4.4 11.6l-1.3 1.3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" />
+            </svg>
+          </span>
+        </button>
       </div>
-      <a-row type="flex" justify="center" align="middle" class="h-100 overflow-y-auto overflow-x-hidden">
-        <a-col :xs="22" :sm="12" :md="10" :lg="8" :xl="6" :xxl="5" id="login" class="my-3rem">
-          <template v-if="!loadingStates.fetched">
-            <div class="text-center">
-              <a-spin size="large" />
+    </header>
+
+    <main class="login-main">
+      <div class="login-card">
+        <h1 class="login-title">{{ i18n "pages.login.title" }}</h1>
+        <div class="login-subtitle">{{ i18n "pages.login.server" }} <span>[[ host ]]</span></div>
+
+        <form v-if="fetched" novalidate @submit.prevent="login">
+          <div class="login-fields">
+            <div>
+              <label class="login-label" for="login-username">{{ i18n "pages.login.username" }}</label>
+              <div :class="['login-field', { 'is-error': credentialsError }]">
+                <input id="login-username" name="username" type="text" autocomplete="username"
+                  autocapitalize="none" spellcheck="false" v-model.trim="user.username">
+              </div>
             </div>
-          </template>
-          <template v-else>
-            <div class="setting-section">
-              <a-popover :overlay-class-name="themeSwitcher.currentTheme" title='{{ i18n "menu.settings" }}'
-                placement="bottomRight" trigger="click">
-                <template slot="content">
-                  <a-space direction="vertical" :size="10">
-                    <a-theme-switch-login></a-theme-switch-login>
-                    <span>{{ i18n "pages.settings.language" }}</span>
-                    <a-select ref="selectLang" class="w-100" v-model="lang" @change="LanguageManager.setLanguage(lang)"
-                      :dropdown-class-name="themeSwitcher.currentTheme">
-                      <a-select-option :value="l.value" label="English" v-for="l in LanguageManager.supportedLanguages">
-                        <span role="img" aria-label="l.name" v-text="l.icon"></span>
-                        &nbsp;&nbsp;<span v-text="l.name"></span>
-                      </a-select-option>
-                    </a-select>
-                  </a-space>
-                </template>
-                <a-button shape="circle" icon="setting"></a-button>
-              </a-popover>
+            <div>
+              <label class="login-label" for="login-password">{{ i18n "password" }}</label>
+              <div :class="['login-field', 'has-ring', { 'is-error': credentialsError }]">
+                <input id="login-password" ref="password" name="password" :type="showPassword ? 'text' : 'password'"
+                  autocomplete="current-password" :class="{ 'is-secret': !showPassword }" v-model.trim="user.password">
+                <button type="button" class="login-eye" :title="showPassword ? texts.hidePassword : texts.showPassword"
+                  :aria-label="showPassword ? texts.hidePassword : texts.showPassword" :aria-pressed="showPassword ? 'true' : 'false'"
+                  @click="showPassword = !showPassword">
+                  <svg v-if="!showPassword" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                    <path d="M1.8 10S4.9 4.6 10 4.6 18.2 10 18.2 10 15.1 15.4 10 15.4 1.8 10 1.8 10Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />
+                    <circle cx="10" cy="10" r="2.6" stroke="currentColor" stroke-width="1.5" />
+                  </svg>
+                  <svg v-else viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                    <path d="M1.8 10S4.9 4.6 10 4.6 18.2 10 18.2 10 15.1 15.4 10 15.4 1.8 10 1.8 10Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />
+                    <circle cx="10" cy="10" r="2.6" stroke="currentColor" stroke-width="1.5" />
+                    <path d="M3 17 17 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                  </svg>
+                </button>
+              </div>
             </div>
-            <a-row type="flex" justify="center">
-              <a-col :style="{ width: '100%' }">
-                <h2 class="title headline zoom">
-                  <span class="words-wrapper">
-                    <b class="is-visible">{{ i18n "pages.login.title" }}</b>
-                  </span>
-                </h2>
-              </a-col>
-            </a-row>
-            <a-row type="flex" justify="center">
-              <a-col span="24">
-                <a-form @submit.prevent="login">
-                  <a-space direction="vertical" size="middle">
-                    <a-form-item>
-                      <a-input autocomplete="username" name="username" v-model.trim="user.username"
-                        placeholder='{{ i18n "username" }}' autofocus required>
-                        <a-icon slot="prefix" type="user" class="fs-1rem"></a-icon>
-                      </a-input>
-                    </a-form-item>
-                    <a-form-item>
-                      <a-input-password autocomplete="current-password" name="password" v-model.trim="user.password"
-                        placeholder='{{ i18n "password" }}' required>
-                        <a-icon slot="prefix" type="lock" class="fs-1rem"></a-icon>
-                      </a-input-password>
-                    </a-form-item>
-                    <a-form-item v-if="twoFactorEnable">
-                      <a-input autocomplete="one-time-code" name="twoFactorCode" v-model.trim="user.twoFactorCode"
-                        placeholder='{{ i18n "twoFactorCode" }}' required>
-                        <a-icon slot="prefix" type="key" class="fs-1rem"></a-icon>
-                      </a-input>
-                    </a-form-item>
-                    <a-form-item>
-                      <a-row justify="center" class="centered">
-                        <div class="wave-btn-bg wave-btn-bg-cl h-50px mt-1rem"
-                          :style="loadingStates.spinning ? 'width: 52px' : 'display: inline-block'">
-                          <a-button class="ant-btn-primary-login" type="primary" :loading="loadingStates.spinning"
-                            :icon="loadingStates.spinning ? 'poweroff' : undefined" html-type="submit">
-                            [[ loadingStates.spinning ? '' : '{{ i18n "login" }}' ]]
-                          </a-button>
-                        </div>
-                      </a-row>
-                    </a-form-item>
-                  </a-space>
-                </a-form>
-              </a-col>
-            </a-row>
-          </template>
-        </a-col>
-      </a-row>
-    </a-layout-content>
-  </transition>
-</a-layout>
+            <div v-if="twoFactorEnable">
+              <label class="login-label" for="login-otp">{{ i18n "twoFactorCode" }}</label>
+              <div class="login-otp">
+                <div v-for="(cell, i) in otpCells" :key="i"
+                  :class="['login-otp-cell', { 'is-filled': cell !== '', 'is-active': otpFocused && i === otpActiveIndex }]">
+                  [[ cell || ' ' ]]</div>
+                <input id="login-otp" name="twoFactorCode" type="text" inputmode="numeric" autocomplete="one-time-code"
+                  :value="user.twoFactorCode" @input="onOtpInput" @focus="otpFocused = true"
+                  @blur="otpFocused = false">
+              </div>
+            </div>
+          </div>
+
+          <div v-if="error && phase === 'idle'" class="login-banner" role="alert">
+            <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <circle cx="8" cy="8" r="6.9" stroke="currentColor" stroke-width="1.4" />
+              <path d="M8 4.6v4.1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+              <circle cx="8" cy="11.2" r=".95" fill="currentColor" />
+            </svg>
+            <div class="login-banner-text">[[ error ]]</div>
+            <button type="button" class="login-banner-close" aria-label='{{ i18n "close" }}' @click="clearError">✕</button>
+          </div>
+
+          <button type="submit" :class="['login-submit', { 'is-loading': phase === 'loading', 'is-success': phase === 'success' }]">
+            <span v-if="phase === 'loading'" class="login-spinner" aria-hidden="true"></span>
+            <svg v-if="phase === 'success'" class="login-check" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+              <path d="M4.4 10.6 8.1 14.3 15.6 6.3" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <span>[[ submitLabel ]]</span>
+          </button>
+        </form>
+
+        <div class="login-footer">
+          <div class="login-ping">
+            <span class="login-ping-dot" aria-hidden="true"></span>
+            <span>{{ i18n "pages.login.ping" }} · [[ pingText ]] {{ i18n "pages.login.ms" }}</span>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
 {{template "page/body_scripts" .}}
 {{template "component/aThemeSwitch" .}}
 <script>
+  const texts = {
+    wrongCredentials: '{{ i18n "pages.login.toasts.wrongUsernameOrPassword" }}',
+    networkError: '{{ i18n "pages.login.networkError" }}',
+    showPassword: '{{ i18n "pages.login.showPassword" }}',
+    hidePassword: '{{ i18n "pages.login.hidePassword" }}',
+    submit: '{{ i18n "pages.login.submit" }}',
+    checking: '{{ i18n "pages.login.checking" }}',
+    success: '{{ i18n "pages.login.success" }}',
+  };
+
+  // The whole success animation (button pop and tick) lasts this long; the
+  // panel opens right after it.
+  const SUCCESS_ANIMATION_MS = 300;
+
+  // Time of the TCP handshake the browser made to load this page. HTTPS
+  // pages count up to the start of TLS, so only the TCP round trip is in it.
+  // Zero when the browser reused an open connection (a reload, say).
+  function tcpConnectTime() {
+    const nav = performance.getEntriesByType && performance.getEntriesByType('navigation')[0];
+    if (!nav || !(nav.connectEnd > nav.connectStart)) {
+      return 0;
+    }
+    const end = nav.secureConnectionStart > 0 ? nav.secureConnectionStart : nav.connectEnd;
+    return Math.round(end - nav.connectStart);
+  }
+
+  // Time of one light request to the panel, for when there was no handshake
+  // to measure: headers only, never served from cache.
+  async function responseTime() {
+    const url = new URL(basePath + 'assets/css/fonts.css?ping=' + Date.now(), location.href).href;
+    const started = performance.now();
+    await fetch(url, { method: 'HEAD', cache: 'no-store', credentials: 'same-origin' });
+    const entry = performance.getEntriesByName && performance.getEntriesByName(url)[0];
+    if (entry && entry.responseStart > 0 && entry.requestStart > 0) {
+      return Math.round(entry.responseStart - entry.requestStart);
+    }
+    return Math.round(performance.now() - started);
+  }
+
   const app = new Vue({
     delimiters: ['[[', ']]'],
     el: '#app',
     data: {
       themeSwitcher,
-      loadingStates: {
-        fetched: false,
-        spinning: false
-      },
-      user: {
-        username: "",
-        password: "",
-        twoFactorCode: ""
-      },
+      texts,
+      languages: LanguageManager.supportedLanguages,
+      lang: LanguageManager.getLanguage(),
+      langMenuOpen: false,
+      host: location.hostname,
+      fetched: false,
       twoFactorEnable: false,
-      lang: ""
+      user: {
+        username: '',
+        password: '',
+        twoFactorCode: '',
+      },
+      showPassword: false,
+      otpFocused: false,
+      phase: 'idle',
+      error: '',
+      credentialsError: false,
+      ping: null,
+    },
+    computed: {
+      submitLabel() {
+        if (this.phase === 'loading') return texts.checking;
+        if (this.phase === 'success') return texts.success;
+        return texts.submit;
+      },
+      otpCells() {
+        return Array.from({ length: 6 }, (_, i) => this.user.twoFactorCode[i] || '');
+      },
+      otpActiveIndex() {
+        return Math.min(this.user.twoFactorCode.length, 5);
+      },
+      pingText() {
+        if (this.ping === null) return '…';
+        return this.ping < 0 ? '—' : String(this.ping);
+      },
     },
     async mounted() {
-      this.lang = LanguageManager.getLanguage();
-      this.twoFactorEnable = await this.getTwoFactorEnable();
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') this.langMenuOpen = false;
+      });
+      this.measurePing();
+      try {
+        const { data } = await axios.post('/getTwoFactorEnable');
+        this.twoFactorEnable = !!(data && data.success && data.obj);
+      } catch (e) {
+        this.showError(texts.networkError, false);
+      }
+      this.fetched = true;
+      this.$nextTick(() => {
+        const username = document.getElementById('login-username');
+        if (username) username.focus();
+      });
     },
     methods: {
-      async login() {
-        this.loadingStates.spinning = true;
-        const msg = await HttpUtil.post('/login', this.user);
-        if (msg.success) {
-          location.href = basePath + 'panel/';
-        }
-        this.loadingStates.spinning = false;
+      langCode(value) {
+        return value.split('-')[0].toUpperCase();
       },
-      async getTwoFactorEnable() {
-        const msg = await HttpUtil.post('/getTwoFactorEnable');
-        if (msg.success) {
-          this.twoFactorEnable = msg.obj;
-          this.loadingStates.fetched = true;
-          return msg.obj;
+      pickLanguage(value) {
+        this.langMenuOpen = false;
+        if (value !== this.lang) {
+          LanguageManager.setLanguage(value);
         }
-      }
+      },
+      async measurePing() {
+        const connect = tcpConnectTime();
+        if (connect > 0) {
+          this.ping = connect;
+          return;
+        }
+        try {
+          this.ping = await responseTime();
+        } catch (e) {
+          this.ping = -1;
+        }
+      },
+      onOtpInput(e) {
+        const code = e.target.value.replace(/\D/g, '').slice(0, 6);
+        e.target.value = code;
+        this.user.twoFactorCode = code;
+      },
+      clearError() {
+        this.error = '';
+        this.credentialsError = false;
+      },
+      // Wrong credentials also mark the fields, empty the password and put
+      // the cursor back in it; a network or server failure only says so.
+      showError(message, credentials) {
+        this.error = message;
+        this.credentialsError = credentials;
+        if (credentials) {
+          this.user.password = '';
+          this.$nextTick(() => this.$refs.password && this.$refs.password.focus());
+        }
+      },
+      async login() {
+        if (this.phase !== 'idle') return;
+        this.clearError();
+        if (!this.user.username || !this.user.password) {
+          this.showError(texts.wrongCredentials, true);
+          return;
+        }
+        this.phase = 'loading';
+        let msg;
+        try {
+          const { data } = await axios.post('/login', this.user);
+          msg = data;
+        } catch (e) {
+          this.phase = 'idle';
+          this.showError(texts.networkError, false);
+          return;
+        }
+        if (msg && msg.success) {
+          this.phase = 'success';
+          setTimeout(() => {
+            location.href = basePath + 'panel/';
+          }, SUCCESS_ANIMATION_MS);
+          return;
+        }
+        this.phase = 'idle';
+        if (msg && typeof msg.msg === 'string') {
+          this.showError(texts.wrongCredentials, true);
+        } else {
+          this.showError(texts.networkError, false);
+        }
+      },
     },
   });
-
-  const pm_input_selector = 'input.ant-input, textarea.ant-input';
-  const pm_strip_props = [
-    'background',
-    'background-color',
-    'background-image',
-    'color'
-  ];
-
-  const pm_observed_forms = new WeakSet();
-
-  function pm_strip_inline(el) {
-    if (!el || el.nodeType !== 1 || !el.matches?.(pm_input_selector)) return;
-
-    let did_change = false;
-    for (const prop of pm_strip_props) {
-      if (el.style.getPropertyValue(prop)) {
-        el.style.removeProperty(prop);
-        did_change = true;
-      }
-    }
-
-    if (did_change && el.style.length === 0) {
-      el.removeAttribute('style');
-    }
-  }
-
-  function pm_attach_observer(form) {
-    if (pm_observed_forms.has(form)) return;
-    pm_observed_forms.add(form);
-
-    form.querySelectorAll(pm_input_selector).forEach(pm_strip_inline);
-
-    const pm_mo = new MutationObserver(mutations => {
-      for (const m of mutations) {
-        if (m.type === 'attributes') {
-          pm_strip_inline(m.target);
-        } else if (m.type === 'childList') {
-          for (const n of m.addedNodes) {
-            if (n.nodeType !== 1) continue;
-            if (n.matches?.(pm_input_selector)) pm_strip_inline(n);
-            n.querySelectorAll?.(pm_input_selector).forEach(pm_strip_inline);
-          }
-        }
-      }
-    });
-
-    pm_mo.observe(form, {
-      attributes: true,
-      attributeFilter: ['style'],
-      childList: true,
-      subtree: true
-    });
-  }
-
-  function pm_init() {
-    document.querySelectorAll('form.ant-form').forEach(pm_attach_observer);
-    const pm_host = document.getElementById('login') || document.body;
-    const pm_wait_for_forms = new MutationObserver(mutations => {
-      for (const m of mutations) {
-        for (const n of m.addedNodes) {
-          if (n.nodeType !== 1) continue;
-          if (n.matches?.('form.ant-form')) pm_attach_observer(n);
-          n.querySelectorAll?.('form.ant-form').forEach(pm_attach_observer);
-        }
-      }
-    });
-    pm_wait_for_forms.observe(pm_host, {
-      childList: true,
-      subtree: true
-    });
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', pm_init, {
-      once: true
-    });
-  } else {
-    pm_init();
-  }
 </script>
 {{ template "page/body_end" .}}

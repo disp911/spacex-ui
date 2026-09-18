@@ -62,14 +62,6 @@ func (a *IndexController) login(c *gin.Context) {
 		pureJsonMsg(c, http.StatusOK, false, I18nWeb(c, "pages.login.toasts.invalidFormData"))
 		return
 	}
-	if form.Username == "" {
-		pureJsonMsg(c, http.StatusOK, false, I18nWeb(c, "pages.login.toasts.emptyUsername"))
-		return
-	}
-	if form.Password == "" {
-		pureJsonMsg(c, http.StatusOK, false, I18nWeb(c, "pages.login.toasts.emptyPassword"))
-		return
-	}
 
 	user, checkErr := a.userService.CheckUser(form.Username, form.Password, form.TwoFactorCode)
 	timeStr := time.Now().Format("2006-01-02 15:04:05")

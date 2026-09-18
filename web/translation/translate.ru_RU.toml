@@ -91,7 +91,6 @@
 [menu]
 "theme" = "Тема"
 "dark" = "Темная"
-"ultraDark" = "Очень темная"
 "dashboard" = "Дашборд"
 "inbounds" = "Подключения"
 "settings" = "Настройки"
@@ -101,14 +100,24 @@
 
 [pages.login]
 "hello" = "Привет!"
-"title" = "Добро пожаловать!"
+"title" = "Вход"
+"server" = "Сервер"
+"username" = "Логин"
+"showPassword" = "Показать пароль"
+"hidePassword" = "Скрыть пароль"
+"submit" = "Войти в панель"
+"checking" = "Проверяем…"
+"success" = "Вход выполнен"
+"networkError" = "Сбой сети или сервера"
+"ping" = "Пинг"
+"ms" = "мс"
+"language" = "Язык интерфейса"
+"toggleTheme" = "Сменить тему"
 "loginAgain" = "Сессия истекла. Войдите в систему снова"
 
 [pages.login.toasts]
 "invalidFormData" = "Недопустимый формат данных"
-"emptyUsername" = "Введите имя пользователя"
-"emptyPassword" = "Введите пароль"
-"wrongUsernameOrPassword" = "Неверные данные учетной записи."
+"wrongUsernameOrPassword" = "Неверный логин или пароль"
 "successLogin" = "Вход выполнен успешно"
 
 [pages.index]
