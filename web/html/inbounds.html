@@ -651,7 +651,6 @@
                         :columns="isMobile ? innerMobileColumns : innerColumns"
                         :data-source="getInboundClients(record)"
                         :pagination=pagination(getInboundClients(record))
-                        :scroll="isMobile ? {} : { x: 'max-content' }"
                         :style="{ margin: `-10px ${isMobile ? '2px' : '22px'} -11px` }">
                         {{template "component/aClientTable" .}}
                       </a-table>
