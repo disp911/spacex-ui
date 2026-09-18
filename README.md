@@ -6,8 +6,6 @@
 bash <(curl -Ls https://raw.githubusercontent.com/disp911/spacex-ui/main/install.sh)
 ```
 
-В конце установщик выводит адрес панели, логин и пароль — сохраните их.
-
 ## Установка архивной версии
 
 ```bash
@@ -26,8 +24,6 @@ bash <(curl -Ls https://raw.githubusercontent.com/disp911/spacex-ui/main/update.
 ```bash
 x-ui update
 ```
-
-**3. Update Menu**.
 
 ## Удаление
 
@@ -48,8 +44,6 @@ x-ui uninstall
 ```
 
 ## Управление панелью
-
-`x-ui` меню панели
 
 | Команда | Действие |
 | --- | --- |
