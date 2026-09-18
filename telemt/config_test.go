@@ -44,6 +44,7 @@ func TestBuildConfigRendersInbound(t *testing.T) {
 		"general/modes/secure":                 false,
 		"general/disable_colors":               true,
 		"general/quota_state_path":             "telemt.limit.json",
+		"general/use_middle_proxy":             false,
 		"server/port":                          int64(8443),
 		"server/metrics_listen":                "127.0.0.1:19090",
 		"server/api/enabled":                   false,

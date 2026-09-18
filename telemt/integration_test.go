@@ -85,9 +85,16 @@ func TestRealTelemt(t *testing.T) {
 		t.Fatalf("CollectTraffic = %+v", traffic)
 	}
 
+	// Clients go straight to the Telegram data centres, so telemt must not
+	// try the Middle-End relays at all.
+	startup := dump()
+	if strings.Contains(startup, "middle_proxy") || strings.Contains(startup, "Middle Proxy") {
+		t.Fatalf("telemt started the Middle-End transport:\n%s", startup)
+	}
+
 	// A user added later is hot-reloaded without a restart. Startup output is
 	// set aside first so only lines after the change count.
-	t.Logf("telemt startup output:\n%s", dump())
+	t.Logf("telemt startup output:\n%s", startup)
 	logs = nil
 	mgr.mu.Lock()
 	proc := mgr.instances[1].proc

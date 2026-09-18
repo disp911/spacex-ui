@@ -81,6 +81,7 @@ type fileGeneral struct {
 	LogLevel       string    `toml:"log_level"`
 	DisableColors  bool      `toml:"disable_colors"`
 	QuotaStatePath string    `toml:"quota_state_path"`
+	UseMiddleProxy bool      `toml:"use_middle_proxy"`
 	Modes          fileModes `toml:"modes"`
 }
 
@@ -121,8 +122,11 @@ type fileAccess struct {
 // BuildConfig renders the telemt TOML config for one inbound. Only Fake-TLS
 // (ee) mode is enabled: it is the only mode that looks like ordinary HTTPS to
 // a censor. The control API stays off; the panel only needs the metrics
-// endpoint, bound to loopback. telemt refuses to start without users, so at
-// least one is required.
+// endpoint, bound to loopback. Clients are relayed straight to the Telegram
+// data centres: the Middle-End relays telemt tries by default only matter for
+// a sponsored-channel ad tag, which the panel does not offer, and where they
+// are unreachable they just log warnings on every start. telemt refuses to
+// start without users, so at least one is required.
 func BuildConfig(s Settings, users []User) ([]byte, error) {
 	if err := s.Validate(); err != nil {
 		return nil, err
@@ -156,6 +160,7 @@ func BuildConfig(s Settings, users []User) ([]byte, error) {
 			LogLevel:       "normal",
 			DisableColors:  true,
 			QuotaStatePath: "telemt.limit.json",
+			UseMiddleProxy: false,
 			Modes:          fileModes{TLS: true},
 		},
 		Server: fileServer{
