@@ -1,0 +1,159 @@
+/* Theme tokens. Every colour in the app comes from here; components never
+   hard-code a theme colour, so the dark and light themes share all rules.
+   Values follow the dark → light map in web/new-design/README.md. */
+
+:root,
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  /* Surfaces */
+  --bg: #0b0e13;
+  --sidebar: #0e1218;
+  --card: rgba(19, 23, 31, 0.86);
+  --dialog: rgba(19, 23, 31, 0.96);
+  --sheet: rgba(19, 23, 31, 0.96);
+  --popover: rgba(19, 23, 31, 0.92);
+  --fill: #111520;
+  --chip: #161b24;
+  --row-hover: #1a2028;
+  --row-hover-soft: rgba(255, 255, 255, 0.05);
+  --track: #1c2130;
+
+  /* Borders */
+  --border: #242938;
+  --border-soft: #1c2130;
+  --line: rgba(255, 255, 255, 0.07);
+  --line-soft: rgba(255, 255, 255, 0.06);
+  --line-card: rgba(255, 255, 255, 0.08);
+  --line-control: rgba(255, 255, 255, 0.1);
+  --grid-line: rgba(255, 255, 255, 0.055);
+
+  /* Text */
+  --text: #e6e9ef;
+  --text-2: #c7ccd6;
+  --text-3: #9aa3b2;
+  --text-3b: #8a91a0;
+  --muted: #6e7787;
+  --faint: #4e5563;
+  --separator: #3a4049;
+
+  /* Accent */
+  --accent: #2fd4a0;
+  --accent-hover: #45e0af;
+  --accent-press: #27c295;
+  --on-accent: #06201a;
+  --accent-soft: #172a26;
+  --accent-fill: #1a2b28;
+  --accent-rgb: 47, 212, 160;
+  --glow-border: rgba(47, 212, 160, 0.5);
+  --glow: 0 0 0 3px rgba(47, 212, 160, 0.12), 0 0 14px rgba(47, 212, 160, 0.3);
+  --btn-glow: 0 0 0 4px rgba(47, 212, 160, 0.16), 0 0 22px rgba(47, 212, 160, 0.4);
+  --focus-ring: 0 0 0 3px rgba(47, 212, 160, 0.12);
+
+  /* Status */
+  --danger: #f2555a;
+  --danger-text: #ff9498;
+  --danger-rgb: 242, 85, 90;
+  --warn: #e8a13a;
+  --warn-state: #e8a13a;
+  --warn-title: #f0b75c;
+  --warn-body: #c9a473;
+  --warn-rgb: 232, 161, 58;
+  --info: #4aa8e0;
+  --info-text: #6fc0f0;
+  --info-rgb: 74, 168, 224;
+  --unknown: #6e7787;
+
+  /* Effects */
+  --shadow-card: 0 24px 60px rgba(0, 0, 0, 0.45);
+  --shadow-pop: 0 18px 44px rgba(0, 0, 0, 0.45);
+  --shadow-drawer: 26px 0 70px rgba(0, 0, 0, 0.5);
+  --shadow-sheet: 0 -24px 70px rgba(0, 0, 0, 0.5);
+  --scrim: rgba(8, 11, 16, 0.14);
+  --scrim-strong: rgba(6, 9, 13, 0.58);
+  --scroll-thumb: #2a3141;
+  --scroll-thumb-hover: #3a4352;
+
+  /* Login backdrop */
+  --login-glow: rgba(47, 212, 160, 0.16);
+  --wave-a: #2fd4a0;
+  --wave-b: #4aa8e0;
+  --wave-c: #0f2e2a;
+  --wave-a-opacity: 0.3;
+  --wave-b-opacity: 0.2;
+  --wave-c-opacity: 0.42;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+
+  --bg: #f3f5f7;
+  --sidebar: #eff1f4;
+  --card: #ffffff;
+  --dialog: #ffffff;
+  --sheet: #ffffff;
+  --popover: rgba(255, 255, 255, 0.96);
+  --fill: #f5f6f8;
+  --chip: #f5f6f8;
+  --row-hover: #edeff3;
+  --row-hover-soft: rgba(16, 20, 28, 0.05);
+  --track: #e9ecf0;
+
+  --border: #e3e6eb;
+  --border-soft: #edeff3;
+  --line: rgba(16, 20, 28, 0.07);
+  --line-soft: rgba(16, 20, 28, 0.08);
+  --line-card: rgba(16, 20, 28, 0.09);
+  --line-control: rgba(16, 20, 28, 0.12);
+  --grid-line: rgba(16, 20, 28, 0.06);
+
+  --text: #13171e;
+  --text-2: #39404d;
+  --text-3: #5c6371;
+  --text-3b: #5c6371;
+  --muted: #686f7d;
+  --faint: #8a909c;
+  --separator: #c6cad2;
+
+  --accent: #0a7a59;
+  --accent-hover: #086a4d;
+  --accent-press: #086a4d;
+  --on-accent: #ffffff;
+  --accent-soft: #e4f5ee;
+  --accent-fill: #dcf1e8;
+  --accent-rgb: 10, 122, 89;
+  --glow-border: rgba(10, 122, 89, 0.45);
+  --glow: 0 0 0 3px rgba(10, 122, 89, 0.13), 0 0 14px rgba(10, 122, 89, 0.22);
+  --btn-glow: 0 0 0 4px rgba(10, 122, 89, 0.14), 0 0 22px rgba(10, 122, 89, 0.28);
+  --focus-ring: 0 0 0 3px rgba(10, 122, 89, 0.13);
+
+  --danger: #c42a31;
+  --danger-text: #c22d34;
+  --danger-rgb: 196, 42, 49;
+  --warn: #8a5a10;
+  --warn-state: #b4761a;
+  --warn-title: #8a5a10;
+  --warn-body: #7a6337;
+  --warn-rgb: 180, 118, 26;
+  --info: #1e7fc0;
+  --info-text: #15628f;
+  --info-rgb: 30, 127, 192;
+  --unknown: #686f7d;
+
+  --shadow-card: 0 24px 60px rgba(16, 24, 40, 0.16);
+  --shadow-pop: 0 18px 44px rgba(16, 24, 40, 0.16);
+  --shadow-drawer: 26px 0 70px rgba(16, 24, 40, 0.18);
+  --shadow-sheet: 0 -24px 70px rgba(16, 24, 40, 0.18);
+  --scrim: rgba(243, 245, 247, 0.2);
+  --scrim-strong: rgba(19, 23, 30, 0.32);
+  --scroll-thumb: #c9ced7;
+  --scroll-thumb-hover: #aab1bc;
+
+  --login-glow: rgba(10, 122, 89, 0.14);
+  --wave-a: #2fd4a0;
+  --wave-b: #4aa8e0;
+  --wave-c: #0a7a59;
+  --wave-a-opacity: 0.34;
+  --wave-b-opacity: 0.22;
+  --wave-c-opacity: 0.3;
+}

@@ -51,6 +51,9 @@ func (a *IndexController) index(c *gin.Context) {
 		c.Redirect(http.StatusTemporaryRedirect, "panel/")
 		return
 	}
+	if renderSPA(c, "login", "pages.login.title") {
+		return
+	}
 	html(c, "login.html", "pages.login.title", nil)
 }
 

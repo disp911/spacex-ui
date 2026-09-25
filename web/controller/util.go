@@ -121,6 +121,14 @@ func html(c *gin.Context, name string, title string, data gin.H) {
 		data = gin.H{}
 	}
 	data["title"] = title
+	data["host"] = requestHost(c)
+	data["request_uri"] = c.Request.RequestURI
+	data["base_path"] = c.GetString("base_path")
+	c.HTML(http.StatusOK, name, getContext(data))
+}
+
+// requestHost names the host the panel was reached at, as shown in page titles.
+func requestHost(c *gin.Context) string {
 	host := c.GetHeader("X-Forwarded-Host")
 	if host == "" {
 		host = c.GetHeader("X-Real-IP")
@@ -132,10 +140,7 @@ func html(c *gin.Context, name string, title string, data gin.H) {
 			host = c.Request.Host
 		}
 	}
-	data["host"] = host
-	data["request_uri"] = c.Request.RequestURI
-	data["base_path"] = c.GetString("base_path")
-	c.HTML(http.StatusOK, name, getContext(data))
+	return host
 }
 
 // getContext adds version and other context data to the provided gin.H.

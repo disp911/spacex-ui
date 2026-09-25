@@ -43,6 +43,12 @@ var htmlFS embed.FS
 //go:embed translation/*
 var i18nFS embed.FS
 
+// distFS holds the built frontend (see frontend/). Without a build it only
+// has a placeholder and the panel serves its old templates.
+//
+//go:embed all:dist
+var distFS embed.FS
+
 var startTime = time.Now()
 
 type wrapAssetsFS struct {
@@ -222,7 +228,7 @@ func (s *Server) initRouter() (*gin.Engine, error) {
 	})
 	engine.Use(func(c *gin.Context) {
 		uri := c.Request.RequestURI
-		if strings.HasPrefix(uri, assetsBasePath) {
+		if strings.HasPrefix(uri, assetsBasePath) || strings.HasPrefix(uri, basePath+"static/") {
 			c.Header("Cache-Control", "max-age=31536000")
 		}
 	})
@@ -262,6 +268,19 @@ func (s *Server) initRouter() (*gin.Engine, error) {
 		}
 		engine.SetHTMLTemplate(template)
 		engine.StaticFS(basePath+"assets", http.FS(&wrapAssetsFS{FS: assetsFS}))
+	}
+
+	// The new frontend: its bundles under static/ and the page shells that
+	// the index and panel controllers render.
+	var dist fs.FS
+	if config.IsDebug() {
+		dist = os.DirFS("web/dist")
+	} else {
+		dist, _ = fs.Sub(distFS, "dist")
+	}
+	controller.InitSPA(dist, i18nFS)
+	if static, err := fs.Sub(dist, "static"); err == nil {
+		engine.StaticFS(basePath+"static", http.FS(static))
 	}
 
 	// Apply the redirect middleware (`/xui` to `/panel`)

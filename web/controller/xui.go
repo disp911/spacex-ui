@@ -35,6 +35,9 @@ func (a *XUIController) initRouter(g *gin.RouterGroup) {
 
 // index renders the main panel index page.
 func (a *XUIController) index(c *gin.Context) {
+	if renderSPA(c, "dashboard", "pages.index.title") {
+		return
+	}
 	html(c, "index.html", "pages.index.title", nil)
 }
 

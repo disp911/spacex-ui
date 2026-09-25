@@ -29,7 +29,7 @@ type ServerController struct {
 
 	lastStatus *service.Status
 
-	lastVersions        []string
+	lastVersions        []service.XrayRelease
 	lastGetVersionsTime int64 // unix seconds
 }
 
@@ -47,6 +47,8 @@ func (a *ServerController) initRouter(g *gin.RouterGroup) {
 	g.GET("/status", a.status)
 	g.GET("/cpuHistory/:bucket", a.getCpuHistoryBucket)
 	g.GET("/getXrayVersion", a.getXrayVersion)
+	g.GET("/getXrayReleases", a.getXrayReleases)
+	g.GET("/geofiles", a.getGeofiles)
 	g.GET("/getPanelUpdateInfo", a.getPanelUpdateInfo)
 	g.GET("/getConfigJson", a.getConfigJson)
 	g.GET("/getDb", a.getDb)
@@ -120,22 +122,46 @@ func (a *ServerController) getCpuHistoryBucket(c *gin.Context) {
 
 // getXrayVersion retrieves available Xray versions, with caching for 1 minute.
 func (a *ServerController) getXrayVersion(c *gin.Context) {
-	now := time.Now().Unix()
-	if now-a.lastGetVersionsTime <= 60 { // 1 minute cache
-		jsonObj(c, a.lastVersions, nil)
-		return
-	}
-
-	versions, err := a.serverService.GetXrayVersions()
+	releases, err := a.xrayReleases()
 	if err != nil {
 		jsonMsg(c, I18nWeb(c, "getVersion"), err)
 		return
 	}
-
-	a.lastVersions = versions
-	a.lastGetVersionsTime = now
-
+	versions := make([]string, 0, len(releases))
+	for _, r := range releases {
+		versions = append(versions, r.Version)
+	}
 	jsonObj(c, versions, nil)
+}
+
+// getXrayReleases retrieves available Xray versions with their release dates.
+func (a *ServerController) getXrayReleases(c *gin.Context) {
+	releases, err := a.xrayReleases()
+	if err != nil {
+		jsonMsg(c, I18nWeb(c, "getVersion"), err)
+		return
+	}
+	jsonObj(c, releases, nil)
+}
+
+// xrayReleases asks GitHub for the Xray releases at most once a minute.
+func (a *ServerController) xrayReleases() ([]service.XrayRelease, error) {
+	now := time.Now().Unix()
+	if now-a.lastGetVersionsTime <= 60 {
+		return a.lastVersions, nil
+	}
+	releases, err := a.serverService.GetXrayReleases()
+	if err != nil {
+		return nil, err
+	}
+	a.lastVersions = releases
+	a.lastGetVersionsTime = now
+	return releases, nil
+}
+
+// getGeofiles lists the downloadable geofiles and their last update times.
+func (a *ServerController) getGeofiles(c *gin.Context) {
+	jsonObj(c, a.serverService.GetGeofiles(), nil)
 }
 
 // getPanelUpdateInfo retrieves the current and latest panel version.

@@ -99,7 +99,21 @@ type Status struct {
 
 // Release represents information about a software release from GitHub.
 type Release struct {
-	TagName string `json:"tag_name"` // The tag name of the release
+	TagName     string    `json:"tag_name"`     // The tag name of the release
+	PublishedAt time.Time `json:"published_at"` // When the release was published
+}
+
+// XrayRelease is an installable Xray version and its release date.
+type XrayRelease struct {
+	Version     string `json:"version"`
+	PublishedAt int64  `json:"publishedAt"` // unix seconds
+}
+
+// Geofile is a routing database the panel can download, with the
+// modification time of the local copy (0 when it is missing).
+type Geofile struct {
+	Name      string `json:"name"`
+	UpdatedAt int64  `json:"updatedAt"`
 }
 
 // ServerService provides business logic for server monitoring and management.
@@ -520,7 +534,22 @@ func (s *ServerService) sampleCPUUtilization() (float64, error) {
 	return s.emaCPU, nil
 }
 
+// GetXrayVersions lists the installable Xray versions, newest first.
 func (s *ServerService) GetXrayVersions() ([]string, error) {
+	releases, err := s.GetXrayReleases()
+	if err != nil {
+		return nil, err
+	}
+	versions := make([]string, 0, len(releases))
+	for _, r := range releases {
+		versions = append(versions, r.Version)
+	}
+	return versions, nil
+}
+
+// GetXrayReleases lists the installable Xray versions with their release
+// dates, newest first.
+func (s *ServerService) GetXrayReleases() ([]XrayRelease, error) {
 	const (
 		XrayURL    = "https://api.github.com/repos/XTLS/Xray-core/releases"
 		bufferSize = 8192
@@ -555,7 +584,7 @@ func (s *ServerService) GetXrayVersions() ([]string, error) {
 		return nil, err
 	}
 
-	var versions []string
+	var versions []XrayRelease
 	for _, release := range releases {
 		tagVersion := strings.TrimPrefix(release.TagName, "v")
 		tagParts := strings.Split(tagVersion, ".")
@@ -571,7 +600,7 @@ func (s *ServerService) GetXrayVersions() ([]string, error) {
 		}
 
 		if major > 26 || (major == 26 && minor > 3) || (major == 26 && minor == 3 && patch >= 10) {
-			versions = append(versions, release.TagName)
+			versions = append(versions, XrayRelease{Version: release.TagName, PublishedAt: release.PublishedAt.Unix()})
 		}
 	}
 	return versions, nil
@@ -1228,18 +1257,39 @@ func (s *ServerService) IsValidGeofileName(filename string) bool {
 	return matched
 }
 
-func (s *ServerService) UpdateGeofile(fileName string) error {
-	type geofileEntry struct {
-		URL      string
-		FileName string
+type geofileEntry struct {
+	URL      string
+	FileName string
+}
+
+// geofiles are the routing databases the panel downloads, in display order.
+var geofiles = []geofileEntry{
+	{"https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat", "geosite.dat"},
+	{"https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat", "geoip.dat"},
+	{"https://github.com/chocolate4u/Iran-v2ray-rules/releases/latest/download/geosite.dat", "geosite_IR.dat"},
+	{"https://github.com/chocolate4u/Iran-v2ray-rules/releases/latest/download/geoip.dat", "geoip_IR.dat"},
+	{"https://github.com/runetfreedom/russia-v2ray-rules-dat/releases/latest/download/geosite.dat", "geosite_RU.dat"},
+	{"https://github.com/runetfreedom/russia-v2ray-rules-dat/releases/latest/download/geoip.dat", "geoip_RU.dat"},
+}
+
+// GetGeofiles lists the downloadable geofiles and when each local copy was
+// last updated.
+func (s *ServerService) GetGeofiles() []Geofile {
+	list := make([]Geofile, 0, len(geofiles))
+	for _, g := range geofiles {
+		f := Geofile{Name: g.FileName}
+		if info, err := os.Stat(filepath.Join(config.GetBinFolderPath(), g.FileName)); err == nil {
+			f.UpdatedAt = info.ModTime().Unix()
+		}
+		list = append(list, f)
 	}
-	geofileAllowlist := map[string]geofileEntry{
-		"geoip.dat":      {"https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat", "geoip.dat"},
-		"geosite.dat":    {"https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat", "geosite.dat"},
-		"geoip_IR.dat":   {"https://github.com/chocolate4u/Iran-v2ray-rules/releases/latest/download/geoip.dat", "geoip_IR.dat"},
-		"geosite_IR.dat": {"https://github.com/chocolate4u/Iran-v2ray-rules/releases/latest/download/geosite.dat", "geosite_IR.dat"},
-		"geoip_RU.dat":   {"https://github.com/runetfreedom/russia-v2ray-rules-dat/releases/latest/download/geoip.dat", "geoip_RU.dat"},
-		"geosite_RU.dat": {"https://github.com/runetfreedom/russia-v2ray-rules-dat/releases/latest/download/geosite.dat", "geosite_RU.dat"},
+	return list
+}
+
+func (s *ServerService) UpdateGeofile(fileName string) error {
+	geofileAllowlist := make(map[string]geofileEntry, len(geofiles))
+	for _, g := range geofiles {
+		geofileAllowlist[g.FileName] = g
 	}
 
 	// Strict allowlist check to avoid writing uncontrolled files
@@ -1321,7 +1371,7 @@ func (s *ServerService) UpdateGeofile(fileName string) error {
 
 	if fileName == "" {
 		// Download all geofiles
-		for _, entry := range geofileAllowlist {
+		for _, entry := range geofiles {
 			destPath := filepath.Join(config.GetBinFolderPath(), entry.FileName)
 			if err := downloadFile(entry.URL, destPath); err != nil {
 				errorMessages = append(errorMessages, fmt.Sprintf("Error downloading Geofile '%s': %v", entry.FileName, err))
