@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics="">
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&amp;family=IBM+Plex+Sans:wght@400;450;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#EDEEF0;font-family:'IBM Plex Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:#12A87B;text-decoration:none}a:hover{color:#0E8A65}
+@keyframes pulseDot{0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes sheetUp{from{transform:translateY(24px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes scrimIn{from{opacity:0}to{opacity:1}}
+@keyframes checkDraw{to{stroke-dashoffset:0}}
+*::-webkit-scrollbar{width:9px;height:9px}
+*::-webkit-scrollbar-track{background:transparent}
+*::-webkit-scrollbar-thumb{background:#2A3141;border-radius:99px;border:2px solid transparent;background-clip:content-box}
+*::-webkit-scrollbar-thumb:hover{background:#3A4352;background-clip:content-box}
+*::-webkit-scrollbar-corner{background:transparent}
+*::-webkit-scrollbar-button{display:none;width:0;height:0}
+@keyframes btnPop{0%{transform:scale(1)}40%{transform:scale(.975)}100%{transform:scale(1)}}
+@keyframes waveDriftA{from{transform:translate3d(0,0,0)}to{transform:translate3d(-50%,0,0)}}
+@keyframes waveDriftB{from{transform:translate3d(-50%,0,0)}to{transform:translate3d(0,0,0)}}
+@keyframes waveDriftC{from{transform:translate3d(0,0,0)}to{transform:translate3d(-50%,0,0)}}
+</style>
+</helmet>
+
+<section id="t1" style="padding:40px 44px 36px;border-bottom:1px solid rgba(0,0,0,.08)">
+<div style="display:flex;align-items:baseline;gap:10px;margin:0 0 22px">
+<a href="#t1" style="font:600 10px 'IBM Plex Mono',monospace;padding:3px 7px;background:#14161A;color:#fff;border-radius:4px;text-decoration:none">1</a>
+<span style="font:600 13px/1.2 'IBM Plex Sans',sans-serif;color:#14161A">Экран входа — десктоп и мобайл, тёмная и светлая темы</span>
+</div>
+
+<div style="display:flex;flex-wrap:wrap;gap:32px;align-items:flex-start">
+
+<div id="1a" style="flex:none;display:flex;flex-direction:column;gap:9px">
+<div style="display:flex;align-items:baseline;gap:8px;font:400 11px/1.3 'IBM Plex Sans',sans-serif;color:rgba(0,0,0,.55)"><a href="#1a" style="font: 600 10.5px &quot;IBM Plex Mono&quot;, monospace; padding: 3px 7px; background: rgba(0, 0, 0, 0.08); color: rgb(20, 22, 26); border-radius: 5px; text-decoration: none;">1a</a>
+Логин, десктоп · темная тема</div>
+<div style="width:1280px;height:840px;background:#0B0E13;border:1px solid rgba(0,0,0,.12);border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.14);overflow:hidden;position:relative;color:#E6E9EF;display:flex">
+
+<div style="position:absolute;inset:0;background:radial-gradient(120% 90% at 50% 118%, rgba(47,212,160,.16) 0%, rgba(47,212,160,0) 62%)"></div>
+
+<div style="position:absolute;left:0;right:0;bottom:0;height:440px;overflow:hidden;pointer-events:none">
+<div style="position:absolute;bottom:-6px;left:0;width:200%;height:100%;animation:waveDriftA 26s linear infinite;opacity:.30">
+<svg viewBox="0 0 2880 340" preserveAspectRatio="none" style="width:100%;height:100%;display:block"><path d="M0 196 C 240 138 480 254 720 196 C 960 138 1200 254 1440 196 C 1680 138 1920 254 2160 196 C 2400 138 2640 254 2880 196 L2880 340 L0 340 Z" fill="#2FD4A0"></path></svg>
+</div>
+<div style="position:absolute;bottom:-14px;left:0;width:200%;height:100%;animation:waveDriftB 17s linear infinite;opacity:.20">
+<svg viewBox="0 0 2880 340" preserveAspectRatio="none" style="width:100%;height:100%;display:block"><path d="M0 232 C 120 190 360 274 480 232 C 600 190 840 274 960 232 C 1080 190 1320 274 1440 232 C 1560 190 1800 274 1920 232 C 2040 190 2280 274 2400 232 C 2520 190 2760 274 2880 232 L2880 340 L0 340 Z" fill="#4AA8E0"></path></svg>
+</div>
+<div style="position:absolute;bottom:-20px;left:0;width:200%;height:100%;animation:waveDriftC 11s linear infinite;opacity:.42">
+<svg viewBox="0 0 2880 340" preserveAspectRatio="none" style="width:100%;height:100%;display:block"><path d="M0 268 C 90 242 270 294 360 268 C 450 242 630 294 720 268 C 810 242 990 294 1080 268 C 1170 242 1350 294 1440 268 C 1530 242 1710 294 1800 268 C 1890 242 2070 294 2160 268 C 2250 242 2430 294 2520 268 C 2610 242 2790 294 2880 268 L2880 340 L0 340 Z" fill="#0F2E2A"></path></svg>
+</div>
+</div>
+
+<div style="position:relative;flex:1;display:flex;flex-direction:column;padding:34px 44px;box-sizing:border-box">
+<div style="display:flex;align-items:center;gap:11px">
+<svg width="32" height="32" viewBox="0 0 32 32" style="display:block;flex:none">
+<rect x="0" y="0" width="32" height="32" rx="9" fill="#2FD4A0"></rect>
+<ellipse cx="16" cy="16" rx="11" ry="4.6" transform="rotate(-32 16 16)" fill="none" stroke="#06201A" stroke-width="1.7" opacity=".9"></ellipse>
+<circle cx="16" cy="16" r="3.2" fill="#06201A"></circle>
+<circle cx="25.2" cy="10.6" r="1.9" fill="#06201A"></circle>
+</svg>
+<div style="font:600 15.5px 'IBM Plex Sans',sans-serif;letter-spacing:-.3px">SpaceX <span style="font-weight:450;color:#8A91A0">panel</span></div>
+<div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+<div style="position:relative">
+<div onClick="{{ toggleLang }}" style="position:relative;z-index:6;height:34px;padding:0 10px 0 11px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:#111520;display:flex;align-items:center;gap:7px;cursor:pointer;color:#C7CCD6;transition:box-shadow .22s ease, border-color .22s ease, background .22s ease" style-hover="border-color:rgba(47,212,160,.5);background:#1A2B28;box-shadow:0 0 0 3px rgba(47,212,160,.12), 0 0 14px rgba(47,212,160,.3);color:#E6E9EF">
+<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.4" stroke="currentColor" stroke-width="1.4"></circle><path d="M1.6 8h12.8M8 1.6c3.4 3.6 3.4 9.2 0 12.8M8 1.6C4.6 5.2 4.6 10.8 8 14.4" stroke="currentColor" stroke-width="1.2"></path></svg>
+<span style="font:500 11.5px 'IBM Plex Sans',sans-serif">{{ langCode }}</span>
+<span style="font:400 9px 'IBM Plex Mono',monospace;color:#6E7787">{{ langCaret }}</span>
+</div>
+<sc-if value="{{ langOpen }}" hint-placeholder-val="{{ false }}">
+<div onClick="{{ toggleLang }}" style="position:absolute;top:-2000px;left:-2000px;width:4400px;height:4400px;z-index:4;backdrop-filter:blur(3px) saturate(.92);background:rgba(8,11,16,.14);animation:scrimIn .16s ease-out"></div>
+<div style="position:absolute;top:36px;right:0;width:232px;z-index:5;background:rgba(19,23,31,.86);border:1px solid rgba(255,255,255,.08);border-radius:12px;backdrop-filter:blur(10px);box-shadow:0 18px 44px rgba(0,0,0,.45);padding:6px;animation:sheetUp .14s ease-out">
+<div style="font:500 9.5px 'IBM Plex Mono',monospace;color:#8A91A0;letter-spacing:.09em;padding:7px 9px 6px">ЯЗЫК ИНТЕРФЕЙСА</div>
+<div style="display:flex;flex-direction:column;gap:1px">
+<sc-for list="{{ langs }}" as="l" hint-placeholder-count="6">
+<div onClick="{{ l.pick }}" style="{{ l.rowStyle }}" style-hover="background:#1A2028">
+<span style="font:450 12.5px 'IBM Plex Sans',sans-serif;flex:1;min-width:0">{{ l.label }}</span>
+<span style="font:500 10px 'IBM Plex Mono',monospace;color:#8A91A0">{{ l.code }}</span>
+<span style="{{ l.checkStyle }}"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" style="display:block"><path d="M3.4 8.4 6.5 11.5 12.6 4.9" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>
+</div>
+</sc-for>
+</div>
+</div>
+</sc-if>
+</div>
+<div style="height:34px;width:34px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:#111520;display:flex;align-items:center;justify-content:center;color:#C7CCD6;cursor:pointer;transition:box-shadow .22s ease, border-color .22s ease, background .22s ease" style-hover="border-color:rgba(47,212,160,.5);background:#1A2B28;box-shadow:0 0 0 3px rgba(47,212,160,.12), 0 0 14px rgba(47,212,160,.3);color:#E6E9EF" onClick="{{ themeClickA }}">
+<div style="position:relative;width:16px;height:16px">
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="{{ themeMoonA }}"><path d="M13.4 10.2A5.8 5.8 0 0 1 5.8 2.6a5.9 5.9 0 1 0 7.6 7.6Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"></path></svg>
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="{{ themeSunA }}"><circle cx="8" cy="8" r="3.4" stroke="currentColor" stroke-width="1.4"></circle><path d="M8 1v1.8M8 13.2V15M1 8h1.8M13.2 8H15M3.1 3.1l1.3 1.3M11.6 11.6l1.3 1.3M12.9 3.1l-1.3 1.3M4.4 11.6l-1.3 1.3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"></path></svg>
+</div>
+</div>
+</div>
+</div>
+
+<div style="flex:1;display:flex;align-items:center;justify-content:center;padding-bottom:40px">
+<div style="width:396px;flex:none;background:rgba(19,23,31,.86);border:1px solid rgba(255,255,255,.08);border-radius:16px;backdrop-filter:blur(10px);box-shadow:0 24px 60px rgba(0,0,0,.45);padding:30px 32px;box-sizing:border-box">
+<div style="font:600 19px 'IBM Plex Sans',sans-serif;letter-spacing:-.4px;margin-bottom:5px">Вход</div>
+<div style="font:400 12.5px 'IBM Plex Sans',sans-serif;color:#6E7787;margin-bottom:24px">Сервер <span style="font-family:'IBM Plex Mono',monospace;color:#C7CCD6">nl-01.example.net</span></div>
+
+<div style="display:flex;flex-direction:column;gap:14px">
+<div>
+<div style="font: 500 10.5px 'IBM Plex Mono',monospace; color: #6E7787; letter-spacing: .07em; margin-bottom: 7px; font-size: 10.5px">ЛОГИН</div>
+<div style="{{ userField }}" style-hover="border-color:rgba(47,212,160,.5);box-shadow:0 0 0 3px rgba(47,212,160,.12), 0 0 14px rgba(47,212,160,.3)">admin</div>
+</div>
+<div>
+<div style="font:500 10.5px 'IBM Plex Mono',monospace;color:#6E7787;letter-spacing:.07em;margin-bottom:7px">ПАРОЛЬ</div>
+<div style="{{ passField }}" style-hover="border-color:rgba(47,212,160,.5);box-shadow:0 0 0 3px rgba(47,212,160,.12), 0 0 14px rgba(47,212,160,.3)">••••••••••<span style="margin-left:auto;display:flex;align-items:center;color:#8A91A0;cursor:pointer" style-hover="color:#2FD4A0" title="Показать пароль"><svg width="17" height="17" viewBox="0 0 20 20" fill="none"><path d="M1.8 10S4.9 4.6 10 4.6 18.2 10 18.2 10 15.1 15.4 10 15.4 1.8 10 1.8 10Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"></path><circle cx="10" cy="10" r="2.6" stroke="currentColor" stroke-width="1.5"></circle></svg></span></div>
+</div>
+<sc-if value="{{ twoFactor }}" hint-placeholder-val="{{ true }}">
+<div>
+<div style="font:500 10.5px 'IBM Plex Mono',monospace;color:#6E7787;letter-spacing:.07em;margin-bottom:7px">КОД 2FA</div>
+<div style="display:flex;gap:7px">
+<div style="{{ otpFilled }}">4</div>
+<div style="{{ otpFilled }}">1</div>
+<div style="{{ otpFilled }}">9</div>
+<div style="{{ otpActive }}">&nbsp;</div>
+<div style="{{ otpEmpty }}">&nbsp;</div>
+<div style="{{ otpEmpty }}">&nbsp;</div>
+</div>
+</div>
+</sc-if>
+</div>
+
+<sc-if value="{{ error }}" hint-placeholder-val="{{ false }}">
+<div style="margin-top:14px;display:flex;gap:10px;align-items:flex-start;background:rgba(242,85,90,.11);border:1px solid rgba(242,85,90,.32);border-radius:10px;padding:11px 12px">
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="flex:none;margin-top:1px"><circle cx="8" cy="8" r="6.9" stroke="#FF9498" stroke-width="1.4"></circle><path d="M8 4.6v4.1" stroke="#FF9498" stroke-width="1.6" stroke-linecap="round"></path><circle cx="8" cy="11.2" r=".95" fill="#FF9498"></circle></svg>
+<div style="flex:1;min-width:0">
+<div style="font:500 12.5px 'IBM Plex Sans',sans-serif;color:#FF9498">Неверный логин или пароль</div>
+</div>
+<div onClick="{{ clearError }}" style="flex:none;color:#FF9498;font:400 12px 'IBM Plex Mono',monospace;cursor:pointer;padding:0 2px">✕</div>
+</div>
+</sc-if>
+<div onClick="{{ submit }}" style="{{ btnStyle }}" style-hover="background:#45E0AF;box-shadow:0 0 0 4px rgba(47,212,160,.16), 0 0 22px rgba(47,212,160,.4)">
+<sc-if value="{{ isLoading }}" hint-placeholder-val="{{ false }}">
+<svg width="18" height="18" viewBox="0 0 18 18" fill="none" style="display:block;flex:none;transform-origin:50% 50%;will-change:transform;animation:spin .7s linear infinite"><circle cx="9" cy="9" r="7.5" stroke="rgba(6,32,26,.28)" stroke-width="2"></circle><path d="M9 1.5a7.5 7.5 0 0 1 7.5 7.5" stroke="#06201A" stroke-width="2" stroke-linecap="round"></path></svg>
+</sc-if>
+<sc-if value="{{ isSuccess }}" hint-placeholder-val="{{ false }}">
+<svg width="19" height="19" viewBox="0 0 20 20" fill="none" style="flex:none"><path d="M4.4 10.6 8.1 14.3 15.6 6.3" stroke="#06201A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="stroke-dasharray:24;stroke-dashoffset:24;animation:checkDraw .34s .05s ease-out forwards"></path></svg>
+</sc-if>
+<span>{{ btnLabel }}</span>
+</div>
+
+<div style="margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,.07);display:flex;flex-direction:column;gap:11px">
+<div style="display:flex;align-items:center;gap:9px;font:450 12px 'IBM Plex Sans',sans-serif;color:#9AA3B2">
+<div style="width:6px;height:6px;flex:none;border-radius:3px;background:#2FD4A0;animation:pulseDot 2.4s infinite;animation-delay:.8s"></div>
+Пинг · 24 мс
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div id="1d" style="flex:none;display:flex;flex-direction:column;gap:9px">
+<div style="display:flex;align-items:baseline;gap:8px;font:400 11px/1.3 'IBM Plex Sans',sans-serif;color:rgba(0,0,0,.55)">
+<a href="#1b" style="font:600 10.5px 'IBM Plex Mono',monospace;padding:3px 7px;background:rgba(0,0,0,.08);color:#14161A;border-radius:5px;text-decoration:none">1b</a>
+Логин, десктоп · светлая тема
+</div>
+<div style="width:1280px;height:840px;background:#F3F5F7;border:1px solid rgba(16,20,28,.12);border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.1);overflow:hidden;position:relative;color:#14161A;display:flex">
+
+<div style="position:absolute;inset:0;background:radial-gradient(120% 90% at 50% 118%, rgba(10,122,89,.14) 0%, rgba(10,122,89,0) 62%)"></div>
+
+<div style="position:absolute;left:0;right:0;bottom:0;height:440px;overflow:hidden;pointer-events:none">
+<div style="position:absolute;bottom:-6px;left:0;width:200%;height:100%;animation:waveDriftA 26s linear infinite;opacity:.34">
+<svg viewBox="0 0 2880 340" preserveAspectRatio="none" style="width:100%;height:100%;display:block"><path d="M0 196 C 240 138 480 254 720 196 C 960 138 1200 254 1440 196 C 1680 138 1920 254 2160 196 C 2400 138 2640 254 2880 196 L2880 340 L0 340 Z" fill="#2FD4A0"></path></svg>
+</div>
+<div style="position:absolute;bottom:-14px;left:0;width:200%;height:100%;animation:waveDriftB 17s linear infinite;opacity:.22">
+<svg viewBox="0 0 2880 340" preserveAspectRatio="none" style="width:100%;height:100%;display:block"><path d="M0 232 C 120 190 360 274 480 232 C 600 190 840 274 960 232 C 1080 190 1320 274 1440 232 C 1560 190 1800 274 1920 232 C 2040 190 2280 274 2400 232 C 2520 190 2760 274 2880 232 L2880 340 L0 340 Z" fill="#4AA8E0"></path></svg>
+</div>
+<div style="position:absolute;bottom:-20px;left:0;width:200%;height:100%;animation:waveDriftC 11s linear infinite;opacity:.30">
+<svg viewBox="0 0 2880 340" preserveAspectRatio="none" style="width:100%;height:100%;display:block"><path d="M0 268 C 90 242 270 294 360 268 C 450 242 630 294 720 268 C 810 242 990 294 1080 268 C 1170 242 1350 294 1440 268 C 1530 242 1710 294 1800 268 C 1890 242 2070 294 2160 268 C 2250 242 2430 294 2520 268 C 2610 242 2790 294 2880 268 L2880 340 L0 340 Z" fill="#0A7A59"></path></svg>
+</div>
+</div>
+
+<div style="position:relative;flex:1;display:flex;flex-direction:column;padding:34px 44px;box-sizing:border-box">
+<div style="display:flex;align-items:center;gap:11px">
+<svg width="32" height="32" viewBox="0 0 32 32" style="display:block;flex:none">
+<rect x="0" y="0" width="32" height="32" rx="9" fill="#0A7A59"></rect>
+<ellipse cx="16" cy="16" rx="11" ry="4.6" transform="rotate(-32 16 16)" fill="none" stroke="#FFFFFF" stroke-width="1.7" opacity=".92"></ellipse>
+<circle cx="16" cy="16" r="3.2" fill="#FFFFFF"></circle>
+<circle cx="25.2" cy="10.6" r="1.9" fill="#FFFFFF"></circle>
+</svg>
+<div style="font:600 15.5px 'IBM Plex Sans',sans-serif;letter-spacing:-.3px">SpaceX <span style="font-weight:450;color:#5C6371">panel</span></div>
+<div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+<div style="position:relative">
+<div onClick="{{ toggleLangLt }}" style="position:relative;z-index:6;height:34px;padding:0 10px 0 11px;border-radius:10px;border:1px solid rgba(16,20,28,.12);background:#F5F6F8;display:flex;align-items:center;gap:7px;cursor:pointer;color:#39404D;transition:box-shadow .22s ease, border-color .22s ease, background .22s ease" style-hover="border-color:rgba(10,122,89,.45);background:#DCF1E8;box-shadow:0 0 0 3px rgba(10,122,89,.13), 0 0 14px rgba(10,122,89,.22);color:#13171E">
+<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.4" stroke="currentColor" stroke-width="1.4"></circle><path d="M1.6 8h12.8M8 1.6c3.4 3.6 3.4 9.2 0 12.8M8 1.6C4.6 5.2 4.6 10.8 8 14.4" stroke="currentColor" stroke-width="1.2"></path></svg>
+<span style="font:500 11.5px 'IBM Plex Sans',sans-serif">{{ langCode }}</span>
+<span style="font:400 9px 'IBM Plex Mono',monospace;color:#8A909C">{{ langCaretLt }}</span>
+</div>
+<sc-if value="{{ langOpenLt }}" hint-placeholder-val="{{ true }}">
+<div onClick="{{ toggleLangLt }}" style="position:absolute;top:-2000px;left:-2000px;width:4400px;height:4400px;z-index:4;backdrop-filter:blur(3px) saturate(.92);background:rgba(8,11,16,.14);animation:scrimIn .16s ease-out"></div>
+<div style="position:absolute;top:36px;right:0;width:232px;z-index:5;background:rgba(255,255,255,.9);border:1px solid rgba(16,20,28,.07);border-radius:12px;backdrop-filter:blur(10px);box-shadow:0 18px 44px rgba(16,24,40,.16);padding:6px;animation:sheetUp .14s ease-out">
+<div style="font:500 9.5px 'IBM Plex Mono',monospace;color:#5C6371;letter-spacing:.09em;padding:7px 9px 6px">ЯЗЫК ИНТЕРФЕЙСА</div>
+<div style="display:flex;flex-direction:column;gap:1px">
+<sc-for list="{{ langsLt }}" as="l" hint-placeholder-count="6">
+<div onClick="{{ l.pick }}" style="{{ l.rowStyle }}" style-hover="background:#EDEFF3">
+<span style="font:450 12.5px 'IBM Plex Sans',sans-serif;flex:1;min-width:0">{{ l.label }}</span>
+<span style="font:500 10px 'IBM Plex Mono',monospace;color:#5C6371">{{ l.code }}</span>
+<span style="{{ l.checkStyle }}"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" style="display:block"><path d="M3.4 8.4 6.5 11.5 12.6 4.9" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>
+</div>
+</sc-for>
+</div>
+</div>
+</sc-if>
+</div>
+<div style="height:34px;width:34px;border-radius:10px;border:1px solid rgba(16,20,28,.12);background:#F5F6F8;display:flex;align-items:center;justify-content:center;color:#39404D;cursor:pointer;transition:box-shadow .22s ease, border-color .22s ease, background .22s ease" style-hover="border-color:rgba(10,122,89,.45);background:#DCF1E8;box-shadow:0 0 0 3px rgba(10,122,89,.13), 0 0 14px rgba(10,122,89,.22);color:#13171E" onClick="{{ themeClickD }}">
+<div style="position:relative;width:16px;height:16px">
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="{{ themeMoonD }}"><path d="M13.4 10.2A5.8 5.8 0 0 1 5.8 2.6a5.9 5.9 0 1 0 7.6 7.6Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"></path></svg>
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="{{ themeSunD }}"><circle cx="8" cy="8" r="3.4" stroke="currentColor" stroke-width="1.4"></circle><path d="M8 1v1.8M8 13.2V15M1 8h1.8M13.2 8H15M3.1 3.1l1.3 1.3M11.6 11.6l1.3 1.3M12.9 3.1l-1.3 1.3M4.4 11.6l-1.3 1.3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"></path></svg>
+</div>
+</div>
+</div>
+</div>
+
+<div style="flex:1;display:flex;align-items:center;justify-content:center;padding-bottom:40px">
+<div style="width:396px;flex:none;background:rgba(255,255,255,.9);border:1px solid rgba(16,20,28,.07);border-radius:16px;backdrop-filter:blur(10px);box-shadow:0 24px 60px rgba(16,24,40,.13);padding:30px 32px;box-sizing:border-box">
+<div style="font:600 19px 'IBM Plex Sans',sans-serif;letter-spacing:-.4px;margin-bottom:5px">Вход</div>
+<div style="font:400 12.5px 'IBM Plex Sans',sans-serif;color:#5C6371;margin-bottom:24px">Сервер <span style="font-family:'IBM Plex Mono',monospace;color:#39404D">nl-01.example.net</span></div>
+
+<div style="display:flex;flex-direction:column;gap:14px">
+<div>
+<div style="font:500 10.5px 'IBM Plex Mono',monospace;color:#5C6371;letter-spacing:.07em;margin-bottom:7px">ЛОГИН</div>
+<div style="{{ userFieldLt }}" style-hover="border-color:rgba(10,122,89,.45);box-shadow:0 0 0 3px rgba(10,122,89,.13), 0 0 14px rgba(10,122,89,.22)">admin</div>
+</div>
+<div>
+<div style="font:500 10.5px 'IBM Plex Mono',monospace;color:#5C6371;letter-spacing:.07em;margin-bottom:7px">ПАРОЛЬ</div>
+<div style="{{ passFieldLt }}" style-hover="border-color:rgba(10,122,89,.45);box-shadow:0 0 0 3px rgba(10,122,89,.13), 0 0 14px rgba(10,122,89,.22)">••••••••••<span style="margin-left:auto;display:flex;align-items:center;color:#5C6371;cursor:pointer" style-hover="color:#0A7A59" title="Показать пароль"><svg width="17" height="17" viewBox="0 0 20 20" fill="none"><path d="M1.8 10S4.9 4.6 10 4.6 18.2 10 18.2 10 15.1 15.4 10 15.4 1.8 10 1.8 10Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"></path><circle cx="10" cy="10" r="2.6" stroke="currentColor" stroke-width="1.5"></circle></svg></span></div>
+</div>
+<sc-if value="{{ twoFactor }}" hint-placeholder-val="{{ true }}">
+<div>
+<div style="font:500 10.5px 'IBM Plex Mono',monospace;color:#5C6371;letter-spacing:.07em;margin-bottom:7px">КОД 2FA</div>
+<div style="display:flex;gap:7px">
+<div style="{{ otpFilledLt }}">4</div>
+<div style="{{ otpFilledLt }}">1</div>
+<div style="{{ otpFilledLt }}">9</div>
+<div style="{{ otpActiveLt }}">&nbsp;</div>
+<div style="{{ otpEmptyLt }}">&nbsp;</div>
+<div style="{{ otpEmptyLt }}">&nbsp;</div>
+</div>
+</div>
+</sc-if>
+</div>
+
+<sc-if value="{{ errorLt }}" hint-placeholder-val="{{ true }}">
+<div style="margin-top:14px;display:flex;gap:10px;align-items:flex-start;background:rgba(196,42,49,.07);border:1px solid rgba(196,42,49,.3);border-radius:10px;padding:11px 12px">
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="flex:none;margin-top:1px"><circle cx="8" cy="8" r="6.9" stroke="#C22D34" stroke-width="1.4"></circle><path d="M8 4.6v4.1" stroke="#C22D34" stroke-width="1.6" stroke-linecap="round"></path><circle cx="8" cy="11.2" r=".95" fill="#C22D34"></circle></svg>
+<div style="flex:1;min-width:0">
+<div style="font:500 12.5px 'IBM Plex Sans',sans-serif;color:#C22D34">Неверный логин или пароль</div>
+</div>
+<div onClick="{{ clearErrorLt }}" style="flex:none;color:#C22D34;font:400 12px 'IBM Plex Mono',monospace;cursor:pointer;padding:0 2px">✕</div>
+</div>
+</sc-if>
+<div onClick="{{ submitLt }}" style="{{ btnStyleLt }}" style-hover="background:#086A4D;box-shadow:0 0 0 4px rgba(10,122,89,.16), 0 0 22px rgba(10,122,89,.26)">
+<sc-if value="{{ isLoadingLt }}" hint-placeholder-val="{{ false }}">
+<svg width="18" height="18" viewBox="0 0 18 18" fill="none" style="display:block;flex:none;transform-origin:50% 50%;will-change:transform;animation:spin .7s linear infinite"><circle cx="9" cy="9" r="7.5" stroke="rgba(255,255,255,.38)" stroke-width="2"></circle><path d="M9 1.5a7.5 7.5 0 0 1 7.5 7.5" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"></path></svg>
+</sc-if>
+<sc-if value="{{ isSuccessLt }}" hint-placeholder-val="{{ false }}">
+<svg width="19" height="19" viewBox="0 0 20 20" fill="none" style="flex:none"><path d="M4.4 10.6 8.1 14.3 15.6 6.3" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="stroke-dasharray:24;stroke-dashoffset:24;animation:checkDraw .34s .05s ease-out forwards"></path></svg>
+</sc-if>
+<span>{{ btnLabelLt }}</span>
+</div>
+
+<div style="margin-top:20px;padding-top:16px;border-top:1px solid rgba(16,20,28,.07);display:flex;flex-direction:column;gap:11px">
+<div style="display:flex;align-items:center;gap:9px;font:450 12px 'IBM Plex Sans',sans-serif;color:#5C6371">
+<div style="width:6px;height:6px;flex:none;border-radius:3px;background:#0A7A59;animation:pulseDot 2.4s infinite;animation-delay:.8s"></div>
+Пинг · 24 мс
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div id="1e" style="flex:none;display:flex;flex-direction:column;gap:9px">
+<div style="display:flex;align-items:baseline;gap:8px;font:400 11px/1.3 'IBM Plex Sans',sans-serif;color:rgba(0,0,0,.55)">
+<a href="#1e" style="font:600 10.5px 'IBM Plex Mono',monospace;padding:3px 7px;background:rgba(0,0,0,.08);color:#14161A;border-radius:5px;text-decoration:none">1e</a>
+Логин, мобайл · тёмная и светлая
+</div>
+<div style="display:flex;gap:20px">
+<div style="width:390px;height:790px;background:#0B0E13;border:1px solid rgba(0,0,0,.14);border-radius:30px;overflow:hidden;color:#E6E9EF;position:relative;display:flex;flex-direction:column">
+
+<div style="position:absolute;inset:0;background:radial-gradient(130% 80% at 50% 116%, rgba(47,212,160,.16) 0%, rgba(0,0,0,0) 64%)"></div>
+<div style="position:absolute;left:0;right:0;bottom:0;height:330px;overflow:hidden;pointer-events:none">
+<div style="position:absolute;bottom:-4px;left:0;width:200%;height:100%;animation:waveDriftA 26s linear infinite;opacity:.30">
+<svg viewBox="0 0 2880 340" preserveAspectRatio="none" style="width:100%;height:100%;display:block"><path d="M0 196 C 240 138 480 254 720 196 C 960 138 1200 254 1440 196 C 1680 138 1920 254 2160 196 C 2400 138 2640 254 2880 196 L2880 340 L0 340 Z" fill="#2FD4A0"></path></svg>
+</div>
+<div style="position:absolute;bottom:-10px;left:0;width:200%;height:100%;animation:waveDriftB 17s linear infinite;opacity:.21">
+<svg viewBox="0 0 2880 340" preserveAspectRatio="none" style="width:100%;height:100%;display:block"><path d="M0 232 C 120 190 360 274 480 232 C 600 190 840 274 960 232 C 1080 190 1320 274 1440 232 C 1560 190 1800 274 1920 232 C 2040 190 2280 274 2400 232 C 2520 190 2760 274 2880 232 L2880 340 L0 340 Z" fill="#4AA8E0"></path></svg>
+</div>
+<div style="position:absolute;bottom:-14px;left:0;width:200%;height:100%;animation:waveDriftC 11s linear infinite;opacity:.42">
+<svg viewBox="0 0 2880 340" preserveAspectRatio="none" style="width:100%;height:100%;display:block"><path d="M0 268 C 90 242 270 294 360 268 C 450 242 630 294 720 268 C 810 242 990 294 1080 268 C 1170 242 1350 294 1440 268 C 1530 242 1710 294 1800 268 C 1890 242 2070 294 2160 268 C 2250 242 2430 294 2520 268 C 2610 242 2790 294 2880 268 L2880 340 L0 340 Z" fill="#0F2E2A"></path></svg>
+</div>
+</div>
+
+<div style="position:relative;height:44px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 22px;font:500 12px 'IBM Plex Mono',monospace;color:#8A91A0"></div>
+
+<div style="position:relative;flex:1;display:flex;flex-direction:column;padding:6px 22px 30px;box-sizing:border-box">
+<div style="display:flex;align-items:center;gap:10px">
+<svg width="28" height="28" viewBox="0 0 32 32" style="display:block;flex:none">
+<rect x="0" y="0" width="32" height="32" rx="9" fill="#2FD4A0"></rect>
+<ellipse cx="16" cy="16" rx="11" ry="4.6" transform="rotate(-32 16 16)" fill="none" stroke="#06201A" stroke-width="1.7" opacity=".9"></ellipse>
+<circle cx="16" cy="16" r="3.2" fill="#06201A"></circle>
+<circle cx="25.2" cy="10.6" r="1.9" fill="#06201A"></circle>
+</svg>
+<div style="font:600 14.5px 'IBM Plex Sans',sans-serif;letter-spacing:-.3px">SpaceX <span style="font-weight:450;color:#8A91A0">panel</span></div>
+<div style="margin-left:auto;display:flex;align-items:center;gap:7px">
+<div style="position:relative">
+<div onClick="{{ toggleLangM }}" style="position:relative;z-index:6;height:34px;padding:0 10px 0 11px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:#111520;display:flex;align-items:center;gap:6px;cursor:pointer;color:#C7CCD6;transition:box-shadow .22s ease, border-color .22s ease, background .22s ease" style-hover="border-color:rgba(47,212,160,.5);background:#1A2B28;box-shadow:0 0 0 3px rgba(47,212,160,.12), 0 0 14px rgba(47,212,160,.3);color:#E6E9EF">
+<svg width="13" height="13" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.4" stroke="currentColor" stroke-width="1.4"></circle><path d="M1.6 8h12.8M8 1.6c3.4 3.6 3.4 9.2 0 12.8M8 1.6C4.6 5.2 4.6 10.8 8 14.4" stroke="currentColor" stroke-width="1.2"></path></svg>
+<span style="font:500 11.5px 'IBM Plex Sans',sans-serif">{{ langCode }}</span>
+</div>
+<sc-if value="{{ langOpenM }}" hint-placeholder-val="{{ true }}">
+<div onClick="{{ toggleLangM }}" style="position:absolute;top:-2000px;left:-2000px;width:4400px;height:4400px;z-index:4;backdrop-filter:blur(3px) saturate(.92);background:rgba(8,11,16,.14);animation:scrimIn .16s ease-out"></div>
+<div style="position:absolute;top:36px;right:0;width:196px;z-index:5;background:rgba(19,23,31,.86);border:1px solid rgba(255,255,255,.08);border-radius:12px;backdrop-filter:blur(10px);box-shadow:0 18px 44px rgba(0,0,0,.45);padding:6px;animation:sheetUp .14s ease-out">
+<div style="font:500 9.5px 'IBM Plex Mono',monospace;color:#8A91A0;letter-spacing:.09em;padding:7px 9px 6px">ЯЗЫК ИНТЕРФЕЙСА</div>
+<div style="display:flex;flex-direction:column;gap:1px">
+<sc-for list="{{ langs }}" as="l" hint-placeholder-count="5">
+<div onClick="{{ l.pick }}" style="{{ l.rowStyle }}">
+<span style="font:450 12.5px 'IBM Plex Sans',sans-serif;flex:1;min-width:0">{{ l.label }}</span>
+<span style="font:500 10px 'IBM Plex Mono',monospace;color:#8A91A0">{{ l.code }}</span>
+<span style="{{ l.checkStyle }}"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" style="display:block"><path d="M3.4 8.4 6.5 11.5 12.6 4.9" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>
+</div>
+</sc-for>
+</div>
+</div>
+</sc-if>
+</div>
+<div style="height:34px;width:34px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:#111520;display:flex;align-items:center;justify-content:center;color:#C7CCD6;cursor:pointer;transition:box-shadow .22s ease, border-color .22s ease, background .22s ease" style-hover="border-color:rgba(47,212,160,.5);background:#1A2B28;box-shadow:0 0 0 3px rgba(47,212,160,.12), 0 0 14px rgba(47,212,160,.3);color:#E6E9EF" onClick="{{ themeClickM }}">
+<div style="position:relative;width:16px;height:16px">
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="{{ themeMoonM }}"><path d="M13.4 10.2A5.8 5.8 0 0 1 5.8 2.6a5.9 5.9 0 1 0 7.6 7.6Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"></path></svg>
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="{{ themeSunM }}"><circle cx="8" cy="8" r="3.4" stroke="currentColor" stroke-width="1.4"></circle><path d="M8 1v1.8M8 13.2V15M1 8h1.8M13.2 8H15M3.1 3.1l1.3 1.3M11.6 11.6l1.3 1.3M12.9 3.1l-1.3 1.3M4.4 11.6l-1.3 1.3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"></path></svg>
+</div>
+</div>
+</div>
+</div>
+
+<div style="flex:1;display:flex;flex-direction:column;justify-content:center;padding:0 24px 16px">
+<h2 style="margin:0 0 5px;font:600 26px/1.15 'IBM Plex Sans',sans-serif;letter-spacing:-.7px">Вход</h2>
+<div style="font:400 12.5px 'IBM Plex Sans',sans-serif;color:#8A91A0;margin-bottom:24px">Сервер <span style="font-family:'IBM Plex Mono',monospace;color:#C7CCD6">nl-01.example.net</span></div>
+
+<div style="display:flex;flex-direction:column;gap:14px">
+<div>
+<div style="font:500 10.5px 'IBM Plex Mono',monospace;color:#6E7787;letter-spacing:.07em;margin-bottom:7px">ЛОГИН</div>
+<div style="{{ userFieldM }}" style-hover="border-color:rgba(47,212,160,.5);box-shadow:0 0 0 3px rgba(47,212,160,.12), 0 0 14px rgba(47,212,160,.3)">admin</div>
+</div>
+<div>
+<div style="font:500 10.5px 'IBM Plex Mono',monospace;color:#6E7787;letter-spacing:.07em;margin-bottom:7px">ПАРОЛЬ</div>
+<div style="{{ passFieldM }}" style-hover="border-color:rgba(47,212,160,.5);box-shadow:0 0 0 3px rgba(47,212,160,.12), 0 0 14px rgba(47,212,160,.3)">••••••••••<span style="margin-left:auto;display:flex;align-items:center;color:#8A91A0;cursor:pointer" title="Показать пароль"><svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M1.8 10S4.9 4.6 10 4.6 18.2 10 18.2 10 15.1 15.4 10 15.4 1.8 10 1.8 10Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"></path><circle cx="10" cy="10" r="2.6" stroke="currentColor" stroke-width="1.5"></circle></svg></span></div>
+</div>
+<sc-if value="{{ twoFactor }}" hint-placeholder-val="{{ true }}">
+<div>
+<div style="font:500 10.5px 'IBM Plex Mono',monospace;color:#6E7787;letter-spacing:.07em;margin-bottom:7px">КОД 2FA</div>
+<div style="display:flex;gap:7px">
+<div style="{{ otpFilledM }}">4</div>
+<div style="{{ otpFilledM }}">1</div>
+<div style="{{ otpFilledM }}">9</div>
+<div style="{{ otpActiveM }}">&nbsp;</div>
+<div style="{{ otpEmptyM }}">&nbsp;</div>
+<div style="{{ otpEmptyM }}">&nbsp;</div>
+</div>
+</div>
+</sc-if>
+</div>
+
+<sc-if value="{{ errorM }}" hint-placeholder-val="{{ false }}">
+<div style="margin-top:14px;display:flex;gap:10px;align-items:flex-start;background:rgba(242,85,90,.11);border:1px solid rgba(242,85,90,.32);border-radius:10px;padding:11px 12px">
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="flex:none;margin-top:1px"><circle cx="8" cy="8" r="6.9" stroke="#FF9498" stroke-width="1.4"></circle><path d="M8 4.6v4.1" stroke="#FF9498" stroke-width="1.6" stroke-linecap="round"></path><circle cx="8" cy="11.2" r=".95" fill="#FF9498"></circle></svg>
+<div style="flex:1;min-width:0"><div style="font:500 12.5px 'IBM Plex Sans',sans-serif;color:#FF9498">Неверный логин или пароль</div></div>
+<div onClick="{{ clearErrorM }}" style="flex:none;color:#FF9498;font:400 12px 'IBM Plex Mono',monospace;cursor:pointer;padding:0 2px">✕</div>
+</div>
+</sc-if>
+
+<div onClick="{{ submitM }}" style="{{ btnStyleM }}" style-hover="background:#45E0AF;box-shadow:0 0 0 4px rgba(47,212,160,.16), 0 0 22px rgba(47,212,160,.4)">
+<sc-if value="{{ isLoadingM }}" hint-placeholder-val="{{ false }}">
+<svg width="18" height="18" viewBox="0 0 18 18" fill="none" style="display:block;flex:none;transform-origin:50% 50%;will-change:transform;animation:spin .7s linear infinite"><circle cx="9" cy="9" r="7.5" stroke="rgba(6,32,26,.28)" stroke-width="2"></circle><path d="M9 1.5a7.5 7.5 0 0 1 7.5 7.5" stroke="#06201A" stroke-width="2" stroke-linecap="round"></path></svg>
+</sc-if>
+<sc-if value="{{ isSuccessM }}" hint-placeholder-val="{{ false }}">
+<svg width="20" height="20" viewBox="0 0 20 20" fill="none" style="flex:none"><path d="M4.4 10.6 8.1 14.3 15.6 6.3" stroke="#06201A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="stroke-dasharray:24;stroke-dashoffset:24;animation:checkDraw .34s .05s ease-out forwards"></path></svg>
+</sc-if>
+<span>{{ btnLabelM }}</span>
+</div>
+
+<div style="margin-top:22px;display:flex;align-items:center;gap:9px;font:450 12px 'IBM Plex Sans',sans-serif;color:#9AA3B2">
+<div style="width:6px;height:6px;flex:none;border-radius:3px;background:#2FD4A0;animation:pulseDot 2.4s infinite"></div>
+Пинг · 24 мс
+</div>
+</div>
+</div>
+</div>
+<div style="width:390px;height:790px;background:#F3F5F7;border:1px solid rgba(0,0,0,.14);border-radius:30px;overflow:hidden;color:#14161A;position:relative;display:flex;flex-direction:column">
+
+<div style="position:absolute;inset:0;background:radial-gradient(130% 80% at 50% 116%, rgba(10,122,89,.14) 0%, rgba(0,0,0,0) 64%)"></div>
+<div style="position:absolute;left:0;right:0;bottom:0;height:330px;overflow:hidden;pointer-events:none">
+<div style="position:absolute;bottom:-4px;left:0;width:200%;height:100%;animation:waveDriftA 26s linear infinite;opacity:.30">
+<svg viewBox="0 0 2880 340" preserveAspectRatio="none" style="width:100%;height:100%;display:block"><path d="M0 196 C 240 138 480 254 720 196 C 960 138 1200 254 1440 196 C 1680 138 1920 254 2160 196 C 2400 138 2640 254 2880 196 L2880 340 L0 340 Z" fill="#2FD4A0"></path></svg>
+</div>
+<div style="position:absolute;bottom:-10px;left:0;width:200%;height:100%;animation:waveDriftB 17s linear infinite;opacity:.21">
+<svg viewBox="0 0 2880 340" preserveAspectRatio="none" style="width:100%;height:100%;display:block"><path d="M0 232 C 120 190 360 274 480 232 C 600 190 840 274 960 232 C 1080 190 1320 274 1440 232 C 1560 190 1800 274 1920 232 C 2040 190 2280 274 2400 232 C 2520 190 2760 274 2880 232 L2880 340 L0 340 Z" fill="#4AA8E0"></path></svg>
+</div>
+<div style="position:absolute;bottom:-14px;left:0;width:200%;height:100%;animation:waveDriftC 11s linear infinite;opacity:.30">
+<svg viewBox="0 0 2880 340" preserveAspectRatio="none" style="width:100%;height:100%;display:block"><path d="M0 268 C 90 242 270 294 360 268 C 450 242 630 294 720 268 C 810 242 990 294 1080 268 C 1170 242 1350 294 1440 268 C 1530 242 1710 294 1800 268 C 1890 242 2070 294 2160 268 C 2250 242 2430 294 2520 268 C 2610 242 2790 294 2880 268 L2880 340 L0 340 Z" fill="#0A7A59"></path></svg>
+</div>
+</div>
+
+<div style="position:relative;height:44px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 22px;font:500 12px 'IBM Plex Mono',monospace;color:#5C6371"></div>
+
+<div style="position:relative;flex:1;display:flex;flex-direction:column;padding:6px 22px 30px;box-sizing:border-box">
+<div style="display:flex;align-items:center;gap:10px">
+<svg width="28" height="28" viewBox="0 0 32 32" style="display:block;flex:none">
+<rect x="0" y="0" width="32" height="32" rx="9" fill="#0A7A59"></rect>
+<ellipse cx="16" cy="16" rx="11" ry="4.6" transform="rotate(-32 16 16)" fill="none" stroke="#FFFFFF" stroke-width="1.7" opacity=".9"></ellipse>
+<circle cx="16" cy="16" r="3.2" fill="#FFFFFF"></circle>
+<circle cx="25.2" cy="10.6" r="1.9" fill="#FFFFFF"></circle>
+</svg>
+<div style="font:600 14.5px 'IBM Plex Sans',sans-serif;letter-spacing:-.3px">SpaceX <span style="font-weight:450;color:#5C6371">panel</span></div>
+<div style="margin-left:auto;display:flex;align-items:center;gap:7px">
+<div style="position:relative">
+<div onClick="{{ toggleLangMLt }}" style="position:relative;z-index:6;height:34px;padding:0 10px 0 11px;border-radius:10px;border:1px solid rgba(16,20,28,.12);background:#F5F6F8;display:flex;align-items:center;gap:6px;cursor:pointer;color:#39404D;transition:box-shadow .22s ease, border-color .22s ease, background .22s ease" style-hover="border-color:rgba(10,122,89,.45);background:#DCF1E8;box-shadow:0 0 0 3px rgba(10,122,89,.13), 0 0 14px rgba(10,122,89,.22);color:#13171E">
+<svg width="13" height="13" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.4" stroke="currentColor" stroke-width="1.4"></circle><path d="M1.6 8h12.8M8 1.6c3.4 3.6 3.4 9.2 0 12.8M8 1.6C4.6 5.2 4.6 10.8 8 14.4" stroke="currentColor" stroke-width="1.2"></path></svg>
+<span style="font:500 11.5px 'IBM Plex Sans',sans-serif">{{ langCode }}</span>
+</div>
+<sc-if value="{{ langOpenMLt }}" hint-placeholder-val="{{ false }}">
+<div onClick="{{ toggleLangMLt }}" style="position:absolute;top:-2000px;left:-2000px;width:4400px;height:4400px;z-index:4;backdrop-filter:blur(3px) saturate(.92);background:rgba(8,11,16,.14);animation:scrimIn .16s ease-out"></div>
+<div style="position:absolute;top:36px;right:0;width:196px;z-index:5;background:rgba(255,255,255,.9);border:1px solid rgba(16,20,28,.07);border-radius:12px;backdrop-filter:blur(10px);box-shadow:0 18px 44px rgba(16,24,40,.16);padding:6px;animation:sheetUp .14s ease-out">
+<div style="font:500 9.5px 'IBM Plex Mono',monospace;color:#5C6371;letter-spacing:.09em;padding:7px 9px 6px">ЯЗЫК ИНТЕРФЕЙСА</div>
+<div style="display:flex;flex-direction:column;gap:1px">
+<sc-for list="{{ langsLt }}" as="l" hint-placeholder-count="5">
+<div onClick="{{ l.pick }}" style="{{ l.rowStyle }}">
+<span style="font:450 12.5px 'IBM Plex Sans',sans-serif;flex:1;min-width:0">{{ l.label }}</span>
+<span style="font:500 10px 'IBM Plex Mono',monospace;color:#5C6371">{{ l.code }}</span>
+<span style="{{ l.checkStyle }}"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" style="display:block"><path d="M3.4 8.4 6.5 11.5 12.6 4.9" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>
+</div>
+</sc-for>
+</div>
+</div>
+</sc-if>
+</div>
+<div style="height:34px;width:34px;border-radius:10px;border:1px solid rgba(16,20,28,.12);background:#F5F6F8;display:flex;align-items:center;justify-content:center;color:#39404D;cursor:pointer;transition:box-shadow .22s ease, border-color .22s ease, background .22s ease" style-hover="border-color:rgba(10,122,89,.45);background:#DCF1E8;box-shadow:0 0 0 3px rgba(10,122,89,.13), 0 0 14px rgba(10,122,89,.22);color:#13171E" onClick="{{ themeClickMLt }}">
+<div style="position:relative;width:16px;height:16px">
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="{{ themeMoonMLt }}"><path d="M13.4 10.2A5.8 5.8 0 0 1 5.8 2.6a5.9 5.9 0 1 0 7.6 7.6Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"></path></svg>
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="{{ themeSunMLt }}"><circle cx="8" cy="8" r="3.4" stroke="currentColor" stroke-width="1.4"></circle><path d="M8 1v1.8M8 13.2V15M1 8h1.8M13.2 8H15M3.1 3.1l1.3 1.3M11.6 11.6l1.3 1.3M12.9 3.1l-1.3 1.3M4.4 11.6l-1.3 1.3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"></path></svg>
+</div>
+</div>
+</div>
+</div>
+
+<div style="flex:1;display:flex;flex-direction:column;justify-content:center;padding:0 24px 16px">
+<h2 style="margin:0 0 5px;font:600 26px/1.15 'IBM Plex Sans',sans-serif;letter-spacing:-.7px">Вход</h2>
+<div style="font:400 12.5px 'IBM Plex Sans',sans-serif;color:#5C6371;margin-bottom:24px">Сервер <span style="font-family:'IBM Plex Mono',monospace;color:#39404D">nl-01.example.net</span></div>
+
+<div style="display:flex;flex-direction:column;gap:14px">
+<div>
+<div style="font:500 10.5px 'IBM Plex Mono',monospace;color:#5C6371;letter-spacing:.07em;margin-bottom:7px">ЛОГИН</div>
+<div style="{{ userFieldMLt }}" style-hover="border-color:rgba(10,122,89,.45);box-shadow:0 0 0 3px rgba(10,122,89,.13), 0 0 14px rgba(10,122,89,.22)">admin</div>
+</div>
+<div>
+<div style="font:500 10.5px 'IBM Plex Mono',monospace;color:#5C6371;letter-spacing:.07em;margin-bottom:7px">ПАРОЛЬ</div>
+<div style="{{ passFieldMLt }}" style-hover="border-color:rgba(10,122,89,.45);box-shadow:0 0 0 3px rgba(10,122,89,.13), 0 0 14px rgba(10,122,89,.22)">••••••••••<span style="margin-left:auto;display:flex;align-items:center;color:#5C6371;cursor:pointer" title="Показать пароль"><svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M1.8 10S4.9 4.6 10 4.6 18.2 10 18.2 10 15.1 15.4 10 15.4 1.8 10 1.8 10Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"></path><circle cx="10" cy="10" r="2.6" stroke="currentColor" stroke-width="1.5"></circle></svg></span></div>
+</div>
+<sc-if value="{{ twoFactor }}" hint-placeholder-val="{{ true }}">
+<div>
+<div style="font:500 10.5px 'IBM Plex Mono',monospace;color:#5C6371;letter-spacing:.07em;margin-bottom:7px">КОД 2FA</div>
+<div style="display:flex;gap:7px">
+<div style="{{ otpFilledMLt }}">4</div>
+<div style="{{ otpFilledMLt }}">1</div>
+<div style="{{ otpFilledMLt }}">9</div>
+<div style="{{ otpActiveMLt }}">&nbsp;</div>
+<div style="{{ otpEmptyMLt }}">&nbsp;</div>
+<div style="{{ otpEmptyMLt }}">&nbsp;</div>
+</div>
+</div>
+</sc-if>
+</div>
+
+<sc-if value="{{ errorMLt }}" hint-placeholder-val="{{ true }}">
+<div style="margin-top:14px;display:flex;gap:10px;align-items:flex-start;background:rgba(196,42,49,.07);border:1px solid rgba(196,42,49,.3);border-radius:10px;padding:11px 12px">
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="flex:none;margin-top:1px"><circle cx="8" cy="8" r="6.9" stroke="#C22D34" stroke-width="1.4"></circle><path d="M8 4.6v4.1" stroke="#C22D34" stroke-width="1.6" stroke-linecap="round"></path><circle cx="8" cy="11.2" r=".95" fill="#C22D34"></circle></svg>
+<div style="flex:1;min-width:0"><div style="font:500 12.5px 'IBM Plex Sans',sans-serif;color:#C22D34">Неверный логин или пароль</div></div>
+<div onClick="{{ clearErrorMLt }}" style="flex:none;color:#C22D34;font:400 12px 'IBM Plex Mono',monospace;cursor:pointer;padding:0 2px">✕</div>
+</div>
+</sc-if>
+
+<div onClick="{{ submitMLt }}" style="{{ btnStyleMLt }}" style-hover="background:#086A4D;box-shadow:0 0 0 4px rgba(10,122,89,.16), 0 0 22px rgba(10,122,89,.26)">
+<sc-if value="{{ isLoadingMLt }}" hint-placeholder-val="{{ false }}">
+<svg width="18" height="18" viewBox="0 0 18 18" fill="none" style="display:block;flex:none;transform-origin:50% 50%;will-change:transform;animation:spin .7s linear infinite"><circle cx="9" cy="9" r="7.5" stroke="rgba(255,255,255,.38)" stroke-width="2"></circle><path d="M9 1.5a7.5 7.5 0 0 1 7.5 7.5" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"></path></svg>
+</sc-if>
+<sc-if value="{{ isSuccessMLt }}" hint-placeholder-val="{{ false }}">
+<svg width="20" height="20" viewBox="0 0 20 20" fill="none" style="flex:none"><path d="M4.4 10.6 8.1 14.3 15.6 6.3" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="stroke-dasharray:24;stroke-dashoffset:24;animation:checkDraw .34s .05s ease-out forwards"></path></svg>
+</sc-if>
+<span>{{ btnLabelMLt }}</span>
+</div>
+
+<div style="margin-top:22px;display:flex;align-items:center;gap:9px;font:450 12px 'IBM Plex Sans',sans-serif;color:#5C6371">
+<div style="width:6px;height:6px;flex:none;border-radius:3px;background:#0A7A59;animation:pulseDot 2.4s infinite"></div>
+Пинг · 24 мс
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+
+</div></section>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;twoFactor&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Логин&quot;}}">
+class Component extends DCLogic {
+  state = { lang: 'RU', langOpen: false, langOpenLt: true, langOpenM: true, langOpenMLt: false,
+            error: false, errorLt: true, errorM: false, errorMLt: true,
+            phase: 'idle', phaseLt: 'idle', phaseM: 'idle', phaseMLt: 'idle' };
+  timers = [];
+
+  runLogin(phaseKey, errKey) {
+    if (this.state[phaseKey] !== 'idle') return;
+    this.setState({ [phaseKey]: 'loading', [errKey]: false });
+    this.timers.push(setTimeout(() => this.setState({ [phaseKey]: 'success' }), 800));
+    this.timers.push(setTimeout(() => this.setState({ [phaseKey]: 'idle' }), 2600));
+  }
+  componentWillUnmount() { this.timers.forEach(clearTimeout); }
+
+  langList() {
+    return [
+      ['RU', 'Русский'], ['EN', 'English'], ['UK', 'Українська'], ['FA', 'فارسی'],
+      ['ZH', '简体中文'], ['TR', 'Türkçe'], ['VI', 'Tiếng Việt'], ['ES', 'Español']
+    ];
+  }
+  langRows(dark) {
+    const sel = this.state.lang;
+    return this.langList().map(([code, label]) => {
+      const on = code === sel;
+      const bg = on ? (dark ? '#172A26' : '#E4F5EE') : 'transparent';
+      const fg = on ? (dark ? '#2FD4A0' : '#086A4D') : (dark ? '#C7CCD6' : '#39404D');
+      return {
+        code, label,
+        rowStyle: `display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px;cursor:pointer;background:${bg};color:${fg}`,
+        checkStyle: `flex:none;display:flex;align-items:center;justify-content:center;color:${on ? fg : 'transparent'}`,
+        pick: () => this.setState({ lang: code, langOpen: false, langOpenLt: false, langOpenM: false, langOpenMLt: false })
+      };
+    });
+  }
+
+  renderVals() {
+    const err = this.state.error, errLt = this.state.errorLt;
+    const errM = this.state.errorM, errMLt = this.state.errorMLt;
+    const ph = this.state.phase, phLt = this.state.phaseLt;
+    const phM = this.state.phaseM, phMLt = this.state.phaseMLt;
+
+    const label = p => p === 'loading' ? 'Проверка…' : p === 'success' ? 'Вход выполнен' : 'Войти в панель';
+    const btnBase = p => "height:44px;margin-top:16px;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:9px;cursor:pointer;font:600 13.5px 'IBM Plex Sans',sans-serif;transition:background .2s ease, box-shadow .22s ease" + (p === 'success' ? ";animation:btnPop .34s ease-out" : "") + ";";
+    const btnMob = p => "height:46px;margin-top:16px;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:9px;cursor:pointer;font:600 13.5px 'IBM Plex Sans',sans-serif;transition:background .2s ease, box-shadow .22s ease" + (p === 'success' ? ";animation:btnPop .34s ease-out" : "") + ";";
+
+    const ring = (isErr, dark) => ";box-shadow:0 0 0 3px " + (isErr ? (dark ? "rgba(242,85,90,.13)" : "rgba(196,42,49,.13)") : (dark ? "rgba(47,212,160,.12)" : "rgba(10,122,89,.13)"));
+    const fx = ";transition:box-shadow .22s ease, border-color .22s ease";
+    const fieldD = (border, focus, isErr) => "height:44px;border-radius:12px;background:#111520;display:flex;align-items:center;padding:0 13px;border:1px solid " + border + fx + (focus ? ring(isErr, true) : "");
+    const fieldL = (border, focus, isErr) => "height:44px;border-radius:12px;background:#F5F6F8;display:flex;align-items:center;padding:0 13px;border:1px solid " + border + fx + (focus ? ring(isErr, false) : "");
+    const fieldMob = (dark, border, focus, isErr) => "height:46px;border-radius:12px;display:flex;align-items:center;padding:0 14px;background:" + (dark ? '#111520' : '#F5F6F8') + ";border:1px solid " + border + fx + (focus ? ring(isErr, dark) : "");
+
+    const otpBase = "flex:1;height:44px;border-radius:12px;background:#111520;display:flex;align-items:center;justify-content:center;font:500 15px 'IBM Plex Mono',monospace";
+    const otpLight = "flex:1;height:44px;border-radius:12px;background:#F5F6F8;display:flex;align-items:center;justify-content:center;font:500 15px 'IBM Plex Mono',monospace";
+    const otpMobD = "flex:1;height:46px;border-radius:12px;background:#111520;display:flex;align-items:center;justify-content:center;font:500 16px 'IBM Plex Mono',monospace";
+    const otpMobL = "flex:1;height:46px;border-radius:12px;background:#FFFFFF;display:flex;align-items:center;justify-content:center;font:500 16px 'IBM Plex Mono',monospace";
+
+    const iconBase = "position:absolute;inset:0;transition:transform .42s cubic-bezier(.34,1.32,.5,1), opacity .26s ease";
+    const themeVals = (k, startsSun) => {
+      const sunShown = startsSun !== !!this.state['theme' + k];
+      const shown = "transform:rotate(0deg) scale(1);opacity:1";
+      const hidden = dir => `transform:rotate(${dir}deg) scale(.55);opacity:0`;
+      return {
+        ['themeSun' + k]: iconBase + ';' + (sunShown ? shown : hidden(90)),
+        ['themeMoon' + k]: iconBase + ';' + (sunShown ? hidden(-90) : shown),
+        ['themeClick' + k]: () => this.setState(p => ({ ['theme' + k]: !p['theme' + k] }))
+      };
+    };
+
+    return {
+      twoFactor: this.props.twoFactor ?? true,
+
+      error: err && ph === 'idle', errorLt: errLt && phLt === 'idle',
+      errorM: errM && phM === 'idle', errorMLt: errMLt && phMLt === 'idle',
+      submit: () => this.runLogin('phase', 'error'),
+      submitLt: () => this.runLogin('phaseLt', 'errorLt'),
+      submitM: () => this.runLogin('phaseM', 'errorM'),
+      submitMLt: () => this.runLogin('phaseMLt', 'errorMLt'),
+      clearError: () => this.setState({ error: false }),
+      clearErrorLt: () => this.setState({ errorLt: false }),
+      clearErrorM: () => this.setState({ errorM: false }),
+      clearErrorMLt: () => this.setState({ errorMLt: false }),
+
+      isLoading: ph === 'loading', isSuccess: ph === 'success',
+      isLoadingLt: phLt === 'loading', isSuccessLt: phLt === 'success',
+      isLoadingM: phM === 'loading', isSuccessM: phM === 'success',
+      isLoadingMLt: phMLt === 'loading', isSuccessMLt: phMLt === 'success',
+      btnLabel: label(ph), btnLabelLt: label(phLt), btnLabelM: label(phM), btnLabelMLt: label(phMLt),
+      btnStyle: btnBase(ph) + (ph === 'loading' ? 'background:#27C295;color:#06201A' : 'background:#2FD4A0;color:#06201A'),
+      btnStyleLt: btnBase(phLt) + (phLt === 'loading' ? 'background:#086A4D;color:#FFFFFF' : 'background:#0A7A59;color:#FFFFFF'),
+      btnStyleM: btnMob(phM) + (phM === 'loading' ? 'background:#27C295;color:#06201A' : 'background:#2FD4A0;color:#06201A'),
+      btnStyleMLt: btnMob(phMLt) + (phMLt === 'loading' ? 'background:#086A4D;color:#FFFFFF' : 'background:#0A7A59;color:#FFFFFF'),
+      spinner: "width:18px;height:18px;box-sizing:border-box;flex:none;border-radius:50%;border:2px solid rgba(6,32,26,.28);border-top-color:#06201A;animation:spin .7s linear infinite",
+      spinnerLt: "width:18px;height:18px;box-sizing:border-box;flex:none;border-radius:50%;border:2px solid rgba(255,255,255,.38);border-top-color:#FFFFFF;animation:spin .7s linear infinite",
+
+      userField: fieldD(err ? '#F2555A' : '#242938', false) + ";font:450 13px 'IBM Plex Sans',sans-serif;color:#C7CCD6",
+      passField: fieldD(err ? '#F2555A' : '#242938', err, err) + ";font:500 13px 'IBM Plex Mono',monospace;color:#E6E9EF",
+      userFieldLt: fieldL(errLt ? '#C42A31' : '#E3E6EB', false) + ";font:450 13px 'IBM Plex Sans',sans-serif;color:#39404D",
+      passFieldLt: fieldL(errLt ? '#C42A31' : '#E3E6EB', errLt, errLt) + ";font:500 13px 'IBM Plex Mono',monospace;color:#14161A",
+      userFieldM: fieldMob(true, errM ? '#F2555A' : '#242938', false) + ";font:450 13.5px 'IBM Plex Sans',sans-serif;color:#C7CCD6",
+      passFieldM: fieldMob(true, errM ? '#F2555A' : '#242938', errM, errM) + ";font:500 13.5px 'IBM Plex Mono',monospace;color:#E6E9EF",
+      userFieldMLt: fieldMob(false, errMLt ? '#C42A31' : '#E3E6EB', false) + ";font:450 13.5px 'IBM Plex Sans',sans-serif;color:#39404D",
+      passFieldMLt: fieldMob(false, errMLt ? '#C42A31' : '#E3E6EB', errMLt, errMLt) + ";font:500 13.5px 'IBM Plex Mono',monospace;color:#14161A",
+
+      otpFilled: otpBase + ";border:1px solid #242938;color:#E6E9EF",
+      otpActive: otpBase + ";border:1px solid #2FD4A0;color:#E6E9EF;box-shadow:0 0 0 3px rgba(47,212,160,.12)",
+      otpEmpty: otpBase + ";border:1px solid #1C2130;color:#4E5563",
+      otpFilledLt: otpLight + ";border:1px solid #E3E6EB;color:#14161A",
+      otpActiveLt: otpLight + ";border:1px solid #0A7A59;color:#14161A;box-shadow:0 0 0 3px rgba(10,122,89,.13)",
+      otpEmptyLt: otpLight + ";border:1px solid #EDEFF3;color:#8A909C",
+      otpFilledM: otpMobD + ";border:1px solid #242938;color:#E6E9EF",
+      otpActiveM: otpMobD + ";border:1px solid #2FD4A0;color:#E6E9EF;box-shadow:0 0 0 3px rgba(47,212,160,.12)",
+      otpEmptyM: otpMobD + ";border:1px solid #1C2130;color:#4E5563",
+      otpFilledMLt: otpMobL + ";border:1px solid #E3E6EB;color:#14161A",
+      otpActiveMLt: otpMobL + ";border:1px solid #0A7A59;color:#14161A;box-shadow:0 0 0 3px rgba(10,122,89,.13)",
+      otpEmptyMLt: otpMobL + ";border:1px solid #EDEFF3;color:#8A909C",
+
+      langCode: this.state.lang,
+      langCaret: this.state.langOpen ? '▲' : '▼',
+      langCaretLt: this.state.langOpenLt ? '▲' : '▼',
+      langOpen: this.state.langOpen, langOpenLt: this.state.langOpenLt,
+      langOpenM: this.state.langOpenM, langOpenMLt: this.state.langOpenMLt,
+      langs: this.langRows(true), langsLt: this.langRows(false),
+      toggleLang: () => this.setState(p => ({ langOpen: !p.langOpen })),
+      toggleLangLt: () => this.setState(p => ({ langOpenLt: !p.langOpenLt })),
+      toggleLangM: () => this.setState(p => ({ langOpenM: !p.langOpenM })),
+      toggleLangMLt: () => this.setState(p => ({ langOpenMLt: !p.langOpenMLt })),
+
+      ...themeVals('A', false), ...themeVals('D', true),
+      ...themeVals('M', false), ...themeVals('MLt', true)
+    };
+  }
+}
+</script>
+</body>
+</html>
