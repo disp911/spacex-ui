@@ -75,6 +75,9 @@ jobs:
 
   build:
     needs: analyze
+    # A plain push to a branch only needs the checks above: the binaries are
+    # built for a release tag, for a pull request, and on demand.
+    if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
     permissions:
       contents: write
     strategy:
@@ -228,6 +231,9 @@ jobs:
   build-windows:
     name: Build for Windows
     needs: analyze
+    # A plain push to a branch only needs the checks above: the binaries are
+    # built for a release tag, for a pull request, and on demand.
+    if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
     permissions:
       contents: write
     strategy:
