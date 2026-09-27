@@ -1,7 +1,7 @@
 # 3X-UI Development Guide
 
 ## Project Overview
-3X-UI is a web-based control panel for managing Xray-core servers. It's a Go application using Gin web framework with embedded static assets and SQLite database. The panel manages VPN/proxy inbounds, monitors traffic, and provides Telegram bot integration.
+3X-UI is a web-based control panel for managing Xray-core servers. It's a Go application using Gin web framework with embedded static assets and SQLite database. The panel manages VPN/proxy inbounds and monitors traffic.
 
 ## Architecture
 
@@ -11,9 +11,9 @@
 - **xray/**: Xray-core process management and API communication for traffic monitoring
 - **database/**: GORM-based SQLite database with models in `database/model/`
 - **sub/**: Subscription server running alongside main web server (separate port)
-- **web/service/**: Business logic layer containing InboundService, SettingService, TgBot, etc.
+- **web/service/**: Business logic layer containing InboundService, SettingService, TelemtService, etc.
 - **web/controller/**: HTTP handlers using Gin context (`*gin.Context`)
-- **web/job/**: Cron-based background jobs for traffic monitoring, CPU checks, LDAP sync
+- **web/job/**: Cron-based background jobs for traffic monitoring and LDAP sync
 
 ### Key Architectural Patterns
 1. **Embedded Resources**: All web assets (HTML, CSS, JS, translations) are embedded at compile time using `embed.FS`:
@@ -25,7 +25,7 @@
 
 3. **Xray Integration**: Panel generates `config.json` for Xray binary, communicates via gRPC API for real-time traffic stats
 
-4. **Signal-Based Restart**: SIGHUP triggers graceful restart. **Critical**: Always call `service.StopBot()` before restart to prevent Telegram bot 409 conflicts
+4. **Signal-Based Restart**: SIGHUP triggers graceful restart, stopping the web and subscription servers before starting them again
 
 5. **Database Seeders**: Uses `HistoryOfSeeders` model to track one-time migrations (e.g., password bcrypt migration)
 
@@ -56,12 +56,6 @@ The main.go accepts flags for admin tasks:
 - Seeders: Use `HistoryOfSeeders` to prevent re-running migrations
 - Default credentials: admin/admin (hashed with bcrypt)
 
-### Telegram Bot Development
-- Bot instance in `web/service/tgbot.go` (3700+ lines)
-- Uses `telego` library with long polling
-- **Critical Pattern**: Must call `service.StopBot()` before any server restart to prevent 409 bot conflicts
-- Bot handlers use `telegohandler.BotHandler` for routing
-- i18n via embedded `i18nFS` passed to bot startup
 
 ## Code Conventions
 
@@ -143,13 +137,11 @@ Multi-stage Dockerfile:
 - Check Xray process: `x-ui.sh` script provides menu for status/logs
 - Database inspection: Direct SQLite access to x-ui.db
 - Traffic debugging: Check `3xipl.log` for IP limit tracking
-- Telegram bot: Logs show bot initialization and command handling
 
 ## Common Gotchas
-1. **Bot Restart**: Always stop Telegram bot before server restart to avoid 409 conflict
-2. **Embedded Assets**: Changes to HTML/CSS require recompilation (not hot-reload)
-3. **Password Migration**: Seeder system tracks bcrypt migration - check `HistoryOfSeeders` table
-4. **Port Binding**: Subscription server uses different port from main panel
-5. **Xray Binary**: Must match OS/arch exactly - managed by installer scripts
-6. **Session Management**: Uses `gin-contrib/sessions` with cookie store
-7. **IP Limitation**: Implements "last IP wins" - when client exceeds LimitIP, oldest connections are automatically disconnected via Xray API to allow newest IPs
+1. **Embedded Assets**: Changes to HTML/CSS require recompilation (not hot-reload)
+2. **Password Migration**: Seeder system tracks bcrypt migration - check `HistoryOfSeeders` table
+3. **Port Binding**: Subscription server uses different port from main panel
+4. **Xray Binary**: Must match OS/arch exactly - managed by installer scripts
+5. **Session Management**: Uses `gin-contrib/sessions` with cookie store
+6. **IP Limitation**: Implements "last IP wins" - when client exceeds LimitIP, oldest connections are automatically disconnected via Xray API to allow newest IPs

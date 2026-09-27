@@ -2403,7 +2403,6 @@ Inbound.ClientBase = class extends XrayCommonClass {
         totalGB = 0,
         expiryTime = 0,
         enable = true,
-        tgId = '',
         subId = RandomUtil.randomLowerAndNum(16),
         comment = '',
         reset = 0,
@@ -2416,7 +2415,6 @@ Inbound.ClientBase = class extends XrayCommonClass {
         this.totalGB = totalGB;
         this.expiryTime = expiryTime;
         this.enable = enable;
-        this.tgId = tgId;
         this.subId = subId;
         this.comment = comment;
         this.reset = reset;
@@ -2431,7 +2429,6 @@ Inbound.ClientBase = class extends XrayCommonClass {
             json.totalGB,
             json.expiryTime,
             json.enable,
-            json.tgId,
             json.subId,
             json.comment,
             json.reset,
@@ -2447,7 +2444,6 @@ Inbound.ClientBase = class extends XrayCommonClass {
             totalGB: this.totalGB,
             expiryTime: this.expiryTime,
             enable: this.enable,
-            tgId: this.tgId,
             subId: this.subId,
             comment: this.comment,
             reset: this.reset,
@@ -2526,9 +2522,9 @@ Inbound.VmessSettings.VMESS = class extends Inbound.ClientBase {
     constructor(
         id = RandomUtil.randomUUID(),
         security = USERS_SECURITY.AUTO,
-        email, limitIp, totalGB, expiryTime, enable, tgId, subId, comment, reset, created_at, updated_at,
+        email, limitIp, totalGB, expiryTime, enable, subId, comment, reset, created_at, updated_at,
     ) {
-        super(email, limitIp, totalGB, expiryTime, enable, tgId, subId, comment, reset, created_at, updated_at);
+        super(email, limitIp, totalGB, expiryTime, enable, subId, comment, reset, created_at, updated_at);
         this.id = id;
         this.security = security;
     }
@@ -2632,9 +2628,9 @@ Inbound.VLESSSettings.VLESS = class extends Inbound.ClientBase {
         id = RandomUtil.randomUUID(),
         flow = '',
         reverseTag = '',
-        email, limitIp, totalGB, expiryTime, enable, tgId, subId, comment, reset, created_at, updated_at,
+        email, limitIp, totalGB, expiryTime, enable, subId, comment, reset, created_at, updated_at,
     ) {
-        super(email, limitIp, totalGB, expiryTime, enable, tgId, subId, comment, reset, created_at, updated_at);
+        super(email, limitIp, totalGB, expiryTime, enable, subId, comment, reset, created_at, updated_at);
         this.id = id;
         this.flow = flow;
         this.reverseTag = reverseTag;
@@ -2736,9 +2732,9 @@ Inbound.TrojanSettings = class extends Inbound.Settings {
 Inbound.TrojanSettings.Trojan = class extends Inbound.ClientBase {
     constructor(
         password = RandomUtil.randomSeq(10),
-        email, limitIp, totalGB, expiryTime, enable, tgId, subId, comment, reset, created_at, updated_at,
+        email, limitIp, totalGB, expiryTime, enable, subId, comment, reset, created_at, updated_at,
     ) {
-        super(email, limitIp, totalGB, expiryTime, enable, tgId, subId, comment, reset, created_at, updated_at);
+        super(email, limitIp, totalGB, expiryTime, enable, subId, comment, reset, created_at, updated_at);
         this.password = password;
     }
 
@@ -2838,9 +2834,9 @@ Inbound.ShadowsocksSettings.Shadowsocks = class extends Inbound.ClientBase {
     constructor(
         method = '',
         password = RandomUtil.randomShadowsocksPassword(),
-        email, limitIp, totalGB, expiryTime, enable, tgId, subId, comment, reset, created_at, updated_at,
+        email, limitIp, totalGB, expiryTime, enable, subId, comment, reset, created_at, updated_at,
     ) {
-        super(email, limitIp, totalGB, expiryTime, enable, tgId, subId, comment, reset, created_at, updated_at);
+        super(email, limitIp, totalGB, expiryTime, enable, subId, comment, reset, created_at, updated_at);
         this.method = method;
         this.password = password;
     }
@@ -2888,9 +2884,9 @@ Inbound.HysteriaSettings = class extends Inbound.Settings {
 Inbound.HysteriaSettings.Hysteria = class extends Inbound.ClientBase {
     constructor(
         auth = RandomUtil.randomSeq(10),
-        email, limitIp, totalGB, expiryTime, enable, tgId, subId, comment, reset, created_at, updated_at,
+        email, limitIp, totalGB, expiryTime, enable, subId, comment, reset, created_at, updated_at,
     ) {
-        super(email, limitIp, totalGB, expiryTime, enable, tgId, subId, comment, reset, created_at, updated_at);
+        super(email, limitIp, totalGB, expiryTime, enable, subId, comment, reset, created_at, updated_at);
         this.auth = auth;
     }
 
@@ -2935,9 +2931,9 @@ Inbound.MTProtoSettings = class extends Inbound.Settings {
 Inbound.MTProtoSettings.MTProto = class extends Inbound.ClientBase {
     constructor(
         id = RandomUtil.randomMTProtoSecret(),
-        email, limitIp, totalGB, expiryTime, enable, tgId, subId, comment, reset, created_at, updated_at,
+        email, limitIp, totalGB, expiryTime, enable, subId, comment, reset, created_at, updated_at,
     ) {
-        super(email, limitIp, totalGB, expiryTime, enable, tgId, subId, comment, reset, created_at, updated_at);
+        super(email, limitIp, totalGB, expiryTime, enable, subId, comment, reset, created_at, updated_at);
         this.id = id;
     }
 
