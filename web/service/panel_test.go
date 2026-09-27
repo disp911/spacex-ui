@@ -8,11 +8,11 @@ func TestIsNewerVersion(t *testing.T) {
 		current string
 		want    bool
 	}{
-		{"v2.9.4", "2.9.3", true},
-		{"v2.10.0", "2.9.9", true},
-		{"v2.9.3", "2.9.3", false},
-		{"v2.9.2", "2.9.3", false},
-		{"v3.0.0", "2.9.3", true},
+		{"2.9.4", "2.9.3", true},
+		{"2.10.0", "2.9.9", true},
+		{"2.9.3", "2.9.3", false},
+		{"2.9.2", "2.9.3", false},
+		{"3.0.0", "2.9.3", true},
 	}
 
 	for _, tc := range cases {
@@ -26,7 +26,7 @@ func TestCompareVersionStringsRejectsUnexpectedFormats(t *testing.T) {
 	if _, ok := compareVersionStrings("latest", "2.9.3"); ok {
 		t.Fatal("expected non-semver latest tag to be rejected")
 	}
-	if _, ok := compareVersionStrings("v2.9", "2.9.3"); ok {
+	if _, ok := compareVersionStrings("2.9", "2.9.3"); ok {
 		t.Fatal("expected short version to be rejected")
 	}
 }

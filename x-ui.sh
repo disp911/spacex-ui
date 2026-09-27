@@ -166,15 +166,8 @@ legacy_version() {
         echo "Panel version cannot be empty. Exiting."
         exit 1
     fi
-    # Releases used to be tagged with a leading v; fall back to that form so
-    # older versions can still be installed.
-    tag_ref="${tag_version#v}"
-    if ! curl -fsL -o /dev/null "https://raw.githubusercontent.com/disp911/spacex-ui/${tag_ref}/install.sh"; then
-        tag_ref="v${tag_version#v}"
-    fi
-
     # Use the entered panel version in the download link
-    install_command="bash <(curl -Ls "https://raw.githubusercontent.com/disp911/spacex-ui/${tag_ref}/install.sh") ${tag_ref}"
+    install_command="bash <(curl -Ls "https://raw.githubusercontent.com/disp911/spacex-ui/${tag_version}/install.sh") ${tag_version}"
 
     echo "Downloading and installing panel version $tag_version..."
     eval $install_command
