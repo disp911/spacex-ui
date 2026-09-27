@@ -16,7 +16,7 @@ class AllSetting {
         this.twoFactorEnable = false;
         this.twoFactorToken = "";
         this.xrayTemplateConfig = "";
-        this.subEnable = true;
+        this.subEnable = false;
         this.subJsonEnable = false;
         this.subTitle = "";
         this.subSupportUrl = "";
@@ -28,7 +28,7 @@ class AllSetting {
         this.subPort = 2096;
         this.subPath = "/sub/";
         this.subJsonPath = "/json/";
-        this.subClashEnable = true;
+        this.subClashEnable = false;
         this.subClashPath = "/clash/";
         this.subDomain = "";
         this.externalTrafficInformEnable = false;
