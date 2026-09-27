@@ -33,6 +33,20 @@
     .ant-sidebar>.ant-layout-sider {
         height: 100%;
     }
+
+    /* The tabs sit in the middle of the sidebar's height. The auto margins
+       collapse when the screen is too short for them, so the menu then starts
+       at the top and scrolls instead of being cut off. */
+    .ant-sidebar>.ant-layout-sider>.ant-layout-sider-children {
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+    }
+
+    .ant-sidebar>.ant-layout-sider>.ant-layout-sider-children>.ant-menu {
+        margin-top: auto;
+        margin-bottom: auto;
+    }
 </style>
 
 <script>
@@ -52,14 +66,14 @@
                         title: '{{ i18n "menu.inbounds"}}'
                     },
                     {
-                        key: '{{ .base_path }}panel/settings',
-                        icon: 'setting',
-                        title: '{{ i18n "menu.settings"}}'
-                    },
-                    {
                         key: '{{ .base_path }}panel/xray',
                         icon: 'tool',
                         title: '{{ i18n "menu.xray"}}'
+                    },
+                    {
+                        key: '{{ .base_path }}panel/settings',
+                        icon: 'setting',
+                        title: '{{ i18n "menu.settings"}}'
                     },
                     {
                         key: '{{ .base_path }}logout/',
