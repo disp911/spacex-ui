@@ -312,17 +312,6 @@
           "CodeMirror-foldgutter",
         ],
       },
-      ipv4Settings: {
-        tag: "IPv4",
-        protocol: "freedom",
-        settings: {
-          domainStrategy: "UseIPv4"
-        }
-      },
-      directSettings: {
-        tag: "direct",
-        protocol: "freedom"
-      },
       routingDomainStrategies: ["AsIs", "IPIfNonMatch", "IPOnDemand"],
       log: {
         loglevel: ["none", "debug", "info", "warning", "error"],
@@ -331,194 +320,68 @@
         dnsLog: false,
         maskAddress: ["quarter", "half", "full"],
       },
-      settingsData: {
-        protocols: {
-          bittorrent: ["bittorrent"],
-        },
-        IPsOptions: [{
-            label: 'Private IPs',
-            value: 'geoip:private'
+      // Presets offered by the IP and domain fields of the routing rule modal;
+      // geo files the user added under custom geo resources are appended on load.
+      ruleCatalog: {
+        ip: [
+          { label: 'Private IPs', value: 'geoip:private' },
+          { label: '🇮🇷 Iran', value: 'ext:geoip_IR.dat:ir' },
+          { label: '🇨🇳 China', value: 'geoip:cn' },
+          { label: '🇷🇺 Russia', value: 'ext:geoip_RU.dat:ru' },
+          { label: '🇻🇳 Vietnam', value: 'geoip:vn' },
+          { label: '🇪🇸 Spain', value: 'geoip:es' },
+          { label: '🇮🇩 Indonesia', value: 'geoip:id' },
+          { label: '🇺🇦 Ukraine', value: 'geoip:ua' },
+          { label: '🇹🇷 Türkiye', value: 'geoip:tr' },
+          { label: '🇧🇷 Brazil', value: 'geoip:br' },
+        ],
+        domain: [
+          {
+            label: '{{ i18n "pages.xray.rules.catalogRegions" }}',
+            options: [
+              { label: '🇮🇷 Iran', value: 'ext:geosite_IR.dat:ir' },
+              { label: '🇮🇷 .ir', value: 'regexp:.*\\.ir$' },
+              { label: '🇮🇷 .ایران', value: 'regexp:.*\\.xn--mgba3a4f16a$' },
+              { label: '🇨🇳 China', value: 'geosite:cn' },
+              { label: '🇨🇳 .cn', value: 'regexp:.*\\.cn$' },
+              { label: '🇷🇺 Russia', value: 'ext:geosite_RU.dat:ru-available-only-inside' },
+              { label: '🇷🇺 .ru', value: 'regexp:.*\\.ru$' },
+              { label: '🇷🇺 .su', value: 'regexp:.*\\.su$' },
+              { label: '🇷🇺 .рф', value: 'regexp:.*\\.xn--p1ai$' },
+              { label: '🇻🇳 .vn', value: 'regexp:.*\\.vn$' },
+            ],
           },
           {
-            label: '🇮🇷 Iran',
-            value: 'ext:geoip_IR.dat:ir'
+            label: '{{ i18n "pages.xray.rules.catalogThreats" }}',
+            options: [
+              { label: 'Ads All', value: 'geosite:category-ads-all' },
+              { label: 'Ads IR 🇮🇷', value: 'ext:geosite_IR.dat:category-ads-all' },
+              { label: 'Ads RU 🇷🇺', value: 'ext:geosite_RU.dat:category-ads-all' },
+              { label: 'Malware 🇮🇷', value: 'ext:geosite_IR.dat:malware' },
+              { label: 'Phishing 🇮🇷', value: 'ext:geosite_IR.dat:phishing' },
+              { label: 'Cryptominers 🇮🇷', value: 'ext:geosite_IR.dat:cryptominers' },
+              { label: 'Adult +18', value: 'geosite:category-porn' },
+            ],
           },
           {
-            label: '🇨🇳 China',
-            value: 'geoip:cn'
+            label: '{{ i18n "pages.xray.rules.catalogServices" }}',
+            options: [
+              { label: 'Apple', value: 'geosite:apple' },
+              { label: 'Meta', value: 'geosite:meta' },
+              { label: 'Google', value: 'geosite:google' },
+              { label: 'OpenAI', value: 'geosite:openai' },
+              { label: 'Spotify', value: 'geosite:spotify' },
+              { label: 'Netflix', value: 'geosite:netflix' },
+              { label: 'Reddit', value: 'geosite:reddit' },
+              { label: 'Speedtest', value: 'geosite:speedtest' },
+            ],
           },
           {
-            label: '🇷🇺 Russia',
-            value: 'ext:geoip_RU.dat:ru'
-          },
-          {
-            label: '🇻🇳 Vietnam',
-            value: 'geoip:vn'
-          },
-          {
-            label: '🇪🇸 Spain',
-            value: 'geoip:es'
-          },
-          {
-            label: '🇮🇩 Indonesia',
-            value: 'geoip:id'
-          },
-          {
-            label: '🇺🇦 Ukraine',
-            value: 'geoip:ua'
-          },
-          {
-            label: '🇹🇷 Türkiye',
-            value: 'geoip:tr'
-          },
-          {
-            label: '🇧🇷 Brazil',
-            value: 'geoip:br'
+            label: '{{ i18n "pages.xray.rules.catalogCustom" }}',
+            options: [
+            ],
           },
         ],
-        DomainsOptions: [{
-            label: '🇮🇷 Iran',
-            value: 'ext:geosite_IR.dat:ir'
-          },
-          {
-            label: '🇮🇷 .ir',
-            value: 'regexp:.*\\.ir$'
-          },
-          {
-            label: '🇮🇷 .ایران',
-            value: 'regexp:.*\\.xn--mgba3a4f16a$'
-          },
-          {
-            label: '🇨🇳 China',
-            value: 'geosite:cn'
-          },
-          {
-            label: '🇨🇳 .cn',
-            value: 'regexp:.*\\.cn$'
-          },
-          {
-            label: '🇷🇺 Russia',
-            value: 'ext:geosite_RU.dat:ru-available-only-inside'
-          },
-          {
-            label: '🇷🇺 .ru',
-            value: 'regexp:.*\\.ru$'
-          },
-          {
-            label: '🇷🇺 .su',
-            value: 'regexp:.*\\.su$'
-          },
-          {
-            label: '🇷🇺 .рф',
-            value: 'regexp:.*\\.xn--p1ai$'
-          },
-          {
-            label: '🇻🇳 .vn',
-            value: 'regexp:.*\\.vn$'
-          },
-        ],
-        BlockDomainsOptions: [{
-            label: 'Ads All',
-            value: 'geosite:category-ads-all'
-          },
-          {
-            label: 'Ads IR 🇮🇷',
-            value: 'ext:geosite_IR.dat:category-ads-all'
-          },
-          {
-            label: 'Ads RU 🇷🇺',
-            value: 'ext:geosite_RU.dat:category-ads-all'
-          },
-          {
-            label: 'Malware 🇮🇷',
-            value: 'ext:geosite_IR.dat:malware'
-          },
-          {
-            label: 'Phishing 🇮🇷',
-            value: 'ext:geosite_IR.dat:phishing'
-          },
-          {
-            label: 'Cryptominers 🇮🇷',
-            value: 'ext:geosite_IR.dat:cryptominers'
-          },
-          {
-            label: 'Adult +18',
-            value: 'geosite:category-porn'
-          },
-          {
-            label: '🇮🇷 Iran',
-            value: 'ext:geosite_IR.dat:ir'
-          },
-          {
-            label: '🇮🇷 .ir',
-            value: 'regexp:.*\\.ir$'
-          },
-          {
-            label: '🇮🇷 .ایران',
-            value: 'regexp:.*\\.xn--mgba3a4f16a$'
-          },
-          {
-            label: '🇨🇳 China',
-            value: 'geosite:cn'
-          },
-          {
-            label: '🇨🇳 .cn',
-            value: 'regexp:.*\\.cn$'
-          },
-          {
-            label: '🇷🇺 Russia',
-            value: 'ext:geosite_RU.dat:ru-available-only-inside'
-          },
-          {
-            label: '🇷🇺 .ru',
-            value: 'regexp:.*\\.ru$'
-          },
-          {
-            label: '🇷🇺 .su',
-            value: 'regexp:.*\\.su$'
-          },
-          {
-            label: '🇷🇺 .рф',
-            value: 'regexp:.*\\.xn--p1ai$'
-          },
-          {
-            label: '🇻🇳 .vn',
-            value: 'regexp:.*\\.vn$'
-          },
-        ],
-        ServicesOptions: [{
-            label: 'Apple',
-            value: 'geosite:apple'
-          },
-          {
-            label: 'Meta',
-            value: 'geosite:meta'
-          },
-          {
-            label: 'Google',
-            value: 'geosite:google'
-          },
-          {
-            label: 'OpenAI',
-            value: 'geosite:openai'
-          },
-          {
-            label: 'Spotify',
-            value: 'geosite:spotify'
-          },
-          {
-            label: 'Netflix',
-            value: 'geosite:netflix'
-          },
-          {
-            label: 'Reddit',
-            value: 'geosite:reddit'
-          },
-          {
-            label: 'Speedtest',
-            value: 'geosite:speedtest'
-          },
-        ]
       },
       defaultObservatory: {
         subjectSelector: [],
@@ -606,82 +469,6 @@
       changePage(pageKey) {
         if (pageKey == 'tpl-advanced') this.changeCode();
         if (pageKey == 'tpl-balancer') this.changeObsCode();
-      },
-      syncRulesWithOutbound(tag, setting) {
-        const newTemplateSettings = this.templateSettings;
-        const haveRules = newTemplateSettings.routing.rules.some((r) => r?.outboundTag === tag);
-        const outboundIndex = newTemplateSettings.outbounds.findIndex((o) => o.tag === tag);
-        if (!haveRules && outboundIndex > 0) {
-          newTemplateSettings.outbounds.splice(outboundIndex);
-        }
-        if (haveRules && outboundIndex < 0) {
-          newTemplateSettings.outbounds.push(setting);
-        }
-        this.templateSettings = newTemplateSettings;
-      },
-      templateRuleGetter(routeSettings) {
-        const {
-          property,
-          outboundTag
-        } = routeSettings;
-        let result = [];
-        if (this.templateSettings != null) {
-          this.templateSettings.routing.rules.forEach(
-            (routingRule) => {
-              if (
-                routingRule.hasOwnProperty(property) &&
-                routingRule.hasOwnProperty("outboundTag") &&
-                routingRule.outboundTag === outboundTag
-              ) {
-                result.push(...routingRule[property]);
-              }
-            }
-          );
-        }
-        return result;
-      },
-      templateRuleSetter(routeSettings) {
-        const {
-          data,
-          property,
-          outboundTag
-        } = routeSettings;
-        const oldTemplateSettings = this.templateSettings;
-        const newTemplateSettings = oldTemplateSettings;
-        currentProperty = this.templateRuleGetter({
-          outboundTag,
-          property
-        })
-        if (currentProperty.length == 0) {
-          const propertyRule = {
-            type: "field",
-            outboundTag,
-            [property]: data
-          };
-          newTemplateSettings.routing.rules.push(propertyRule);
-        } else {
-          const newRules = [];
-          insertedOnce = false;
-          newTemplateSettings.routing.rules.forEach(
-            (routingRule) => {
-              if (
-                routingRule.hasOwnProperty(property) &&
-                routingRule.hasOwnProperty("outboundTag") &&
-                routingRule.outboundTag === outboundTag
-              ) {
-                if (!insertedOnce && data.length > 0) {
-                  insertedOnce = true;
-                  routingRule[property] = data;
-                  newRules.push(routingRule);
-                }
-              } else {
-                newRules.push(routingRule);
-              }
-            }
-          );
-          newTemplateSettings.routing.rules = newRules;
-        }
-        this.templateSettings = newTemplateSettings;
       },
       changeCode() {
         if (this.cm != null) {
@@ -1222,18 +1009,17 @@
           const geosite = msg.obj.geosite ?? [];
           const geoSuffix = this.customGeoAliasLabelSuffix || '';
           geoip.forEach((x) => {
-            this.settingsData.IPsOptions.push({
+            this.ruleCatalog.ip.push({
               label: x.alias + geoSuffix,
               value: x.extExample,
             });
           });
+          const customDomains = this.ruleCatalog.domain[this.ruleCatalog.domain.length - 1].options;
           geosite.forEach((x) => {
-            const opt = {
+            customDomains.push({
               label: x.alias + geoSuffix,
               value: x.extExample
-            };
-            this.settingsData.DomainsOptions.push(opt);
-            this.settingsData.BlockDomainsOptions.push(opt);
+            });
           });
         } catch (e) {
           console.error('Failed to load custom geo aliases:', e);
@@ -1548,162 +1334,6 @@
           newTemplateSettings.log.maskAddress = newValue;
           this.templateSettings = newTemplateSettings;
         }
-      },
-      blockedIPs: {
-        get: function() {
-          return this.templateRuleGetter({
-            outboundTag: "blocked",
-            property: "ip"
-          });
-        },
-        set: function(newValue) {
-          this.templateRuleSetter({
-            outboundTag: "blocked",
-            property: "ip",
-            data: newValue
-          });
-        }
-      },
-      blockedDomains: {
-        get: function() {
-          return this.templateRuleGetter({
-            outboundTag: "blocked",
-            property: "domain"
-          });
-        },
-        set: function(newValue) {
-          this.templateRuleSetter({
-            outboundTag: "blocked",
-            property: "domain",
-            data: newValue
-          });
-        }
-      },
-      blockedProtocols: {
-        get: function() {
-          return this.templateRuleGetter({
-            outboundTag: "blocked",
-            property: "protocol"
-          });
-        },
-        set: function(newValue) {
-          this.templateRuleSetter({
-            outboundTag: "blocked",
-            property: "protocol",
-            data: newValue
-          });
-        }
-      },
-      directIPs: {
-        get: function() {
-          return this.templateRuleGetter({
-            outboundTag: "direct",
-            property: "ip"
-          });
-        },
-        set: function(newValue) {
-          this.templateRuleSetter({
-            outboundTag: "direct",
-            property: "ip",
-            data: newValue
-          });
-          this.syncRulesWithOutbound("direct", this.directSettings);
-        }
-      },
-      directDomains: {
-        get: function() {
-          return this.templateRuleGetter({
-            outboundTag: "direct",
-            property: "domain"
-          });
-        },
-        set: function(newValue) {
-          this.templateRuleSetter({
-            outboundTag: "direct",
-            property: "domain",
-            data: newValue
-          });
-          this.syncRulesWithOutbound("direct", this.directSettings);
-        }
-      },
-      ipv4Domains: {
-        get: function() {
-          return this.templateRuleGetter({
-            outboundTag: "IPv4",
-            property: "domain"
-          });
-        },
-        set: function(newValue) {
-          this.templateRuleSetter({
-            outboundTag: "IPv4",
-            property: "domain",
-            data: newValue
-          });
-          this.syncRulesWithOutbound("IPv4", this.ipv4Settings);
-        }
-      },
-      warpDomains: {
-        get: function() {
-          return this.templateRuleGetter({
-            outboundTag: "warp",
-            property: "domain"
-          });
-        },
-        set: function(newValue) {
-          this.templateRuleSetter({
-            outboundTag: "warp",
-            property: "domain",
-            data: newValue
-          });
-        }
-      },
-      nordTag: {
-        get: function() {
-          return this.templateSettings ? (this.templateSettings.outbounds.find((o) => o.tag.startsWith(
-            "nord-")) || {
-              tag: "nord"
-            }).tag : "nord";
-        }
-      },
-      nordDomains: {
-        get: function() {
-          return this.templateRuleGetter({
-            outboundTag: this.nordTag,
-            property: "domain"
-          });
-        },
-        set: function(newValue) {
-          this.templateRuleSetter({
-            outboundTag: this.nordTag,
-            property: "domain",
-            data: newValue
-          });
-        }
-      },
-      torrentSettings: {
-        get: function() {
-          return ArrayUtils.doAllItemsExist(this.settingsData.protocols.bittorrent, this.blockedProtocols);
-        },
-        set: function(newValue) {
-          if (newValue) {
-            this.blockedProtocols = [...this.blockedProtocols, ...this.settingsData.protocols.bittorrent];
-          } else {
-            this.blockedProtocols = this.blockedProtocols.filter(data => !this.settingsData.protocols.bittorrent
-              .includes(data));
-          }
-        },
-      },
-      WarpExist: {
-        get: function() {
-          return this.templateSettings ? this.templateSettings.outbounds.findIndex((o) => o.tag == "warp") >= 0 :
-            false;
-        },
-      },
-      NordExist: {
-        get: function() {
-          return this.templateSettings ? this.templateSettings.outbounds.findIndex((o) => o.tag.startsWith(
-            "nord-")) >= 0 : false;
-        },
       },
       enableDNS: {
         get: function() {

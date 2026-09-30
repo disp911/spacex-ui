@@ -11,7 +11,13 @@
           </template> Source IPs <a-icon type="question-circle"></a-icon>
         </a-tooltip>
       </template>
-      <a-input v-model.trim="ruleModal.rule.sourceIP" placeholder="e.g. 0.0.0.0/8, fc00::/7, geoip:ir"></a-input>
+      <a-select mode="tags" v-model="ruleModal.rule.sourceIP" :token-separators="[',']"
+        :filter-option="ruleModal.filterOption" placeholder="e.g. 0.0.0.0/8, fc00::/7, geoip:ir"
+        :dropdown-class-name="themeSwitcher.currentTheme">
+        <a-select-option v-for="p in ruleModal.catalog.ip" :key="p.value" :value="p.value" :label="p.label">
+          <span>[[ p.label ]]</span>
+        </a-select-option>
+      </a-select>
     </a-form-item>
     <a-form-item>
       <template slot="label">
@@ -68,7 +74,13 @@
           </template> IP <a-icon type="question-circle"></a-icon>
         </a-tooltip>
       </template>
-      <a-input v-model.trim="ruleModal.rule.ip" placeholder="e.g. 0.0.0.0/8, fc00::/7, geoip:ir"></a-input>
+      <a-select mode="tags" v-model="ruleModal.rule.ip" :token-separators="[',']"
+        :filter-option="ruleModal.filterOption" placeholder="e.g. 0.0.0.0/8, fc00::/7, geoip:ir"
+        :dropdown-class-name="themeSwitcher.currentTheme">
+        <a-select-option v-for="p in ruleModal.catalog.ip" :key="p.value" :value="p.value" :label="p.label">
+          <span>[[ p.label ]]</span>
+        </a-select-option>
+      </a-select>
     </a-form-item>
     <a-form-item>
       <template slot="label">
@@ -78,7 +90,16 @@
           </template> Domain <a-icon type="question-circle"></a-icon>
         </a-tooltip>
       </template>
-      <a-input v-model.trim="ruleModal.rule.domain" placeholder="e.g. google.com, geosite:cn"></a-input>
+      <a-select mode="tags" v-model="ruleModal.rule.domain" :token-separators="[',']"
+        :filter-option="ruleModal.filterOption" placeholder="e.g. google.com, geosite:cn"
+        :dropdown-class-name="themeSwitcher.currentTheme">
+        <a-select-opt-group v-for="group in ruleModal.catalog.domain.filter(g => g.options.length > 0)"
+          :key="group.label" :label="group.label">
+          <a-select-option v-for="p in group.options" :key="p.value" :value="p.value" :label="p.label">
+            <span>[[ p.label ]]</span>
+          </a-select-option>
+        </a-select-opt-group>
+      </a-select>
     </a-form-item>
     <a-form-item>
       <template slot="label">
@@ -134,19 +155,23 @@
     confirm: null,
     rule: {
       type: "field",
-      domain: "",
-      ip: "",
+      domain: [],
+      ip: [],
       port: "",
       sourcePort: "",
       vlessRoute: "",
       network: "",
-      sourceIP: "",
+      sourceIP: [],
       user: "",
       inboundTag: [],
       protocol: [],
       attrs: [],
       outboundTag: "",
       balancerTag: "",
+    },
+    catalog: {
+      ip: [],
+      domain: [],
     },
     inboundTags: [],
     outboundTags: [],
@@ -168,13 +193,13 @@
       this.confirm = confirm;
       this.visible = true;
       if (isEdit) {
-        this.rule.domain = rule.domain ? rule.domain.join(',') : [];
-        this.rule.ip = rule.ip ? rule.ip.join(',') : [];
+        this.rule.domain = rule.domain ? [...rule.domain] : [];
+        this.rule.ip = rule.ip ? [...rule.ip] : [];
         this.rule.port = rule.port;
         this.rule.sourcePort = rule.sourcePort;
         this.rule.vlessRoute = rule.vlessRoute;
         this.rule.network = rule.network;
-        this.rule.sourceIP = rule.sourceIP ? rule.sourceIP.join(',') : [];
+        this.rule.sourceIP = rule.sourceIP ? [...rule.sourceIP] : [];
         this.rule.user = rule.user ? rule.user.join(',') : [];
         this.rule.inboundTag = rule.inboundTag;
         this.rule.protocol = rule.protocol;
@@ -183,13 +208,13 @@
         this.rule.balancerTag = rule.balancerTag ? rule.balancerTag : "";
       } else {
         this.rule = {
-          domain: "",
-          ip: "",
+          domain: [],
+          ip: [],
           port: "",
           sourcePort: "",
           vlessRoute: "",
           network: "",
-          sourceIP: "",
+          sourceIP: [],
           user: "",
           inboundTag: [],
           protocol: [],
@@ -199,6 +224,7 @@
         }
       }
       this.isEdit = isEdit;
+      this.catalog = app.ruleCatalog;
       this.inboundTags = app.templateSettings.inbounds.filter((i) => !ObjectUtil.isEmpty(i.tag)).map(obj => obj.tag);
       this.inboundTags.push(...app.inboundTags);
       if (app.enableDNS && !ObjectUtil.isEmpty(app.dnsTag)) this.inboundTags.push(app.dnsTag)
@@ -218,6 +244,17 @@
         ];
       }
     },
+    // Pasted lists are split on commas, which can leave stray spaces and empty items.
+    cleanList(list) {
+      return list.map(s => s.trim()).filter(s => s.length > 0);
+    },
+    // Catalog entries are found by their readable name as well as by the value
+    // that goes into the config, so both "russia" and "geoip_RU" find them.
+    filterOption(input, option) {
+      const props = option.componentOptions.propsData;
+      const query = input.toLowerCase();
+      return [props.value, props.label].some(v => String(v ?? '').toLowerCase().includes(query));
+    },
     close() {
       ruleModal.visible = false;
       ruleModal.loading(false);
@@ -230,13 +267,13 @@
       rule = {};
       newRule = {};
       rule.type = "field";
-      rule.domain = value.domain.length > 0 ? value.domain.split(',').map(s => s.trim()) : [];
-      rule.ip = value.ip.length > 0 ? value.ip.split(',').map(s => s.trim()) : [];
+      rule.domain = ruleModal.cleanList(value.domain);
+      rule.ip = ruleModal.cleanList(value.ip);
       rule.port = value.port;
       rule.sourcePort = value.sourcePort;
       rule.vlessRoute = value.vlessRoute;
       rule.network = value.network;
-      rule.sourceIP = value.sourceIP.length > 0 ? value.sourceIP.split(',').map(s => s.trim()) : [];
+      rule.sourceIP = ruleModal.cleanList(value.sourceIP);
       rule.user = value.user.length > 0 ? value.user.split(',').map(s => s.trim()) : [];
       rule.inboundTag = value.inboundTag;
       rule.protocol = value.protocol;
