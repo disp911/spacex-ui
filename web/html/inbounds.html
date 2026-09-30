@@ -674,7 +674,6 @@
 {{template "component/aSidebar" .}}
 {{template "component/aThemeSwitch" .}}
 {{template "component/aCustomStatistic" .}}
-{{template "component/aPersianDatepicker" .}}
 {{template "modals/inboundModal" .}}
 {{template "modals/promptModal" .}}
 {{template "modals/qrcodeModal" .}}
@@ -1033,7 +1032,6 @@
     mixins: [MediaQueryMixin],
     data: {
       themeSwitcher,
-      persianDatepicker,
       loadingStates: {
         fetched: false,
         spinning: false
@@ -1062,7 +1060,6 @@
         subJsonEnable: false,
       },
       remarkModel: '-ieo',
-      datepicker: 'gregorian',
       showAlert: false,
       ipLimitEnable: false,
       pageSize: 0,
@@ -1183,7 +1180,6 @@
         };
         this.pageSize = settings.pageSize;
         this.remarkModel = settings.remarkModel;
-        this.datepicker = settings.datepicker;
         this.ipLimitEnable = settings.ipLimitEnable;
       },
       setInbounds(dbInbounds) {

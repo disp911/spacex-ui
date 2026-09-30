@@ -58,12 +58,26 @@
                     </template>
                     {{ template "settings/panel/general" . }}
                   </a-tab-pane>
+                  <a-tab-pane key="ui" :style="{ paddingTop: '20px' }">
+                    <template #tab>
+                      <a-icon type="layout"></a-icon>
+                      <span>{{ i18n "pages.settings.interfaceSettings" }}</span>
+                    </template>
+                    {{ template "settings/panel/interface" . }}
+                  </a-tab-pane>
                   <a-tab-pane key="2" :style="{ paddingTop: '20px' }">
                     <template #tab>
                       <a-icon type="safety"></a-icon>
                       <span>{{ i18n "pages.settings.securitySettings" }}</span>
                     </template>
                     {{ template "settings/panel/security" . }}
+                  </a-tab-pane>
+                  <a-tab-pane key="ldap" :style="{ paddingTop: '20px' }">
+                    <template #tab>
+                      <a-icon type="team"></a-icon>
+                      <span>LDAP</span>
+                    </template>
+                    {{ template "settings/panel/ldap" . }}
                   </a-tab-pane>
                   <a-tab-pane key="3" :style="{ paddingTop: '20px' }">
                     <template #tab>
@@ -124,13 +138,6 @@
         o: 'Other'
       },
       remarkSeparators: [' ', '-', '_', '@', ':', '~', '|', ',', '.', '/'],
-      datepickerList: [{
-        name: 'Gregorian (Standard)',
-        value: 'gregorian'
-      }, {
-        name: 'Jalalian (شمسی)',
-        value: 'jalalian'
-      }],
       remarkSample: '',
       defaultFragment: {
         packets: "tlshello",
@@ -251,12 +258,6 @@
       set remarkSeparator(value) {
         this.allSetting.remarkModel = value + this.allSetting.remarkModel.substring(1);
         this.changeRemarkSample();
-      },
-      get datepicker() {
-        return this.allSetting.datepicker ? this.allSetting.datepicker : 'gregorian';
-      },
-      set datepicker(value) {
-        this.allSetting.datepicker = value;
       },
       changeRemarkSample() {
         sample = []

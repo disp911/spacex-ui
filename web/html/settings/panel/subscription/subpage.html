@@ -1,6 +1,5 @@
 {{ template "page/head_start" .}}
 <script src="{{ .base_path }}assets/moment/moment.min.js"></script>
-<script src="{{ .base_path }}assets/moment/moment-jalali.min.js?{{ .cur_ver }}"></script>
 <script src="{{ .base_path }}assets/vue/vue.min.js?{{ .cur_ver }}"></script>
 <script src="{{ .base_path }}assets/ant-design-vue/antd.min.js"></script>
 <script src="{{ .base_path }}assets/js/util/index.js?{{ .cur_ver }}"></script>
@@ -278,7 +277,7 @@
     data-subclash-url="{{ .subClashUrl }}" data-download="{{ .download }}" data-upload="{{ .upload }}"
     data-used="{{ .used }}" data-total="{{ .total }}" data-remained="{{ .remained }}" data-expire="{{ .expire }}"
     data-lastonline="{{ .lastOnline }}" data-downloadbyte="{{ .downloadByte }}" data-uploadbyte="{{ .uploadByte }}"
-    data-totalbyte="{{ .totalByte }}" data-datepicker="{{ .datepicker }}" data-enabled="{{ .enabled }}"></template>
+    data-totalbyte="{{ .totalByte }}" data-enabled="{{ .enabled }}"></template>
 <textarea id="subscription-links" style="display:none">{{ range .result }}{{ . }}
 {{ end }}</textarea>
 

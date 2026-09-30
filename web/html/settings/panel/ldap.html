@@ -1,0 +1,143 @@
+{{define "settings/panel/ldap"}}
+<a-collapse :default-active-key="['1', '2']">
+    <a-collapse-panel key="1" header='{{ i18n "pages.settings.ldap.connection" }}'>
+        <a-setting-list-item paddings="small">
+            <template #title>{{ i18n "pages.settings.ldap.enable" }}</template>
+            <template #control>
+                <a-switch v-model="allSetting.ldapEnable"></a-switch>
+            </template>
+        </a-setting-list-item>
+        <a-setting-list-item paddings="small">
+            <template #title>{{ i18n "pages.settings.ldap.host" }}</template>
+            <template #control>
+                <a-input type="text" v-model="allSetting.ldapHost"></a-input>
+            </template>
+        </a-setting-list-item>
+        <a-setting-list-item paddings="small">
+            <template #title>{{ i18n "pages.settings.ldap.port" }}</template>
+            <template #control>
+                <a-input-number :min="1" :max="65535" v-model="allSetting.ldapPort"
+                    :style="{ width: '100%' }"></a-input-number>
+            </template>
+        </a-setting-list-item>
+        <a-setting-list-item paddings="small">
+            <template #title>{{ i18n "pages.settings.ldap.useTLS" }}</template>
+            <template #control>
+                <a-switch v-model="allSetting.ldapUseTLS"></a-switch>
+            </template>
+        </a-setting-list-item>
+        <a-setting-list-item paddings="small">
+            <template #title>Bind DN</template>
+            <template #control>
+                <a-input type="text" v-model="allSetting.ldapBindDN"></a-input>
+            </template>
+        </a-setting-list-item>
+        <a-setting-list-item paddings="small">
+            <template #title>{{ i18n "pages.settings.ldap.password" }}</template>
+            <template #control>
+                <a-input type="password" v-model="allSetting.ldapPassword"></a-input>
+            </template>
+        </a-setting-list-item>
+        <a-setting-list-item paddings="small">
+            <template #title>Base DN</template>
+            <template #control>
+                <a-input type="text" v-model="allSetting.ldapBaseDN"></a-input>
+            </template>
+        </a-setting-list-item>
+        <a-setting-list-item paddings="small">
+            <template #title>{{ i18n "pages.settings.ldap.userFilter" }}</template>
+            <template #control>
+                <a-input type="text" v-model="allSetting.ldapUserFilter"></a-input>
+            </template>
+        </a-setting-list-item>
+        <a-setting-list-item paddings="small">
+            <template #title>{{ i18n "pages.settings.ldap.userAttr" }}</template>
+            <template #control>
+                <a-input type="text" v-model="allSetting.ldapUserAttr"></a-input>
+            </template>
+        </a-setting-list-item>
+    </a-collapse-panel>
+    <a-collapse-panel key="2" header='{{ i18n "pages.settings.ldap.sync" }}'>
+        <a-setting-list-item paddings="small">
+            <template #title>{{ i18n "pages.settings.ldap.vlessField" }}</template>
+            <template #control>
+                <a-input type="text" v-model="allSetting.ldapVlessField"></a-input>
+            </template>
+        </a-setting-list-item>
+        <a-setting-list-item paddings="small">
+            <template #title>{{ i18n "pages.settings.ldap.flagField" }}</template>
+            <template #description>{{ i18n "pages.settings.ldap.flagFieldDesc" }}</template>
+            <template #control>
+                <a-input type="text" v-model="allSetting.ldapFlagField"></a-input>
+            </template>
+        </a-setting-list-item>
+        <a-setting-list-item paddings="small">
+            <template #title>{{ i18n "pages.settings.ldap.truthyValues" }}</template>
+            <template #description>{{ i18n "pages.settings.ldap.truthyValuesDesc" }}</template>
+            <template #control>
+                <a-input type="text" v-model="allSetting.ldapTruthyValues"></a-input>
+            </template>
+        </a-setting-list-item>
+        <a-setting-list-item paddings="small">
+            <template #title>{{ i18n "pages.settings.ldap.invertFlag" }}</template>
+            <template #description>{{ i18n "pages.settings.ldap.invertFlagDesc" }}</template>
+            <template #control>
+                <a-switch v-model="allSetting.ldapInvertFlag"></a-switch>
+            </template>
+        </a-setting-list-item>
+        <a-setting-list-item paddings="small">
+            <template #title>{{ i18n "pages.settings.ldap.syncCron" }}</template>
+            <template #description>{{ i18n "pages.settings.ldap.syncCronDesc" }}</template>
+            <template #control>
+                <a-input type="text" v-model="allSetting.ldapSyncCron"></a-input>
+            </template>
+        </a-setting-list-item>
+        <a-setting-list-item paddings="small">
+            <template #title>{{ i18n "pages.settings.ldap.inboundTags" }}</template>
+            <template #description>{{ i18n "pages.settings.ldap.inboundTagsDesc" }}</template>
+            <template #control>
+                <a-select mode="multiple" :dropdown-class-name="themeSwitcher.currentTheme" :style="{ width: '100%' }"
+                    v-model="ldapInboundTagList">
+                    <a-select-option v-for="opt in inboundOptions" :key="opt.value" :value="opt.value">[[ opt.label
+                        ]]</a-select-option>
+                </a-select>
+                <div v-if="inboundOptions.length==0" style="margin-top:6px;color:#999">{{ i18n
+                    "pages.settings.ldap.noInbounds" }}</div>
+            </template>
+        </a-setting-list-item>
+        <a-setting-list-item paddings="small">
+            <template #title>{{ i18n "pages.settings.ldap.autoCreate" }}</template>
+            <template #control>
+                <a-switch v-model="allSetting.ldapAutoCreate"></a-switch>
+            </template>
+        </a-setting-list-item>
+        <a-setting-list-item paddings="small">
+            <template #title>{{ i18n "pages.settings.ldap.autoDelete" }}</template>
+            <template #control>
+                <a-switch v-model="allSetting.ldapAutoDelete"></a-switch>
+            </template>
+        </a-setting-list-item>
+        <a-setting-list-item paddings="small">
+            <template #title>{{ i18n "pages.settings.ldap.defaultTotalGB" }}</template>
+            <template #control>
+                <a-input-number :min="0" v-model="allSetting.ldapDefaultTotalGB"
+                    :style="{ width: '100%' }"></a-input-number>
+            </template>
+        </a-setting-list-item>
+        <a-setting-list-item paddings="small">
+            <template #title>{{ i18n "pages.settings.ldap.defaultExpiryDays" }}</template>
+            <template #control>
+                <a-input-number :min="0" v-model="allSetting.ldapDefaultExpiryDays"
+                    :style="{ width: '100%' }"></a-input-number>
+            </template>
+        </a-setting-list-item>
+        <a-setting-list-item paddings="small">
+            <template #title>{{ i18n "pages.settings.ldap.defaultLimitIP" }}</template>
+            <template #control>
+                <a-input-number :min="0" v-model="allSetting.ldapDefaultLimitIP"
+                    :style="{ width: '100%' }"></a-input-number>
+            </template>
+        </a-setting-list-item>
+    </a-collapse-panel>
+</a-collapse>
+{{end}}

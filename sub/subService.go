@@ -27,7 +27,6 @@ type SubService struct {
 	address        string
 	showInfo       bool
 	remarkModel    string
-	datepicker     string
 	inboundService service.InboundService
 	settingService service.SettingService
 }
@@ -57,10 +56,6 @@ func (s *SubService) GetSubs(subId string, host string) ([]string, int64, xray.C
 		return nil, 0, traffic, common.NewError("No inbounds found with ", subId)
 	}
 
-	s.datepicker, err = s.settingService.GetDatepicker()
-	if err != nil {
-		s.datepicker = "gregorian"
-	}
 	for _, inbound := range inbounds {
 		clients, err := s.inboundService.GetClients(inbound)
 		if err != nil {
@@ -1317,7 +1312,6 @@ type PageData struct {
 	Remained     string
 	Expire       int64
 	LastOnline   int64
-	Datepicker   string
 	DownloadByte int64
 	UploadByte   int64
 	TotalByte    int64
@@ -1450,11 +1444,6 @@ func (s *SubService) BuildPageData(subId string, hostHeader string, traffic xray
 		remained = common.FormatTraffic(left)
 	}
 
-	datepicker := s.datepicker
-	if datepicker == "" {
-		datepicker = "gregorian"
-	}
-
 	return PageData{
 		Host:         hostHeader,
 		BasePath:     basePath,
@@ -1467,7 +1456,6 @@ func (s *SubService) BuildPageData(subId string, hostHeader string, traffic xray
 		Remained:     remained,
 		Expire:       traffic.ExpiryTime / 1000,
 		LastOnline:   lastOnline,
-		Datepicker:   datepicker,
 		DownloadByte: traffic.Down,
 		UploadByte:   traffic.Up,
 		TotalByte:    traffic.Total,

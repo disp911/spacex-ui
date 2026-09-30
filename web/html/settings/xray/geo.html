@@ -1,0 +1,83 @@
+{{define "settings/xray/geo"}}
+<a-space direction="vertical" size="middle" :style="{ width: '100%' }">
+    <a-alert type="info" show-icon message='{{ i18n "pages.xray.geo.appliedAtOnce" }}'></a-alert>
+    <a-collapse :default-active-key="['1', '2']">
+        <a-collapse-panel key="1" header='{{ i18n "pages.xray.geo.standard" }}'>
+            <a-list class="ant-version-list w-100" bordered>
+                <a-list-item class="ant-version-list-item"
+                    v-for="file, index in ['geosite.dat', 'geoip.dat', 'geosite_IR.dat', 'geoip_IR.dat', 'geosite_RU.dat', 'geoip_RU.dat']">
+                    <a-tag :color="index % 2 == 0 ? 'purple' : 'green'">[[ file ]]</a-tag>
+                    <a-icon type="reload" @click="updateGeofile(file)" class="mr-8" />
+                </a-list-item>
+            </a-list>
+            <div class="mt-5 d-flex justify-end"><a-button @click="updateGeofile('')">{{ i18n
+                    "pages.index.geofilesUpdateAll" }}</a-button></div>
+        </a-collapse-panel>
+        <a-collapse-panel key="2" header='{{ i18n "pages.index.customGeoTitle" }}'>
+            <div class="custom-geo-section">
+                <a-alert type="info" show-icon class="mb-10"
+                    message='{{ i18n "pages.index.customGeoRoutingHint" }}'></a-alert>
+                <div class="mb-10">
+                    <a-button type="primary" icon="plus" @click="openCustomGeoModal(null)"
+                        :loading="customGeoLoading">
+                        {{ i18n "pages.index.customGeoAdd" }}
+                    </a-button>
+                    <a-button class="ml-8" icon="reload" @click="updateAllCustomGeo"
+                        :loading="customGeoUpdatingAll">{{ i18n "pages.index.geofilesUpdateAll" }}</a-button>
+                </div>
+                <a-table :columns="customGeoColumns" :data-source="customGeoList" :pagination="false"
+                    :row-key="r => r.id" :loading="customGeoLoading" size="small" :scroll="{ x: 520 }">
+                    <template slot="extDat" slot-scope="text, record">
+                        <code class="custom-geo-ext-code">[[ customGeoExtDisplay(record) ]]</code>
+                    </template>
+                    <template slot="lastUpdatedAt" slot-scope="text, record">
+                        <span v-if="record.lastUpdatedAt">[[ customGeoFormatTime(record.lastUpdatedAt) ]]</span>
+                        <span v-else>—</span>
+                    </template>
+                    <template slot="action" slot-scope="text, record">
+                        <a-space size="small">
+                            <a-tooltip :overlay-class-name="themeSwitcher.currentTheme">
+                                <template slot="title">{{ i18n "pages.index.customGeoEdit" }}</template>
+                                <a-button type="link" size="small" icon="edit"
+                                    @click="openCustomGeoModal(record)"></a-button>
+                            </a-tooltip>
+                            <a-tooltip :overlay-class-name="themeSwitcher.currentTheme">
+                                <template slot="title">{{ i18n "pages.index.customGeoDownload" }}</template>
+                                <a-button type="link" size="small" icon="reload" @click="downloadCustomGeo(record.id)"
+                                    :loading="customGeoActionId === record.id"></a-button>
+                            </a-tooltip>
+                            <a-tooltip :overlay-class-name="themeSwitcher.currentTheme">
+                                <template slot="title">{{ i18n "pages.index.customGeoDelete" }}</template>
+                                <a-button type="link" size="small" icon="delete"
+                                    @click="confirmDeleteCustomGeo(record)"></a-button>
+                            </a-tooltip>
+                        </a-space>
+                    </template>
+                </a-table>
+            </div>
+        </a-collapse-panel>
+    </a-collapse>
+    <a-modal v-model="customGeoModal.visible"
+        :title="customGeoModal.editId ? '{{ i18n "pages.index.customGeoModalEdit" }}' : '{{ i18n "pages.index.customGeoModalAdd" }}'"
+        :confirm-loading="customGeoModal.saving" @ok="submitCustomGeo"
+        :ok-text="'{{ i18n "pages.index.customGeoModalSave" }}'" :cancel-text="'{{ i18n "close" }}'"
+        :class="themeSwitcher.currentTheme">
+        <a-form layout="vertical">
+            <a-form-item label='{{ i18n "pages.index.customGeoType" }}'>
+                <a-select v-model="customGeoModal.form.type" :disabled="!!customGeoModal.editId"
+                    :dropdown-class-name="themeSwitcher.currentTheme">
+                    <a-select-option value="geosite">geosite</a-select-option>
+                    <a-select-option value="geoip">geoip</a-select-option>
+                </a-select>
+            </a-form-item>
+            <a-form-item label='{{ i18n "pages.index.customGeoAlias" }}'>
+                <a-input v-model.trim="customGeoModal.form.alias" :disabled="!!customGeoModal.editId"
+                    placeholder='{{ i18n "pages.index.customGeoAliasPlaceholder" }}'></a-input>
+            </a-form-item>
+            <a-form-item label='{{ i18n "pages.index.customGeoUrl" }}'>
+                <a-input v-model.trim="customGeoModal.form.url" placeholder="https://"></a-input>
+            </a-form-item>
+        </a-form>
+    </a-modal>
+</a-space>
+{{end}}

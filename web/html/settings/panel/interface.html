@@ -1,0 +1,56 @@
+{{define "settings/panel/interface"}}
+<a-collapse default-active-key="1">
+    <a-collapse-panel key="1" header='{{ i18n "pages.xray.generalConfigs"}}'>
+        <a-setting-list-item paddings="small">
+            <template #title>{{ i18n "pages.settings.language"}}</template>
+            <template #control>
+                <a-select ref="selectLang" v-model="lang" @change="LanguageManager.setLanguage(lang)"
+                    :dropdown-class-name="themeSwitcher.currentTheme" :style="{ width: '100%' }">
+                    <a-select-option :value="l.value" :label="l.value" v-for="l in LanguageManager.supportedLanguages">
+                        <span role="img" :aria-label="l.name" v-text="l.icon"></span> &nbsp;&nbsp; <span
+                            v-text="l.name"></span>
+                    </a-select-option>
+                </a-select>
+            </template>
+        </a-setting-list-item>
+        <a-setting-list-item paddings="small">
+            <template #title>{{ i18n "menu.theme"}}</template>
+            <template #control>
+                <a-theme-switch-login></a-theme-switch-login>
+            </template>
+        </a-setting-list-item>
+        <a-setting-list-item paddings="small">
+            <template #title>{{ i18n "pages.settings.pageSize" }}</template>
+            <template #description>{{ i18n "pages.settings.pageSizeDesc" }}</template>
+            <template #control>
+                <a-input-number :min="0" step="5" v-model="allSetting.pageSize" :style="{ width: '100%' }"></a-input>
+            </template>
+        </a-setting-list-item>
+    </a-collapse-panel>
+    <a-collapse-panel key="2" header='{{ i18n "pages.settings.dateAndTime" }}'>
+        <a-setting-list-item paddings="small">
+            <template #title>{{ i18n "pages.settings.timeZone"}}</template>
+            <template #description>{{ i18n "pages.settings.timeZoneDesc"}}</template>
+            <template #control>
+                <a-input type="text" v-model="allSetting.timeLocation"></a-input>
+            </template>
+        </a-setting-list-item>
+    </a-collapse-panel>
+    <a-collapse-panel key="3" header='{{ i18n "pages.settings.clientHighlight" }}'>
+        <a-setting-list-item paddings="small">
+            <template #title>{{ i18n "pages.settings.expireTimeDiff" }}</template>
+            <template #description>{{ i18n "pages.settings.expireTimeDiffDesc" }}</template>
+            <template #control>
+                <a-input-number :min="0" v-model="allSetting.expireDiff" :style="{ width: '100%' }"></a-input>
+            </template>
+        </a-setting-list-item>
+        <a-setting-list-item paddings="small">
+            <template #title>{{ i18n "pages.settings.trafficDiff" }}</template>
+            <template #description>{{ i18n "pages.settings.trafficDiffDesc" }}</template>
+            <template #control>
+                <a-input-number :min="0" v-model="allSetting.trafficDiff" :style="{ width: '100%' }"></a-input>
+            </template>
+        </a-setting-list-item>
+    </a-collapse-panel>
+</a-collapse>
+{{end}}

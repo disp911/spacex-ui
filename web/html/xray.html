@@ -6,6 +6,16 @@
 {{ template "page/head_end" .}}
 
 {{ template "page/body_start" .}}
+<style>
+  body.dark .custom-geo-section code.custom-geo-ext-code {
+    color: var(--dark-color-text-primary, rgba(255, 255, 255, 0.85));
+    background: var(--dark-color-surface-200, #222d42);
+    border: 1px solid var(--dark-color-stroke, #2c3950);
+    padding: 2px 6px;
+    border-radius: 3px;
+  }
+
+</style>
 <a-layout id="app" v-cloak :class="themeSwitcher.currentTheme + ' xray-page'">
   <a-sidebar></a-sidebar>
   <a-layout id="content-layout">
@@ -73,6 +83,13 @@
                     <span>{{ i18n "pages.xray.Routings"}}</span>
                   </template>
                   {{ template "settings/xray/routing" . }}
+                </a-tab-pane>
+                <a-tab-pane key="tpl-geo" :style="{ paddingTop: '20px' }" force-render="true">
+                  <template #tab>
+                    <a-icon type="global"></a-icon>
+                    <span>{{ i18n "pages.xray.geo.title" }}</span>
+                  </template>
+                  {{ template "settings/xray/geo" . }}
                 </a-tab-pane>
                 <a-tab-pane key="tpl-outbound" force-render="true">
                   <template #tab>
@@ -264,6 +281,33 @@
     },
   ];
 
+  const customGeoColumns = [{
+      title: '{{ i18n "pages.index.customGeoExtColumn" }}',
+      key: 'extDat',
+      scopedSlots: {
+        customRender: 'extDat'
+      },
+      ellipsis: true
+    },
+    {
+      title: '{{ i18n "pages.index.customGeoLastUpdated" }}',
+      key: 'lastUpdatedAt',
+      scopedSlots: {
+        customRender: 'lastUpdatedAt'
+      },
+      width: 160
+    },
+    {
+      title: '{{ i18n "pages.index.customGeoActions" }}',
+      key: 'action',
+      scopedSlots: {
+        customRender: 'action'
+      },
+      width: 120,
+      fixed: 'right'
+    },
+  ];
+
   const app = new Vue({
     delimiters: ['[[', ']]'],
     mixins: [MediaQueryMixin],
@@ -288,6 +332,25 @@
       restartResult: '',
       showAlert: false,
       customGeoAliasLabelSuffix: '{{ i18n "pages.index.customGeoAliasLabelSuffix" }}',
+      customGeoColumns,
+      customGeoList: [],
+      customGeoLoading: false,
+      customGeoUpdatingAll: false,
+      customGeoActionId: null,
+      customGeoModal: {
+        visible: false,
+        editId: null,
+        saving: false,
+        form: {
+          type: 'geosite',
+          alias: '',
+          url: '',
+        },
+      },
+      customGeoValidation: {
+        alias: '{{ i18n "pages.index.customGeoValidationAlias" }}',
+        url: '{{ i18n "pages.index.customGeoValidationUrl" }}',
+      },
       advSettings: 'xraySetting',
       obsSettings: '',
       cm: null,
@@ -997,6 +1060,152 @@
       showNord() {
         nordModal.show();
       },
+      customGeoFormatTime(ts) {
+        if (!ts) return '';
+        return typeof moment !== 'undefined' ? moment(ts * 1000).format('YYYY-MM-DD HH:mm') : String(ts);
+      },
+      customGeoExtDisplay(record) {
+        const fn = record.type === 'geoip' ?
+          `geoip_${record.alias}.dat` :
+          `geosite_${record.alias}.dat`;
+        return `ext:${fn}:tag`;
+      },
+      // Custom geo files feed the routing rule catalog too, so a change to them
+      // refreshes both the table here and the catalog's custom entries.
+      async refreshCustomGeo() {
+        await Promise.all([this.loadCustomGeo(), this.loadCustomGeoAliases()]);
+      },
+      async loadCustomGeo() {
+        this.customGeoLoading = true;
+        try {
+          const msg = await HttpUtil.get('/panel/api/custom-geo/list');
+          if (msg.success && Array.isArray(msg.obj)) {
+            this.customGeoList = msg.obj;
+          }
+        } finally {
+          this.customGeoLoading = false;
+        }
+      },
+      openCustomGeoModal(record) {
+        if (record) {
+          this.customGeoModal.editId = record.id;
+          this.customGeoModal.form = {
+            type: record.type,
+            alias: record.alias,
+            url: record.url,
+          };
+        } else {
+          this.customGeoModal.editId = null;
+          this.customGeoModal.form = {
+            type: 'geosite',
+            alias: '',
+            url: '',
+          };
+        }
+        this.customGeoModal.visible = true;
+      },
+      validateCustomGeoForm() {
+        const f = this.customGeoModal.form;
+        const re = /^[a-z0-9_-]+$/;
+        if (!re.test(f.alias || '')) {
+          this.$message.error(this.customGeoValidation.alias);
+          return false;
+        }
+        const u = (f.url || '').trim();
+        if (!/^https?:\/\//i.test(u)) {
+          this.$message.error(this.customGeoValidation.url);
+          return false;
+        }
+        try {
+          const parsed = new URL(u);
+          if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+            this.$message.error(this.customGeoValidation.url);
+            return false;
+          }
+        } catch (e) {
+          this.$message.error(this.customGeoValidation.url);
+          return false;
+        }
+        return true;
+      },
+      async submitCustomGeo() {
+        if (!this.validateCustomGeoForm()) {
+          return;
+        }
+        const f = this.customGeoModal.form;
+        this.customGeoModal.saving = true;
+        try {
+          let msg;
+          if (this.customGeoModal.editId) {
+            msg = await HttpUtil.post(`/panel/api/custom-geo/update/${this.customGeoModal.editId}`, f);
+          } else {
+            msg = await HttpUtil.post('/panel/api/custom-geo/add', f);
+          }
+          if (msg && msg.success) {
+            this.customGeoModal.visible = false;
+            await this.refreshCustomGeo();
+          }
+        } finally {
+          this.customGeoModal.saving = false;
+        }
+      },
+      confirmDeleteCustomGeo(record) {
+        this.$confirm({
+          title: '{{ i18n "pages.index.customGeoDelete" }}',
+          content: '{{ i18n "pages.index.customGeoDeleteConfirm" }}',
+          okText: '{{ i18n "confirm"}}',
+          cancelText: '{{ i18n "cancel"}}',
+          class: themeSwitcher.currentTheme,
+          onOk: async () => {
+            const msg = await HttpUtil.post(`/panel/api/custom-geo/delete/${record.id}`);
+            if (msg.success) {
+              await this.refreshCustomGeo();
+            }
+          },
+        });
+      },
+      async downloadCustomGeo(id) {
+        this.customGeoActionId = id;
+        try {
+          const msg = await HttpUtil.post(`/panel/api/custom-geo/download/${id}`);
+          if (msg.success) {
+            await this.refreshCustomGeo();
+          }
+        } finally {
+          this.customGeoActionId = null;
+        }
+      },
+      async updateAllCustomGeo() {
+        this.customGeoUpdatingAll = true;
+        try {
+          const msg = await HttpUtil.post('/panel/api/custom-geo/update-all');
+          if (msg.success || (msg.obj && Array.isArray(msg.obj.succeeded) && msg.obj.succeeded.length > 0)) {
+            await this.refreshCustomGeo();
+          }
+        } finally {
+          this.customGeoUpdatingAll = false;
+        }
+      },
+      updateGeofile(fileName) {
+        const isSingleFile = !!fileName;
+        this.$confirm({
+          title: '{{ i18n "pages.index.geofileUpdateDialog" }}',
+          content: isSingleFile ?
+            '{{ i18n "pages.index.geofileUpdateDialogDesc" }}'.replace("#filename#", fileName) :
+            '{{ i18n "pages.index.geofilesUpdateDialogDesc" }}',
+          okText: '{{ i18n "confirm"}}',
+          class: themeSwitcher.currentTheme,
+          cancelText: '{{ i18n "cancel"}}',
+          onOk: async () => {
+            this.loading(true);
+            const url = isSingleFile ?
+              `/panel/api/server/updateGeofile/${fileName}` :
+              `/panel/api/server/updateGeofile`;
+            await HttpUtil.post(url);
+            this.loading(false);
+          },
+        });
+      },
       async loadCustomGeoAliases() {
         try {
           const msg = await HttpUtil.get('/panel/api/custom-geo/aliases');
@@ -1008,13 +1217,17 @@
           const geoip = msg.obj.geoip ?? [];
           const geosite = msg.obj.geosite ?? [];
           const geoSuffix = this.customGeoAliasLabelSuffix || '';
+          const ips = this.ruleCatalog.ip;
+          ips.splice(0, ips.length, ...ips.filter(o => !o.custom));
           geoip.forEach((x) => {
-            this.ruleCatalog.ip.push({
+            ips.push({
               label: x.alias + geoSuffix,
               value: x.extExample,
+              custom: true,
             });
           });
           const customDomains = this.ruleCatalog.domain[this.ruleCatalog.domain.length - 1].options;
+          customDomains.splice(0);
           geosite.forEach((x) => {
             customDomains.push({
               label: x.alias + geoSuffix,
@@ -1031,7 +1244,7 @@
         this.showAlert = true;
       }
       await this.getXraySetting();
-      await this.loadCustomGeoAliases();
+      await this.refreshCustomGeo();
       await this.getXrayResult();
       await this.getOutboundsTraffic();
 
