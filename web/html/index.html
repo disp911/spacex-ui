@@ -124,7 +124,7 @@
                   <template #actions>
                     <a-space direction="horizontal" @click="openXrayLogs()" class="jc-center">
                       <a-icon type="bars"></a-icon>
-                      <span v-if="!isMobile">{{ i18n "pages.index.connectionLog" }}</span>
+                      <span v-if="!isMobile">{{ i18n "pages.index.logs" }}</span>
                     </a-space>
                     <a-space direction="horizontal" @click="stopXrayService" class="jc-center">
                       <a-icon type="poweroff"></a-icon>
@@ -391,7 +391,7 @@
   <a-modal id="xraylog-modal" v-model="xraylogModal.visible" :closable="true"
     @cancel="() => xraylogModal.visible = false" :class="themeSwitcher.currentTheme" width="80vw" footer="">
     <template slot="title">
-      {{ i18n "pages.index.connectionLog" }}
+      {{ i18n "pages.index.logs" }}
       <a-icon :spin="xraylogModal.loading" type="sync" class="va-middle ml-10" :disabled="xraylogModal.loading"
         @click="openXrayLogs()">
       </a-icon>

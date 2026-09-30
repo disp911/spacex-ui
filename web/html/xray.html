@@ -15,6 +15,14 @@
     border-radius: 3px;
   }
 
+  /* Seven tabs do not fit Ant Design's default 32px gaps on a laptop screen and
+     turn into a scrolling strip; phones keep their own rule in custom.min.css. */
+  @media (min-width: 769px) {
+    .xray-page .ant-tabs-nav .ant-tabs-tab {
+      margin-right: 18px;
+      padding: 12px 16px;
+    }
+  }
 </style>
 <a-layout id="app" v-cloak :class="themeSwitcher.currentTheme + ' xray-page'">
   <a-sidebar></a-sidebar>

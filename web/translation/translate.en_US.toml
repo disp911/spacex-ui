@@ -216,7 +216,6 @@
 "readDatabaseError" = "An error occurred while reading the database."
 "getDatabaseError" = "An error occurred while retrieving the database."
 "getConfigError" = "An error occurred while retrieving the config file."
-"connectionLog" = "Connection log"
 "connectionLogOff" = "The Xray access log is off, so new connections are not recorded. Turn it on under Xray Settings → Basics → Logs → Access log."
 
 [pages.inbounds]
