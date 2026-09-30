@@ -132,11 +132,11 @@
                     </a-setting-list-item>
                     <a-space direction="horizontal" :style="{ padding: '10px 20px' }">
                         <a-button v-if="noisesArray.length > 1" type="danger"
-                            @click="removeNoise(index)">Remove</a-button>
+                            @click="removeNoise(index)">{{ i18n "delete" }}</a-button>
                     </a-space>
                 </a-collapse-panel>
             </a-collapse>
-            <a-button v-if="noises" type="primary" @click="addNoise" :style="{ marginTop: '10px' }">Add Noise</a-button>
+            <a-button v-if="noises" type="primary" @click="addNoise" :style="{ marginTop: '10px' }">{{ i18n "pages.settings.addNoise" }}</a-button>
         </a-list-item>
     </a-collapse-panel>
     <a-collapse-panel key="4" header='{{ i18n "pages.settings.mux"}}'>
