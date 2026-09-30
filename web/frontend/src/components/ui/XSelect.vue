@@ -164,7 +164,7 @@ useEscape(() => (open.value = false))
   color: var(--text-4);
   transition: transform var(--dur-fast) ease;
 }
-.is-open .x-select__caret {
+.x-select__trigger.is-open .x-select__caret {
   transform: rotate(180deg);
 }
 .x-select__dot {
@@ -237,7 +237,8 @@ useEscape(() => (open.value = false))
 .x-select__check {
   color: transparent;
 }
-.is-on .x-select__check {
+.x-select__opt.is-on .x-select__check,
+.x-select__sheet-opt.is-on .x-select__check {
   color: var(--accent);
 }
 .x-select__sheet-opt {

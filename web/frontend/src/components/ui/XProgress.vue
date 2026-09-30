@@ -70,6 +70,6 @@ const shown = computed(() => (props.value >= 10 || props.value === 0 ? props.val
   background: var(--accent);
   transition: width 0.6s var(--ease-out);
 }
-.is-danger .x-progress__value { color: var(--danger); }
-.is-danger .x-progress__bar { background: var(--danger); }
+.x-progress.is-danger .x-progress__value { color: var(--danger); }
+.x-progress.is-danger .x-progress__bar { background: var(--danger); }
 </style>

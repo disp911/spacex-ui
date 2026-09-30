@@ -112,9 +112,75 @@ export const server = {
   restartPanel: () => http.post<null>('panel/setting/restartPanel'),
 }
 
+/** Per-client traffic counters stored next to an inbound. */
+export interface ClientStat {
+  id: number
+  inboundId: number
+  enable: boolean
+  email: string
+  up: number
+  down: number
+  allTime: number
+  expiryTime: number
+  total: number
+  lastOnline: number
+}
+
+/** Row of /panel/api/inbounds/list (database/model.Inbound). */
+export interface DbInbound {
+  id: number
+  up: number
+  down: number
+  total: number
+  allTime: number
+  remark: string
+  enable: boolean
+  expiryTime: number
+  trafficReset: string
+  clientStats: ClientStat[] | null
+  listen: string
+  port: number
+  protocol: string
+  settings: string
+  streamSettings: string
+  tag: string
+  sniffing: string
+}
+
+/** Panel-wide defaults used by the inbounds page (subset of defaultSettings). */
+export interface PanelDefaults {
+  expireDiff: number
+  trafficDiff: number
+  subEnable: boolean
+  subURI: string
+  subJsonEnable: boolean
+  subJsonURI: string
+  remarkModel: string
+  ipLimitEnable: boolean
+}
+
+const I = 'panel/api/inbounds/'
+const enc = encodeURIComponent
+
 export const inbounds = {
+  list: () => unwrap(http.get<DbInbound[] | null>(I + 'list')),
   /** Emails of clients currently online. */
-  onlines: () => unwrap(http.post<string[] | null>('panel/api/inbounds/onlines')),
+  onlines: () => unwrap(http.post<string[] | null>(I + 'onlines')),
+  setEnable: (id: number, enable: boolean) => http.post<null>(I + 'setEnable/' + id, { enable }),
+  remove: (id: number) => http.post<null>(I + 'del/' + id),
+  /** `client` is the raw client object from the inbound settings JSON. */
+  updateClient: (inboundId: number, clientId: string, client: Record<string, unknown>) =>
+    http.post<null>(I + 'updateClient/' + enc(clientId), { id: inboundId, settings: JSON.stringify({ clients: [client] }) }),
+  removeClient: (inboundId: number, email: string) => http.post<null>(I + inboundId + '/delClientByEmail/' + enc(email)),
+  resetClientTraffic: (inboundId: number, email: string) => http.post<null>(I + inboundId + '/resetClientTraffic/' + enc(email)),
+  resetClientTraffics: (inboundId: number) => http.post<null>(I + 'resetAllClientTraffics/' + inboundId),
+  resetAllTraffics: () => http.post<null>(I + 'resetAllTraffics'),
+  /** -1 cleans every inbound. */
+  delDepletedClients: (inboundId: number) => http.post<null>(I + 'delDepletedClients/' + inboundId),
+}
+
+export const settings = {
+  defaults: () => unwrap(http.post<PanelDefaults>('panel/setting/defaultSettings')),
 }
 
 const G = 'panel/api/custom-geo/'

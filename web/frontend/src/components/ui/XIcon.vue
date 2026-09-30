@@ -6,7 +6,7 @@ export type IconName =
   | 'globe' | 'moon' | 'sun' | 'eye' | 'restart' | 'stop' | 'log' | 'download'
   | 'upload' | 'code' | 'database' | 'arrow-up' | 'arrow-down' | 'alert' | 'info'
   | 'check' | 'search' | 'edit' | 'trash' | 'lock' | 'copy' | 'plus' | 'doc'
-  | 'chevron-right' | 'chevron-left' | 'chevron-down' | 'filter'
+  | 'chevron-right' | 'chevron-left' | 'chevron-down' | 'filter' | 'qr' | 'external'
 </script>
 
 <script setup lang="ts">
@@ -96,6 +96,13 @@ defineProps<{ name: IconName; size?: number | string; strokeWidth?: number }>()
     <path v-else-if="name === 'chevron-left'" d="M10 3.5 5.5 8l4.5 4.5" />
     <path v-else-if="name === 'chevron-down'" d="M3.5 6 8 10.5 12.5 6" />
     <path v-else-if="name === 'filter'" d="M2.4 3.6h11.2L9.4 8.6v4.2l-2.8-1.4V8.6z" />
+    <template v-else-if="name === 'qr'">
+      <rect x="2.2" y="2.2" width="4.4" height="4.4" rx="1" /><rect x="9.4" y="2.2" width="4.4" height="4.4" rx="1" />
+      <rect x="2.2" y="9.4" width="4.4" height="4.4" rx="1" /><path d="M9.4 9.4h1.8v1.8M13.8 9.4v.01M9.4 13.8h4.4v-2.2" />
+    </template>
+    <template v-else-if="name === 'external'">
+      <path d="M9.4 2.6h4v4M13.2 2.8 7.6 8.4" /><path d="M11.8 9.6v2.6a1.4 1.4 0 0 1-1.4 1.4H3.8a1.4 1.4 0 0 1-1.4-1.4V5.6a1.4 1.4 0 0 1 1.4-1.4h2.6" />
+    </template>
   </svg>
 </template>
 

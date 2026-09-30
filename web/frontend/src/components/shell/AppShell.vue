@@ -24,7 +24,7 @@ interface NavItem {
 // Pages that are not redesigned yet link to the legacy panel screens.
 const nav = computed<NavItem[]>(() => [
   { key: 'dashboard', icon: 'dashboard', label: t('nav.dashboard'), to: '/' },
-  { key: 'inbounds', icon: 'inbounds', label: t('nav.inbounds'), href: panelUrl('panel/inbounds') },
+  { key: 'inbounds', icon: 'inbounds', label: t('nav.inbounds'), to: '/inbounds' },
   { key: 'xray', icon: 'xray', label: t('nav.xray'), href: panelUrl('panel/xray') },
   { key: 'settings', icon: 'settings', label: t('nav.settings'), href: panelUrl('panel/settings') },
 ])

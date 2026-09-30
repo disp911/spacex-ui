@@ -35,7 +35,7 @@ defineEmits<{ toggle: [] }>()
 .x-acc__head:hover {
   background: var(--control-hover);
 }
-.is-open .x-acc__head {
+.x-acc.is-open .x-acc__head {
   background: var(--control);
   border-color: var(--accent-border);
   color: var(--text);
@@ -44,7 +44,7 @@ defineEmits<{ toggle: [] }>()
   color: var(--text-4);
   transition: transform var(--dur-fast) ease;
 }
-.is-open .x-acc__caret {
+.x-acc.is-open .x-acc__caret {
   color: var(--accent);
   transform: rotate(90deg);
 }

@@ -78,7 +78,7 @@ const items = computed<(number | '…')[]>(() => {
   color: var(--text-5);
   font-family: var(--font-mono);
 }
-.is-compact .x-pag__btn {
+.x-pag.is-compact .x-pag__btn {
   width: var(--h-md);
   height: var(--h-md);
   border-radius: var(--r-md);

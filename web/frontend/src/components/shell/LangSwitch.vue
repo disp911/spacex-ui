@@ -70,7 +70,7 @@ useEscape(() => (open.value = false))
   color: var(--text-4);
   transition: transform var(--dur-fast) ease;
 }
-.is-open .lang__caret {
+.lang__trigger.is-open .lang__caret {
   transform: rotate(180deg);
 }
 .lang__scrim {
@@ -131,7 +131,7 @@ useEscape(() => (open.value = false))
 .lang__check {
   color: transparent;
 }
-.is-on .lang__check {
+.lang__opt.is-on .lang__check {
   color: var(--accent);
 }
 .x-pop-enter-active {
