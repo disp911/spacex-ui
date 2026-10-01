@@ -1,0 +1,243 @@
+/*
+ * SpaceX panel design tokens.
+ *
+ * Single source of truth for every screen. Components never hard-code a
+ * color, radius, size or font — they reference these variables, so both
+ * themes and all screens stay consistent.
+ *
+ * The values are consolidated from the Claude Design mockups (Login,
+ * Dashboard, Connections Log, Modals). Where the mockups disagreed, the
+ * closest value on the scale below was chosen — see docs in
+ * web/frontend/DESIGN_SYSTEM.md.
+ */
+
+:root {
+  /* ---- Typography ---------------------------------------------------- */
+  --font-sans: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+
+  /* 8-step type scale (px). */
+  --fs-2xs: 10px;  /* caps labels, micro meta */
+  --fs-xs: 11px;   /* captions, hints */
+  --fs-sm: 12px;   /* secondary text, table cells */
+  --fs-md: 13px;   /* body, controls */
+  --fs-lg: 14px;   /* mobile body, emphasized values */
+  --fs-xl: 16px;   /* stat values, dialog titles */
+  --fs-2xl: 20px;  /* page titles, big numbers */
+  --fs-3xl: 24px;  /* auth heading */
+
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+
+  --tracking-caps: 0.07em;
+  --tracking-tight: -0.3px;
+
+  /* ---- Spacing (4px grid) -------------------------------------------- */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+
+  /* ---- Radii --------------------------------------------------------- */
+  --r-xs: 4px;    /* checkboxes, tags */
+  --r-sm: 8px;    /* small controls (≤32px), menu rows */
+  --r-md: 12px;   /* controls, fields, tiles, alerts */
+  --r-lg: 16px;   /* cards, dialogs */
+  --r-sheet: 20px;/* mobile bottom sheets (top corners) */
+  --r-pill: 999px;
+
+  /* ---- Control heights ----------------------------------------------- */
+  --h-xs: 24px;   /* inline chips inside card headers */
+  --h-sm: 32px;   /* toolbars, compact buttons */
+  --h-md: 36px;   /* default buttons, nav items */
+  --h-lg: 44px;   /* form fields, primary CTA, mobile controls */
+
+  /* ---- Layout -------------------------------------------------------- */
+  --sidebar-w: 240px;
+  --drawer-w: 280px;
+  --topbar-h: 64px;
+  --content-max: 1480px;
+  --bp-mobile: 768px; /* documented; media queries use the literal value */
+
+  /* ---- Motion -------------------------------------------------------- */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-fast: 0.16s;
+  --dur-base: 0.22s;
+
+  /* ---- Status palette (theme independent hues) ----------------------- */
+  --chart-grid: rgba(127, 135, 150, 0.12);
+}
+
+/* ======================================================================
+ * Dark theme (default)
+ * ==================================================================== */
+:root,
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  /* Surfaces */
+  --bg: #0b0e13;                        /* page */
+  --bg-nav: #0e1218;                    /* sidebar, mobile top bar */
+  --surface: rgba(19, 23, 31, 0.86);    /* cards */
+  --surface-raised: rgba(19, 23, 31, 0.96); /* dialogs, popovers, sheets */
+  --surface-sunken: #0e1218;            /* disabled / locked fields */
+  --field: #111520;                     /* inputs, inner tiles */
+  --control: #161b24;                   /* secondary buttons, chips */
+  --control-hover: #1a2028;
+  --hover: rgba(255, 255, 255, 0.05);   /* list-row hover */
+  --bar-muted: rgba(11, 14, 19, 0.4);   /* dialog footers, toolbars */
+
+  /* Lines */
+  --border: rgba(255, 255, 255, 0.08);        /* cards, dialogs */
+  --border-control: rgba(255, 255, 255, 0.1); /* buttons, chips */
+  --border-field: #242938;                    /* inputs, tiles */
+  --border-subtle: #1c2130;                   /* tables, disabled */
+  --divider: rgba(255, 255, 255, 0.07);
+  --track: #1c2130;                           /* progress track */
+
+  /* Text */
+  --text: #e6e9ef;
+  --text-2: #c7ccd6;   /* secondary */
+  --text-3: #8a91a0;   /* tertiary, icons */
+  --text-4: #6e7787;   /* labels */
+  --text-5: #4e5563;   /* faint, placeholders */
+  --text-disabled: #3a4150;
+
+  /* Accent */
+  --accent: #2fd4a0;
+  --accent-hover: #45e0af;
+  --accent-press: #27c295;
+  --on-accent: #06201a;
+  --accent-soft: #172a26;               /* selected rows, nav active */
+  --accent-soft-hover: #1a2b28;         /* control hover bg */
+  --accent-border: rgba(47, 212, 160, 0.34);
+  --accent-ring: rgba(47, 212, 160, 0.12);
+  --accent-glow: rgba(47, 212, 160, 0.3);
+  --accent-focus: rgba(47, 212, 160, 0.5);
+
+  /* Status: base = fill/icon, text = on soft background */
+  --danger: #f2555a;
+  --danger-text: #ff9498;
+  --danger-soft: rgba(242, 85, 90, 0.1);
+  --danger-border: rgba(242, 85, 90, 0.3);
+  --danger-ring: rgba(242, 85, 90, 0.13);
+  --on-danger: #1a0a0b;
+
+  --warning: #e8a13a;
+  --warning-title: #f0b75c;
+  --warning-text: #c9a473;
+  --warning-soft: rgba(232, 161, 58, 0.1);
+  --warning-border: rgba(232, 161, 58, 0.3);
+
+  --info: #4aa8e0;
+  --info-text: #6fc0f0;
+  --info-soft: rgba(74, 168, 224, 0.1);
+  --info-border: rgba(74, 168, 224, 0.34);
+
+  --muted-dot: #4e5563;
+
+  /* Effects */
+  --shadow-card: none;
+  --shadow-pop: 0 18px 44px rgba(0, 0, 0, 0.45);
+  --shadow-dialog: 0 24px 60px rgba(0, 0, 0, 0.45);
+  --shadow-sheet: 0 -24px 70px rgba(0, 0, 0, 0.5);
+  --scrim: rgba(8, 11, 16, 0.55);
+  --scrim-soft: rgba(8, 11, 16, 0.14);
+  --glow: radial-gradient(120% 90% at 50% 118%, rgba(47, 212, 160, 0.14) 0%, rgba(47, 212, 160, 0) 62%);
+
+  --scrollbar: #2a3141;
+  --scrollbar-hover: #3a4352;
+
+  /* Brand mark */
+  --logo-bg: var(--accent);
+  --logo-fg: var(--on-accent);
+  --wave-1: #2fd4a0;
+  --wave-2: #4aa8e0;
+  --wave-3: #0f2e2a;
+  --wave-3-opacity: 0.42;
+}
+
+/* ======================================================================
+ * Light theme
+ * ==================================================================== */
+[data-theme='light'] {
+  color-scheme: light;
+
+  --bg: #f3f5f7;
+  --bg-nav: #ffffff;
+  --surface: #ffffff;
+  --surface-raised: rgba(255, 255, 255, 0.97);
+  --surface-sunken: #eff1f4;
+  --field: #f5f6f8;
+  --control: #f5f6f8;
+  --control-hover: #edeff3;
+  --hover: rgba(16, 20, 28, 0.045);
+  --bar-muted: rgba(16, 20, 28, 0.035);
+
+  --border: rgba(16, 20, 28, 0.09);
+  --border-control: rgba(16, 20, 28, 0.12);
+  --border-field: #e3e6eb;
+  --border-subtle: #e3e6eb;
+  --divider: rgba(16, 20, 28, 0.07);
+  --track: #e9ecf0;
+
+  --text: #13171e;
+  --text-2: #39404d;
+  --text-3: #5c6371;
+  --text-4: #686f7d;
+  --text-5: #8a909c;
+  --text-disabled: #b4bac4;
+
+  --accent: #0a7a59;
+  --accent-hover: #086a4d;
+  --accent-press: #086a4d;
+  --on-accent: #ffffff;
+  --accent-soft: #e4f5ee;
+  --accent-soft-hover: #dcf1e8;
+  --accent-border: rgba(10, 122, 89, 0.3);
+  --accent-ring: rgba(10, 122, 89, 0.13);
+  --accent-glow: rgba(10, 122, 89, 0.22);
+  --accent-focus: rgba(10, 122, 89, 0.45);
+
+  --danger: #c42a31;
+  --danger-text: #c42a31;
+  --danger-soft: rgba(196, 42, 49, 0.07);
+  --danger-border: rgba(196, 42, 49, 0.3);
+  --danger-ring: rgba(196, 42, 49, 0.13);
+  --on-danger: #ffffff;
+
+  --warning: #b4761a;
+  --warning-title: #8a5a10;
+  --warning-text: #7a6337;
+  --warning-soft: rgba(180, 118, 26, 0.12);
+  --warning-border: rgba(180, 118, 26, 0.32);
+
+  --info: #1e7fc0;
+  --info-text: #15628f;
+  --info-soft: rgba(30, 127, 192, 0.09);
+  --info-border: rgba(30, 127, 192, 0.32);
+
+  --muted-dot: #8a909c;
+
+  --shadow-card: none;
+  --shadow-pop: 0 18px 44px rgba(16, 24, 40, 0.16);
+  --shadow-dialog: 0 24px 60px rgba(16, 24, 40, 0.13);
+  --shadow-sheet: 0 -24px 70px rgba(16, 24, 40, 0.18);
+  --scrim: rgba(16, 20, 28, 0.32);
+  --scrim-soft: rgba(16, 20, 28, 0.1);
+  --glow: radial-gradient(120% 90% at 50% 118%, rgba(10, 122, 89, 0.14) 0%, rgba(10, 122, 89, 0) 62%);
+
+  --scrollbar: #c9ced7;
+  --scrollbar-hover: #aab1bc;
+
+  --logo-bg: var(--accent);
+  --logo-fg: #ffffff;
+  --wave-1: #2fd4a0;
+  --wave-2: #4aa8e0;
+  --wave-3: #0a7a59;
+  --wave-3-opacity: 0.3;
+}

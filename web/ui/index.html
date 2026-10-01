@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="ru" data-theme="dark">
+  <head>
+    <!--spx:boot-->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="color-scheme" content="dark light" />
+    <title>SpaceX panel</title>
+    <script>
+      // Apply the saved theme before first paint to avoid a flash.
+      try {
+        var t = localStorage.getItem('spx-theme')
+        if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t
+        else if (window.matchMedia('(prefers-color-scheme: light)').matches) document.documentElement.dataset.theme = 'light'
+      } catch (e) {}
+    </script>
+    <script type="module" crossorigin src="./assets/index-DRGxE87e.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-D8Emyxp1.css">
+  </head>
+  <body>
+    <div id="app"></div>
+  </body>
+</html>
