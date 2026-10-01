@@ -92,13 +92,6 @@
                   </template>
                   {{ template "settings/xray/routing" . }}
                 </a-tab-pane>
-                <a-tab-pane key="tpl-geo" :style="{ paddingTop: '20px' }" force-render="true">
-                  <template #tab>
-                    <a-icon type="global"></a-icon>
-                    <span>{{ i18n "pages.xray.geo.title" }}</span>
-                  </template>
-                  {{ template "settings/xray/geo" . }}
-                </a-tab-pane>
                 <a-tab-pane key="tpl-outbound" force-render="true">
                   <template #tab>
                     <a-icon type="upload"></a-icon>
@@ -345,6 +338,7 @@
       customGeoLoading: false,
       customGeoUpdatingAll: false,
       customGeoActionId: null,
+      geoModalVisible: false,
       customGeoModal: {
         visible: false,
         editId: null,

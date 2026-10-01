@@ -1,4 +1,6 @@
 {{define "settings/xray/geo"}}
+<a-modal v-model="geoModalVisible" title='{{ i18n "pages.xray.geo.title" }}' :footer="null" width="760px"
+    :class="themeSwitcher.currentTheme">
 <a-space direction="vertical" size="middle" :style="{ width: '100%' }">
     <a-alert type="info" show-icon message='{{ i18n "pages.xray.geo.appliedAtOnce" }}'></a-alert>
     <a-collapse :default-active-key="['1', '2']">
@@ -57,6 +59,8 @@
             </div>
         </a-collapse-panel>
     </a-collapse>
+</a-space>
+</a-modal>
     <a-modal v-model="customGeoModal.visible"
         :title="customGeoModal.editId ? '{{ i18n "pages.index.customGeoModalEdit" }}' : '{{ i18n "pages.index.customGeoModalAdd" }}'"
         :confirm-loading="customGeoModal.saving" @ok="submitCustomGeo"
@@ -79,5 +83,4 @@
             </a-form-item>
         </a-form>
     </a-modal>
-</a-space>
 {{end}}

@@ -578,7 +578,7 @@
 [pages.xray.geo]
 "title" = "Geo files"
 "standard" = "Standard geo files"
-"appliedAtOnce" = "Changes on this tab take effect immediately and do not need Save."
+"appliedAtOnce" = "Changes in this window take effect immediately and do not need Save."
 
 [pages.xray.rules]
 "first" = "First"

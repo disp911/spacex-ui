@@ -1,7 +1,10 @@
 {{define "settings/xray/routing"}}
 <a-space direction="vertical" size="middle" class="routing-modern">
-    <a-button type="primary" icon="plus" @click="addRule">{{ i18n
-        "pages.xray.rules.add" }}</a-button>
+    <a-space direction="horizontal">
+        <a-button type="primary" icon="plus" @click="addRule">{{ i18n
+            "pages.xray.rules.add" }}</a-button>
+        <a-button icon="global" @click="geoModalVisible = true">{{ i18n "pages.xray.geo.title" }}</a-button>
+    </a-space>
     <a-table-sortable :columns="isMobile ? rulesMobileColumns : rulesColumns"
         :row-key="r => r.key"
         :data-source="routingRuleData"
@@ -190,4 +193,5 @@
 
     </a-table-sortable>
 </a-space>
+{{ template "settings/xray/geo" . }}
 {{end}}
