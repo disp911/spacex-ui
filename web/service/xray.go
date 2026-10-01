@@ -196,6 +196,9 @@ func (s *XrayService) GetXrayConfig() (*xray.Config, error) {
 		inboundConfig := inbound.GenXrayInboundConfig()
 		xrayConfig.InboundConfigs = append(xrayConfig.InboundConfigs, *inboundConfig)
 	}
+	if err := addMTProtoRelays(xrayConfig, inbounds); err != nil {
+		return nil, err
+	}
 	return xrayConfig, nil
 }
 

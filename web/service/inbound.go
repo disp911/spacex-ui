@@ -4,6 +4,7 @@ package service
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"sort"
 	"strings"
@@ -130,7 +131,12 @@ func (s *InboundService) checkPortExist(listen string, port int, ignoreId int) (
 	if err != nil {
 		return false, err
 	}
-	return count > 0, nil
+	if count > 0 {
+		return true, nil
+	}
+	// The loopback relays of mtproto inbounds routed through Xray hold
+	// ports too.
+	return mtprotoRelayUsesPort(port, ignoreId)
 }
 
 func (s *InboundService) GetClients(inbound *model.Inbound) ([]model.Client, error) {
@@ -286,6 +292,15 @@ func (s *InboundService) AddInbound(inbound *model.Inbound) (*model.Inbound, boo
 			}
 		}
 	}
+	if inbound.Protocol == model.MTProto {
+		taken, err := portsTakenByOtherInbounds(0)
+		if err != nil {
+			return inbound, false, err
+		}
+		if err = prepareMTProtoRelay(inbound, "", taken); err != nil {
+			return inbound, false, err
+		}
+	}
 	if err = validateMTProtoInbound(inbound, clients); err != nil {
 		return inbound, false, err
 	}
@@ -328,6 +343,8 @@ func (s *InboundService) AddInbound(inbound *model.Inbound) (*model.Inbound, boo
 		}
 		s.xrayApi.Close()
 	}
+	// The SOCKS5 relay of an mtproto inbound lives in Xray's config.
+	needRestart = needRestart || mtprotoRelayKey(inbound) != ""
 
 	return inbound, needRestart, err
 }
@@ -365,6 +382,7 @@ func (s *InboundService) DelInbound(id int) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+	needRestart = needRestart || mtprotoRelayKey(inbound) != ""
 	clients, err := s.GetClients(inbound)
 	if err != nil {
 		return false, err
@@ -424,9 +442,10 @@ func (s *InboundService) SetInboundEnable(id int, enable bool) (bool, error) {
 		Update("enable", enable).Error; err != nil {
 		return false, err
 	}
+	relayBefore := mtprotoRelayKey(inbound)
 	inbound.Enable = enable
 	if !model.IsXrayProtocol(inbound.Protocol) {
-		return false, nil
+		return relayBefore != mtprotoRelayKey(inbound), nil
 	}
 
 	// Sync xray runtime: drop the live inbound, add it back if we're enabling.
@@ -483,7 +502,17 @@ func (s *InboundService) UpdateInbound(inbound *model.Inbound) (*model.Inbound, 
 
 	tag := oldInbound.Tag
 	wasXray := model.IsXrayProtocol(oldInbound.Protocol)
+	relayBefore := mtprotoRelayKey(oldInbound)
 
+	if inbound.Protocol == model.MTProto {
+		taken, err := portsTakenByOtherInbounds(oldInbound.Id)
+		if err != nil {
+			return inbound, false, err
+		}
+		if err = prepareMTProtoRelay(inbound, oldInbound.Settings, taken); err != nil {
+			return inbound, false, err
+		}
+	}
 	newClients, err := s.GetClients(inbound)
 	if err != nil {
 		return inbound, false, err
@@ -586,9 +615,10 @@ func (s *InboundService) UpdateInbound(inbound *model.Inbound) (*model.Inbound, 
 		oldInbound.Tag = fmt.Sprintf("inbound-%v:%v", inbound.Listen, inbound.Port)
 	}
 
-	needRestart := false
+	// The SOCKS5 relay of an mtproto inbound lives in Xray's config.
+	needRestart := relayBefore != mtprotoRelayKey(oldInbound)
 	if !wasXray && !model.IsXrayProtocol(inbound.Protocol) {
-		return inbound, false, tx.Save(oldInbound).Error
+		return inbound, needRestart, tx.Save(oldInbound).Error
 	}
 	s.xrayApi.Init(p.GetAPIPort())
 	if s.xrayApi.DelInbound(tag) == nil {
@@ -1373,9 +1403,7 @@ func (s *InboundService) AddTraffic(inboundTraffics []*xray.Traffic, clientTraff
 		p.SetOnlineClients(onlineClients)
 	}
 
-	var needRestart, clientsDisabled bool
-	needRestart, clientsDisabled, err = s.enforceClientLimits(tx)
-	return needRestart, clientsDisabled, nil
+	return s.applyClientLimits(tx)
 }
 
 // AddTelemtTraffic records traffic reported by the telemt proxies serving
@@ -1400,9 +1428,25 @@ func (s *InboundService) AddTelemtTraffic(inboundTraffics []*xray.Traffic, clien
 	if _, err = s.addClientTraffic(tx, clientTraffics); err != nil {
 		return false, false, err
 	}
-	var needRestart, clientsDisabled bool
-	needRestart, clientsDisabled, err = s.enforceClientLimits(tx)
-	return needRestart, clientsDisabled, nil
+	return s.applyClientLimits(tx)
+}
+
+// applyClientLimits runs enforceClientLimits inside a savepoint. A failed
+// step undoes only its own half-done writes and its error is returned, while
+// the traffic recorded earlier in the transaction is still committed: the
+// caller's deferred commit looks at its own err, which stays nil here.
+func (s *InboundService) applyClientLimits(tx *gorm.DB) (bool, bool, error) {
+	const savepoint = "client_limits"
+	if err := tx.SavePoint(savepoint).Error; err != nil {
+		return false, false, err
+	}
+	needRestart, clientsDisabled, err := s.enforceClientLimits(tx)
+	if err != nil {
+		if rbErr := tx.RollbackTo(savepoint).Error; rbErr != nil {
+			err = errors.Join(err, rbErr)
+		}
+	}
+	return needRestart, clientsDisabled, err
 }
 
 // enforceClientLimits renews, disables clients and inbounds whose period,

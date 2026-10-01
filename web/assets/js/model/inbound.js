@@ -2905,11 +2905,14 @@ Inbound.HysteriaSettings.Hysteria = class extends Inbound.ClientBase {
     }
 };
 
+// The panel keeps the Xray relay of an inbound routed through Xray on the
+// server side; the form only chooses the outbound (empty: connect directly).
 Inbound.MTProtoSettings = class extends Inbound.Settings {
-    constructor(protocol, tlsDomain = '', mtprotos = [new Inbound.MTProtoSettings.MTProto()]) {
+    constructor(protocol, tlsDomain = '', mtprotos = [new Inbound.MTProtoSettings.MTProto()], outboundTag = '') {
         super(protocol);
         this.tlsDomain = tlsDomain;
         this.mtprotos = mtprotos;
+        this.outboundTag = outboundTag;
     }
 
     static fromJson(json = {}) {
@@ -2917,30 +2920,40 @@ Inbound.MTProtoSettings = class extends Inbound.Settings {
             Protocols.MTPROTO,
             json.tlsDomain ?? '',
             (json.clients || []).map(client => Inbound.MTProtoSettings.MTProto.fromJson(client)),
+            json.outboundTag ?? '',
         );
     }
 
     toJson() {
         return {
             tlsDomain: this.tlsDomain,
+            outboundTag: this.outboundTag || undefined,
             clients: Inbound.MTProtoSettings.toJsonArray(this.mtprotos),
         };
     }
 };
 
+// rateUp and rateDown are in Mbit/s; they, like maxConns, are 0 when unlimited.
 Inbound.MTProtoSettings.MTProto = class extends Inbound.ClientBase {
     constructor(
         id = RandomUtil.randomMTProtoSecret(),
         email, limitIp, totalGB, expiryTime, enable, subId, comment, reset, created_at, updated_at,
+        rateUp = 0, rateDown = 0, maxConns = 0,
     ) {
         super(email, limitIp, totalGB, expiryTime, enable, subId, comment, reset, created_at, updated_at);
         this.id = id;
+        this.rateUp = rateUp;
+        this.rateDown = rateDown;
+        this.maxConns = maxConns;
     }
 
     toJson() {
         return {
             id: this.id,
             ...this._clientBaseToJson(),
+            rateUp: this.rateUp || undefined,
+            rateDown: this.rateDown || undefined,
+            maxConns: this.maxConns || undefined,
         };
     }
 
@@ -2948,6 +2961,9 @@ Inbound.MTProtoSettings.MTProto = class extends Inbound.ClientBase {
         return new Inbound.MTProtoSettings.MTProto(
             json.id,
             ...Inbound.ClientBase.commonArgsFromJson(json),
+            json.rateUp ?? 0,
+            json.rateDown ?? 0,
+            json.maxConns ?? 0,
         );
     }
 };

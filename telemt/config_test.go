@@ -3,6 +3,7 @@ package telemt
 import (
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/pelletier/go-toml/v2"
 )
@@ -101,6 +102,53 @@ func equalValue(a, b any) bool {
 	return a == b
 }
 
+func TestBuildConfigRendersLimitsAPIAndUpstream(t *testing.T) {
+	expires := time.Date(2026, 12, 31, 23, 59, 59, 0, time.FixedZone("MSK", 3*3600))
+	users := []User{
+		{Name: "alice", Secret: strings.Repeat("a", 32), MaxTCPConns: 8, RateUpBps: 5_000_000, RateDownBps: 20_000_000, Expires: expires},
+		{Name: "bob", Secret: strings.Repeat("b", 32), Disabled: true, RateDownBps: 1_000_000},
+		{Name: "carol", Secret: strings.Repeat("c", 32)},
+	}
+	s := testSettings()
+	s.APIPort, s.APIToken = 19091, strings.Repeat("f", 32)
+	s.Upstream = &Upstream{Address: "127.0.0.1:20000", Username: "relayuser", Password: "relaypass"}
+	data, err := BuildConfig(s, users)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var got map[string]any
+	if err := toml.Unmarshal(data, &got); err != nil {
+		t.Fatalf("generated config is not valid TOML: %v\n%s", err, data)
+	}
+	want := map[string]any{
+		"access/users/bob":                       strings.Repeat("b", 32),
+		"access/user_enabled/bob":                false,
+		"access/user_enabled/alice":              nil,
+		"access/user_max_tcp_conns/alice":        int64(8),
+		"access/user_max_tcp_conns/carol":        nil,
+		"access/user_expirations/alice":          "2026-12-31T20:59:59Z",
+		"access/user_expirations/bob":            nil,
+		"access/user_rate_limits/alice/up_bps":   int64(5_000_000),
+		"access/user_rate_limits/alice/down_bps": int64(20_000_000),
+		"access/user_rate_limits/bob/up_bps":     int64(0),
+		"access/user_rate_limits/bob/down_bps":   int64(1_000_000),
+		"access/user_rate_limits/carol":          nil,
+		"server/api/enabled":                     true,
+		"server/api/listen":                      "127.0.0.1:19091",
+		"server/api/whitelist":                   []any{"127.0.0.1/32"},
+		"server/api/auth_header":                 strings.Repeat("f", 32),
+		"server/api/read_only":                   true,
+		"upstreams": []any{map[string]any{
+			"type": "socks5", "address": "127.0.0.1:20000", "username": "relayuser", "password": "relaypass",
+		}},
+	}
+	for path, value := range want {
+		if g := lookup(got, path); !equalValue(g, value) {
+			t.Errorf("%s = %#v, want %#v", path, g, value)
+		}
+	}
+}
+
 func TestBuildConfigWithoutListenBindsEverywhere(t *testing.T) {
 	data, err := BuildConfig(testSettings(), []User{{Name: "a", Secret: strings.Repeat("a", 32)}})
 	if err != nil {
@@ -130,6 +178,11 @@ func TestBuildConfigRejectsInvalidInput(t *testing.T) {
 		"short secret":       {testSettings(), []User{{Name: "a", Secret: "abc"}}},
 		"uppercase secret":   {testSettings(), []User{{Name: "a", Secret: strings.Repeat("A", 32)}}},
 		"duplicate user":     {testSettings(), []User{ok, ok}},
+		"API port clash":     {Settings{Port: 8443, TLSDomain: "example.com", MetricsPort: 9090, APIPort: 9090, APIToken: strings.Repeat("f", 32)}, []User{ok}},
+		"API without token":  {Settings{Port: 8443, TLSDomain: "example.com", MetricsPort: 9090, APIPort: 9091}, []User{ok}},
+		"API token quote":    {Settings{Port: 8443, TLSDomain: "example.com", MetricsPort: 9090, APIPort: 9091, APIToken: strings.Repeat("f", 31) + `'`}, []User{ok}},
+		"upstream no port":   {Settings{Port: 8443, TLSDomain: "example.com", MetricsPort: 9090, Upstream: &Upstream{Address: "127.0.0.1", Username: "u", Password: "p"}}, []User{ok}},
+		"upstream bad user":  {Settings{Port: 8443, TLSDomain: "example.com", MetricsPort: 9090, Upstream: &Upstream{Address: "127.0.0.1:1080", Username: "u'x", Password: "p"}}, []User{ok}},
 	}
 	for name, tc := range cases {
 		if _, err := BuildConfig(tc.settings, tc.users); err == nil {
@@ -168,6 +221,8 @@ func TestRestartKeyIgnoresUsers(t *testing.T) {
 		"port":         func(s *Settings) { s.Port++ },
 		"domain":       func(s *Settings) { s.TLSDomain = "other.example.com" },
 		"metrics port": func(s *Settings) { s.MetricsPort++ },
+		"API port":     func(s *Settings) { s.APIPort = 19091 },
+		"upstream":     func(s *Settings) { s.Upstream = &Upstream{Address: "127.0.0.1:1080", Username: "u", Password: "p"} },
 	} {
 		c := testSettings()
 		mutate(&c)

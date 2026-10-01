@@ -99,17 +99,56 @@
     </template>
     <a-input-number v-model.number="client.limitIp" min="0"></a-input-number>
   </a-form-item>
-  <a-form-item v-if="app.ipLimitEnable && client.limitIp > 0 && client.email && isEdit && inbound.protocol !== Protocols.MTPROTO">
+  <template v-if="inbound.protocol === Protocols.MTPROTO">
+    <a-form-item>
+      <template slot="label">
+        <a-tooltip>
+          <template slot="title">
+            <span>{{ i18n "pages.inbounds.mtprotoRateDownDesc" }}</span>
+          </template>
+          <span>{{ i18n "pages.inbounds.mtprotoRateDown" }} </span>
+          <a-icon type="question-circle"></a-icon>
+        </a-tooltip>
+      </template>
+      <a-input-number v-model.number="client.rateDown" :min="0" :precision="0"></a-input-number>
+    </a-form-item>
+    <a-form-item>
+      <template slot="label">
+        <a-tooltip>
+          <template slot="title">
+            <span>{{ i18n "pages.inbounds.mtprotoRateUpDesc" }}</span>
+          </template>
+          <span>{{ i18n "pages.inbounds.mtprotoRateUp" }} </span>
+          <a-icon type="question-circle"></a-icon>
+        </a-tooltip>
+      </template>
+      <a-input-number v-model.number="client.rateUp" :min="0" :precision="0"></a-input-number>
+    </a-form-item>
+    <a-form-item>
+      <template slot="label">
+        <a-tooltip>
+          <template slot="title">
+            <span>{{ i18n "pages.inbounds.mtprotoMaxConnsDesc" }}</span>
+          </template>
+          <span>{{ i18n "pages.inbounds.mtprotoMaxConns" }} </span>
+          <a-icon type="question-circle"></a-icon>
+        </a-tooltip>
+      </template>
+      <a-input-number v-model.number="client.maxConns" :min="0" :precision="0"></a-input-number>
+    </a-form-item>
+  </template>
+  <a-form-item v-if="client.email && isEdit && (inbound.protocol === Protocols.MTPROTO || (app.ipLimitEnable && client.limitIp > 0))">
     <template slot="label">
       <a-tooltip>
         <template slot="title">
-          <span>{{ i18n "pages.inbounds.IPLimitlogDesc" }}</span>
+          <span v-if="inbound.protocol === Protocols.MTPROTO">{{ i18n "pages.inbounds.mtprotoIpsDesc" }}</span>
+          <span v-else>{{ i18n "pages.inbounds.IPLimitlogDesc" }}</span>
         </template>
         <span>{{ i18n "pages.inbounds.IPLimitlog" }} </span>
         <a-icon type="question-circle"></a-icon>
       </a-tooltip>
     </template>
-    <a-tooltip>
+    <a-tooltip v-if="inbound.protocol !== Protocols.MTPROTO">
       <template slot="title">
         <span>{{ i18n "pages.inbounds.IPLimitlogclear" }}</span>
       </template>

@@ -156,7 +156,7 @@
                         console.error('Error parsing JSON:', e);
                     }
                 }
-                document.getElementById("clientIPs").value = ips;
+                document.getElementById("clientIPs").value = Array.isArray(ips) ? ips.join("\n") : ips;
             },
             async clearDBClientIps(email) {
                 try {

@@ -151,6 +151,9 @@ type Client struct {
 	Auth       string         `json:"auth,omitempty"`               // Auth password (Hysteria)
 	Email      string         `json:"email"`                        // Client email identifier
 	LimitIP    int            `json:"limitIp"`                      // IP limit for this client
+	RateUp     int            `json:"rateUp,omitempty"`             // MTProto upload limit in Mbit/s; 0 is unlimited
+	RateDown   int            `json:"rateDown,omitempty"`           // MTProto download limit in Mbit/s; 0 is unlimited
+	MaxConns   int            `json:"maxConns,omitempty"`           // MTProto concurrent connection limit; 0 is unlimited
 	TotalGB    int64          `json:"totalGB" form:"totalGB"`       // Total traffic limit in GB
 	ExpiryTime int64          `json:"expiryTime" form:"expiryTime"` // Expiration timestamp
 	Enable     bool           `json:"enable" form:"enable"`         // Whether the client is enabled

@@ -28,7 +28,10 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-var metricsListenRe = regexp.MustCompile(`metrics_listen = '([^']+)'`)
+var (
+	metricsListenRe = regexp.MustCompile(`metrics_listen = '([^']+)'`)
+	apiListenRe     = regexp.MustCompile(`(?s)\[server\.api\].*?listen = '([^']+)'.*?auth_header = '([^']+)'`)
+)
 
 func runFakeTelemt(dir string) {
 	events, err := os.OpenFile(filepath.Join(dir, "events"), os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0o600)
@@ -52,6 +55,23 @@ func runFakeTelemt(dir string) {
 			go http.Serve(ln, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				body, _ := os.ReadFile(filepath.Join(dir, "metrics.txt"))
 				w.Write(body)
+			}))
+		}
+	}
+	// The control API knows alice only and insists on the configured token.
+	if m := apiListenRe.FindSubmatch(cfg); m != nil {
+		token := string(m[2])
+		ln, err := net.Listen("tcp", string(m[1]))
+		if err == nil {
+			go http.Serve(ln, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				switch {
+				case r.Header.Get("Authorization") != token:
+					w.WriteHeader(http.StatusUnauthorized)
+				case r.URL.Path != "/v1/users/alice":
+					w.WriteHeader(http.StatusNotFound)
+				default:
+					fmt.Fprint(w, `{"ok":true,"data":{"username":"alice","active_unique_ips_list":["203.0.113.7"],"recent_unique_ips_list":["203.0.113.7","198.51.100.2"]}}`)
+				}
 			}))
 		}
 	}
@@ -236,6 +256,101 @@ func TestManagerStopsInboundWithoutUsers(t *testing.T) {
 	}
 	if env.mgr.Running(1) {
 		t.Fatal("inbound without users must be stopped")
+	}
+}
+
+func TestManagerKeepsDisabledUsersAndStopsWhenNoneEnabled(t *testing.T) {
+	env := newFakeEnv(t)
+	if err := env.mgr.Sync([]Instance{testInstance(1, 8443, alice, bob)}); err != nil {
+		t.Fatal(err)
+	}
+	eventually(t, "start", func() bool { return env.count("start") == 1 })
+
+	// Disabling a client keeps it in the config, marked disabled, so telemt
+	// cancels its live sessions; the process only reloads.
+	offBob := bob
+	offBob.Disabled = true
+	if err := env.mgr.Sync([]Instance{testInstance(1, 8443, alice, offBob)}); err != nil {
+		t.Fatal(err)
+	}
+	cfg, _ := os.ReadFile(filepath.Join(env.dir, "inbound-1", "telemt.toml"))
+	if !strings.Contains(string(cfg), "[access.user_enabled]\nbob = false") || !strings.Contains(string(cfg), "bob = '"+bob.Secret+"'") {
+		t.Fatalf("a disabled client must stay in the config marked disabled:\n%s", cfg)
+	}
+	if !env.mgr.Running(1) || env.count("start") != 1 {
+		t.Fatal("disabling one client must not restart the process")
+	}
+
+	// With every client disabled nobody may connect: the process stops.
+	offAlice := alice
+	offAlice.Disabled = true
+	if err := env.mgr.Sync([]Instance{testInstance(1, 8443, offAlice, offBob)}); err != nil {
+		t.Fatal(err)
+	}
+	if env.mgr.Running(1) {
+		t.Fatal("an inbound whose clients are all disabled must stop")
+	}
+}
+
+func TestManagerRestartsOnUpstreamChangeAndReloadsLimits(t *testing.T) {
+	env := newFakeEnv(t)
+	inst := testInstance(1, 8443, alice)
+	if err := env.mgr.Sync([]Instance{inst}); err != nil {
+		t.Fatal(err)
+	}
+	eventually(t, "start", func() bool { return env.count("start") == 1 })
+
+	// Limits are hot-reloadable.
+	limited := alice
+	limited.RateDownBps, limited.MaxTCPConns = 10_000_000, 4
+	inst.Users = []User{limited}
+	if err := env.mgr.Sync([]Instance{inst}); err != nil {
+		t.Fatal(err)
+	}
+	if env.count("start") != 1 {
+		t.Fatal("a limit change must not restart the process")
+	}
+
+	// telemt reads upstreams only at start.
+	inst.Upstream = &Upstream{Address: "127.0.0.1:20000", Username: "u", Password: "p"}
+	if err := env.mgr.Sync([]Instance{inst}); err != nil {
+		t.Fatal(err)
+	}
+	eventually(t, "restart after upstream change", func() bool { return env.count("start") == 2 })
+	cfg, _ := os.ReadFile(filepath.Join(env.dir, "inbound-1", "telemt.toml"))
+	if !strings.Contains(string(cfg), "[[upstreams]]") {
+		t.Fatalf("the upstream must be written:\n%s", cfg)
+	}
+}
+
+func TestManagerReadsUserIPsFromTheAPI(t *testing.T) {
+	env := newFakeEnv(t)
+	ctx := context.Background()
+	if _, err := env.mgr.UserIPs(ctx, 1, "alice"); err != ErrNotRunning {
+		t.Fatalf("an inbound without a process must report ErrNotRunning, got %v", err)
+	}
+	if err := env.mgr.Sync([]Instance{testInstance(1, 8443, alice)}); err != nil {
+		t.Fatal(err)
+	}
+	var ips UserIPs
+	eventually(t, "API", func() bool {
+		var err error
+		ips, err = env.mgr.UserIPs(ctx, 1, "alice")
+		return err == nil
+	})
+	if strings.Join(ips.Active, ",") != "203.0.113.7" || strings.Join(ips.Recent, ",") != "203.0.113.7,198.51.100.2" {
+		t.Fatalf("UserIPs = %+v", ips)
+	}
+	if ips, err := env.mgr.UserIPs(ctx, 1, "carol"); err != nil || len(ips.Active)+len(ips.Recent) != 0 {
+		t.Fatalf("a user telemt does not know has no addresses, got %+v, %v", ips, err)
+	}
+
+	// The API answers only with the token of this process.
+	env.mgr.mu.Lock()
+	port := env.mgr.instances[1].apiPort
+	env.mgr.mu.Unlock()
+	if _, err := fetchUserIPs(ctx, port, "wrong", "alice"); err == nil {
+		t.Fatal("a request with a wrong token must fail")
 	}
 }
 

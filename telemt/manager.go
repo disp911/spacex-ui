@@ -14,7 +14,10 @@ type Instance struct {
 	Listen    string
 	Port      int
 	TLSDomain string
-	// Users maps telemt user names to the panel client emails they stand for.
+	// Upstream, when set, is the SOCKS5 proxy telemt reaches Telegram through.
+	Upstream *Upstream
+	// Users are all valid clients, enabled or not; Emails maps their telemt
+	// user names to the panel client emails they stand for.
 	Users  []User
 	Emails map[string]string
 }
@@ -49,9 +52,12 @@ type instance struct {
 	proc        *process
 	desired     Instance
 	metricsPort int
-	runningKey  string
-	config      []byte
-	lastErr     string
+	// apiPort and apiToken reach the read-only control API of the process.
+	apiPort    int
+	apiToken   string
+	runningKey string
+	config     []byte
+	lastErr    string
 	// seen holds the counters of the previous collection, per telemt user.
 	seen map[string]UserCounters
 }
@@ -107,8 +113,9 @@ func (m *Manager) syncLocked(w Instance) error {
 	}
 	inst.desired = w
 
-	if len(w.Users) == 0 {
-		// telemt cannot run without users; the inbound simply serves nobody.
+	if !anyEnabled(w.Users) {
+		// With nobody allowed in, the inbound simply serves nobody; stopping
+		// the process also ends the sessions of the clients just disabled.
 		if inst.proc != nil {
 			inst.proc.stop()
 		}
@@ -118,14 +125,21 @@ func (m *Manager) syncLocked(w Instance) error {
 
 	running := inst.proc != nil && inst.proc.running()
 	if !running || inst.metricsPort == 0 {
-		port, err := freeLoopbackPort()
+		ports, err := FreeLoopbackPorts(2)
+		var token string
+		if err == nil {
+			token, err = RandomHex(16)
+		}
 		if err != nil {
 			inst.lastErr = err.Error()
 			return err
 		}
-		inst.metricsPort = port
+		inst.metricsPort, inst.apiPort, inst.apiToken = ports[0], ports[1], token
 	}
-	s := Settings{Listen: w.Listen, Port: w.Port, TLSDomain: w.TLSDomain, MetricsPort: inst.metricsPort}
+	s := Settings{
+		Listen: w.Listen, Port: w.Port, TLSDomain: w.TLSDomain, Upstream: w.Upstream,
+		MetricsPort: inst.metricsPort, APIPort: inst.apiPort, APIToken: inst.apiToken,
+	}
 	data, err := BuildConfig(s, w.Users)
 	if err != nil {
 		inst.lastErr = err.Error()

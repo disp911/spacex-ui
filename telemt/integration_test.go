@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -45,8 +46,12 @@ func TestRealTelemt(t *testing.T) {
 		Tag:       "inbound-18443",
 		Port:      18443,
 		TLSDomain: "www.google.com",
-		Users:     []User{{Name: "alice", Secret: strings.Repeat("ab", 16), MaxUniqueIPs: 2}, {Name: "bob.pc", Secret: strings.Repeat("cd", 16)}},
-		Emails:    map[string]string{"alice": "alice@mail", "bob.pc": "bob"},
+		Users: []User{
+			{Name: "alice", Secret: strings.Repeat("ab", 16), MaxUniqueIPs: 2, MaxTCPConns: 8, RateUpBps: 5_000_000, RateDownBps: 20_000_000, Expires: time.Now().Add(24 * time.Hour)},
+			{Name: "bob.pc", Secret: strings.Repeat("cd", 16)},
+			{Name: "dave", Secret: strings.Repeat("12", 16), Disabled: true},
+		},
+		Emails: map[string]string{"alice": "alice@mail", "bob.pc": "bob", "dave": "dave"},
 	}
 	if err := mgr.Sync([]Instance{inst}); err != nil {
 		t.Fatal(err)
@@ -83,6 +88,35 @@ func TestRealTelemt(t *testing.T) {
 	}
 	if traffic := mgr.CollectTraffic(context.Background()); len(traffic) != 1 || traffic[0].Tag != "inbound-18443" {
 		t.Fatalf("CollectTraffic = %+v", traffic)
+	}
+
+	// The control API answers the panel's token, refuses any other, and
+	// cannot change anything.
+	var apiErr error
+	for time.Now().Before(deadline) {
+		if _, apiErr = mgr.UserIPs(context.Background(), 1, "alice"); apiErr == nil {
+			break
+		}
+		time.Sleep(500 * time.Millisecond)
+	}
+	if apiErr != nil {
+		t.Fatalf("control API never answered: %v\n%s", apiErr, dump())
+	}
+	mgr.mu.Lock()
+	apiPort, apiToken := mgr.instances[1].apiPort, mgr.instances[1].apiToken
+	mgr.mu.Unlock()
+	if _, err := fetchUserIPs(context.Background(), apiPort, "wrong", "alice"); err == nil {
+		t.Fatal("the control API must refuse a wrong token")
+	}
+	req, _ := http.NewRequest(http.MethodPost, fmt.Sprintf("http://127.0.0.1:%d/v1/users/alice/disable", apiPort), nil)
+	req.Header.Set("Authorization", apiToken)
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp.Body.Close()
+	if resp.StatusCode != http.StatusForbidden {
+		t.Fatalf("the control API must be read-only, got HTTP %d", resp.StatusCode)
 	}
 
 	// Clients go straight to the Telegram data centres, so telemt must not
@@ -125,6 +159,35 @@ func TestRealTelemt(t *testing.T) {
 		t.Fatalf("telemt did not log a config reload after adding a user\n%s", dump())
 	}
 	t.Logf("telemt output:\n%s", dump())
+
+	// With a SOCKS5 upstream that is not up yet (Xray stopped, say) telemt
+	// must still start and serve its endpoints rather than exit.
+	relayed := Instance{
+		InboundID: 2,
+		Tag:       "inbound-18444",
+		Port:      18444,
+		TLSDomain: "www.google.com",
+		Upstream:  &Upstream{Address: "127.0.0.1:1", Username: "relayuser", Password: "relaypass"},
+		Users:     []User{{Name: "erin", Secret: strings.Repeat("34", 16)}},
+		Emails:    map[string]string{"erin": "erin"},
+	}
+	if err := mgr.Sync([]Instance{inst, relayed}); err != nil {
+		t.Fatal(err)
+	}
+	logs = nil
+	apiErr = ErrNotRunning
+	for end := time.Now().Add(60 * time.Second); time.Now().Before(end); time.Sleep(500 * time.Millisecond) {
+		if !mgr.Running(2) {
+			t.Fatalf("telemt with an unreachable upstream exited: %s\n%s", mgr.LastError(2), dump())
+		}
+		if _, apiErr = mgr.UserIPs(context.Background(), 2, "erin"); apiErr == nil {
+			break
+		}
+	}
+	if apiErr != nil {
+		t.Fatalf("telemt with an unreachable upstream never served its API: %v\n%s", apiErr, dump())
+	}
+	t.Logf("telemt output with an upstream:\n%s", dump())
 }
 
 func getenvOrSkip(t *testing.T, key string) string {

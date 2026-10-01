@@ -71,6 +71,7 @@ func (a *InboundController) initRouter(g *gin.RouterGroup) {
 	g.GET("/get/:id", a.getInbound)
 	g.GET("/getClientTraffics/:email", a.getClientTraffics)
 	g.GET("/getClientTrafficsById/:id", a.getClientTrafficsById)
+	g.GET("/xrayOutboundTags", a.getXrayOutboundTags)
 
 	g.POST("/add", a.addInbound)
 	g.POST("/del/:id", a.delInbound)
@@ -258,9 +259,47 @@ func (a *InboundController) setInboundEnable(c *gin.Context) {
 	websocket.BroadcastInvalidate(websocket.MessageTypeInbounds)
 }
 
+// getXrayOutboundTags lists the Xray outbounds an mtproto inbound can reach
+// Telegram through.
+func (a *InboundController) getXrayOutboundTags(c *gin.Context) {
+	tags, err := a.telemtService.XrayOutboundTags()
+	if err != nil {
+		jsonMsg(c, I18nWeb(c, "pages.inbounds.toasts.obtain"), err)
+		return
+	}
+	jsonObj(c, tags, nil)
+}
+
 // getClientIps retrieves the IP addresses associated with a client by email.
 func (a *InboundController) getClientIps(c *gin.Context) {
 	email := c.Param("email")
+
+	// telemt tracks the addresses of mtproto clients itself: the live ones
+	// and those seen within its recent window.
+	if live, ok, err := a.telemtService.ClientIPs(email); ok {
+		if err != nil {
+			jsonObj(c, "No IP Record", nil)
+			return
+		}
+		active := make(map[string]bool, len(live.Active))
+		formatted := make([]string, 0, len(live.Recent)+len(live.Active))
+		for _, ip := range live.Active {
+			active[ip] = true
+			formatted = append(formatted, ip)
+		}
+		recentSuffix := I18nWeb(c, "pages.inbounds.mtprotoRecentIp")
+		for _, ip := range live.Recent {
+			if !active[ip] {
+				formatted = append(formatted, fmt.Sprintf("%s (%s)", ip, recentSuffix))
+			}
+		}
+		if len(formatted) == 0 {
+			jsonObj(c, "No IP Record", nil)
+			return
+		}
+		jsonObj(c, formatted, nil)
+		return
+	}
 
 	ips, err := a.inboundService.GetInboundClientIps(email)
 	if err != nil || ips == "" {

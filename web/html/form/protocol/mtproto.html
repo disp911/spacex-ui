@@ -31,6 +31,25 @@
     </template>
     <a-input v-model.trim="inbound.settings.tlsDomain" placeholder="www.example.com"></a-input>
   </a-form-item>
+  <a-form-item>
+    <template slot="label">
+      <a-tooltip>
+        <template slot="title">
+          <span>{{ i18n "pages.inbounds.mtprotoOutboundDesc" }}</span>
+        </template>
+        {{ i18n "pages.inbounds.mtprotoOutbound" }}
+        <a-icon type="question-circle"></a-icon>
+      </a-tooltip>
+    </template>
+    <a-select v-model="inbound.settings.outboundTag" :dropdown-class-name="themeSwitcher.currentTheme">
+      <a-select-option value="">{{ i18n "pages.inbounds.mtprotoOutboundDirect" }}</a-select-option>
+      <a-select-option v-for="tag in inModal.xrayOutboundTags || []" :key="tag" :value="tag">[[ tag ]]</a-select-option>
+    </a-select>
+    <div v-if="inbound.settings.outboundTag && inModal.xrayOutboundTags && !inModal.xrayOutboundTags.includes(inbound.settings.outboundTag)"
+      :style="{ color: '#FFA031', lineHeight: '1.4', marginTop: '4px' }">
+      {{ i18n "pages.inbounds.mtprotoOutboundGone" }}
+    </div>
+  </a-form-item>
 </a-form>
 {{template "form/externalProxy" .}}
 {{end}}

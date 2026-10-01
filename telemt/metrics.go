@@ -3,6 +3,8 @@ package telemt
 import (
 	"bufio"
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"net"
@@ -98,12 +100,26 @@ func parseUserSample(line string) (name, user string, value uint64, ok bool) {
 	return name, user, uint64(f), true
 }
 
-// freeLoopbackPort asks the kernel for an unused loopback port.
-func freeLoopbackPort() (int, error) {
-	ln, err := net.Listen("tcp", "127.0.0.1:0")
-	if err != nil {
-		return 0, err
+// FreeLoopbackPorts asks the kernel for n distinct unused loopback ports.
+// All of them are held until every one is picked, so they cannot repeat.
+func FreeLoopbackPorts(n int) ([]int, error) {
+	ports := make([]int, 0, n)
+	for range n {
+		ln, err := net.Listen("tcp", "127.0.0.1:0")
+		if err != nil {
+			return nil, err
+		}
+		defer ln.Close()
+		ports = append(ports, ln.Addr().(*net.TCPAddr).Port)
 	}
-	defer ln.Close()
-	return ln.Addr().(*net.TCPAddr).Port, nil
+	return ports, nil
+}
+
+// RandomHex returns n random bytes as lowercase hex.
+func RandomHex(n int) (string, error) {
+	b := make([]byte, n)
+	if _, err := rand.Read(b); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(b), nil
 }
