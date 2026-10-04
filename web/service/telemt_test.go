@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/disp911/spacex-ui/v2/database/model"
+	"github.com/disp911/spacex-ui/v2/telemt"
 	"github.com/disp911/spacex-ui/v2/xray"
 )
 
@@ -162,6 +163,10 @@ func TestMTProtoUserCarriesLimits(t *testing.T) {
 	}
 	// An expiry counted from the first connection is negative and stays with
 	// the panel; negative limits mean nothing.
+	c.RateDown = 1 << 40
+	if u := mtprotoUser("phone", c, false); u.RateDownBps != telemt.MaxRateBps {
+		t.Fatalf("an oversized rate must be capped at telemt's maximum, got %d", u.RateDownBps)
+	}
 	c.ExpiryTime, c.RateUp, c.MaxConns = -86400000, -1, -1
 	u = mtprotoUser("alice", c, false)
 	if !u.Expires.IsZero() || u.RateUpBps != 0 || u.MaxTCPConns != 0 {

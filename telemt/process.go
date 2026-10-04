@@ -92,6 +92,15 @@ func startProcess(binary, configPath, workDir string, onLine func(string)) (*pro
 	if err := os.MkdirAll(workDir, 0o750); err != nil {
 		return nil, err
 	}
+	// telemt refuses a config whose path goes through a symlink, so it gets
+	// the resolved one; writes through the original path land in the same
+	// file.
+	if configPath, err = filepath.EvalSymlinks(configPath); err != nil {
+		return nil, err
+	}
+	if workDir, err = filepath.EvalSymlinks(workDir); err != nil {
+		return nil, err
+	}
 	logs := newLogBuffer(logLines)
 	logs.onLine = onLine
 	cmd := exec.Command(binary, configPath)

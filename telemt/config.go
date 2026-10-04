@@ -58,11 +58,14 @@ type User struct {
 	// MaxTCPConns caps concurrent connections; 0 means unlimited.
 	MaxTCPConns int
 	// RateUpBps and RateDownBps cap the client's upload and download in
-	// bits per second; 0 leaves that direction unlimited.
+	// bits per second, up to MaxRateBps; 0 leaves that direction unlimited.
 	RateUpBps, RateDownBps uint64
 	// Expires is when telemt stops accepting the user; zero never expires.
 	Expires time.Time
 }
+
+// MaxRateBps is the highest per-direction rate telemt accepts.
+const MaxRateBps = 100_000_000_000
 
 var (
 	userNamePattern  = regexp.MustCompile(`^[A-Za-z0-9_.-]{1,64}$`)
@@ -145,7 +148,15 @@ type fileServer struct {
 	MetricsListen    string         `toml:"metrics_listen"`
 	MetricsWhitelist []string       `toml:"metrics_whitelist"`
 	API              fileAPI        `toml:"api"`
+	Conntrack        fileConntrack  `toml:"conntrack_control"`
 	Listeners        []fileListener `toml:"listeners,omitempty"`
+}
+
+// fileConntrack switches off telemt's netfilter integration, which would
+// otherwise, when run as root, manage firewall rules and delete kernel
+// conntrack entries on its own.
+type fileConntrack struct {
+	Inline bool `toml:"inline_conntrack_control"`
 }
 
 type fileAPI struct {
@@ -234,6 +245,9 @@ func BuildConfig(s Settings, users []User) ([]byte, error) {
 		}
 		if !u.Expires.IsZero() {
 			access.UserExpirations[u.Name] = u.Expires.UTC().Format(time.RFC3339)
+		}
+		if u.RateUpBps > MaxRateBps || u.RateDownBps > MaxRateBps {
+			return nil, fmt.Errorf("rate limit of user %q is above %d bit/s", u.Name, uint64(MaxRateBps))
 		}
 		if u.RateUpBps > 0 || u.RateDownBps > 0 {
 			access.UserRateLimits[u.Name] = fileRateLimit{UpBps: u.RateUpBps, DownBps: u.RateDownBps}

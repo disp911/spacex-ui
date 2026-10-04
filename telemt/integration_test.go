@@ -19,7 +19,12 @@ import (
 // test is skipped.
 func TestRealTelemt(t *testing.T) {
 	bin := getenvOrSkip(t, "TELEMT_BIN")
-	dir := t.TempDir()
+	// The instances live behind a symlink, as they do when the panel's bin
+	// folder is one: telemt must still accept the config.
+	dir := filepath.Join(t.TempDir(), "bin")
+	if err := os.Symlink(t.TempDir(), dir); err != nil {
+		t.Fatal(err)
+	}
 	mgr := newManager(bin, func(id int) string { return filepath.Join(dir, fmt.Sprintf("inbound-%d", id)) })
 	var logs []string
 	logsCh := make(chan string, 1024)
@@ -48,7 +53,7 @@ func TestRealTelemt(t *testing.T) {
 		TLSDomain: "www.google.com",
 		Users: []User{
 			{Name: "alice", Secret: strings.Repeat("ab", 16), MaxUniqueIPs: 2, MaxTCPConns: 8, RateUpBps: 5_000_000, RateDownBps: 20_000_000, Expires: time.Now().Add(24 * time.Hour)},
-			{Name: "bob.pc", Secret: strings.Repeat("cd", 16)},
+			{Name: "bob.pc", Secret: strings.Repeat("cd", 16), RateUpBps: MaxRateBps},
 			{Name: "dave", Secret: strings.Repeat("12", 16), Disabled: true},
 		},
 		Emails: map[string]string{"alice": "alice@mail", "bob.pc": "bob", "dave": "dave"},

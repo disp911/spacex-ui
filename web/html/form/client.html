@@ -110,7 +110,7 @@
           <a-icon type="question-circle"></a-icon>
         </a-tooltip>
       </template>
-      <a-input-number v-model.number="client.rateDown" :min="0" :precision="0"></a-input-number>
+      <a-input-number v-model.number="client.rateDown" :min="0" :max="100000" :precision="0"></a-input-number>
     </a-form-item>
     <a-form-item>
       <template slot="label">
@@ -122,7 +122,7 @@
           <a-icon type="question-circle"></a-icon>
         </a-tooltip>
       </template>
-      <a-input-number v-model.number="client.rateUp" :min="0" :precision="0"></a-input-number>
+      <a-input-number v-model.number="client.rateUp" :min="0" :max="100000" :precision="0"></a-input-number>
     </a-form-item>
     <a-form-item>
       <template slot="label">

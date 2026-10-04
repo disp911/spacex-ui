@@ -362,13 +362,20 @@ func mtprotoUser(name string, c model.Client, disabled bool) telemt.User {
 		Disabled:     disabled,
 		MaxUniqueIPs: c.LimitIP,
 		MaxTCPConns:  max(c.MaxConns, 0),
-		RateUpBps:    uint64(max(c.RateUp, 0)) * 1_000_000,
-		RateDownBps:  uint64(max(c.RateDown, 0)) * 1_000_000,
+		RateUpBps:    mbitToBps(c.RateUp),
+		RateDownBps:  mbitToBps(c.RateDown),
 	}
 	if c.ExpiryTime > 0 {
 		u.Expires = time.UnixMilli(c.ExpiryTime)
 	}
 	return u
+}
+
+// mbitToBps converts a rate in Mbit/s, capping it at the highest rate telemt
+// accepts so one oversized client cannot break the whole inbound's config.
+func mbitToBps(mbit int) uint64 {
+	const maxMbit = telemt.MaxRateBps / 1_000_000
+	return uint64(min(max(mbit, 0), maxMbit)) * 1_000_000
 }
 
 // Sync starts, reloads, restarts or stops telemt processes to match the
