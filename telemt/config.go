@@ -148,15 +148,7 @@ type fileServer struct {
 	MetricsListen    string         `toml:"metrics_listen"`
 	MetricsWhitelist []string       `toml:"metrics_whitelist"`
 	API              fileAPI        `toml:"api"`
-	Conntrack        fileConntrack  `toml:"conntrack_control"`
 	Listeners        []fileListener `toml:"listeners,omitempty"`
-}
-
-// fileConntrack switches off telemt's netfilter integration, which would
-// otherwise, when run as root, manage firewall rules and delete kernel
-// conntrack entries on its own.
-type fileConntrack struct {
-	Inline bool `toml:"inline_conntrack_control"`
 }
 
 type fileAPI struct {
