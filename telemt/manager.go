@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+	"sync/atomic"
 )
 
 // Instance is the desired state of the telemt process serving one inbound.
@@ -16,10 +17,21 @@ type Instance struct {
 	TLSDomain string
 	// Upstream, when set, is the SOCKS5 proxy telemt reaches Telegram through.
 	Upstream *Upstream
+	// Web, when set, also serves the users as a Telegram WEB proxy.
+	Web *WebInstance
 	// Users are all valid clients, enabled or not; Emails maps their telemt
 	// user names to the panel client emails they stand for.
 	Users  []User
 	Emails map[string]string
+}
+
+// WebInstance is the WEB proxy of an inbound; the manager picks the port of
+// its listener.
+type WebInstance struct {
+	Host      string
+	BasePath  string
+	PublicIP  string
+	DecoyPort int
 }
 
 // ClientTraffic is the traffic of one client since the previous collection.
@@ -46,6 +58,9 @@ type Manager struct {
 
 	mu        sync.Mutex
 	instances map[int]*instance
+	// webRoutes maps the base path of every running WEB proxy to the port of
+	// its listener. It is replaced, never changed, so readers need no lock.
+	webRoutes atomic.Pointer[map[string]int]
 }
 
 type instance struct {
@@ -53,8 +68,10 @@ type instance struct {
 	desired     Instance
 	metricsPort int
 	// apiPort and apiToken reach the read-only control API of the process.
-	apiPort    int
-	apiToken   string
+	apiPort  int
+	apiToken string
+	// webPort is the loopback port of the WEB listener.
+	webPort    int
 	runningKey string
 	config     []byte
 	lastErr    string
@@ -102,7 +119,30 @@ func (m *Manager) Sync(want []Instance) error {
 			_ = os.RemoveAll(m.baseDir(id))
 		}
 	}
+	m.publishWebRoutesLocked()
 	return firstErr
+}
+
+// publishWebRoutesLocked records the WEB proxies of the running processes.
+func (m *Manager) publishWebRoutesLocked() {
+	routes := map[string]int{}
+	for _, inst := range m.instances {
+		if inst.proc != nil && inst.proc.running() && inst.desired.Web != nil && inst.webPort != 0 {
+			routes[inst.desired.Web.BasePath] = inst.webPort
+		}
+	}
+	m.webRoutes.Store(&routes)
+}
+
+// WebRoute returns the loopback port of the WEB proxy whose base path is
+// basePath, as of the last sync.
+func (m *Manager) WebRoute(basePath string) (int, bool) {
+	routes := m.webRoutes.Load()
+	if routes == nil {
+		return 0, false
+	}
+	port, ok := (*routes)[basePath]
+	return port, ok
 }
 
 func (m *Manager) syncLocked(w Instance) error {
@@ -125,7 +165,7 @@ func (m *Manager) syncLocked(w Instance) error {
 
 	running := inst.proc != nil && inst.proc.running()
 	if !running || inst.metricsPort == 0 {
-		ports, err := FreeLoopbackPorts(2)
+		ports, err := FreeLoopbackPorts(3)
 		var token string
 		if err == nil {
 			token, err = RandomHex(16)
@@ -134,11 +174,18 @@ func (m *Manager) syncLocked(w Instance) error {
 			inst.lastErr = err.Error()
 			return err
 		}
-		inst.metricsPort, inst.apiPort, inst.apiToken = ports[0], ports[1], token
+		inst.metricsPort, inst.apiPort, inst.webPort, inst.apiToken = ports[0], ports[1], ports[2], token
 	}
 	s := Settings{
 		Listen: w.Listen, Port: w.Port, TLSDomain: w.TLSDomain, Upstream: w.Upstream,
 		MetricsPort: inst.metricsPort, APIPort: inst.apiPort, APIToken: inst.apiToken,
+	}
+	if web := w.Web; web != nil {
+		s.Web = &Web{
+			Host: web.Host, BasePath: web.BasePath, PublicIP: web.PublicIP,
+			ListenPort: inst.webPort, DecoyPort: web.DecoyPort,
+			MaxProfiles: WebProfileCeiling(len(w.Users)),
+		}
 	}
 	data, err := BuildConfig(s, w.Users)
 	if err != nil {
@@ -195,6 +242,7 @@ func (m *Manager) StopAll() {
 		}
 		delete(m.instances, id)
 	}
+	m.publishWebRoutesLocked()
 }
 
 // Running reports whether the process of an inbound is up.

@@ -232,3 +232,162 @@ func TestRestartKeyIgnoresUsers(t *testing.T) {
 		}
 	}
 }
+
+func testWeb() *Web {
+	return &Web{Host: "proxy.example.com", BasePath: "c0ffee42", PublicIP: "203.0.113.10", ListenPort: 19092, DecoyPort: 19093, MaxProfiles: 32}
+}
+
+func TestBuildConfigRendersWebProxy(t *testing.T) {
+	s := testSettings()
+	s.Web = testWeb()
+	data, err := BuildConfig(s, []User{alice, {Name: "bob", Secret: bob.Secret, Disabled: true}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	var got map[string]any
+	if err := toml.Unmarshal(data, &got); err != nil {
+		t.Fatalf("generated config is not valid TOML: %v\n%s", err, data)
+	}
+	// Listing the WEB listener stops telemt from adding its own, so the
+	// Fake-TLS ones are listed too.
+	listeners, _ := lookup(got, "server/listeners").([]any)
+	if len(listeners) != 3 {
+		t.Fatalf("want the two Fake-TLS listeners and the WEB one, got %#v\n%s", listeners, data)
+	}
+	for i, ip := range []string{"0.0.0.0", "::"} {
+		l := listeners[i].(map[string]any)
+		if l["ip"] != ip || l["transport"] != nil || l["port"] != nil {
+			t.Errorf("listener %d = %#v, want a plain listener on %s", i, l, ip)
+		}
+	}
+	webListener := map[string]any{
+		"ip": "127.0.0.1", "port": int64(19092), "transport": "web", "proxy_protocol": false,
+		"web_client_ip_source": "x_forwarded_for", "web_trusted_proxy_cidrs": []any{"127.0.0.1/32"},
+	}
+	for key, want := range webListener {
+		if g := listeners[2].(map[string]any)[key]; !equalValue(g, want) {
+			t.Errorf("WEB listener %s = %#v, want %#v", key, g, want)
+		}
+	}
+	for path, want := range map[string]any{
+		"web/enabled":             true,
+		"web/carrier":             "https",
+		"web/carriers":            []any{"websocket"},
+		"web/limits/max_profiles": int64(32),
+	} {
+		if g := lookup(got, path); !equalValue(g, want) {
+			t.Errorf("%s = %#v, want %#v", path, g, want)
+		}
+	}
+	vhosts, _ := lookup(got, "web/vhosts").([]any)
+	if len(vhosts) != 1 {
+		t.Fatalf("want one vhost, got %#v", vhosts)
+	}
+	vhost := vhosts[0].(map[string]any)
+	for path, want := range map[string]any{
+		"host":           "proxy.example.com",
+		"base_path":      "c0ffee42",
+		"public_addr":    "203.0.113.10:443",
+		"decoy/mode":     "http_upstream",
+		"decoy/upstream": "http://127.0.0.1:19093",
+	} {
+		if g := lookup(vhost, path); !equalValue(g, want) {
+			t.Errorf("vhost %s = %#v, want %#v", path, g, want)
+		}
+	}
+	// Every user gets a profile; telemt keeps the disabled ones out itself.
+	wantProfiles := []any{
+		map[string]any{"user": "alice", "secret_mode": "dd"},
+		map[string]any{"user": "bob", "secret_mode": "dd"},
+	}
+	if g := vhost["profiles"]; !equalValue(g, wantProfiles) {
+		t.Errorf("profiles = %#v, want %#v", g, wantProfiles)
+	}
+}
+
+func TestBuildConfigWebProxyKeepsTheListenAddressAndIPv6PublicAddress(t *testing.T) {
+	s := testSettings()
+	s.Listen = "10.0.0.5"
+	s.Web = testWeb()
+	s.Web.PublicIP = "2001:db8::1"
+	data, err := BuildConfig(s, []User{alice})
+	if err != nil {
+		t.Fatal(err)
+	}
+	var got map[string]any
+	if err := toml.Unmarshal(data, &got); err != nil {
+		t.Fatal(err)
+	}
+	listeners, _ := lookup(got, "server/listeners").([]any)
+	if len(listeners) != 2 || listeners[0].(map[string]any)["ip"] != "10.0.0.5" || listeners[1].(map[string]any)["transport"] != "web" {
+		t.Fatalf("listeners = %#v", listeners)
+	}
+	vhost := lookup(got, "web/vhosts").([]any)[0].(map[string]any)
+	if vhost["public_addr"] != "[2001:db8::1]:443" {
+		t.Fatalf("public_addr = %#v", vhost["public_addr"])
+	}
+}
+
+func TestBuildConfigRejectsInvalidWebProxy(t *testing.T) {
+	for name, mutate := range map[string]func(*Web){
+		"IP as host":            func(w *Web) { w.Host = "203.0.113.10" },
+		"host without a dot":    func(w *Web) { w.Host = "localhost" },
+		"numeric last label":    func(w *Web) { w.Host = "proxy.123" },
+		"nested path":           func(w *Web) { w.BasePath = "a/b" },
+		"empty path":            func(w *Web) { w.BasePath = "" },
+		"no public IP":          func(w *Web) { w.PublicIP = "" },
+		"unspecified IP":        func(w *Web) { w.PublicIP = "0.0.0.0" },
+		"listener on metrics":   func(w *Web) { w.ListenPort = 19090 },
+		"decoy on listener":     func(w *Web) { w.DecoyPort = w.ListenPort },
+		"no decoy":              func(w *Web) { w.DecoyPort = 0 },
+		"more users than seats": func(w *Web) { w.MaxProfiles = 1 },
+	} {
+		s := testSettings()
+		s.Web = testWeb()
+		mutate(s.Web)
+		if _, err := BuildConfig(s, []User{alice, bob}); err == nil {
+			t.Errorf("%s: expected an error", name)
+		}
+	}
+}
+
+func TestWebProfileCeiling(t *testing.T) {
+	for users, want := range map[int]int{0: 32, 1: 32, 32: 32, 33: 64, 64: 64, 65: 128, 1000: 1024} {
+		if got := WebProfileCeiling(users); got != want {
+			t.Errorf("WebProfileCeiling(%d) = %d, want %d", users, got, want)
+		}
+	}
+}
+
+func TestRestartKeyReloadsWebAddressesButRestartsForItsListener(t *testing.T) {
+	plain := testSettings()
+	web := testSettings()
+	web.Web = testWeb()
+	if plain.restartKey() == web.restartKey() {
+		t.Fatal("turning the WEB proxy on must restart telemt")
+	}
+	for name, mutate := range map[string]func(*Web){
+		"host":       func(w *Web) { w.Host = "other.example.com" },
+		"path":       func(w *Web) { w.BasePath = "beef" },
+		"public IP":  func(w *Web) { w.PublicIP = "203.0.113.11" },
+		"decoy port": func(w *Web) { w.DecoyPort++ },
+	} {
+		c := testSettings()
+		c.Web = testWeb()
+		mutate(c.Web)
+		if c.restartKey() != web.restartKey() {
+			t.Errorf("changing the WEB %s must only reload", name)
+		}
+	}
+	for name, mutate := range map[string]func(*Web){
+		"listener port": func(w *Web) { w.ListenPort++ },
+		"profile seats": func(w *Web) { w.MaxProfiles = 64 },
+	} {
+		c := testSettings()
+		c.Web = testWeb()
+		mutate(c.Web)
+		if c.restartKey() == web.restartKey() {
+			t.Errorf("changing the WEB %s must restart", name)
+		}
+	}
+}

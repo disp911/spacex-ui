@@ -469,3 +469,40 @@ func TestLogBufferKeepsLastLines(t *testing.T) {
 		t.Fatalf("snapshot = %q", got)
 	}
 }
+
+func TestManagerPublishesWebRoutesOfRunningProxies(t *testing.T) {
+	env := newFakeEnv(t)
+	inst := testInstance(1, 8443, alice)
+	inst.Web = &WebInstance{Host: "proxy.example.com", BasePath: "c0ffee42", PublicIP: "203.0.113.10", DecoyPort: 9}
+	if err := env.mgr.Sync([]Instance{inst}); err != nil {
+		t.Fatal(err)
+	}
+	eventually(t, "start", func() bool { return env.count("start") == 1 })
+	port, ok := env.mgr.WebRoute("c0ffee42")
+	if !ok || port == 0 {
+		t.Fatalf("the WEB proxy of a running inbound must be routed, got %d %v", port, ok)
+	}
+	cfg, _ := os.ReadFile(filepath.Join(env.dir, "inbound-1", "telemt.toml"))
+	if !strings.Contains(string(cfg), fmt.Sprintf("port = %d", port)) || !strings.Contains(string(cfg), "transport = 'web'") {
+		t.Fatalf("the routed port must be the WEB listener's:\n%s", cfg)
+	}
+	if _, ok := env.mgr.WebRoute("other"); ok {
+		t.Fatal("an unknown path must not be routed")
+	}
+
+	inst.Web = nil
+	if err := env.mgr.Sync([]Instance{inst}); err != nil {
+		t.Fatal(err)
+	}
+	if _, ok := env.mgr.WebRoute("c0ffee42"); ok {
+		t.Fatal("turning the WEB proxy off must drop its route")
+	}
+	inst.Web = &WebInstance{Host: "proxy.example.com", BasePath: "c0ffee42", PublicIP: "203.0.113.10", DecoyPort: 9}
+	if err := env.mgr.Sync([]Instance{inst}); err != nil {
+		t.Fatal(err)
+	}
+	env.mgr.StopAll()
+	if _, ok := env.mgr.WebRoute("c0ffee42"); ok {
+		t.Fatal("stopped proxies must not be routed")
+	}
+}

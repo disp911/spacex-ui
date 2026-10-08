@@ -2186,6 +2186,17 @@ class Inbound extends XrayCommonClass {
         return `tg://proxy?server=${address}&port=${port}&secret=ee${secret}${domainHex}`;
     }
 
+    // A WEB proxy link names the host and the secret path but no port, as
+    // Telegram always uses 443. Under a path the secret is 0x70, then the
+    // dd-prefixed secret, as unpadded base64url.
+    genMTProtoWebLink(secret = '') {
+        const web = this.settings.web;
+        const bytes = [0x70, 0xdd, ...(secret.match(/../g) || []).map(h => parseInt(h, 16))];
+        const encoded = btoa(String.fromCharCode(...bytes))
+            .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        return `tg://webproxy?server=${encodeURIComponent(`${web.host}/${web.path}`)}&secret=${encoded}`;
+    }
+
     getWireguardTxt(address, port, remark, peerId) {
         let txt = `[Interface]\n`
         txt += `PrivateKey = ${this.settings.peers[peerId].privateKey}\n`
@@ -2295,6 +2306,11 @@ class Inbound extends XrayCommonClass {
                     link: this.genLink(ep.dest, ep.port, ep.forceTls, r, client)
                 });
             });
+        }
+        if (this.protocol === Protocols.MTPROTO && client && this.settings.webReady) {
+            orders['o'] = 'WEB';
+            const r = orderChars.split('').map(char => orders[char]).filter(x => x.length > 0).join(separationChar);
+            result.push({ remark: r, link: this.genMTProtoWebLink(client.id) });
         }
         return result;
     }
@@ -2907,12 +2923,30 @@ Inbound.HysteriaSettings.Hysteria = class extends Inbound.ClientBase {
 
 // The panel keeps the Xray relay of an inbound routed through Xray on the
 // server side; the form only chooses the outbound (empty: connect directly).
+// The WEB proxy's path and, unless entered, its public IP are filled in by
+// the panel on save; an empty path asks for a new one.
 Inbound.MTProtoSettings = class extends Inbound.Settings {
-    constructor(protocol, tlsDomain = '', mtprotos = [new Inbound.MTProtoSettings.MTProto()], outboundTag = '') {
+    constructor(protocol, tlsDomain = '', mtprotos = [new Inbound.MTProtoSettings.MTProto()], outboundTag = '',
+        web = Inbound.MTProtoSettings.newWeb()) {
         super(protocol);
         this.tlsDomain = tlsDomain;
         this.mtprotos = mtprotos;
         this.outboundTag = outboundTag;
+        this.web = web;
+    }
+
+    static newWeb(json = {}) {
+        return {
+            enable: !!json.enable,
+            host: json.host ?? '',
+            path: json.path ?? '',
+            publicIp: json.publicIp ?? '',
+        };
+    }
+
+    // webReady tells whether the saved WEB proxy has what its links need.
+    get webReady() {
+        return this.web.enable && this.web.host !== '' && this.web.path !== '';
     }
 
     static fromJson(json = {}) {
@@ -2921,13 +2955,16 @@ Inbound.MTProtoSettings = class extends Inbound.Settings {
             json.tlsDomain ?? '',
             (json.clients || []).map(client => Inbound.MTProtoSettings.MTProto.fromJson(client)),
             json.outboundTag ?? '',
+            Inbound.MTProtoSettings.newWeb(json.web),
         );
     }
 
     toJson() {
+        const web = this.web;
         return {
             tlsDomain: this.tlsDomain,
             outboundTag: this.outboundTag || undefined,
+            web: web.enable || web.host || web.path ? { ...web } : undefined,
             clients: Inbound.MTProtoSettings.toJsonArray(this.mtprotos),
         };
     }

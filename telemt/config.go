@@ -34,6 +34,35 @@ type Settings struct {
 	// Upstream, when set, carries the traffic to Telegram through a SOCKS5
 	// proxy instead of connecting to the data centres directly.
 	Upstream *Upstream
+	// Web, when set, also serves the users as a Telegram WEB proxy.
+	Web *Web
+}
+
+// Web is the WEB proxy of an inbound: Telegram reaches it over HTTPS at
+// https://Host/BasePath/, through a TLS front that forwards that subtree to
+// the plain-HTTP listener on ListenPort. Requests without valid WEB
+// credentials go on to the decoy site on DecoyPort.
+type Web struct {
+	Host     string
+	BasePath string
+	// PublicIP is the address Host resolves to; the front listens on its
+	// port 443.
+	PublicIP   string
+	ListenPort int
+	DecoyPort  int
+	// MaxProfiles is telemt's ceiling on WEB users. Raising it needs a
+	// restart, so it is kept above the user count; see WebProfileCeiling.
+	MaxProfiles int
+}
+
+// WebProfileCeiling returns the WEB profile ceiling for a number of users:
+// telemt's default of 32, then whole steps of 64 so that adding a client
+// rarely restarts the process.
+func WebProfileCeiling(users int) int {
+	if users <= 32 {
+		return 32
+	}
+	return (users + 63) / 64 * 64
 }
 
 // Upstream is a SOCKS5 proxy telemt reaches Telegram through.
@@ -75,7 +104,22 @@ var (
 	// panel; the patterns only keep anything else out of the config file.
 	apiTokenPattern   = regexp.MustCompile(`^[0-9a-f]{32,128}$`)
 	credentialPattern = regexp.MustCompile(`^[A-Za-z0-9]{1,64}$`)
+	// webBasePathPattern is a single path segment; telemt allows more, the
+	// panel only generates one.
+	webBasePathPattern  = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$`)
+	numericLabelPattern = regexp.MustCompile(`\.[0-9]+$`)
 )
+
+// ValidWebHost reports whether host is a name Telegram accepts for a WEB
+// proxy: a fully qualified host name, not an IP address.
+func ValidWebHost(host string) bool {
+	return ValidTLSDomain(host) && net.ParseIP(host) == nil && !numericLabelPattern.MatchString(host)
+}
+
+// ValidWebBasePath reports whether path can be the WEB proxy's base path.
+func ValidWebBasePath(path string) bool {
+	return webBasePathPattern.MatchString(path)
+}
 
 // ValidSecret reports whether secret is a 32-character lowercase hex secret.
 func ValidSecret(secret string) bool {
@@ -118,6 +162,28 @@ func (s Settings) Validate() error {
 			return errors.New("invalid upstream credentials")
 		}
 	}
+	if w := s.Web; w != nil {
+		if !ValidWebHost(w.Host) {
+			return fmt.Errorf("invalid WEB host %q", w.Host)
+		}
+		if !ValidWebBasePath(w.BasePath) {
+			return fmt.Errorf("invalid WEB base path %q", w.BasePath)
+		}
+		if ip := net.ParseIP(w.PublicIP); ip == nil || ip.IsUnspecified() {
+			return fmt.Errorf("invalid WEB public IP %q", w.PublicIP)
+		}
+		for _, p := range []int{w.ListenPort, w.DecoyPort} {
+			if p < 1 || p > 65535 || p == s.Port || p == s.MetricsPort || p == s.APIPort {
+				return fmt.Errorf("invalid WEB loopback port %d", p)
+			}
+		}
+		if w.ListenPort == w.DecoyPort {
+			return errors.New("the WEB listener and the decoy site share a port")
+		}
+		if w.MaxProfiles < 1 {
+			return errors.New("invalid WEB profile ceiling")
+		}
+	}
 	return nil
 }
 
@@ -127,6 +193,7 @@ type fileConfig struct {
 	Censorship fileCensorship `toml:"censorship"`
 	Access     fileAccess     `toml:"access"`
 	Upstreams  []fileUpstream `toml:"upstreams,omitempty"`
+	Web        *fileWeb       `toml:"web,omitempty"`
 }
 
 type fileGeneral struct {
@@ -160,7 +227,44 @@ type fileAPI struct {
 }
 
 type fileListener struct {
-	IP string `toml:"ip"`
+	IP                   string   `toml:"ip"`
+	Port                 int      `toml:"port,omitempty"`
+	Transport            string   `toml:"transport,omitempty"`
+	ProxyProtocol        *bool    `toml:"proxy_protocol,omitempty"`
+	WebClientIPSource    string   `toml:"web_client_ip_source,omitempty"`
+	WebTrustedProxyCIDRs []string `toml:"web_trusted_proxy_cidrs,omitempty"`
+}
+
+type fileWeb struct {
+	Enabled bool   `toml:"enabled"`
+	Carrier string `toml:"carrier"`
+	// Carriers are tried first by clients that negotiate (Telegram
+	// Desktop); the rest, iOS among them, use Carrier.
+	Carriers []string       `toml:"carriers"`
+	Limits   fileWebLimits  `toml:"limits"`
+	Vhosts   []fileWebVhost `toml:"vhosts"`
+}
+
+type fileWebLimits struct {
+	MaxProfiles int `toml:"max_profiles"`
+}
+
+type fileWebVhost struct {
+	Host       string           `toml:"host"`
+	BasePath   string           `toml:"base_path"`
+	PublicAddr string           `toml:"public_addr"`
+	Decoy      fileWebDecoy     `toml:"decoy"`
+	Profiles   []fileWebProfile `toml:"profiles"`
+}
+
+type fileWebDecoy struct {
+	Mode     string `toml:"mode"`
+	Upstream string `toml:"upstream"`
+}
+
+type fileWebProfile struct {
+	User       string `toml:"user"`
+	SecretMode string `toml:"secret_mode"`
 }
 
 type fileCensorship struct {
@@ -205,6 +309,9 @@ func BuildConfig(s Settings, users []User) ([]byte, error) {
 	}
 	if len(users) == 0 {
 		return nil, errors.New("telemt needs at least one user")
+	}
+	if s.Web != nil && len(users) > s.Web.MaxProfiles {
+		return nil, fmt.Errorf("%d users exceed the WEB profile ceiling of %d", len(users), s.Web.MaxProfiles)
 	}
 
 	access := fileAccess{
@@ -270,6 +377,40 @@ func BuildConfig(s Settings, users []User) ([]byte, error) {
 	if s.Listen != "" {
 		cfg.Server.Listeners = []fileListener{{IP: s.Listen}}
 	}
+	if w := s.Web; w != nil {
+		// Listing any listener stops telemt from adding its default ones,
+		// so the Fake-TLS listeners it would bind are listed too.
+		if s.Listen == "" {
+			cfg.Server.Listeners = []fileListener{{IP: "0.0.0.0"}, {IP: "::"}}
+		}
+		noProxyProtocol := false
+		cfg.Server.Listeners = append(cfg.Server.Listeners, fileListener{
+			IP:                   "127.0.0.1",
+			Port:                 w.ListenPort,
+			Transport:            "web",
+			ProxyProtocol:        &noProxyProtocol,
+			WebClientIPSource:    "x_forwarded_for",
+			WebTrustedProxyCIDRs: []string{"127.0.0.1/32"},
+		})
+		profiles := make([]fileWebProfile, 0, len(users))
+		for _, u := range users {
+			profiles = append(profiles, fileWebProfile{User: u.Name, SecretMode: "dd"})
+		}
+		cfg.Web = &fileWeb{
+			Enabled: true,
+			// iOS only speaks https; Desktop tries a WebSocket first.
+			Carrier:  "https",
+			Carriers: []string{"websocket"},
+			Limits:   fileWebLimits{MaxProfiles: w.MaxProfiles},
+			Vhosts: []fileWebVhost{{
+				Host:       w.Host,
+				BasePath:   w.BasePath,
+				PublicAddr: net.JoinHostPort(w.PublicIP, "443"),
+				Decoy:      fileWebDecoy{Mode: "http_upstream", Upstream: fmt.Sprintf("http://127.0.0.1:%d", w.DecoyPort)},
+				Profiles:   profiles,
+			}},
+		}
+	}
 	if s.APIPort != 0 {
 		cfg.Server.API = fileAPI{
 			Enabled:    true,
@@ -291,6 +432,11 @@ func (s Settings) restartKey() string {
 	key := fmt.Sprintf("%s|%d|%s|%d|%d|%s", s.Listen, s.Port, s.TLSDomain, s.MetricsPort, s.APIPort, s.APIToken)
 	if u := s.Upstream; u != nil {
 		key += fmt.Sprintf("|%s|%s|%s", u.Address, u.Username, u.Password)
+	}
+	// The WEB host, path, address and decoy reload; its listener and
+	// limits belong to the process.
+	if w := s.Web; w != nil {
+		key += fmt.Sprintf("|web|%d|%d", w.ListenPort, w.MaxProfiles)
 	}
 	return key
 }

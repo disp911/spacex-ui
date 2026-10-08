@@ -95,6 +95,9 @@ func EmbeddedAssets() embed.FS {
 type Server struct {
 	httpServer *http.Server
 	listener   net.Listener
+	// decoyServer is the loopback site telemt shows WEB proxy requests that
+	// carry no valid credentials.
+	decoyServer *http.Server
 
 	index *controller.IndexController
 	panel *controller.XUIController
@@ -303,6 +306,30 @@ func (s *Server) initRouter() (*gin.Engine, error) {
 	return engine, nil
 }
 
+// startWebDecoy opens the loopback decoy site of the WEB proxies and tells
+// the telemt service whether the panel can front them. Without the decoy
+// site the WEB proxies stay off; the rest of the panel is unaffected.
+func (s *Server) startWebDecoy(panel http.Handler, httpsOn443 bool) {
+	domain, err := s.settingService.GetWebDomain()
+	if err != nil {
+		logger.Warning("WEB proxy decoy:", err)
+	}
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		logger.Warning("WEB proxy decoy:", err)
+		service.SetTelemtWebFront(0, false)
+		return
+	}
+	s.decoyServer = &http.Server{
+		Handler:           webDecoyHandler{panel: panel, domain: domain, route: service.TelemtWebRoute},
+		ReadHeaderTimeout: 10 * time.Second,
+	}
+	go func() {
+		_ = s.decoyServer.Serve(listener)
+	}()
+	service.SetTelemtWebFront(listener.Addr().(*net.TCPAddr).Port, httpsOn443)
+}
+
 // startTask schedules background jobs (Xray checks, traffic jobs, cron
 // jobs) which the panel relies on for periodic maintenance and monitoring.
 func (s *Server) startTask() {
@@ -411,9 +438,11 @@ func (s *Server) Start() (err error) {
 	if err != nil {
 		return err
 	}
+	httpsOn443 := false
 	if certFile != "" || keyFile != "" {
 		cert, err := tls.LoadX509KeyPair(certFile, keyFile)
 		if err == nil {
+			httpsOn443 = port == 443
 			c := &tls.Config{
 				Certificates: []tls.Certificate{cert},
 			}
@@ -430,13 +459,14 @@ func (s *Server) Start() (err error) {
 	s.listener = listener
 
 	s.httpServer = &http.Server{
-		Handler: engine,
+		Handler: webProxyFront{panel: engine, route: service.TelemtWebRoute},
 	}
 
 	go func() {
 		s.httpServer.Serve(listener)
 	}()
 
+	s.startWebDecoy(engine, httpsOn443)
 	s.startTask()
 
 	return nil
@@ -450,6 +480,10 @@ func (s *Server) Stop() error {
 		s.cron.Stop()
 	}
 	s.telemtService.StopAll()
+	if s.decoyServer != nil {
+		_ = s.decoyServer.Close()
+	}
+	service.SetTelemtWebFront(0, false)
 	// Gracefully stop WebSocket hub
 	if s.wsHub != nil {
 		s.wsHub.Stop()

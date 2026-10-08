@@ -300,6 +300,13 @@ func (s *InboundService) AddInbound(inbound *model.Inbound) (*model.Inbound, boo
 		if err = prepareMTProtoRelay(inbound, "", taken); err != nil {
 			return inbound, false, err
 		}
+		usedPaths, err := webPathsOfOtherInbounds(0)
+		if err != nil {
+			return inbound, false, err
+		}
+		if err = prepareMTProtoWeb(inbound, usedPaths, lookupPublicIP); err != nil {
+			return inbound, false, err
+		}
 	}
 	if err = validateMTProtoInbound(inbound, clients); err != nil {
 		return inbound, false, err
@@ -510,6 +517,13 @@ func (s *InboundService) UpdateInbound(inbound *model.Inbound) (*model.Inbound, 
 			return inbound, false, err
 		}
 		if err = prepareMTProtoRelay(inbound, oldInbound.Settings, taken); err != nil {
+			return inbound, false, err
+		}
+		usedPaths, err := webPathsOfOtherInbounds(oldInbound.Id)
+		if err != nil {
+			return inbound, false, err
+		}
+		if err = prepareMTProtoWeb(inbound, usedPaths, lookupPublicIP); err != nil {
 			return inbound, false, err
 		}
 	}

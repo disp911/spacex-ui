@@ -50,6 +50,60 @@
       {{ i18n "pages.inbounds.mtprotoOutboundGone" }}
     </div>
   </a-form-item>
+  <a-form-item>
+    <template slot="label">
+      <a-tooltip>
+        <template slot="title">
+          <span>{{ i18n "pages.inbounds.mtprotoWebDesc" }}</span>
+        </template>
+        {{ i18n "pages.inbounds.mtprotoWeb" }}
+        <a-icon type="question-circle"></a-icon>
+      </a-tooltip>
+    </template>
+    <a-switch v-model="mtprotoWebEnabled"></a-switch>
+    <div v-if="mtprotoWebEnabled && !mtprotoWebFrontOk" :style="{ color: '#FFA031', lineHeight: '1.4', marginTop: '4px' }">
+      {{ i18n "pages.inbounds.mtprotoWebNeedsHttps" }}
+    </div>
+  </a-form-item>
+  <template v-if="mtprotoWebEnabled">
+    <a-form-item>
+      <template slot="label">
+        <a-tooltip>
+          <template slot="title">
+            <span>{{ i18n "pages.inbounds.mtprotoWebHostDesc" }}</span>
+          </template>
+          {{ i18n "pages.inbounds.mtprotoWebHost" }}
+          <a-icon type="question-circle"></a-icon>
+        </a-tooltip>
+      </template>
+      <a-input v-model.trim="inbound.settings.web.host" placeholder="proxy.example.com"></a-input>
+    </a-form-item>
+    <a-form-item>
+      <template slot="label">
+        <a-tooltip>
+          <template slot="title">
+            <span>{{ i18n "pages.inbounds.mtprotoWebIpDesc" }}</span>
+          </template>
+          {{ i18n "pages.inbounds.mtprotoWebIp" }}
+          <a-icon type="question-circle"></a-icon>
+        </a-tooltip>
+      </template>
+      <a-input v-model.trim="inbound.settings.web.publicIp"
+        placeholder='{{ i18n "pages.inbounds.mtprotoWebIpAuto" }}'></a-input>
+    </a-form-item>
+    <a-form-item v-if="inbound.settings.web.path">
+      <template slot="label">
+        <a-tooltip>
+          <template slot="title">
+            <span>{{ i18n "pages.inbounds.mtprotoWebPathDesc" }}</span>
+          </template>
+          {{ i18n "pages.inbounds.mtprotoWebPath" }}
+          <a-icon type="sync" @click="inbound.settings.web.path = ''"></a-icon>
+        </a-tooltip>
+      </template>
+      <a-input :value="inbound.settings.web.path" disabled></a-input>
+    </a-form-item>
+  </template>
 </a-form>
 {{template "form/externalProxy" .}}
 {{end}}

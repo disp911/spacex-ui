@@ -2,9 +2,12 @@ package telemt
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"strings"
@@ -193,6 +196,76 @@ func TestRealTelemt(t *testing.T) {
 		t.Fatalf("telemt with an unreachable upstream never served its API: %v\n%s", apiErr, dump())
 	}
 	t.Logf("telemt output with an upstream:\n%s", dump())
+
+	// A WEB proxy accepts the config, keeps the Fake-TLS port open beside
+	// it, and sends a request without valid credentials under its secret
+	// path on to the decoy site.
+	decoy := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, "decoy-site %s", r.URL.Path)
+	}))
+	defer decoy.Close()
+	webbed := Instance{
+		InboundID: 3,
+		Tag:       "inbound-18445",
+		Port:      18445,
+		TLSDomain: "www.google.com",
+		Web: &WebInstance{
+			Host: "proxy.example.com", BasePath: "c0ffee42", PublicIP: "203.0.113.10",
+			DecoyPort: decoy.Listener.Addr().(*net.TCPAddr).Port,
+		},
+		Users: []User{
+			{Name: "frank", Secret: strings.Repeat("56", 16)},
+			{Name: "gina", Secret: strings.Repeat("78", 16), Disabled: true},
+		},
+		Emails: map[string]string{"frank": "frank", "gina": "gina"},
+	}
+	if err := mgr.Sync([]Instance{inst, relayed, webbed}); err != nil {
+		t.Fatal(err)
+	}
+	logs = nil
+	var webErr error
+	for end := time.Now().Add(60 * time.Second); time.Now().Before(end); time.Sleep(500 * time.Millisecond) {
+		if !mgr.Running(3) {
+			t.Fatalf("telemt with a WEB proxy exited: %s\n%s", mgr.LastError(3), dump())
+		}
+		if webErr = checkWebDecoy(mgr); webErr == nil {
+			break
+		}
+	}
+	if webErr != nil {
+		t.Fatalf("the WEB proxy never answered: %v\n%s", webErr, dump())
+	}
+	conn, err := net.DialTimeout("tcp", "127.0.0.1:18445", time.Second)
+	if err != nil {
+		t.Fatalf("the Fake-TLS port must stay open beside the WEB proxy: %v\n%s", err, dump())
+	}
+	conn.Close()
+	t.Logf("telemt output with a WEB proxy:\n%s", dump())
+}
+
+// checkWebDecoy asks the WEB proxy at c0ffee42 for a page without
+// credentials, as the panel would pass it on, and expects the decoy site.
+func checkWebDecoy(mgr *Manager) error {
+	port, ok := mgr.WebRoute("c0ffee42")
+	if !ok {
+		return errors.New("no route to the WEB proxy")
+	}
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("http://127.0.0.1:%d/c0ffee42/?bridge=bogus", port), nil)
+	if err != nil {
+		return err
+	}
+	req.Host = "proxy.example.com"
+	req.Header.Set("X-Forwarded-For", "198.51.100.7")
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	body, _ := io.ReadAll(resp.Body)
+	if resp.StatusCode != http.StatusOK || !strings.HasPrefix(string(body), "decoy-site /c0ffee42/") {
+		return fmt.Errorf("HTTP %d %q", resp.StatusCode, body)
+	}
+	return nil
 }
 
 func getenvOrSkip(t *testing.T, key string) string {

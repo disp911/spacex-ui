@@ -148,6 +148,28 @@
             set delayedExpireDays(days) {
                 this.client.expiryTime = -86400000 * days;
             },
+            // Turning the WEB proxy on suggests the domain the panel is
+            // opened on.
+            get mtprotoWebEnabled() {
+                const web = this.inbound.settings && this.inbound.settings.web;
+                return !!(web && web.enable);
+            },
+            set mtprotoWebEnabled(value) {
+                const web = inModal.inbound.settings && inModal.inbound.settings.web;
+                if (!web) {
+                    return;
+                }
+                web.enable = value;
+                const host = window.location.hostname;
+                if (value && !web.host && host.includes(".") && !/^[0-9.]+$/.test(host) && !host.includes(":")) {
+                    web.host = host;
+                }
+            },
+            // The panel itself is the WEB proxy's HTTPS front on port 443.
+            get mtprotoWebFrontOk() {
+                return window.location.protocol === "https:" &&
+                    (window.location.port === "" || window.location.port === "443");
+            },
             get externalProxy() {
                 return this.inbound.stream.externalProxy.length > 0;
             },
