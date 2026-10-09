@@ -269,6 +269,7 @@
 "cloneInbound" = "Clone"
 "cloneInboundContent" = "All settings of this inbound, except Port, Listening IP, and Clients, will be applied to the clone."
 "cloneInboundOk" = "Clone"
+"mtprotoSingle" = "There can be only one mtproto inbound"
 "resetAllTraffic" = "Reset All Inbounds Traffic"
 "resetAllTrafficTitle" = "Reset All Inbounds Traffic"
 "resetAllTrafficContent" = "Are you sure you want to reset the traffic of all inbounds?"

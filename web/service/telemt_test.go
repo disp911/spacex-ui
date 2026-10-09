@@ -3,10 +3,12 @@ package service
 import (
 	"encoding/json"
 	"errors"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/disp911/spacex-ui/v2/database"
 	"github.com/disp911/spacex-ui/v2/database/model"
 	"github.com/disp911/spacex-ui/v2/telemt"
 	"github.com/disp911/spacex-ui/v2/xray"
@@ -264,5 +266,34 @@ func TestTelemtWebInstanceNeedsThePanelAsFront(t *testing.T) {
 	got, ok := telemtWebInstance(web)
 	if !ok || *got != (telemt.WebInstance{Host: "proxy.example.com", BasePath: "c0ffee", PublicIP: "203.0.113.10", DecoyPort: 4321}) {
 		t.Fatalf("got %+v %v", got, ok)
+	}
+}
+
+func TestCheckSingleMTProtoInbound(t *testing.T) {
+	dir := t.TempDir()
+	if err := database.InitDB(filepath.Join(dir, "x-ui.db")); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = database.CloseDB() })
+	db := database.GetDB()
+
+	if err := checkSingleMTProtoInbound(0); err != nil {
+		t.Fatalf("no mtproto inbound yet: %v", err)
+	}
+	if err := db.Create(&model.Inbound{Tag: "vless-1", Port: 1001, Protocol: model.VLESS}).Error; err != nil {
+		t.Fatal(err)
+	}
+	if err := checkSingleMTProtoInbound(0); err != nil {
+		t.Fatalf("other protocols do not count: %v", err)
+	}
+	mtproto := &model.Inbound{Tag: "mtproto-1", Port: 1002, Protocol: model.MTProto}
+	if err := db.Create(mtproto).Error; err != nil {
+		t.Fatal(err)
+	}
+	if err := checkSingleMTProtoInbound(0); !errors.Is(err, errSecondMTProtoInbound) {
+		t.Fatalf("a second mtproto inbound must be refused, got %v", err)
+	}
+	if err := checkSingleMTProtoInbound(mtproto.Id); err != nil {
+		t.Fatalf("the mtproto inbound itself must stay editable: %v", err)
 	}
 }

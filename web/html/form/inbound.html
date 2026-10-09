@@ -10,7 +10,9 @@
 
     <a-form-item label='{{ i18n "protocol" }}'>
         <a-select v-model="inbound.protocol" :disabled="isEdit" :dropdown-class-name="themeSwitcher.currentTheme">
-            <a-select-option v-for="p in Protocols" :key="p" :value="p">[[ p
+            <a-select-option v-for="p in Protocols" :key="p" :value="p"
+                :disabled="p === Protocols.MTPROTO && mtprotoTaken"
+                :title="p === Protocols.MTPROTO && mtprotoTaken ? '{{ i18n "pages.inbounds.mtprotoSingle" }}' : ''">[[ p
                 ]]</a-select-option>
         </a-select>
     </a-form-item>

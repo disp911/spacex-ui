@@ -268,7 +268,7 @@
                             <a-icon type="retweet"></a-icon> {{ i18n
                             "pages.inbounds.resetTraffic" }}
                           </a-menu-item>
-                          <a-menu-item key="clone">
+                          <a-menu-item key="clone" v-if="dbInbound.protocol !== Protocols.MTPROTO">
                             <a-icon type="block"></a-icon> {{ i18n
                             "pages.inbounds.clone"}}
                           </a-menu-item>

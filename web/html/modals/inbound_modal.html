@@ -133,6 +133,12 @@
             get isEdit() {
                 return inModal.isEdit;
             },
+            // The panel serves a single mtproto inbound, so a new inbound
+            // cannot be one once it exists.
+            get mtprotoTaken() {
+                return !inModal.isEdit && typeof app !== 'undefined' && Array.isArray(app.dbInbounds) &&
+                    app.dbInbounds.some(i => i.protocol === Protocols.MTPROTO);
+            },
             get client() {
                 return inModal.inbound &&
                     inModal.inbound.clients &&

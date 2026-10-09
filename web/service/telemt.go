@@ -251,6 +251,26 @@ func lookupPublicIP(host string) (string, error) {
 	return addrs[0].IP.String(), nil
 }
 
+// errSecondMTProtoInbound refuses a second mtproto inbound: the panel runs
+// one telemt process, for a single mtproto inbound.
+var errSecondMTProtoInbound = errors.New("only one mtproto inbound is allowed")
+
+// checkSingleMTProtoInbound fails when an mtproto inbound other than the one
+// with id exceptID exists; 0 checks for any.
+func checkSingleMTProtoInbound(exceptID int) error {
+	var count int64
+	err := database.GetDB().Model(model.Inbound{}).
+		Where("protocol = ? AND id <> ?", model.MTProto, exceptID).
+		Count(&count).Error
+	if err != nil {
+		return err
+	}
+	if count > 0 {
+		return errSecondMTProtoInbound
+	}
+	return nil
+}
+
 // webPathsOfOtherInbounds lists the WEB paths of every mtproto inbound but
 // one.
 func webPathsOfOtherInbounds(exceptID int) (map[string]bool, error) {

@@ -293,6 +293,9 @@ func (s *InboundService) AddInbound(inbound *model.Inbound) (*model.Inbound, boo
 		}
 	}
 	if inbound.Protocol == model.MTProto {
+		if err = checkSingleMTProtoInbound(0); err != nil {
+			return inbound, false, err
+		}
 		taken, err := portsTakenByOtherInbounds(0)
 		if err != nil {
 			return inbound, false, err
@@ -512,6 +515,9 @@ func (s *InboundService) UpdateInbound(inbound *model.Inbound) (*model.Inbound, 
 	relayBefore := mtprotoRelayKey(oldInbound)
 
 	if inbound.Protocol == model.MTProto {
+		if err = checkSingleMTProtoInbound(oldInbound.Id); err != nil {
+			return inbound, false, err
+		}
 		taken, err := portsTakenByOtherInbounds(oldInbound.Id)
 		if err != nil {
 			return inbound, false, err
