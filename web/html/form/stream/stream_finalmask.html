@@ -163,7 +163,7 @@
   <template v-if="inbound.protocol == Protocols.HYSTERIA || inbound.stream.network == 'kcp'">
     <a-form-item label="UDP Masks">
       <a-button icon="plus" type="primary" size="small"
-        @click="inbound.stream.addUdpMask(inbound.protocol === Protocols.HYSTERIA ? 'salamander' : 'mkcp-aes128gcm')"></a-button>
+        @click="inbound.stream.addUdpMask(inbound.protocol === Protocols.HYSTERIA ? 'salamander' : 'mkcp-legacy')"></a-button>
     </a-form-item>
     <template v-if="inbound.stream.finalmask.udp && inbound.stream.finalmask.udp.length > 0">
       <a-form v-for="(mask, index) in inbound.stream.finalmask.udp" :key="index" :colon="false"
@@ -181,14 +181,7 @@
               <a-select-option value="salamander">Salamander (Hysteria2)</a-select-option>
             </template>
             <template v-else>
-              <a-select-option value="mkcp-aes128gcm">mKCP AES-128-GCM</a-select-option>
-              <a-select-option value="header-dns">Header DNS</a-select-option>
-              <a-select-option value="header-dtls">Header DTLS 1.2</a-select-option>
-              <a-select-option value="header-srtp">Header SRTP</a-select-option>
-              <a-select-option value="header-utp">Header uTP</a-select-option>
-              <a-select-option value="header-wechat">Header WeChat Video</a-select-option>
-              <a-select-option value="header-wireguard">Header WireGuard</a-select-option>
-              <a-select-option value="mkcp-original">mKCP Original</a-select-option>
+              <a-select-option value="mkcp-legacy">mKCP</a-select-option>
               <a-select-option value="xdns">xDNS</a-select-option>
               <a-select-option value="xicmp">xICMP</a-select-option>
               <a-select-option value="header-custom">Header Custom</a-select-option>
@@ -196,12 +189,28 @@
             </template>
           </a-select>
         </a-form-item>
-        <a-form-item label="Password" v-if="['mkcp-aes128gcm', 'salamander'].includes(mask.type)">
+        <a-form-item label="Password" v-if="mask.type === 'salamander'">
           <a-input v-model.trim="mask.settings.password" placeholder="Obfuscation password"></a-input>
         </a-form-item>
-        <a-form-item label="Domain" v-if="mask.type === 'header-dns'">
-          <a-input v-model.trim="mask.settings.domain" placeholder="e.g., www.example.com"></a-input>
-        </a-form-item>
+        <template v-if="mask.type === 'mkcp-legacy'">
+          <a-form-item label="Header">
+            <a-select v-model="mask.settings.header" :dropdown-class-name="themeSwitcher.currentTheme">
+              <a-select-option value="">None</a-select-option>
+              <a-select-option value="dns">DNS</a-select-option>
+              <a-select-option value="dtls">DTLS 1.2</a-select-option>
+              <a-select-option value="srtp">SRTP</a-select-option>
+              <a-select-option value="utp">uTP</a-select-option>
+              <a-select-option value="wechat">WeChat Video</a-select-option>
+              <a-select-option value="wireguard">WireGuard</a-select-option>
+            </a-select>
+          </a-form-item>
+          <a-form-item label="Password" v-if="!mask.settings.header">
+            <a-input v-model.trim="mask.settings.value" placeholder="Empty: mKCP original, set: AES-128-GCM"></a-input>
+          </a-form-item>
+          <a-form-item label="Domain" v-if="mask.settings.header === 'dns'">
+            <a-input v-model.trim="mask.settings.value" placeholder="e.g., www.example.com"></a-input>
+          </a-form-item>
+        </template>
         <template v-if="mask.type === 'xdns'">
           <a-form-item label="Domains">
             <a-select mode="tags" v-model="mask.settings.domains" :style="{ width: '100%' }" :token-separators="[',']"

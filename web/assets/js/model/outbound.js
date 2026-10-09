@@ -97,7 +97,7 @@ const Address_Port_Strategy = {
     TxtPortAndAddress: "txtportandaddress"
 };
 
-const DNSRuleActions = ['direct', 'drop', 'reject', 'hijack'];
+const DNSRuleActions = ['direct', 'drop', 'return', 'hijack'];
 
 function normalizeDNSRuleField(value) {
     if (value === null || value === undefined) {
@@ -143,12 +143,14 @@ function buildLegacyDNSRules(nonIPQuery, blockTypes) {
     const rules = [];
     const parsedBlockTypes = parseLegacyDNSBlockTypes(blockTypes);
 
+    // The rules' "return" action is what nonIPQuery called "reject".
+    const action = mode === 'reject' ? 'return' : mode;
     if (parsedBlockTypes.length > 0) {
-        rules.push(new Outbound.DNSRule(mode === 'reject' ? 'reject' : 'drop', parsedBlockTypes.join(',')));
+        rules.push(new Outbound.DNSRule(action === 'return' ? 'return' : 'drop', parsedBlockTypes.join(',')));
     }
 
     rules.push(new Outbound.DNSRule('hijack', '1,28'));
-    rules.push(new Outbound.DNSRule(mode === 'skip' ? 'direct' : mode));
+    rules.push(new Outbound.DNSRule(mode === 'skip' ? 'direct' : action));
 
     return rules;
 }
@@ -639,21 +641,15 @@ class UdpMask extends CommonClass {
     _getDefaultSettings(type, settings = {}) {
         switch (type) {
             case 'salamander':
-            case 'mkcp-aes128gcm':
                 return { password: settings.password || '' };
-            case 'header-dns':
-                return { domain: settings.domain || '' };
+            // mKCP obfuscation: no header with a value is AES-128-GCM keyed
+            // with it, without one the original mKCP; "dns" takes a domain.
+            case 'mkcp-legacy':
+                return { header: settings.header || '', value: settings.value || '' };
             case 'xdns':
                 return { resolvers: Array.isArray(settings.resolvers) ? settings.resolvers : [] };
             case 'xicmp':
-                return { ip: settings.ip || '', id: settings.id ?? 0 };
-            case 'mkcp-original':
-            case 'header-dtls':
-            case 'header-srtp':
-            case 'header-utp':
-            case 'header-wechat':
-            case 'header-wireguard':
-                return {}; // No settings needed
+                return { dgram: !!settings.dgram, ips: Array.isArray(settings.ips) ? settings.ips : [] };
             case 'header-custom':
                 return {
                     client: Array.isArray(settings.client) ? settings.client : [],
@@ -1625,17 +1621,17 @@ Outbound.BlackholeSettings = class extends CommonClass {
 };
 
 Outbound.DNSRule = class extends CommonClass {
-    constructor(action = 'direct', qtype = '', domain = '') {
+    constructor(action = 'direct', qType = '', domain = '') {
         super();
         this.action = action;
-        this.qtype = qtype;
+        this.qType = qType;
         this.domain = domain;
     }
 
     static fromJson(json = {}) {
         return new Outbound.DNSRule(
             json.action,
-            normalizeDNSRuleField(json.qtype),
+            normalizeDNSRuleField(json.qType),
             normalizeDNSRuleField(json.domain),
         );
     }
@@ -1645,12 +1641,12 @@ Outbound.DNSRule = class extends CommonClass {
             action: normalizeDNSRuleAction(this.action),
         };
 
-        const qtype = normalizeDNSRuleField(this.qtype);
-        if (!ObjectUtil.isEmpty(qtype)) {
-            if (/^\d+$/.test(qtype)) {
-                rule.qtype = Number(qtype);
+        const qType = normalizeDNSRuleField(this.qType);
+        if (!ObjectUtil.isEmpty(qType)) {
+            if (/^\d+$/.test(qType)) {
+                rule.qType = Number(qType);
             } else {
-                rule.qtype = qtype;
+                rule.qType = qType;
             }
         }
 

@@ -490,8 +490,8 @@ class xHTTPStreamSettings extends XrayCommonClass {
         xPaddingPlacement = '',
         xPaddingMethod = '',
         uplinkHTTPMethod = '',
-        sessionPlacement = '',
-        sessionKey = '',
+        sessionIDPlacement = '',
+        sessionIDKey = '',
         seqPlacement = '',
         seqKey = '',
         uplinkDataPlacement = '',
@@ -514,8 +514,8 @@ class xHTTPStreamSettings extends XrayCommonClass {
         this.xPaddingPlacement = xPaddingPlacement;
         this.xPaddingMethod = xPaddingMethod;
         this.uplinkHTTPMethod = uplinkHTTPMethod;
-        this.sessionPlacement = sessionPlacement;
-        this.sessionKey = sessionKey;
+        this.sessionIDPlacement = sessionIDPlacement;
+        this.sessionIDKey = sessionIDKey;
         this.seqPlacement = seqPlacement;
         this.seqKey = seqKey;
         this.uplinkDataPlacement = uplinkDataPlacement;
@@ -548,8 +548,8 @@ class xHTTPStreamSettings extends XrayCommonClass {
             json.xPaddingPlacement,
             json.xPaddingMethod,
             json.uplinkHTTPMethod,
-            json.sessionPlacement,
-            json.sessionKey,
+            json.sessionIDPlacement,
+            json.sessionIDKey,
             json.seqPlacement,
             json.seqKey,
             json.uplinkDataPlacement,
@@ -575,8 +575,8 @@ class xHTTPStreamSettings extends XrayCommonClass {
             xPaddingPlacement: this.xPaddingPlacement,
             xPaddingMethod: this.xPaddingMethod,
             uplinkHTTPMethod: this.uplinkHTTPMethod,
-            sessionPlacement: this.sessionPlacement,
-            sessionKey: this.sessionKey,
+            sessionIDPlacement: this.sessionIDPlacement,
+            sessionIDKey: this.sessionIDKey,
             seqPlacement: this.seqPlacement,
             seqKey: this.seqKey,
             uplinkDataPlacement: this.uplinkDataPlacement,
@@ -1066,20 +1066,16 @@ class UdpMask extends XrayCommonClass {
     _getDefaultSettings(type, settings = {}) {
         switch (type) {
             case 'salamander':
-            case 'mkcp-aes128gcm':
                 return { password: settings.password || '' };
-            case 'header-dns':
-                return { domain: settings.domain || '' };
+            // mKCP obfuscation: no header with a value is AES-128-GCM keyed
+            // with it, without one the original mKCP; "dns" takes a domain.
+            case 'mkcp-legacy':
+                return { header: settings.header || '', value: settings.value || '' };
             case 'xdns':
                 return { domains: Array.isArray(settings.domains) ? settings.domains : [] };
+            // The server side of xICMP has no settings; ips and dgram are
+            // for clients.
             case 'xicmp':
-                return { ip: settings.ip || '', id: settings.id ?? 0 };
-            case 'mkcp-original':
-            case 'header-dtls':
-            case 'header-srtp':
-            case 'header-utp':
-            case 'header-wechat':
-            case 'header-wireguard':
                 return {};
             case 'header-custom':
                 return {

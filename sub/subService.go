@@ -976,29 +976,24 @@ func applyXhttpPaddingParams(xhttp map[string]any, params map[string]string) {
 	}
 }
 
-var kcpMaskToHeaderType = map[string]string{
-	"header-dns":       "dns",
-	"header-dtls":      "dtls",
-	"header-srtp":      "srtp",
-	"header-utp":       "utp",
-	"header-wechat":    "wechat-video",
-	"header-wireguard": "wireguard",
+// kcpHeaderToShareType maps the header of an mkcp-legacy mask to the
+// headerType of a KCP share link.
+var kcpHeaderToShareType = map[string]string{
+	"dns":       "dns",
+	"dtls":      "dtls",
+	"srtp":      "srtp",
+	"utp":       "utp",
+	"wechat":    "wechat-video",
+	"wireguard": "wireguard",
 }
 
 var validFinalMaskUDPTypes = map[string]struct{}{
-	"salamander":       {},
-	"mkcp-aes128gcm":   {},
-	"header-dns":       {},
-	"header-dtls":      {},
-	"header-srtp":      {},
-	"header-utp":       {},
-	"header-wechat":    {},
-	"header-wireguard": {},
-	"mkcp-original":    {},
-	"xdns":             {},
-	"xicmp":            {},
-	"noise":            {},
-	"header-custom":    {},
+	"salamander":    {},
+	"mkcp-legacy":   {},
+	"xdns":          {},
+	"xicmp":         {},
+	"noise":         {},
+	"header-custom": {},
 }
 
 var validFinalMaskTCPTypes = map[string]struct{}{
@@ -1069,21 +1064,18 @@ func extractKcpShareFields(stream map[string]any) kcpShareFields {
 		if mask == nil {
 			continue
 		}
-		maskType, _ := mask["type"].(string)
-		if mapped, ok := kcpMaskToHeaderType[maskType]; ok {
-			fields.headerType = mapped
+		if maskType, _ := mask["type"].(string); maskType != "mkcp-legacy" {
 			continue
 		}
-
-		switch maskType {
-		case "mkcp-original":
-			fields.seed = ""
-		case "mkcp-aes128gcm":
-			fields.seed = ""
-			settings, _ := mask["settings"].(map[string]any)
-			if value, ok := settings["password"].(string); ok && value != "" {
-				fields.seed = value
-			}
+		// An mkcp-legacy mask is either a header, or with none the
+		// original mKCP, keyed with AES-128-GCM when it has a value.
+		settings, _ := mask["settings"].(map[string]any)
+		header, _ := settings["header"].(string)
+		value, _ := settings["value"].(string)
+		if header == "" {
+			fields.seed = value
+		} else if mapped, ok := kcpHeaderToShareType[strings.ToLower(header)]; ok {
+			fields.headerType = mapped
 		}
 	}
 
