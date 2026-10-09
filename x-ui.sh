@@ -159,7 +159,7 @@ update_menu() {
 }
 
 legacy_version() {
-    echo -n "Enter the panel version (like 2.9.16):"
+    echo -n "Enter the panel version (like 2.9.5):"
     read -r tag_version
 
     if [ -z "$tag_version" ]; then

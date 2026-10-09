@@ -8,10 +8,10 @@ func TestIsNewerVersion(t *testing.T) {
 		current string
 		want    bool
 	}{
-		{"v2.9.16", "2.9.15", true},
+		{"v2.9.6", "2.9.5", true},
 		{"v2.10.0", "2.9.9", true},
-		{"v2.9.16", "2.9.16", false},
-		{"v2.9.15", "2.9.16", false},
+		{"v2.9.5", "2.9.5", false},
+		{"v2.9.4", "2.9.5", false},
 		{"v3.0.0", "2.9.3", true},
 	}
 
