@@ -155,7 +155,7 @@ func resolveUpdateFolders() (string, string) {
 func isNewerVersion(latest string, current string) bool {
 	cmp, ok := compareVersionStrings(latest, current)
 	if !ok {
-		return strings.TrimSpace(latest) != strings.TrimSpace(current)
+		return normalizeVersionTag(latest) != normalizeVersionTag(current)
 	}
 	return cmp > 0
 }
@@ -179,7 +179,7 @@ func compareVersionStrings(a string, b string) (int, bool) {
 
 func parseVersionParts(version string) ([3]int, bool) {
 	var result [3]int
-	parts := strings.Split(strings.TrimSpace(version), ".")
+	parts := strings.Split(normalizeVersionTag(version), ".")
 	if len(parts) != 3 {
 		return result, false
 	}
@@ -191,6 +191,13 @@ func parseVersionParts(version string) ([3]int, bool) {
 		result[i] = n
 	}
 	return result, true
+}
+
+// normalizeVersionTag drops the leading v of a release tag: releases are
+// tagged v2.9.16, as most before 2.9.5 were, while 2.9.5 to 2.9.15 were
+// tagged without it and config/version never has it.
+func normalizeVersionTag(version string) string {
+	return strings.TrimPrefix(strings.TrimSpace(version), "v")
 }
 
 func shellQuote(value string) string {

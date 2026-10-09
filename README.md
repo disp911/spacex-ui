@@ -9,7 +9,7 @@ bash <(curl -Ls https://raw.githubusercontent.com/disp911/spacex-ui/main/install
 ## Установка архивной версии
 
 ```bash
-bash <(curl -Ls https://raw.githubusercontent.com/disp911/spacex-ui/main/install.sh) 2.9.15
+bash <(curl -Ls https://raw.githubusercontent.com/disp911/spacex-ui/main/install.sh) v2.9.16
 ```
 
 ## Обновление

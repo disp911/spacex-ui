@@ -803,17 +803,21 @@ install_x-ui() {
             exit 1
         fi
     else
-        tag_version=$1
+        version_number=${1#v}
         min_version="2.3.5"
 
-        if [[ "$(printf '%s\n' "$min_version" "$tag_version" | sort -V | head -n1)" != "$min_version" ]]; then
-            echo -e "${red}Please use a newer version (at least 2.3.5). Exiting installation.${plain}"
+        if [[ "$(printf '%s\n' "$min_version" "$version_number" | sort -V | head -n1)" != "$min_version" ]]; then
+            echo -e "${red}Please use a newer version (at least v2.3.5). Exiting installation.${plain}"
             exit 1
         fi
 
-        url="https://github.com/disp911/spacex-ui/releases/download/${tag_version}/x-ui-linux-$(arch).tar.gz"
+        # Releases are tagged with a leading v, except 2.9.5 to 2.9.15, so
+        # the version is looked up in both forms.
         echo -e "Beginning to install x-ui $1"
-        curl -4fLRo ${xui_folder}-linux-$(arch).tar.gz ${url}
+        for tag_version in "v${version_number}" "${version_number}"; do
+            url="https://github.com/disp911/spacex-ui/releases/download/${tag_version}/x-ui-linux-$(arch).tar.gz"
+            curl -4fLRo ${xui_folder}-linux-$(arch).tar.gz ${url} 2>/dev/null && break
+        done
         if [[ $? -ne 0 ]]; then
             echo -e "${red}Download x-ui $1 failed, please check if the version exists ${plain}"
             exit 1

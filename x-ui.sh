@@ -159,14 +159,19 @@ update_menu() {
 }
 
 legacy_version() {
-    echo -n "Enter the panel version (like 2.4.0):"
+    echo -n "Enter the panel version (like v2.9.16):"
     read -r tag_version
 
     if [ -z "$tag_version" ]; then
         echo "Panel version cannot be empty. Exiting."
         exit 1
     fi
-    # Use the entered panel version in the download link
+    # Releases are tagged with a leading v, except 2.9.5 to 2.9.15; use
+    # whichever form the version was tagged with.
+    tag_version="v${tag_version#v}"
+    if ! curl -fsL -o /dev/null "https://raw.githubusercontent.com/disp911/spacex-ui/${tag_version}/install.sh"; then
+        tag_version="${tag_version#v}"
+    fi
     install_command="bash <(curl -Ls "https://raw.githubusercontent.com/disp911/spacex-ui/${tag_version}/install.sh") ${tag_version}"
 
     echo "Downloading and installing panel version $tag_version..."
