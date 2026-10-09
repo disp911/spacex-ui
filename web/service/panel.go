@@ -193,9 +193,8 @@ func parseVersionParts(version string) ([3]int, bool) {
 	return result, true
 }
 
-// normalizeVersionTag drops the leading v of a release tag: releases are
-// tagged v2.9.16, as most before 2.9.5 were, while 2.9.5 to 2.9.15 were
-// tagged without it and config/version never has it.
+// normalizeVersionTag drops the leading v of a release tag (v2.9.16), so it
+// compares with config/version, which has none.
 func normalizeVersionTag(version string) string {
 	return strings.TrimPrefix(strings.TrimSpace(version), "v")
 }

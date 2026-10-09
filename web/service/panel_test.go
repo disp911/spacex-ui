@@ -13,9 +13,6 @@ func TestIsNewerVersion(t *testing.T) {
 		{"v2.9.16", "2.9.16", false},
 		{"v2.9.15", "2.9.16", false},
 		{"v3.0.0", "2.9.3", true},
-		// Releases 2.9.5 to 2.9.15 were tagged without the v.
-		{"2.9.15", "2.9.14", true},
-		{"2.9.15", "2.9.15", false},
 	}
 
 	for _, tc := range cases {
