@@ -102,7 +102,7 @@ func equalValue(a, b any) bool {
 	return a == b
 }
 
-func TestBuildConfigRendersLimitsAPIAndUpstream(t *testing.T) {
+func TestBuildConfigRendersLimitsAndAPI(t *testing.T) {
 	expires := time.Date(2026, 12, 31, 23, 59, 59, 0, time.FixedZone("MSK", 3*3600))
 	users := []User{
 		{Name: "alice", Secret: strings.Repeat("a", 32), MaxTCPConns: 8, RateUpBps: 5_000_000, RateDownBps: 20_000_000, Expires: expires},
@@ -111,7 +111,6 @@ func TestBuildConfigRendersLimitsAPIAndUpstream(t *testing.T) {
 	}
 	s := testSettings()
 	s.APIPort, s.APIToken = 19091, strings.Repeat("f", 32)
-	s.Upstream = &Upstream{Address: "127.0.0.1:20000", Username: "relayuser", Password: "relaypass"}
 	data, err := BuildConfig(s, users)
 	if err != nil {
 		t.Fatal(err)
@@ -138,9 +137,8 @@ func TestBuildConfigRendersLimitsAPIAndUpstream(t *testing.T) {
 		"server/api/whitelist":                   []any{"127.0.0.1/32"},
 		"server/api/auth_header":                 strings.Repeat("f", 32),
 		"server/api/read_only":                   true,
-		"upstreams": []any{map[string]any{
-			"type": "socks5", "address": "127.0.0.1:20000", "username": "relayuser", "password": "relaypass",
-		}},
+		// Telegram is always reached directly.
+		"upstreams": nil,
 	}
 	for path, value := range want {
 		if g := lookup(got, path); !equalValue(g, value) {
@@ -182,8 +180,6 @@ func TestBuildConfigRejectsInvalidInput(t *testing.T) {
 		"API port clash":     {Settings{Port: 8443, TLSDomain: "example.com", MetricsPort: 9090, APIPort: 9090, APIToken: strings.Repeat("f", 32)}, []User{ok}},
 		"API without token":  {Settings{Port: 8443, TLSDomain: "example.com", MetricsPort: 9090, APIPort: 9091}, []User{ok}},
 		"API token quote":    {Settings{Port: 8443, TLSDomain: "example.com", MetricsPort: 9090, APIPort: 9091, APIToken: strings.Repeat("f", 31) + `'`}, []User{ok}},
-		"upstream no port":   {Settings{Port: 8443, TLSDomain: "example.com", MetricsPort: 9090, Upstream: &Upstream{Address: "127.0.0.1", Username: "u", Password: "p"}}, []User{ok}},
-		"upstream bad user":  {Settings{Port: 8443, TLSDomain: "example.com", MetricsPort: 9090, Upstream: &Upstream{Address: "127.0.0.1:1080", Username: "u'x", Password: "p"}}, []User{ok}},
 	}
 	for name, tc := range cases {
 		if _, err := BuildConfig(tc.settings, tc.users); err == nil {
@@ -223,7 +219,6 @@ func TestRestartKeyIgnoresUsers(t *testing.T) {
 		"domain":       func(s *Settings) { s.TLSDomain = "other.example.com" },
 		"metrics port": func(s *Settings) { s.MetricsPort++ },
 		"API port":     func(s *Settings) { s.APIPort = 19091 },
-		"upstream":     func(s *Settings) { s.Upstream = &Upstream{Address: "127.0.0.1:1080", Username: "u", Password: "p"} },
 	} {
 		c := testSettings()
 		mutate(&c)

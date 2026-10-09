@@ -131,12 +131,7 @@ func (s *InboundService) checkPortExist(listen string, port int, ignoreId int) (
 	if err != nil {
 		return false, err
 	}
-	if count > 0 {
-		return true, nil
-	}
-	// The loopback relays of mtproto inbounds routed through Xray hold
-	// ports too.
-	return mtprotoRelayUsesPort(port, ignoreId)
+	return count > 0, nil
 }
 
 func (s *InboundService) GetClients(inbound *model.Inbound) ([]model.Client, error) {
@@ -296,13 +291,6 @@ func (s *InboundService) AddInbound(inbound *model.Inbound) (*model.Inbound, boo
 		if err = checkSingleMTProtoInbound(0); err != nil {
 			return inbound, false, err
 		}
-		taken, err := portsTakenByOtherInbounds(0)
-		if err != nil {
-			return inbound, false, err
-		}
-		if err = prepareMTProtoRelay(inbound, "", taken); err != nil {
-			return inbound, false, err
-		}
 		usedPaths, err := webPathsOfOtherInbounds(0)
 		if err != nil {
 			return inbound, false, err
@@ -353,8 +341,6 @@ func (s *InboundService) AddInbound(inbound *model.Inbound) (*model.Inbound, boo
 		}
 		s.xrayApi.Close()
 	}
-	// The SOCKS5 relay of an mtproto inbound lives in Xray's config.
-	needRestart = needRestart || mtprotoRelayKey(inbound) != ""
 
 	return inbound, needRestart, err
 }
@@ -392,7 +378,6 @@ func (s *InboundService) DelInbound(id int) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	needRestart = needRestart || mtprotoRelayKey(inbound) != ""
 	clients, err := s.GetClients(inbound)
 	if err != nil {
 		return false, err
@@ -452,10 +437,9 @@ func (s *InboundService) SetInboundEnable(id int, enable bool) (bool, error) {
 		Update("enable", enable).Error; err != nil {
 		return false, err
 	}
-	relayBefore := mtprotoRelayKey(inbound)
 	inbound.Enable = enable
 	if !model.IsXrayProtocol(inbound.Protocol) {
-		return relayBefore != mtprotoRelayKey(inbound), nil
+		return false, nil
 	}
 
 	// Sync xray runtime: drop the live inbound, add it back if we're enabling.
@@ -512,17 +496,9 @@ func (s *InboundService) UpdateInbound(inbound *model.Inbound) (*model.Inbound, 
 
 	tag := oldInbound.Tag
 	wasXray := model.IsXrayProtocol(oldInbound.Protocol)
-	relayBefore := mtprotoRelayKey(oldInbound)
 
 	if inbound.Protocol == model.MTProto {
 		if err = checkSingleMTProtoInbound(oldInbound.Id); err != nil {
-			return inbound, false, err
-		}
-		taken, err := portsTakenByOtherInbounds(oldInbound.Id)
-		if err != nil {
-			return inbound, false, err
-		}
-		if err = prepareMTProtoRelay(inbound, oldInbound.Settings, taken); err != nil {
 			return inbound, false, err
 		}
 		usedPaths, err := webPathsOfOtherInbounds(oldInbound.Id)
@@ -635,10 +611,9 @@ func (s *InboundService) UpdateInbound(inbound *model.Inbound) (*model.Inbound, 
 		oldInbound.Tag = fmt.Sprintf("inbound-%v:%v", inbound.Listen, inbound.Port)
 	}
 
-	// The SOCKS5 relay of an mtproto inbound lives in Xray's config.
-	needRestart := relayBefore != mtprotoRelayKey(oldInbound)
+	needRestart := false
 	if !wasXray && !model.IsXrayProtocol(inbound.Protocol) {
-		return inbound, needRestart, tx.Save(oldInbound).Error
+		return inbound, false, tx.Save(oldInbound).Error
 	}
 	s.xrayApi.Init(p.GetAPIPort())
 	if s.xrayApi.DelInbound(tag) == nil {

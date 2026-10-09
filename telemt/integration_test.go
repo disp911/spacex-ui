@@ -168,35 +168,6 @@ func TestRealTelemt(t *testing.T) {
 	}
 	t.Logf("telemt output:\n%s", dump())
 
-	// With a SOCKS5 upstream that is not up yet (Xray stopped, say) telemt
-	// must still start and serve its endpoints rather than exit.
-	relayed := Instance{
-		InboundID: 2,
-		Tag:       "inbound-18444",
-		Port:      18444,
-		TLSDomain: "www.google.com",
-		Upstream:  &Upstream{Address: "127.0.0.1:1", Username: "relayuser", Password: "relaypass"},
-		Users:     []User{{Name: "erin", Secret: strings.Repeat("34", 16)}},
-		Emails:    map[string]string{"erin": "erin"},
-	}
-	if err := mgr.Sync([]Instance{inst, relayed}); err != nil {
-		t.Fatal(err)
-	}
-	logs = nil
-	apiErr = ErrNotRunning
-	for end := time.Now().Add(60 * time.Second); time.Now().Before(end); time.Sleep(500 * time.Millisecond) {
-		if !mgr.Running(2) {
-			t.Fatalf("telemt with an unreachable upstream exited: %s\n%s", mgr.LastError(2), dump())
-		}
-		if _, apiErr = mgr.UserIPs(context.Background(), 2, "erin"); apiErr == nil {
-			break
-		}
-	}
-	if apiErr != nil {
-		t.Fatalf("telemt with an unreachable upstream never served its API: %v\n%s", apiErr, dump())
-	}
-	t.Logf("telemt output with an upstream:\n%s", dump())
-
 	// A WEB proxy accepts the config, keeps the Fake-TLS port open beside
 	// it, and sends a request without valid credentials under its secret
 	// path on to the decoy site.
@@ -219,7 +190,7 @@ func TestRealTelemt(t *testing.T) {
 		},
 		Emails: map[string]string{"frank": "frank", "gina": "gina"},
 	}
-	if err := mgr.Sync([]Instance{inst, relayed, webbed}); err != nil {
+	if err := mgr.Sync([]Instance{inst, webbed}); err != nil {
 		t.Fatal(err)
 	}
 	logs = nil

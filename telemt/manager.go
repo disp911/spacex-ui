@@ -15,8 +15,6 @@ type Instance struct {
 	Listen    string
 	Port      int
 	TLSDomain string
-	// Upstream, when set, is the SOCKS5 proxy telemt reaches Telegram through.
-	Upstream *Upstream
 	// Web, when set, also serves the users as a Telegram WEB proxy.
 	Web *WebInstance
 	// Users are all valid clients, enabled or not; Emails maps their telemt
@@ -177,7 +175,7 @@ func (m *Manager) syncLocked(w Instance) error {
 		inst.metricsPort, inst.apiPort, inst.webPort, inst.apiToken = ports[0], ports[1], ports[2], token
 	}
 	s := Settings{
-		Listen: w.Listen, Port: w.Port, TLSDomain: w.TLSDomain, Upstream: w.Upstream,
+		Listen: w.Listen, Port: w.Port, TLSDomain: w.TLSDomain,
 		MetricsPort: inst.metricsPort, APIPort: inst.apiPort, APIToken: inst.apiToken,
 	}
 	if web := w.Web; web != nil {

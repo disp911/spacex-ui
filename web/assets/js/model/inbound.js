@@ -2921,17 +2921,14 @@ Inbound.HysteriaSettings.Hysteria = class extends Inbound.ClientBase {
     }
 };
 
-// The panel keeps the Xray relay of an inbound routed through Xray on the
-// server side; the form only chooses the outbound (empty: connect directly).
 // The WEB proxy's path and, unless entered, its public IP are filled in by
 // the panel on save; an empty path asks for a new one.
 Inbound.MTProtoSettings = class extends Inbound.Settings {
-    constructor(protocol, tlsDomain = '', mtprotos = [new Inbound.MTProtoSettings.MTProto()], outboundTag = '',
+    constructor(protocol, tlsDomain = '', mtprotos = [new Inbound.MTProtoSettings.MTProto()],
         web = Inbound.MTProtoSettings.newWeb()) {
         super(protocol);
         this.tlsDomain = tlsDomain;
         this.mtprotos = mtprotos;
-        this.outboundTag = outboundTag;
         this.web = web;
     }
 
@@ -2954,7 +2951,6 @@ Inbound.MTProtoSettings = class extends Inbound.Settings {
             Protocols.MTPROTO,
             json.tlsDomain ?? '',
             (json.clients || []).map(client => Inbound.MTProtoSettings.MTProto.fromJson(client)),
-            json.outboundTag ?? '',
             Inbound.MTProtoSettings.newWeb(json.web),
         );
     }
@@ -2963,7 +2959,6 @@ Inbound.MTProtoSettings = class extends Inbound.Settings {
         const web = this.web;
         return {
             tlsDomain: this.tlsDomain,
-            outboundTag: this.outboundTag || undefined,
             web: web.enable || web.host || web.path ? { ...web } : undefined,
             clients: Inbound.MTProtoSettings.toJsonArray(this.mtprotos),
         };

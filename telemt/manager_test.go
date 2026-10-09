@@ -292,7 +292,7 @@ func TestManagerKeepsDisabledUsersAndStopsWhenNoneEnabled(t *testing.T) {
 	}
 }
 
-func TestManagerRestartsOnUpstreamChangeAndReloadsLimits(t *testing.T) {
+func TestManagerReloadsLimits(t *testing.T) {
 	env := newFakeEnv(t)
 	inst := testInstance(1, 8443, alice)
 	if err := env.mgr.Sync([]Instance{inst}); err != nil {
@@ -311,16 +311,6 @@ func TestManagerRestartsOnUpstreamChangeAndReloadsLimits(t *testing.T) {
 		t.Fatal("a limit change must not restart the process")
 	}
 
-	// telemt reads upstreams only at start.
-	inst.Upstream = &Upstream{Address: "127.0.0.1:20000", Username: "u", Password: "p"}
-	if err := env.mgr.Sync([]Instance{inst}); err != nil {
-		t.Fatal(err)
-	}
-	eventually(t, "restart after upstream change", func() bool { return env.count("start") == 2 })
-	cfg, _ := os.ReadFile(filepath.Join(env.dir, "inbound-1", "telemt.toml"))
-	if !strings.Contains(string(cfg), "[[upstreams]]") {
-		t.Fatalf("the upstream must be written:\n%s", cfg)
-	}
 }
 
 func TestManagerReadsUserIPsFromTheAPI(t *testing.T) {

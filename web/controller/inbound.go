@@ -71,7 +71,6 @@ func (a *InboundController) initRouter(g *gin.RouterGroup) {
 	g.GET("/get/:id", a.getInbound)
 	g.GET("/getClientTraffics/:email", a.getClientTraffics)
 	g.GET("/getClientTrafficsById/:id", a.getClientTrafficsById)
-	g.GET("/xrayOutboundTags", a.getXrayOutboundTags)
 
 	g.POST("/add", a.addInbound)
 	g.POST("/del/:id", a.delInbound)
@@ -257,17 +256,6 @@ func (a *InboundController) setInboundEnable(c *gin.Context) {
 	// sessions re-fetch via REST. The toggling admin's own UI already
 	// updated optimistically.
 	websocket.BroadcastInvalidate(websocket.MessageTypeInbounds)
-}
-
-// getXrayOutboundTags lists the Xray outbounds an mtproto inbound can reach
-// Telegram through.
-func (a *InboundController) getXrayOutboundTags(c *gin.Context) {
-	tags, err := a.telemtService.XrayOutboundTags()
-	if err != nil {
-		jsonMsg(c, I18nWeb(c, "pages.inbounds.toasts.obtain"), err)
-		return
-	}
-	jsonObj(c, tags, nil)
 }
 
 // getClientIps retrieves the IP addresses associated with a client by email.
