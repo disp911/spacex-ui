@@ -530,6 +530,7 @@
 "defaultLimitIP" = "Лимит IP по умолчанию"
 
 [pages.xray]
+"infoDesc" = "Сохраните изменения и перезапустите Xray для их применения."
 "title" = "Настройки Xray"
 "save" = "Сохранить"
 "restart" = "Перезапуск Xray"

@@ -530,6 +530,7 @@
 "defaultLimitIP" = "Default IP limit"
 
 [pages.xray]
+"infoDesc" = "Every change made here needs to be saved. Please restart Xray to apply changes."
 "title" = "Xray Configs"
 "save" = "Save"
 "restart" = "Restart Xray"
