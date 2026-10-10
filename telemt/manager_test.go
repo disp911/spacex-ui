@@ -34,6 +34,10 @@ var (
 )
 
 func runFakeTelemt(dir string) {
+	if len(os.Args) > 1 && os.Args[1] == "--version" {
+		fmt.Println("telemt 9.9.9")
+		return
+	}
 	events, err := os.OpenFile(filepath.Join(dir, "events"), os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0o600)
 	if err != nil {
 		os.Exit(2)
@@ -219,6 +223,59 @@ func TestManagerReloadsUserChangesAndRestartsOnSettingChanges(t *testing.T) {
 	}
 }
 
+func TestManagerStopHoldsProcessesDownUntilStart(t *testing.T) {
+	env := newFakeEnv(t)
+	if err := env.mgr.Sync([]Instance{testInstance(1, 8443, alice)}); err != nil {
+		t.Fatal(err)
+	}
+	eventually(t, "start", func() bool { return env.count("start") == 1 })
+	info := env.mgr.Process(1)
+	if !info.Running || info.PID <= 0 || info.StartedAt.IsZero() {
+		t.Fatalf("a running inbound must report its process: %+v", info)
+	}
+
+	env.mgr.Stop()
+	if env.mgr.Running(1) || !env.mgr.Stopped() {
+		t.Fatal("Stop must stop the process and stay stopped")
+	}
+	if info := env.mgr.Process(1); info.Running || info.PID != 0 {
+		t.Fatalf("a stopped inbound has no process: %+v", info)
+	}
+	if msg := env.mgr.LastError(1); msg != "" {
+		t.Fatalf("Stop is not an error, got %q", msg)
+	}
+
+	// Syncs while stopped, even with a changed inbound, start nothing.
+	if err := env.mgr.Sync([]Instance{testInstance(1, 8443, alice, bob)}); err != nil {
+		t.Fatal(err)
+	}
+	time.Sleep(100 * time.Millisecond)
+	if env.mgr.Running(1) || env.count("start") != 1 {
+		t.Fatal("a sync must not start a stopped manager's processes")
+	}
+
+	env.mgr.Start()
+	if err := env.mgr.Sync([]Instance{testInstance(1, 8443, alice, bob)}); err != nil {
+		t.Fatal(err)
+	}
+	eventually(t, "start after Start", func() bool { return env.count("start") == 2 && env.mgr.Running(1) })
+	cfg, _ := os.ReadFile(filepath.Join(env.dir, "inbound-1", "telemt.toml"))
+	if !strings.Contains(string(cfg), "bob") {
+		t.Fatalf("the change made while stopped must be applied on start:\n%s", cfg)
+	}
+}
+
+func TestManagerReadsVersionOfBinary(t *testing.T) {
+	env := newFakeEnv(t)
+	if v := env.mgr.Version(); v != "9.9.9" {
+		t.Fatalf("Version() = %q, want 9.9.9", v)
+	}
+	missing := newManager(filepath.Join(env.dir, "no-such-binary"), func(int) string { return env.dir })
+	if v := missing.Version(); v != "" {
+		t.Fatalf("a missing binary has no version, got %q", v)
+	}
+}
+
 func TestManagerResolvesRelativePaths(t *testing.T) {
 	env := newFakeEnv(t)
 	exe, err := os.Executable()
@@ -256,6 +313,9 @@ func TestManagerStopsInboundWithoutUsers(t *testing.T) {
 	}
 	if env.mgr.Running(1) {
 		t.Fatal("inbound without users must be stopped")
+	}
+	if msg := env.mgr.LastError(1); msg != "" {
+		t.Fatalf("a process stopped on purpose has no error, got %q", msg)
 	}
 }
 

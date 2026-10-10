@@ -36,6 +36,7 @@ import (
 	"github.com/shirou/gopsutil/v4/load"
 	"github.com/shirou/gopsutil/v4/mem"
 	"github.com/shirou/gopsutil/v4/net"
+	"github.com/shirou/gopsutil/v4/process"
 	"gorm.io/gorm"
 )
 
@@ -73,7 +74,13 @@ type Status struct {
 		State    ProcessState `json:"state"`
 		ErrorMsg string       `json:"errorMsg"`
 		Version  string       `json:"version"`
+		// Mem is the resident memory of the Xray process, in bytes.
+		Mem uint64 `json:"mem"`
 	} `json:"xray"`
+	// Telemt is the Telegram proxy behind the mtproto inbound; nil when
+	// there is no mtproto inbound.
+	Telemt *TelemtStatus `json:"telemt,omitempty"`
+
 	Uptime   uint64    `json:"uptime"`
 	Loads    []float64 `json:"loads"`
 	TcpCount int       `json:"tcpCount"`
@@ -107,6 +114,7 @@ type Release struct {
 type ServerService struct {
 	xrayService        XrayService
 	inboundService     InboundService
+	telemtService      TelemtService
 	cachedIPv4         string
 	cachedIPv6         string
 	noIPv6             bool
@@ -405,6 +413,11 @@ func (s *ServerService) GetStatus(lastStatus *Status) *Status {
 		status.Xray.ErrorMsg = s.xrayService.GetXrayResult()
 	}
 	status.Xray.Version = s.xrayService.GetXrayVersion()
+	if p != nil {
+		status.Xray.Mem = processMemory(p.GetPID())
+	}
+
+	status.Telemt = s.telemtService.Status()
 
 	// Application stats
 	var rtm runtime.MemStats
@@ -418,6 +431,23 @@ func (s *ServerService) GetStatus(lastStatus *Status) *Status {
 	}
 
 	return status
+}
+
+// processMemory returns the resident memory of the process with pid, in
+// bytes, or 0 when there is no such process.
+func processMemory(pid int) uint64 {
+	if pid <= 0 {
+		return 0
+	}
+	proc, err := process.NewProcess(int32(pid))
+	if err != nil {
+		return 0
+	}
+	info, err := proc.MemoryInfo()
+	if err != nil || info == nil {
+		return 0
+	}
+	return info.RSS
 }
 
 func (s *ServerService) AppendCpuSample(t time.Time, v float64) {

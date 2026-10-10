@@ -76,6 +76,9 @@ type process struct {
 	exitErr   error
 	logs      *logBuffer
 	startedAt time.Time
+	// stopped is set when the process was stopped on purpose, so its exit
+	// is not an error. The manager's lock guards it.
+	stopped bool
 }
 
 // startProcess launches binary with the config at configPath.
@@ -141,6 +144,7 @@ func (p *process) stop() {
 	if !p.running() {
 		return
 	}
+	p.stopped = true
 	if runtime.GOOS == "windows" {
 		_ = p.cmd.Process.Kill()
 	} else {

@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -96,6 +97,14 @@ func TestRealTelemt(t *testing.T) {
 	}
 	if traffic := mgr.CollectTraffic(context.Background()); len(traffic) != 1 || traffic[0].Tag != "inbound-18443" {
 		t.Fatalf("CollectTraffic = %+v", traffic)
+	}
+
+	// The dashboard shows the version and the running process.
+	if v := mgr.Version(); !regexp.MustCompile(`^\d+\.\d+\.\d+`).MatchString(v) {
+		t.Fatalf("Version() = %q", v)
+	}
+	if info := mgr.Process(1); !info.Running || info.PID <= 0 || info.StartedAt.IsZero() {
+		t.Fatalf("Process(1) = %+v", info)
 	}
 
 	// The control API answers the panel's token, refuses any other, and
@@ -212,6 +221,20 @@ func TestRealTelemt(t *testing.T) {
 	}
 	conn.Close()
 	t.Logf("telemt output with a WEB proxy:\n%s", dump())
+
+	// Stopping from the dashboard is not a failure, and Start brings the
+	// proxies back on the next sync.
+	mgr.Stop()
+	if mgr.Running(1) || mgr.Running(3) || mgr.LastError(1) != "" || mgr.LastError(3) != "" {
+		t.Fatalf("Stop must stop telemt without an error: %q %q", mgr.LastError(1), mgr.LastError(3))
+	}
+	mgr.Start()
+	if err := mgr.Sync([]Instance{inst, webbed}); err != nil {
+		t.Fatal(err)
+	}
+	if !mgr.Running(1) || !mgr.Running(3) {
+		t.Fatalf("telemt must run again after Start: %s\n%s", mgr.LastError(1), dump())
+	}
 }
 
 // checkWebDecoy asks the WEB proxy at c0ffee42 for a page without

@@ -199,6 +199,14 @@ func (p *process) IsRunning() bool {
 	return false
 }
 
+// GetPID returns the process ID of the running Xray process, or 0.
+func (p *process) GetPID() int {
+	if !p.IsRunning() {
+		return 0
+	}
+	return p.cmd.Process.Pid
+}
+
 // GetErr returns the last error encountered by the Xray process.
 func (p *process) GetErr() error {
 	return p.exitErr

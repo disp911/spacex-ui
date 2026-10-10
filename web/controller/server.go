@@ -26,6 +26,7 @@ type ServerController struct {
 	serverService  service.ServerService
 	settingService service.SettingService
 	panelService   service.PanelService
+	telemtService  service.TelemtService
 
 	lastStatus *service.Status
 
@@ -58,6 +59,8 @@ func (a *ServerController) initRouter(g *gin.RouterGroup) {
 
 	g.POST("/stopXrayService", a.stopXrayService)
 	g.POST("/restartXrayService", a.restartXrayService)
+	g.POST("/stopTelemtService", a.stopTelemtService)
+	g.POST("/restartTelemtService", a.restartTelemtService)
 	g.POST("/installXray/:version", a.installXray)
 	g.POST("/updatePanel", a.updatePanel)
 	g.POST("/updateGeofile", a.updateGeofile)
@@ -208,6 +211,24 @@ func (a *ServerController) restartXrayService(c *gin.Context) {
 		"Xray service has been restarted successfully",
 		"success",
 	)
+}
+
+// stopTelemtService stops the Telegram proxy until it is restarted.
+func (a *ServerController) stopTelemtService(c *gin.Context) {
+	if err := a.telemtService.StopTelemt(); err != nil {
+		jsonMsg(c, I18nWeb(c, "pages.index.telemtStopError"), err)
+		return
+	}
+	jsonMsg(c, I18nWeb(c, "pages.index.telemtStopSuccess"), nil)
+}
+
+// restartTelemtService restarts the Telegram proxy, also after a stop.
+func (a *ServerController) restartTelemtService(c *gin.Context) {
+	if err := a.telemtService.RestartTelemt(); err != nil {
+		jsonMsg(c, I18nWeb(c, "pages.index.telemtRestartError"), err)
+		return
+	}
+	jsonMsg(c, I18nWeb(c, "pages.index.telemtRestartSuccess"), nil)
 }
 
 // getLogs retrieves the application logs based on count, level, and syslog filters.

@@ -348,7 +348,7 @@ func (s *TelemtService) Sync() {
 	m := telemtManager()
 	if !m.Installed() {
 		if len(want) > 0 {
-			reportTelemtError(0, "telemt binary is missing; mtproto inbounds cannot run on this platform")
+			reportTelemtError(0, errTelemtMissing)
 		}
 		return
 	}
@@ -424,6 +424,111 @@ func (s *TelemtService) CollectTraffic() {
 	if clientsDisabled {
 		s.Sync()
 	}
+}
+
+// TelemtStatus is the state of the Telegram proxy shown on the dashboard.
+type TelemtStatus struct {
+	State    ProcessState `json:"state"`
+	ErrorMsg string       `json:"errorMsg"`
+	Version  string       `json:"version"`
+	// Online is the number of clients with a live connection.
+	Online int `json:"online"`
+	// Uptime is how long the process has been running, in seconds.
+	Uptime uint64 `json:"uptime"`
+	// Mem is the resident memory of the process, in bytes.
+	Mem uint64 `json:"mem"`
+}
+
+// errorTailLines is how many of the last output lines of a failed telemt
+// come with its error.
+const errorTailLines = 5
+
+const errTelemtMissing = "telemt binary is missing; mtproto inbounds cannot run on this platform"
+
+// mtprotoInbound returns the id and enable flag of the mtproto inbound, or
+// nil when there is none.
+func mtprotoInbound() (*model.Inbound, error) {
+	var inbounds []*model.Inbound
+	err := database.GetDB().Model(model.Inbound{}).Select("id, enable").
+		Where("protocol = ?", model.MTProto).Limit(1).Find(&inbounds).Error
+	if err != nil || len(inbounds) == 0 {
+		return nil, err
+	}
+	return inbounds[0], nil
+}
+
+// Status reports the telemt process of the mtproto inbound, or nil when
+// there is no mtproto inbound.
+func (s *TelemtService) Status() *TelemtStatus {
+	inbound, err := mtprotoInbound()
+	if err != nil || inbound == nil {
+		return nil
+	}
+	m := telemtManager()
+	status := &TelemtStatus{Version: m.Version()}
+	info := m.Process(inbound.Id)
+	switch {
+	case info.Running:
+		status.State = Running
+		status.Online = len(s.OnlineClients())
+		status.Uptime = uint64(time.Since(info.StartedAt).Seconds())
+		status.Mem = processMemory(info.PID)
+	case !m.Installed():
+		status.State = Error
+		status.ErrorMsg = errTelemtMissing
+	case m.Stopped():
+		status.State = Stop
+	default:
+		msg := m.LastError(inbound.Id)
+		if msg == "" {
+			status.State = Stop
+			break
+		}
+		status.State = Error
+		logs := m.Logs(inbound.Id)
+		lines := append(logs[max(len(logs)-errorTailLines, 0):], msg)
+		status.ErrorMsg = strings.Join(lines, "\n")
+	}
+	return status
+}
+
+// StopTelemt stops the Telegram proxy until RestartTelemt or a panel
+// restart; saving the mtproto inbound meanwhile does not start it.
+func (s *TelemtService) StopTelemt() error {
+	inbound, err := mtprotoInbound()
+	if err != nil {
+		return err
+	}
+	if inbound == nil {
+		return errors.New("there is no mtproto inbound")
+	}
+	telemtManager().Stop()
+	return nil
+}
+
+// RestartTelemt starts the Telegram proxy afresh, also after StopTelemt.
+func (s *TelemtService) RestartTelemt() error {
+	inbound, err := mtprotoInbound()
+	if err != nil {
+		return err
+	}
+	if inbound == nil {
+		return errors.New("there is no mtproto inbound")
+	}
+	if !inbound.Enable {
+		return errors.New("the mtproto inbound is turned off")
+	}
+	m := telemtManager()
+	if !m.Installed() {
+		return errors.New(errTelemtMissing)
+	}
+	m.Stop()
+	m.Start()
+	s.Sync()
+	if msg := m.LastError(inbound.Id); msg != "" {
+		return errors.New(msg)
+	}
+	return nil
 }
 
 // OnlineClients returns the emails of clients with a live telemt connection.

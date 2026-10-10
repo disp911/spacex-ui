@@ -3,6 +3,7 @@ package service
 import (
 	"encoding/json"
 	"errors"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -187,5 +188,60 @@ func TestCheckSingleMTProtoInbound(t *testing.T) {
 	}
 	if err := checkSingleMTProtoInbound(mtproto.Id); err != nil {
 		t.Fatalf("the mtproto inbound itself must stay editable: %v", err)
+	}
+}
+
+func TestTelemtStatusAndControls(t *testing.T) {
+	dir := t.TempDir()
+	if err := database.InitDB(filepath.Join(dir, "x-ui.db")); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = database.CloseDB() })
+	t.Cleanup(telemtManager().Start)
+	db := database.GetDB()
+	s := &TelemtService{}
+
+	if st := s.Status(); st != nil {
+		t.Fatalf("without an mtproto inbound there is no status, got %+v", st)
+	}
+	if err := s.StopTelemt(); err == nil {
+		t.Fatal("stopping without an mtproto inbound must fail")
+	}
+	if err := s.RestartTelemt(); err == nil {
+		t.Fatal("restarting without an mtproto inbound must fail")
+	}
+
+	inbound := &model.Inbound{Tag: "mtproto-1", Port: 1002, Protocol: model.MTProto}
+	if err := db.Create(inbound).Error; err != nil {
+		t.Fatal(err)
+	}
+	// Tests run without the telemt binary.
+	st := s.Status()
+	if st == nil || st.State != Error || st.ErrorMsg != errTelemtMissing {
+		t.Fatalf("a missing binary must show as an error, got %+v", st)
+	}
+	if err := s.RestartTelemt(); err == nil || !strings.Contains(err.Error(), "turned off") {
+		t.Fatalf("a disabled mtproto inbound must not restart, got %v", err)
+	}
+	if err := db.Model(inbound).Update("enable", true).Error; err != nil {
+		t.Fatal(err)
+	}
+	if err := s.RestartTelemt(); err == nil || err.Error() != errTelemtMissing {
+		t.Fatalf("restarting without the binary must say so, got %v", err)
+	}
+	if err := s.StopTelemt(); err != nil {
+		t.Fatal(err)
+	}
+	if !telemtManager().Stopped() {
+		t.Fatal("StopTelemt must hold the proxy down")
+	}
+}
+
+func TestProcessMemory(t *testing.T) {
+	if processMemory(0) != 0 || processMemory(-1) != 0 {
+		t.Fatal("no process has no memory")
+	}
+	if processMemory(os.Getpid()) == 0 {
+		t.Fatal("the test process must report its memory")
 	}
 }
