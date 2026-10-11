@@ -82,6 +82,29 @@ func TestWebProxyFrontSendsTheWebSubtreeToTelemt(t *testing.T) {
 	}
 }
 
+func TestWebClientIPBelievesCloudflareOnly(t *testing.T) {
+	for _, c := range []struct{ remote, header, want string }{
+		{"198.51.100.7:5555", "", "198.51.100.7"},
+		// Anyone else naming a client is ignored.
+		{"198.51.100.7:5555", "203.0.113.9", "198.51.100.7"},
+		{"162.158.1.2:443", "203.0.113.9", "203.0.113.9"},
+		{"[2606:4700::1]:443", "2001:db8::5", "2001:db8::5"},
+		{"[::ffff:104.16.0.1]:443", " 203.0.113.9 ", "203.0.113.9"},
+		// Cloudflare without a usable header stays as it is.
+		{"162.158.1.2:443", "", "162.158.1.2"},
+		{"162.158.1.2:443", "not an ip", "162.158.1.2"},
+	} {
+		req := httptest.NewRequest(http.MethodGet, "https://proxy.example.com/c0ffee/", nil)
+		req.RemoteAddr = c.remote
+		if c.header != "" {
+			req.Header.Set("CF-Connecting-IP", c.header)
+		}
+		if got := webClientIP(req); got != c.want {
+			t.Errorf("%s with %q: got %q, want %q", c.remote, c.header, got, c.want)
+		}
+	}
+}
+
 func TestWebProxyFrontLeavesEverythingElseToThePanel(t *testing.T) {
 	telemt := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		t.Errorf("telemt must not get %s", r.URL.Path)

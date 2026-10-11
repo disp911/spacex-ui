@@ -5,6 +5,7 @@ import (
 	"net"
 	"net/http"
 	"net/http/httputil"
+	"net/netip"
 	"strings"
 	"time"
 )
@@ -33,6 +34,49 @@ func webProxyBase(path string) (string, bool) {
 		return "", false
 	}
 	return base, true
+}
+
+// cloudflareNets are the addresses Cloudflare reaches origins from, as
+// published at https://www.cloudflare.com/ips/.
+var cloudflareNets = func() []netip.Prefix {
+	var nets []netip.Prefix
+	for _, s := range []string{
+		"173.245.48.0/20", "103.21.244.0/22", "103.22.200.0/22", "103.31.4.0/22",
+		"141.101.64.0/18", "108.162.192.0/18", "190.93.240.0/20", "188.114.96.0/20",
+		"197.234.240.0/22", "198.41.128.0/17", "162.158.0.0/15", "104.16.0.0/13",
+		"104.24.0.0/14", "172.64.0.0/13", "131.0.72.0/22",
+		"2400:cb00::/32", "2606:4700::/32", "2803:f800::/32", "2405:b500::/32",
+		"2405:8100::/32", "2a06:98c0::/29", "2c0f:f248::/32",
+	} {
+		nets = append(nets, netip.MustParsePrefix(s))
+	}
+	return nets
+}()
+
+// webClientIP returns the address of the client behind a WEB proxy request.
+// Behind Cloudflare's proxy the connection comes from Cloudflare, which names
+// the client in CF-Connecting-IP; the header is believed only from
+// Cloudflare's own addresses, so nobody else can choose the address telemt
+// counts.
+func webClientIP(r *http.Request) string {
+	host, _, err := net.SplitHostPort(r.RemoteAddr)
+	if err != nil {
+		return ""
+	}
+	peer, err := netip.ParseAddr(host)
+	if err != nil {
+		return host
+	}
+	peer = peer.Unmap()
+	for _, n := range cloudflareNets {
+		if n.Contains(peer) {
+			if client, err := netip.ParseAddr(strings.TrimSpace(r.Header.Get("CF-Connecting-IP"))); err == nil {
+				return client.Unmap().String()
+			}
+			break
+		}
+	}
+	return host
 }
 
 // webProxyFront is the panel's HTTPS handler. A request under the secret
@@ -64,7 +108,7 @@ func (f webProxyFront) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			// telemt matches the public host name and trusts exactly one
 			// client address, which replaces whatever the client sent.
 			pr.Out.Host = pr.In.Host
-			if ip, _, err := net.SplitHostPort(pr.In.RemoteAddr); err == nil {
+			if ip := webClientIP(pr.In); ip != "" {
 				pr.Out.Header.Set("X-Forwarded-For", ip)
 			}
 		},
