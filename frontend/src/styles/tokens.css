@@ -275,12 +275,11 @@
   --lift: 0 14px 34px rgba(16, 20, 28, .18);
 }
 
-/* Phones: 44px touch targets, 16px inputs so iOS does not zoom. */
+/* Phones: 44px touch targets, 16px inputs so iOS does not zoom; control text stays 13px as on desktop. */
 @media (max-width: 767px) {
   :root {
     --ctl-h: 44px;
     --ctl-r: var(--r-12);
-    --ctl-fs: var(--fs-14);
     --input-fs: var(--fs-16);
     --menu-item-h: 44px;
     --sidebar-item-h: 44px;
