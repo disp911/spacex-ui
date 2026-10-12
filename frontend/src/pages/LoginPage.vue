@@ -114,7 +114,7 @@ onBeforeUnmount(() => clearInterval(timer))
     <main class="login__main">
       <form class="login__card" novalidate @submit.prevent="submit">
         <h1 class="login__title">{{ t('auth.title') }}</h1>
-        <i18n-t keypath="auth.server" tag="p" class="login__server">
+        <i18n-t keypath="common.server" tag="p" class="login__server">
           <template #host><span class="login__host">{{ host }}</span></template>
         </i18n-t>
 

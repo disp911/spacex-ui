@@ -2,6 +2,7 @@
 
 export interface MessageSchema {
   "common": {
+    "server": string
     "language": string
     "lightTheme": string
     "darkTheme": string
@@ -22,7 +23,6 @@ export interface MessageSchema {
   }
   "auth": {
     "title": string
-    "server": string
     "username": string
     "password": string
     "code": string
@@ -36,13 +36,78 @@ export interface MessageSchema {
     "noConnection": string
     "ping": string
   }
+  "dashboard": {
+    "httpTitle": string
+    "httpText": string
+    "telegram": string
+    "running": string
+    "stopped": string
+    "error": string
+    "unknown": string
+    "showError": string
+    "xrayError": string
+    "telegramError": string
+    "online": string
+    "onlineShort": string
+    "uptime": string
+    "uptimeShort": string
+    "memory": string
+    "restart": string
+    "stop": string
+    "xrayRestarted": string
+    "xrayStopped": string
+    "telegramRestarted": string
+    "telegramStopped": string
+    "actionFailed": string
+    "xrayLog": string
+    "xrayVersion": string
+    "resources": string
+    "cpu": string
+    "cores": string
+    "ram": string
+    "swap": string
+    "disk": string
+    "usedOf": string
+    "cpuLoad": string
+    "range": string
+    "range2m": string
+    "range30m": string
+    "range1h": string
+    "range2h": string
+    "range3h": string
+    "range5h": string
+    "peak": string
+    "network": string
+    "sent": string
+    "received": string
+    "sentShort": string
+    "receivedShort": string
+    "upload": string
+    "download": string
+    "ip": string
+    "showIp": string
+    "hideIp": string
+    "manage": string
+    "panelLog": string
+    "config": string
+    "backup": string
+    "panelVersion": string
+    "update": string
+    "system": string
+    "osUptime": string
+    "load": string
+    "loadShort": string
+    "loadHint": string
+  }
   "units": {
+    "value": string
     "byte": string
     "kilobyte": string
     "megabyte": string
     "gigabyte": string
     "terabyte": string
     "petabyte": string
+    "gigahertz": string
     "perSecond": string
     "days": string
     "hours": string

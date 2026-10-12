@@ -2,6 +2,7 @@
 import { watchEffect } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
+import { XToaster } from './kit'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -14,4 +15,5 @@ watchEffect(() => {
 
 <template>
   <RouterView />
+  <XToaster />
 </template>

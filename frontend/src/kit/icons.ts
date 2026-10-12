@@ -39,6 +39,14 @@ export const icons = {
   dashboard: [[1.8, 1.8], [9.1, 1.8], [1.8, 9.1], [9.1, 9.1]].map(([x, y]) => `<rect x="${x}" y="${y}" width="5.1" height="5.1" rx="1.4"/>`).join(''),
   xray: path('M8 1.8l5.4 3.1v6.2L8 14.2l-5.4-3.1V4.9z') + circle(8, 8, 2),
   sliders: path('M2 4.6h12M2 11.4h12') + '<circle cx="10.2" cy="4.6" r="2.1" style="fill:var(--acc-soft)"/><circle cx="5.8" cy="11.4" r="2.1" style="fill:var(--acc-soft)"/>',
+  doc: path('M3.4 2.4h9.2v11.2H3.4z') + path('M5.8 5.6h4.4M5.8 8h4.4M5.8 10.4h2.6'),
+  download: path('M8 2.4v7.2M5.2 7l2.8 2.8L10.8 7M2.8 12.4h10.4'),
+  code: path('M6 3.4 2.8 8 6 12.6M10 3.4 13.2 8 10 12.6'),
+  database: '<ellipse cx="8" cy="4" rx="5" ry="2"/>' + path('M3 4v8c0 1.1 2.2 2 5 2s5-.9 5-2V4M3 8c0 1.1 2.2 2 5 2s5-.9 5-2'),
+  stop: '<rect x="4.2" y="4.2" width="7.6" height="7.6" rx="1.6"/>',
+  arrowUp: path('M8 13.4V3M8 2.6l4.2 4.2M8 2.6 3.8 6.8'),
+  arrowDown: path('M8 2.6V13M8 13.4l4.2-4.2M8 13.4 3.8 9.2'),
+  alert: circle(8, 8, 6.9) + path('M8 4.6v4.1') + dot(8, 11.2, 0.95),
   swap: path('M2.6 5.4h10.4M10.4 2.8 13 5.4 10.4 8M13.4 10.6H3M5.6 8 3 10.6l2.6 2.6'),
 } as const
 

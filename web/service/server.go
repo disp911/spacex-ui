@@ -76,6 +76,10 @@ type Status struct {
 		Version  string       `json:"version"`
 		// Mem is the resident memory of the Xray process, in bytes.
 		Mem uint64 `json:"mem"`
+		// Uptime is how long the running process has been up, in seconds.
+		Uptime uint64 `json:"uptime"`
+		// Online is the number of clients with a live connection.
+		Online int `json:"online"`
 	} `json:"xray"`
 	// Telemt is the Telegram proxy behind the mtproto inbound; nil when
 	// there is no mtproto inbound.
@@ -415,6 +419,10 @@ func (s *ServerService) GetStatus(lastStatus *Status) *Status {
 	status.Xray.Version = s.xrayService.GetXrayVersion()
 	if p != nil {
 		status.Xray.Mem = processMemory(p.GetPID())
+		if status.Xray.State == Running {
+			status.Xray.Uptime = p.GetUptime()
+			status.Xray.Online = len(p.GetOnlineClients())
+		}
 	}
 
 	status.Telemt = s.telemtService.Status()

@@ -14,20 +14,30 @@ export function formatNumber(value: number, fractionDigits = 0) {
   return new Intl.NumberFormat(locale(), { maximumFractionDigits: fractionDigits }).format(value)
 }
 
-/** Bytes in binary steps: 1536 → «1,5 КБ». Two decimals below 10, one above. */
-export function formatBytes(bytes: number) {
+/** Number and unit apart, for layouts that style them differently: { n: '10,36', unit: 'ГБ' }. */
+export function bytesParts(bytes: number) {
   let value = Math.max(0, bytes)
   let unit = 0
   while (value >= 1024 && unit < byteUnits.length - 1) {
     value /= 1024
     unit++
   }
+  // Binary steps; two decimals below 10, one above.
   const digits = unit === 0 ? 0 : value < 10 ? 2 : 1
-  return t(byteUnits[unit]!, { n: formatNumber(value, digits) })
+  return { n: formatNumber(value, digits), unit: t(byteUnits[unit]!, {}) }
+}
+
+/** 1536 → «1,5 КБ». */
+export function formatBytes(bytes: number) {
+  return t('units.value', bytesParts(bytes))
 }
 
 export function formatSpeed(bytesPerSecond: number) {
   return t('units.perSecond', { value: formatBytes(bytesPerSecond) })
+}
+
+export function formatGigahertz(mhz: number) {
+  return t('units.value', { n: formatNumber(mhz / 1000, 2), unit: t('units.gigahertz', {}) })
 }
 
 export function formatMilliseconds(ms: number) {

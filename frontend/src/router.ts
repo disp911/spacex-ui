@@ -31,7 +31,7 @@ const routes: RouteRecordRaw[] = [
     path: '/',
     component: AppLayout,
     children: [
-      { path: '', name: 'dashboard', component: DraftPage, meta: { titleKey: 'nav.dashboard' } },
+      { path: '', name: 'dashboard', component: () => import('./pages/DashboardPage.vue'), meta: { titleKey: 'nav.dashboard' } },
       { path: 'inbounds', name: 'inbounds', component: DraftPage, meta: { titleKey: 'nav.inbounds' } },
       { path: 'xray', name: 'xray', component: DraftPage, meta: { titleKey: 'nav.xray' } },
       { path: 'settings', name: 'settings', component: DraftPage, meta: { titleKey: 'nav.settings' } },
