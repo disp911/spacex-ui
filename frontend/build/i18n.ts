@@ -24,7 +24,7 @@ export const localeFiles = {
 export type Locale = keyof typeof localeFiles
 
 /** Top-level tables the v3 frontend owns. */
-export const namespaces = ['common', 'nav', 'units', 'kit'] as const
+export const namespaces = ['common', 'nav', 'auth', 'units', 'kit'] as const
 
 type Tree = { [key: string]: string | Tree }
 

@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { panelUrl } from '../config'
 import { XIcon } from '../kit'
 import { sections } from '../router'
+import { useSession } from '../stores/session'
 
 defineEmits<{ navigate: [] }>()
 const { t } = useI18n()
+const session = useSession()
 </script>
 
 <template>
@@ -22,10 +23,10 @@ const { t } = useI18n()
       <span>{{ t(s.titleKey) }}</span>
     </RouterLink>
   </nav>
-  <a class="nav__item nav__item--logout" :href="panelUrl('logout')">
+  <button type="button" class="nav__item nav__item--logout" @click="session.logout()">
     <XIcon name="logout" :size="16" :stroke="1.4" />
     <span>{{ t('nav.logout') }}</span>
-  </a>
+  </button>
 </template>
 
 <style scoped>
@@ -67,8 +68,13 @@ const { t } = useI18n()
 }
 
 .nav__item--logout {
+  width: 100%;
   margin-top: auto;
+  border: 0;
+  background: transparent;
   color: var(--dim);
+  text-align: left;
+  cursor: pointer;
 }
 
 .nav__item--logout:hover {

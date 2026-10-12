@@ -284,7 +284,7 @@ func (s *Server) initRouter() (*gin.Engine, error) {
 	s.panel = controller.NewXUIController(g)
 	s.api = controller.NewAPIController(g, s.customGeoService)
 
-	// The v3 frontend lives next to the old pages while screens move to it.
+	// The v3 frontend, served at v3/ while it is being built.
 	var app fs.FS = os.DirFS("web/app")
 	if !config.IsDebug() {
 		app, _ = fs.Sub(appFS, "app")

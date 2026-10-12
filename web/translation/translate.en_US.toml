@@ -737,8 +737,7 @@
 "notFound" = "Page not found"
 "notFoundHint" = "The address may be mistyped, or the page was removed."
 "toDashboard" = "Go to the dashboard"
-"screenMoving" = "This screen is still moving to the new interface."
-"openOldScreen" = "Open in the old interface"
+"screenDraft" = "This screen is under construction."
 
 [nav]
 "main" = "Main menu"
@@ -749,6 +748,9 @@
 "logout" = "Log out"
 "openMenu" = "Open menu"
 "closeMenu" = "Close menu"
+
+[auth]
+"title" = "Log in"
 
 [kit]
 "clear" = "Clear"

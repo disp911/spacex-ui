@@ -2,7 +2,7 @@
 // serves index.html as is, so development falls back to the defaults.
 
 export interface AppConfig {
-  /** Panel base path, e.g. "/" or "/secret/". */
+  /** Panel base path, e.g. "/" or "/secret/"; the server endpoints live under it. */
   base: string
   /** Where this frontend is served, e.g. "/secret/v3/". */
   mount: string
@@ -23,7 +23,7 @@ function read(): AppConfig {
 
 export const config = read()
 
-/** URL of a panel path outside this frontend: the API, old pages, logout. */
-export function panelUrl(path: string) {
+/** URL of a server endpoint, e.g. serverUrl('panel/api/server/status'). */
+export function serverUrl(path: string) {
   return config.base + path.replace(/^\//, '')
 }

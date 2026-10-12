@@ -5,8 +5,7 @@ export interface MessageSchema {
     "notFound": string
     "notFoundHint": string
     "toDashboard": string
-    "screenMoving": string
-    "openOldScreen": string
+    "screenDraft": string
   }
   "nav": {
     "main": string
@@ -17,6 +16,9 @@ export interface MessageSchema {
     "logout": string
     "openMenu": string
     "closeMenu": string
+  }
+  "auth": {
+    "title": string
   }
   "units": {
     "byte": string
