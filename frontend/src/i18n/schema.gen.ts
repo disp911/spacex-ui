@@ -98,6 +98,14 @@ export interface MessageSchema {
     "load": string
     "loadShort": string
     "loadHint": string
+    "logLines": string
+    "logRows": string
+    "logLevel": string
+    "logRefresh": string
+    "logDownload": string
+    "logEmpty": string
+    "logEmptyHint": string
+    "logFailed": string
   }
   "units": {
     "value": string

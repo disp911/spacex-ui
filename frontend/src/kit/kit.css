@@ -78,7 +78,7 @@
   gap: 10px;
   width: 100%;
   min-height: var(--menu-item-h);
-  padding: 0 11px;
+  padding: 0 10px;
   border: 0;
   border-radius: var(--r-8);
   background: transparent;
@@ -123,7 +123,7 @@
 }
 
 .x-popup-empty {
-  padding: 10px 11px;
+  padding: 10px;
   color: var(--faint);
   font-weight: 400;
 }

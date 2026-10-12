@@ -16,6 +16,8 @@ export interface MenuItem {
   hint?: string
   /** Makes the item a choice: a check marks the chosen one. */
   checked?: boolean
+  /** Colour of a small dot before the label, e.g. a log level. */
+  dot?: string
 }
 
 /**
@@ -24,13 +26,23 @@ export interface MenuItem {
  *     <XButton v-bind="props" variant="ghost" icon="dots" label="More" />
  *   </XMenu>
  */
-const props = withDefaults(defineProps<{ items: MenuItem[]; placement?: Placement; title?: string }>(), { placement: 'bottom-end' })
+const props = withDefaults(
+  defineProps<{
+    items: MenuItem[]
+    placement?: Placement
+    title?: string
+    /** On phones opens as a bottom sheet over a scrim: filters in windows. */
+    sheet?: boolean
+  }>(),
+  { placement: 'bottom-end' },
+)
 const emit = defineEmits<{ select: [key: string] }>()
 
 const id = useId()
 const anchor = ref<HTMLElement | null>(null)
 const menu = ref<HTMLElement | null>(null)
 const open = ref(false)
+const asSheet = ref(false)
 const { style } = useFloating(anchor, menu, open, { placement: props.placement, onDismiss: () => close(!!menu.value?.contains(document.activeElement)) })
 
 function enabledItems() {
@@ -43,6 +55,7 @@ function focusItem(index: number) {
 }
 
 function show(first: 'first' | 'last' | 'none') {
+  asSheet.value = props.sheet && matchMedia('(max-width: 767px)').matches
   open.value = true
   if (first !== 'none') nextTick(() => focusItem(first === 'first' ? 0 : -1))
 }
@@ -99,15 +112,18 @@ function choose(item: MenuItem) {
     }"
   />
   <Teleport to="body">
-    <Transition name="x-popup">
+    <Transition name="x-menu-scrim">
+      <div v-if="open && asSheet" class="x-menu-scrim" aria-hidden="true" />
+    </Transition>
+    <Transition :name="asSheet ? 'x-menu-sheet' : 'x-popup'">
       <div
         v-if="open"
         :id="`${id}-menu`"
         ref="menu"
         role="menu"
         :aria-label="title"
-        class="x-popup x-menu"
-        :style="style"
+        :class="['x-popup', 'x-menu', { 'x-menu--sheet': asSheet }]"
+        :style="asSheet ? undefined : style"
         @keydown="onMenuKeydown"
       >
         <div v-if="title" class="x-menu__title" aria-hidden="true">{{ title }}</div>
@@ -123,6 +139,7 @@ function choose(item: MenuItem) {
             @click="choose(item)"
           >
             <XIcon v-if="item.icon" :name="item.icon" :size="14" :stroke="1.4" />
+            <span v-if="item.dot" class="x-menu__dot" :style="{ background: item.dot }" />
             <span class="x-menu__label">{{ item.label }}</span>
             <span v-if="item.hint" class="x-menu__hint">{{ item.hint }}</span>
             <XIcon v-if="item.checked !== undefined" name="check" :size="13" :stroke="1.8" :class="['x-menu__check', { 'is-on': item.checked }]" />
@@ -134,12 +151,74 @@ function choose(item: MenuItem) {
 </template>
 
 <style scoped>
+.x-menu--sheet {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  max-height: calc(100% - 48px);
+  padding: 8px 12px calc(16px + env(safe-area-inset-bottom));
+  border-width: 1px 0 0;
+  border-radius: var(--r-22) var(--r-22) 0 0;
+  box-shadow: var(--shadow-sheet);
+}
+
+.x-menu--sheet::before {
+  content: '';
+  flex: none;
+  align-self: center;
+  width: 40px;
+  height: 4px;
+  margin-bottom: 8px;
+  border-radius: var(--r-pill);
+  background: var(--track);
+}
+
+.x-menu--sheet .x-popup-item {
+  border-radius: var(--r-12);
+}
+
+.x-menu-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  background: var(--scrim);
+  backdrop-filter: blur(3px) saturate(.92);
+}
+
+.x-menu-scrim-enter-active,
+.x-menu-scrim-leave-active {
+  transition: opacity var(--t-med);
+}
+
+.x-menu-scrim-enter-from,
+.x-menu-scrim-leave-to {
+  opacity: 0;
+}
+
+.x-menu-sheet-enter-active,
+.x-menu-sheet-leave-active {
+  transition: transform var(--t-med) var(--ease);
+}
+
+.x-menu-sheet-enter-from,
+.x-menu-sheet-leave-to {
+  transform: translateY(100%);
+}
+
 .x-menu__title {
   padding: 8px 10px 6px;
   color: var(--dim);
   font: 500 var(--fs-10) / 1 var(--font-mono);
   letter-spacing: .09em;
   text-transform: uppercase;
+}
+
+.x-menu__dot {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
 }
 
 .x-menu__label {

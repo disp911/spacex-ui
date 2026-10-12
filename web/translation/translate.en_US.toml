@@ -830,6 +830,14 @@
 "load" = "Load 1 / 5 / 15 min"
 "loadShort" = "Load 1 / 5 / 15"
 "loadHint" = "Average system load over the last 1, 5 and 15 minutes"
+"logLines" = "Last {n} lines"
+"logRows" = "Lines"
+"logLevel" = "Level"
+"logRefresh" = "Refresh"
+"logDownload" = "Download"
+"logEmpty" = "No entries"
+"logEmptyHint" = "The log is empty for the chosen level and depth"
+"logFailed" = "Couldn't load the log: {error}"
 
 [kit]
 "clear" = "Clear"

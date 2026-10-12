@@ -7,9 +7,13 @@ import XButton from './XButton.vue'
 const props = withDefaults(
   defineProps<{
     title: string
-    size?: 'sm' | 'md' | 'lg'
+    size?: 'sm' | 'md' | 'lg' | 'xl'
     /** Close on Escape and on a click outside. Off while a form is saving. */
     dismissible?: boolean
+    /** The body draws its own sections edge to edge: no padding, no gap. */
+    flush?: boolean
+    /** On phones fills the screen instead of rising as a sheet: logs, editors. */
+    full?: boolean
   }>(),
   { size: 'md', dismissible: true },
 )
@@ -70,21 +74,24 @@ onBeforeUnmount(() => {
 <template>
   <Teleport to="body">
     <Transition name="x-modal">
-      <div v-if="open" class="x-modal" @keydown="onKeydown" @click.self="close">
+      <div v-if="open" :class="['x-modal', { 'x-modal--full': full }]" @keydown="onKeydown" @click.self="close">
         <div
           ref="dialog"
           role="dialog"
           aria-modal="true"
           :aria-labelledby="`${id}-title`"
           tabindex="-1"
-          :class="['x-modal__dialog', `x-modal__dialog--${size}`]"
+          :class="['x-modal__dialog', `x-modal__dialog--${size}`, { 'x-modal__dialog--full': full }]"
         >
-          <header class="x-modal__head">
-            <h2 :id="`${id}-title`" class="x-modal__title">{{ title }}</h2>
+          <header :class="['x-modal__head', { 'x-modal__head--sub': $slots.subtitle }]">
+            <div class="x-modal__heading">
+              <h2 :id="`${id}-title`" class="x-modal__title">{{ title }}</h2>
+              <p v-if="$slots.subtitle" class="x-modal__subtitle"><slot name="subtitle" /></p>
+            </div>
             <slot name="head" />
             <XButton variant="ghost" size="sm" icon="close" :label="t('kit.close')" :disabled="!dismissible" @click="close" />
           </header>
-          <div class="x-modal__body"><slot /></div>
+          <div :class="['x-modal__body', { 'x-modal__body--flush': flush }]"><slot /></div>
           <footer v-if="$slots.footer" class="x-modal__foot"><slot name="footer" /></footer>
         </div>
       </div>
@@ -121,6 +128,7 @@ onBeforeUnmount(() => {
 .x-modal__dialog--sm { max-width: 440px; }
 .x-modal__dialog--md { max-width: 560px; }
 .x-modal__dialog--lg { max-width: 720px; }
+.x-modal__dialog--xl { max-width: 800px; }
 
 .x-modal__head {
   display: flex;
@@ -130,9 +138,16 @@ onBeforeUnmount(() => {
   border-bottom: 1px solid var(--div);
 }
 
-.x-modal__title {
+.x-modal__head--sub {
+  padding-block: 14px;
+}
+
+.x-modal__heading {
   flex: 1;
   min-width: 0;
+}
+
+.x-modal__title {
   margin: 0;
   overflow: hidden;
   color: var(--fg);
@@ -142,11 +157,25 @@ onBeforeUnmount(() => {
   text-overflow: ellipsis;
 }
 
+.x-modal__subtitle {
+  margin: 2px 0 0;
+  overflow: hidden;
+  color: var(--dim);
+  font: 400 var(--fs-12) / var(--lh-tight) var(--font-sans);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
 .x-modal__body {
   display: flex;
   flex-direction: column;
   gap: 14px;
   padding: 16px;
+}
+
+.x-modal__body--flush {
+  gap: 0;
+  padding: 0;
 }
 
 .x-modal__foot {
@@ -197,6 +226,30 @@ onBeforeUnmount(() => {
   .x-modal__body {
     overflow-y: auto;
     overscroll-behavior: contain;
+  }
+
+  .x-modal--full {
+    padding: 0;
+  }
+
+  .x-modal__dialog--full {
+    height: 100%;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .x-modal__dialog--full .x-modal__head {
+    padding-top: calc(12px + env(safe-area-inset-top));
+  }
+
+  .x-modal__dialog--full .x-modal__head--sub {
+    padding-top: calc(14px + env(safe-area-inset-top));
+  }
+
+  .x-modal__dialog--full .x-modal__body {
+    flex: 1;
+    min-height: 0;
   }
 
   .x-modal__foot {

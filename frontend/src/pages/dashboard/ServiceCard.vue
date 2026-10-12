@@ -7,7 +7,7 @@ import type { ServiceStatus } from '../../stores/server'
 import DashCard from './DashCard.vue'
 import DashStat from './DashStat.vue'
 
-/** Xray or the Telegram proxy: state, figures, restart and stop. */
+/** Xray or the Telegram proxy: state, figures, restart and stop. The error popover links to the panel log. */
 const props = defineProps<{
   title: string
   /** Undefined until the first status arrives. */
@@ -55,10 +55,16 @@ const dash = '—'
             <XIcon v-if="errorLines.length" name="caret" :size="14" :stroke="1.6" />
           </component>
           </template>
-          <template #content>
+          <template #content="{ close }">
             <div class="service__error-head">
               <span>{{ errorTitle }}</span>
-              <slot name="error-actions" />
+              <XButton
+                variant="ghost"
+                size="sm"
+                icon="doc"
+                :label="t('dashboard.panelLog')"
+                @click="close(); $emit('log')"
+              />
             </div>
             <div class="service__error">
               <div v-for="(line, i) in errorLines" :key="i">{{ line }}</div>

@@ -34,7 +34,7 @@ const waves = [
   background: radial-gradient(120% 90% at 50% 118%, var(--glow) 0%, transparent 62%);
 }
 
-:global(:root[data-theme='light']) .backdrop {
+:root[data-theme='light'] .backdrop {
   --glow: rgba(10, 122, 89, .14);
   --wave-3: #0A7A59;
   --wave-1-opacity: .34;

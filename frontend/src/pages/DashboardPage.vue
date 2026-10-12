@@ -10,6 +10,7 @@ import { useServerStatus } from '../stores/server'
 import DashCard from './dashboard/DashCard.vue'
 import DashLink from './dashboard/DashLink.vue'
 import DashStat from './dashboard/DashStat.vue'
+import PanelLogModal from './dashboard/PanelLogModal.vue'
 import ResourcesCard from './dashboard/ResourcesCard.vue'
 import ServiceCard from './dashboard/ServiceCard.vue'
 
@@ -79,6 +80,10 @@ function write(key: string, value: string, storage: Storage) {
 
 const ip = (v?: string) => (!v || v === 'N/A' ? '—' : v)
 
+// --- Windows ----------------------------------------------------------------
+
+const panelLogOpen = ref(false)
+
 // --- Panel version ----------------------------------------------------------
 
 const update = ref<{ latestVersion: string; updateAvailable: boolean } | null>(null)
@@ -122,6 +127,7 @@ const dash = '—'
           :busy="busy.xray"
           @restart="act('xray', 'restart')"
           @stop="act('xray', 'stop')"
+          @log="panelLogOpen = true"
         >
           <DashLink icon="doc" :label="t('dashboard.xrayLog')" />
           <DashLink icon="download" :label="t('dashboard.xrayVersion')" />
@@ -136,11 +142,12 @@ const dash = '—'
           :busy="busy.telegram"
           @restart="act('telegram', 'restart')"
           @stop="act('telegram', 'stop')"
+          @log="panelLogOpen = true"
         />
 
         <DashCard :title="t('dashboard.manage')" class="grow area-manage">
           <div class="links">
-            <DashLink icon="doc" :label="t('dashboard.panelLog')" />
+            <DashLink icon="doc" :label="t('dashboard.panelLog')" @click="panelLogOpen = true" />
             <DashLink icon="code" :label="t('dashboard.config')" />
             <DashLink icon="database" :label="t('dashboard.backup')" />
           </div>
@@ -229,6 +236,8 @@ const dash = '—'
         </DashCard>
       </div>
     </div>
+
+    <PanelLogModal v-model:open="panelLogOpen" />
   </AppPage>
 </template>
 
