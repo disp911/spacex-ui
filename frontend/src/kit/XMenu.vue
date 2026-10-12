@@ -156,8 +156,9 @@ function choose(item: MenuItem) {
   right: 0;
   bottom: 0;
   left: 0;
+  gap: 2px;
   max-height: calc(100% - 48px);
-  padding: 8px 12px calc(16px + env(safe-area-inset-bottom));
+  padding: 10px 12px calc(16px + env(safe-area-inset-bottom));
   border-width: 1px 0 0;
   border-radius: var(--r-22) var(--r-22) 0 0;
   box-shadow: var(--shadow-sheet);
@@ -167,15 +168,32 @@ function choose(item: MenuItem) {
   content: '';
   flex: none;
   align-self: center;
-  width: 40px;
+  width: 38px;
   height: 4px;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   border-radius: var(--r-pill);
   background: var(--track);
 }
 
+.x-menu--sheet .x-menu__title {
+  margin-bottom: 6px;
+  padding: 0 6px;
+  font-size: var(--fs-11);
+  letter-spacing: .07em;
+}
+
 .x-menu--sheet .x-popup-item {
+  padding: 0 12px;
   border-radius: var(--r-12);
+}
+
+.x-menu--sheet .x-popup-item.is-selected {
+  background: var(--acc-soft);
+}
+
+.x-menu--sheet .x-menu__check {
+  width: 14px;
+  height: 14px;
 }
 
 .x-menu-scrim {
