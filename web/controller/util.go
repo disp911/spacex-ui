@@ -10,6 +10,7 @@ import (
 	"github.com/disp911/spacex-ui/v2/config"
 	"github.com/disp911/spacex-ui/v2/logger"
 	"github.com/disp911/spacex-ui/v2/web/entity"
+	"github.com/disp911/spacex-ui/v2/web/locale"
 
 	"github.com/gin-gonic/gin"
 )
@@ -135,7 +136,7 @@ func html(c *gin.Context, name string, title string, data gin.H) {
 	data["host"] = host
 	data["request_uri"] = c.Request.RequestURI
 	data["base_path"] = c.GetString("base_path")
-	c.HTML(http.StatusOK, name, getContext(data))
+	c.HTML(http.StatusOK, name, locale.PageData(c, getContext(data)))
 }
 
 // getContext adds version and other context data to the provided gin.H.

@@ -4,22 +4,29 @@ package locale
 
 import (
 	"embed"
+	"html/template"
 	"io/fs"
 	"os"
 	"strings"
+	"sync"
 
 	"github.com/disp911/spacex-ui/v2/logger"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/render"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"github.com/pelletier/go-toml/v2"
 	"golang.org/x/text/language"
 )
 
 var (
-	i18nBundle   *i18n.Bundle
-	LocalizerWeb *i18n.Localizer
+	bundleMu   sync.Mutex
+	i18nBundle *i18n.Bundle
 )
+
+// localizerKey is where a request's localizer is kept, in the gin context and
+// in the data of the page rendered for it.
+const localizerKey = "localizer"
 
 // I18nType represents the type of interface for internationalization.
 type I18nType string
@@ -28,18 +35,38 @@ const (
 	Web I18nType = "web" // Web interface type
 )
 
+// newBundle returns an empty bundle with English as the default language.
+func newBundle() *i18n.Bundle {
+	bundle := i18n.NewBundle(language.MustParse("en-US"))
+	bundle.RegisterUnmarshalFunc("toml", toml.Unmarshal)
+	return bundle
+}
+
 // InitLocalizer initializes the internationalization system with embedded translation files.
 func InitLocalizer(i18nFS embed.FS) error {
-	// set default bundle to English
-	i18nBundle = i18n.NewBundle(language.MustParse("en-US"))
-	i18nBundle.RegisterUnmarshalFunc("toml", toml.Unmarshal)
-
-	// parse files
-	if err := parseTranslationFiles(i18nFS, i18nBundle); err != nil {
+	bundle := newBundle()
+	if err := parseTranslationFiles(i18nFS, bundle); err != nil {
 		return err
 	}
-
+	bundleMu.Lock()
+	i18nBundle = bundle
+	bundleMu.Unlock()
 	return nil
+}
+
+// currentBundle returns the loaded translations. The subscription server can
+// take requests before the panel has loaded them; it then reads them from
+// disk.
+func currentBundle() *i18n.Bundle {
+	bundleMu.Lock()
+	defer bundleMu.Unlock()
+	if i18nBundle == nil {
+		i18nBundle = newBundle()
+		if err := loadTranslationsFromDisk(i18nBundle); err != nil {
+			logger.Warning("i18n lazy load failed:", err)
+		}
+	}
+	return i18nBundle
 }
 
 // createTemplateData creates a template data map from parameters with optional separator.
@@ -58,54 +85,37 @@ func createTemplateData(params []string, separator ...string) map[string]any {
 	return templateData
 }
 
-// I18n retrieves a localized message for the given key and type,
-// with optional template parameters.
-// Returns the localized message or an empty string if localization fails.
-func I18n(i18nType I18nType, key string, params ...string) string {
-	var localizer *i18n.Localizer
-
-	switch i18nType {
-	case "web":
-		localizer = LocalizerWeb
-	default:
-		logger.Errorf("Invalid type for I18n: %s", i18nType)
-		return ""
-	}
-
-	templateData := createTemplateData(params)
-
-	if localizer == nil {
-		// Fallback to key if localizer not ready; prevents nil panic on pages like sub
-		return key
-	}
-
+// localize returns the message for key in the localizer's language, or an
+// empty string if there is none.
+func localize(localizer *i18n.Localizer, key string, params ...string) string {
 	msg, err := localizer.Localize(&i18n.LocalizeConfig{
 		MessageID:    key,
-		TemplateData: templateData,
+		TemplateData: createTemplateData(params),
 	})
 	if err != nil {
 		logger.Errorf("Failed to localize message: %v", err)
 		return ""
 	}
-
 	return msg
+}
+
+// I18n retrieves the English message for the given key and type, with
+// optional template parameters. Pages and handlers are translated into the
+// language of their request instead; this serves where there is none.
+func I18n(i18nType I18nType, key string, params ...string) string {
+	if i18nType != Web {
+		logger.Errorf("Invalid type for I18n: %s", i18nType)
+		return ""
+	}
+	return localize(i18n.NewLocalizer(currentBundle(), "en-US"), key, params...)
 }
 
 // LocalizerMiddleware returns a Gin middleware that sets up localization for web requests.
 // It determines the user's language from cookies or Accept-Language header,
 // creates a localizer instance, and stores it in the Gin context for use in handlers.
-// Also provides the I18n function in the context for template rendering.
+// Also provides the I18n function in the context for handlers.
 func LocalizerMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// Ensure bundle is initialized so creating a Localizer won't panic
-		if i18nBundle == nil {
-			i18nBundle = i18n.NewBundle(language.MustParse("en-US"))
-			i18nBundle.RegisterUnmarshalFunc("toml", toml.Unmarshal)
-			// Try lazy-load from disk when running sub server without InitLocalizer
-			if err := loadTranslationsFromDisk(i18nBundle); err != nil {
-				logger.Warning("i18n lazy load failed:", err)
-			}
-		}
 		var lang string
 
 		if cookie, err := c.Request.Cookie("lang"); err == nil {
@@ -114,12 +124,66 @@ func LocalizerMiddleware() gin.HandlerFunc {
 			lang = c.GetHeader("Accept-Language")
 		}
 
-		LocalizerWeb = i18n.NewLocalizer(i18nBundle, lang)
-
-		c.Set("localizer", LocalizerWeb)
-		c.Set("I18n", I18n)
+		localizer := i18n.NewLocalizer(currentBundle(), lang)
+		c.Set(localizerKey, localizer)
+		c.Set("I18n", func(i18nType I18nType, key string, params ...string) string {
+			if i18nType != Web {
+				logger.Errorf("Invalid type for I18n: %s", i18nType)
+				return ""
+			}
+			return localize(localizer, key, params...)
+		})
 		c.Next()
 	}
+}
+
+// PageData adds the request's localizer to the data of a page, so that
+// HTMLRender translates the page into the request's language.
+func PageData(c *gin.Context, data gin.H) gin.H {
+	if localizer, ok := c.Get(localizerKey); ok {
+		data[localizerKey] = localizer
+	}
+	return data
+}
+
+// HTMLRender wraps a page renderer so that each page is translated into the
+// language of its request. html/template binds the i18n function when the
+// templates are parsed, so every page is rendered from a clone with i18n
+// bound to the localizer in its data. The parsed templates themselves are
+// never run, which keeps them clonable.
+func HTMLRender(inner render.HTMLRender) render.HTMLRender {
+	return htmlRender{inner: inner}
+}
+
+type htmlRender struct {
+	inner render.HTMLRender
+}
+
+func (r htmlRender) Instance(name string, data any) render.Render {
+	out := r.inner.Instance(name, data)
+	page, ok := out.(render.HTML)
+	if !ok || page.Template == nil {
+		return out
+	}
+	var localizer *i18n.Localizer
+	if h, ok := data.(gin.H); ok {
+		localizer, _ = h[localizerKey].(*i18n.Localizer)
+	}
+	if localizer == nil {
+		localizer = i18n.NewLocalizer(currentBundle(), "en-US")
+	}
+	t, err := page.Template.Clone()
+	if err != nil {
+		logger.Error("i18n: cannot clone the page templates:", err)
+		return out
+	}
+	t.Funcs(template.FuncMap{
+		"i18n": func(key string, params ...string) string {
+			return localize(localizer, key, params...)
+		},
+	})
+	page.Template = t
+	return page
 }
 
 // loadTranslationsFromDisk attempts to load translation files from "web/translation" using the local filesystem.

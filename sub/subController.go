@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/disp911/spacex-ui/v2/config"
+	"github.com/disp911/spacex-ui/v2/web/locale"
 
 	"github.com/gin-gonic/gin"
 )
@@ -132,7 +133,7 @@ func (a *SUBController) subs(c *gin.Context) {
 				basePathStr = strings.TrimRight(basePathStr, "/") + "/" + subId + "/"
 			}
 			page := a.subService.BuildPageData(subId, hostHeader, traffic, lastOnline, subs, subURL, subJsonURL, subClashURL, basePathStr)
-			c.HTML(200, "subpage.html", gin.H{
+			c.HTML(200, "subpage.html", locale.PageData(c, gin.H{
 				"title":        "subscription.title",
 				"cur_ver":      config.GetVersion(),
 				"host":         page.Host,
@@ -153,7 +154,7 @@ func (a *SUBController) subs(c *gin.Context) {
 				"subJsonUrl":   page.SubJsonUrl,
 				"subClashUrl":  page.SubClashUrl,
 				"result":       page.Result,
-			})
+			}))
 			return
 		}
 
