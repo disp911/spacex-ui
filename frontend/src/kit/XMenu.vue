@@ -187,10 +187,6 @@ function choose(item: MenuItem) {
   border-radius: var(--r-12);
 }
 
-.x-menu--sheet .x-popup-item.is-selected {
-  background: var(--acc-soft);
-}
-
 .x-menu--sheet .x-menu__check {
   width: 14px;
   height: 14px;
