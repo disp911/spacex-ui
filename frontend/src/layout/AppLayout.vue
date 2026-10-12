@@ -73,13 +73,26 @@ watch(() => route.fullPath, () => (drawerOpen.value = false))
 .sidebar {
   position: sticky;
   top: 0;
-  display: flex;
-  flex-direction: column;
   height: 100vh;
   height: 100dvh;
   padding: 20px 14px 16px;
   border-right: 1px solid var(--line);
   background: var(--side);
+}
+
+/*
+ * Logo, menu and logout in three rows; the outer rows are equal, so the
+ * menu sits in the middle of the whole height, as in the mockup.
+ */
+.sidebar,
+.drawer__panel {
+  display: grid;
+  grid-template-rows: 1fr auto 1fr;
+}
+
+.sidebar > :first-child,
+.drawer__panel > :first-child {
+  align-self: start;
 }
 
 .sidebar__logo {
@@ -152,8 +165,6 @@ watch(() => route.fullPath, () => (drawerOpen.value = false))
 
   .drawer__panel {
     position: relative;
-    display: flex;
-    flex-direction: column;
     width: min(282px, 85vw);
     height: 100%;
     padding: 16px 14px calc(16px + env(safe-area-inset-bottom));

@@ -34,7 +34,6 @@ const session = useSession()
   display: flex;
   flex-direction: column;
   gap: 2px;
-  margin: auto 0;
 }
 
 .nav__item {
@@ -68,8 +67,8 @@ const session = useSession()
 }
 
 .nav__item--logout {
+  align-self: end;
   width: 100%;
-  margin-top: auto;
   border: 0;
   background: transparent;
   color: var(--dim);
