@@ -1,0 +1,109 @@
+<script setup lang="ts">
+import { computed } from 'vue'
+import type { Tone } from './types'
+
+/** Used amount, a bar and the limit: client traffic or subscription period. */
+const props = withDefaults(
+  defineProps<{
+    used: string
+    limit: string
+    /** Share used, 0..1; null when there is no limit. */
+    ratio: number | null
+    tone?: Tone
+    /** Limit reached: the whole pill turns red. */
+    exhausted?: boolean
+    disabled?: boolean
+    /** Used value in sans instead of mono, e.g. «через 9 дней». */
+    textual?: boolean
+  }>(),
+  { tone: 'ok' },
+)
+
+const width = computed(() => `${Math.round(Math.min(Math.max(props.ratio ?? 1, 0), 1) * 100)}%`)
+const fill = computed(() => (props.disabled ? 'off' : props.ratio == null ? 'neutral' : props.tone))
+</script>
+
+<template>
+  <span :class="['x-usage', { 'is-exhausted': exhausted, 'is-disabled': disabled, 'x-usage--textual': textual }]">
+    <span :class="['x-usage__used', `x-usage__used--${tone}`]">{{ used }}</span>
+    <span class="x-usage__track" role="presentation">
+      <span :class="['x-usage__bar', `x-usage__bar--${fill}`]" :style="{ width }" />
+    </span>
+    <span class="x-usage__limit">{{ limit }}</span>
+  </span>
+</template>
+
+<style scoped>
+.x-usage {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: 200px;
+  height: 24px;
+  padding: 0 10px;
+  border: 1px solid var(--field-line);
+  border-radius: var(--r-pill);
+  background: var(--field);
+  font: 500 var(--fs-11) / 1 var(--font-mono);
+  white-space: nowrap;
+}
+
+.x-usage__used {
+  flex: none;
+  min-width: 52px;
+  color: var(--fg2);
+  text-align: right;
+}
+
+.x-usage--textual .x-usage__used {
+  min-width: 0;
+  font-family: var(--font-sans);
+  text-align: left;
+}
+
+.x-usage--textual .x-usage__used--ok { color: var(--ok-t); }
+.x-usage--textual .x-usage__used--warn { color: var(--warn-t); }
+.x-usage--textual .x-usage__used--err { color: var(--err-t); }
+
+.x-usage__track {
+  display: flex;
+  flex: 1;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: var(--bar-track);
+}
+
+.x-usage__bar {
+  height: 100%;
+  border-radius: 2px;
+  transition: width var(--t-med) var(--ease);
+}
+
+.x-usage__bar--ok { background: var(--ok); }
+.x-usage__bar--warn { background: var(--warn); }
+.x-usage__bar--err { background: var(--err); }
+.x-usage__bar--unl { background: var(--unl); }
+.x-usage__bar--on { background: var(--on); }
+.x-usage__bar--off { background: var(--off); }
+.x-usage__bar--neutral { background: var(--bar-unl); }
+
+.x-usage__limit {
+  flex: none;
+  min-width: 36px;
+  color: var(--mut);
+}
+
+.x-usage.is-exhausted {
+  border-color: var(--err-line);
+  background: var(--err-bg);
+}
+
+.x-usage.is-exhausted .x-usage__used {
+  color: var(--err-t);
+}
+
+.x-usage.is-disabled .x-usage__used {
+  color: var(--faint);
+}
+</style>

@@ -1,0 +1,727 @@
+<script setup lang="ts">
+import { ref, watchEffect } from 'vue'
+import {
+  XBadge, XButton, XCard, XCheckbox, XChip, XCounter, XField, XInput, XMenu, XModal, XNotice, XNumber,
+  XPager, XSection, XSegmented, XSelect, XStatusDot, XSwitch, XTagInput, XTextarea, XTooltip, XUsagePill,
+  type MenuItem,
+} from '../kit'
+
+/*
+ * Every kit component in every state, in both themes. The state table forces
+ * hover, focus and pressed with the is-hover / is-focus / is-active classes
+ * that the components accept next to the real pseudo-classes.
+ */
+
+const theme = ref<'dark' | 'light'>(matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark')
+watchEffect(() => {
+  document.documentElement.dataset.theme = theme.value
+})
+
+const states = [
+  { key: 'default', label: 'Обычное', cls: '' },
+  { key: 'hover', label: 'Наведение', cls: 'is-hover' },
+  { key: 'focus', label: 'Фокус', cls: 'is-focus' },
+  { key: 'active', label: 'Нажатие', cls: 'is-active' },
+  { key: 'disabled', label: 'Недоступно', cls: '' },
+  { key: 'invalid', label: 'Ошибка', cls: '' },
+  { key: 'modified', label: 'Изменено', cls: '' },
+] as const
+type State = (typeof states)[number]['key']
+const has = (s: State, ...list: State[]) => list.includes(s)
+
+const languages = [
+  { value: 'ru', label: '🇷🇺 Русский' },
+  { value: 'en', label: '🇬🇧 English' },
+  { value: 'fa', label: '🇮🇷 فارسی' },
+  { value: 'zh', label: '🇨🇳 中文', disabled: true },
+]
+const strategies = ['AsIs', 'IPIfNonMatch', 'IPOnDemand'].map((v) => ({ value: v, label: v }))
+const badRouting = 'happ://routing/…'
+const geo = ['geoip:private', 'geoip:ru', 'geosite:category-ads-all', 'geosite:google', 'geosite:telegram']
+
+const form = ref({
+  enabled: true,
+  remark: 'Germany-VLESS',
+  port: 443 as number | null,
+  lang: 'ru' as string | null,
+  strategy: 'IPIfNonMatch' as string | null,
+  password: 'correct-horse',
+  tags: ['geoip:private', 'geoip:ru'],
+  note: 'Текст объявления для подписки',
+  sniffing: true,
+  routeOnly: false,
+  agree: true,
+})
+const view = ref<'all' | 'online' | 'depleted'>('all')
+const mode = ref<'search' | 'filter'>('search')
+const page = ref(5)
+const modalOpen = ref(false)
+const sheetSize = ref<'sm' | 'md' | 'lg'>('md')
+const lastAction = ref('—')
+const sectionOpen = ref(true)
+const sw = ref({ a: false, b: true, loading: false })
+
+const menuItems: MenuItem[] = [
+  { key: 'edit', label: 'Изменить', icon: 'edit' },
+  { key: 'refresh', label: 'Сбросить трафик', icon: 'refresh' },
+  { key: 'export', label: 'Экспорт ссылок', icon: 'arrowRight', disabled: true },
+  { key: 'delete', label: 'Удалить', icon: 'delete', danger: true, divided: true },
+]
+
+function applySwitch() {
+  sw.value.loading = true
+  setTimeout(() => (sw.value.loading = false), 1200)
+}
+
+const swatches = {
+  'Поверхности': ['bg', 'side', 'card', 'nest', 'dlg', 'field', 'ctrl', 'chip', 'seg', 'track'],
+  'Текст': ['fg', 'fg2', 'mut', 'dim', 'faint'],
+  'Акцент': ['acc', 'acc-hover', 'acc-press', 'acc-soft', 'acc-ink'],
+  'Статусы': ['ok', 'warn', 'err', 'unl', 'on', 'off', 'mod'],
+}
+const radii = [4, 6, 8, 10, 12, 16, 22]
+const fontSizes = [10, 11, 12, 13, 14, 16, 18, 20, 24]
+const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
+</script>
+
+<template>
+  <div class="kit">
+    <header class="kit__top">
+      <div>
+        <h1 class="kit__title">spacex-ui · kit</h1>
+        <p class="kit__sub">Компоненты v3 во всех состояниях. Ширина окна меньше 768 px показывает мобильные размеры.</p>
+      </div>
+      <XSegmented
+        v-model="theme"
+        label="Тема"
+        :options="[{ value: 'dark', label: 'Тёмная', icon: 'moon' }, { value: 'light', label: 'Светлая', icon: 'sun' }]"
+      />
+    </header>
+
+    <!-- Tokens -->
+    <XCard title="Токены">
+      <div class="kit__tokens">
+        <div v-for="(names, group) in swatches" :key="group" class="kit__swatch-group">
+          <h3 class="kit__h3">{{ group }}</h3>
+          <div class="kit__swatches">
+            <div v-for="n in names" :key="n" class="kit__swatch">
+              <span class="kit__swatch-color" :style="{ background: `var(--${n})` }" />
+              <code>--{{ n }}</code>
+            </div>
+          </div>
+        </div>
+        <div class="kit__swatch-group">
+          <h3 class="kit__h3">Радиусы</h3>
+          <div class="kit__swatches">
+            <div v-for="r in radii" :key="r" class="kit__radius" :style="{ borderRadius: `var(--r-${r})` }">{{ r }}</div>
+          </div>
+        </div>
+        <div class="kit__swatch-group">
+          <h3 class="kit__h3">Размеры шрифта</h3>
+          <div class="kit__fonts">
+            <span v-for="f in fontSizes" :key="f" :style="{ fontSize: `var(--fs-${f})` }">{{ f }} Подключения</span>
+            <code class="kit__mono">IBM Plex Mono · 203.0.113.7:443 · 48,2 МБ</code>
+          </div>
+        </div>
+        <div class="kit__swatch-group">
+          <h3 class="kit__h3">Отступы</h3>
+          <div class="kit__spacing">
+            <div v-for="s in spacing" :key="s" class="kit__space">
+              <span :style="{ width: `var(--sp-${s})` }" />
+              <code>{{ s }}</code>
+            </div>
+          </div>
+        </div>
+      </div>
+    </XCard>
+
+    <!-- States -->
+    <XCard title="Состояния" flush>
+      <div class="kit__table-wrap">
+        <table class="kit__table">
+          <thead>
+            <tr>
+              <th>Компонент</th>
+              <th v-for="s in states" :key="s.key">{{ s.label }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th><b>Button</b><code>primary</code></th>
+              <td v-for="s in states" :key="s.key">
+                <XButton v-if="!has(s.key, 'invalid', 'modified')" variant="primary" icon="plus" :class="s.cls" :disabled="s.key === 'disabled'">Создать</XButton>
+                <XButton v-else-if="s.key === 'invalid'" variant="primary" loading>Сохранение…</XButton>
+              </td>
+            </tr>
+            <tr>
+              <th><b>Button</b><code>secondary</code></th>
+              <td v-for="s in states" :key="s.key">
+                <XButton v-if="!has(s.key, 'invalid', 'modified')" icon="globe" :class="s.cls" :disabled="s.key === 'disabled'">Geo-файлы</XButton>
+              </td>
+            </tr>
+            <tr>
+              <th><b>Button</b><code>soft</code></th>
+              <td v-for="s in states" :key="s.key">
+                <XButton v-if="!has(s.key, 'invalid', 'modified')" variant="soft" :class="s.cls" :disabled="s.key === 'disabled'">Подтвердить</XButton>
+              </td>
+            </tr>
+            <tr>
+              <th><b>Button</b><code>danger</code></th>
+              <td v-for="s in states" :key="s.key">
+                <XButton v-if="!has(s.key, 'invalid', 'modified')" variant="danger" :class="s.cls" :disabled="s.key === 'disabled'">Сбросить</XButton>
+              </td>
+            </tr>
+            <tr>
+              <th><b>Button</b><code>icon · ghost · sm</code></th>
+              <td v-for="s in states" :key="s.key">
+                <div v-if="!has(s.key, 'invalid', 'modified')" class="kit__row">
+                  <XButton icon="refresh" label="Обновить" :class="s.cls" :disabled="s.key === 'disabled'" />
+                  <XButton variant="ghost" size="sm" icon="dots" label="Ещё" :class="s.cls" :disabled="s.key === 'disabled'" />
+                  <XButton variant="ghost-danger" size="sm" icon="delete" label="Удалить" :class="s.cls" :disabled="s.key === 'disabled'" />
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <th><b>Input</b><code>text</code></th>
+              <td v-for="s in states" :key="s.key">
+                <XInput
+                  :model-value="s.key === 'invalid' ? 'panel' : 'Germany-VLESS'"
+                  :class="s.cls"
+                  :disabled="s.key === 'disabled'"
+                  :invalid="s.key === 'invalid'"
+                  :modified="s.key === 'modified'"
+                />
+              </td>
+            </tr>
+            <tr>
+              <th><b>Input</b><code>mono · search</code></th>
+              <td v-for="s in states" :key="s.key">
+                <XInput
+                  mono
+                  icon="search"
+                  placeholder="Поиск"
+                  :model-value="s.key === 'focus' ? 'cdn' : ''"
+                  :class="s.cls"
+                  :disabled="s.key === 'disabled'"
+                  :invalid="s.key === 'invalid'"
+                  :modified="s.key === 'modified'"
+                />
+              </td>
+            </tr>
+            <tr>
+              <th><b>Password</b></th>
+              <td v-for="s in states" :key="s.key">
+                <XInput
+                  type="password"
+                  model-value="secret-value"
+                  :class="s.cls"
+                  :disabled="s.key === 'disabled'"
+                  :invalid="s.key === 'invalid'"
+                  :modified="s.key === 'modified'"
+                />
+              </td>
+            </tr>
+            <tr>
+              <th><b>Number</b><code>unit</code></th>
+              <td v-for="s in states" :key="s.key">
+                <XNumber
+                  :model-value="s.key === 'invalid' ? 70000 : 2053"
+                  unit="порт"
+                  :class="s.cls"
+                  :disabled="s.key === 'disabled'"
+                  :invalid="s.key === 'invalid'"
+                  :modified="s.key === 'modified'"
+                />
+              </td>
+            </tr>
+            <tr>
+              <th><b>Select</b></th>
+              <td v-for="s in states" :key="s.key">
+                <XSelect
+                  :options="languages"
+                  model-value="ru"
+                  :class="s.cls"
+                  :disabled="s.key === 'disabled'"
+                  :invalid="s.key === 'invalid'"
+                  :modified="s.key === 'modified'"
+                />
+              </td>
+            </tr>
+            <tr>
+              <th><b>Tag input</b></th>
+              <td v-for="s in states" :key="s.key">
+                <XTagInput
+                  :model-value="['geoip:private', 'geoip:ru']"
+                  mono
+                  :class="s.cls"
+                  :disabled="s.key === 'disabled'"
+                  :invalid="s.key === 'invalid'"
+                  :modified="s.key === 'modified'"
+                />
+              </td>
+            </tr>
+            <tr>
+              <th><b>Textarea</b></th>
+              <td v-for="s in states" :key="s.key">
+                <XTextarea
+                  :model-value="s.key === 'invalid' ? badRouting : 'Текст объявления'"
+                  :rows="2"
+                  :class="s.cls"
+                  :disabled="s.key === 'disabled'"
+                  :invalid="s.key === 'invalid'"
+                  :modified="s.key === 'modified'"
+                />
+              </td>
+            </tr>
+            <tr>
+              <th><b>Switch</b><code>38×22 · моб. 44×26</code></th>
+              <td v-for="s in states" :key="s.key">
+                <div class="kit__row">
+                  <XSwitch
+                    :model-value="s.key !== 'invalid'"
+                    :class="s.cls"
+                    :disabled="s.key === 'disabled'"
+                    :invalid="s.key === 'invalid'"
+                    :modified="s.key === 'modified'"
+                    label="Включить"
+                  />
+                  <XSwitch v-if="!has(s.key, 'invalid', 'modified')" :class="s.cls" :disabled="s.key === 'disabled'" label="Выключено" />
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <th><b>Checkbox</b></th>
+              <td v-for="s in states" :key="s.key">
+                <div v-if="s.key !== 'modified'" class="kit__row">
+                  <XCheckbox :model-value="true" :class="s.cls" :disabled="s.key === 'disabled'" :invalid="s.key === 'invalid'" />
+                  <XCheckbox :class="s.cls" :disabled="s.key === 'disabled'" :invalid="s.key === 'invalid'" />
+                  <XCheckbox indeterminate :class="s.cls" :disabled="s.key === 'disabled'" />
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <th><b>Section</b><code>заголовок</code></th>
+              <td v-for="s in states" :key="s.key">
+                <XSection v-if="!has(s.key, 'disabled', 'invalid', 'modified')" title="Сертификаты" :open="false" :class="s.cls" />
+              </td>
+            </tr>
+            <tr>
+              <th><b>Chip</b><code>interactive</code></th>
+              <td v-for="s in states" :key="s.key">
+                <XChip v-if="!has(s.key, 'disabled', 'invalid', 'modified')" tone="ok" mono interactive :class="s.cls">45,2 ГБ / 100 ГБ</XChip>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </XCard>
+
+    <!-- Variants -->
+    <XCard title="Варианты">
+      <div class="kit__variants">
+        <div class="kit__variant">
+          <h3 class="kit__h3">Chip · статусы</h3>
+          <div class="kit__row kit__row--wrap">
+            <XChip tone="ok" icon="user" mono>10</XChip>
+            <XChip tone="off" mono>1</XChip>
+            <XChip tone="err" mono>2</XChip>
+            <XChip tone="warn" mono>2</XChip>
+            <XChip tone="on" dot mono>4</XChip>
+            <XChip tone="unl" icon="infinity" mono>3</XChip>
+            <XChip tone="neutral" mono>12 ГБ / ∞</XChip>
+          </div>
+        </div>
+        <div class="kit__variant">
+          <h3 class="kit__h3">Chip · срок</h3>
+          <div class="kit__row kit__row--wrap">
+            <XChip tone="ok">через 41 д</XChip>
+            <XChip tone="warn">через 3 д</XChip>
+            <XChip tone="err">5 д назад</XChip>
+            <XChip tone="off">через 60 д</XChip>
+            <XChip tone="ok" dot>Онлайн</XChip>
+            <XChip>Офлайн</XChip>
+          </div>
+        </div>
+        <div class="kit__variant">
+          <h3 class="kit__h3">Usage pill</h3>
+          <div class="kit__stack">
+            <XUsagePill used="18,4 ГБ" limit="50 ГБ" :ratio="0.37" />
+            <XUsagePill used="46,8 ГБ" limit="50 ГБ" :ratio="0.94" tone="warn" />
+            <XUsagePill used="50 ГБ" limit="50 ГБ" :ratio="1" tone="err" exhausted />
+            <XUsagePill used="0 Б" limit="30 ГБ" :ratio="0" disabled />
+            <XUsagePill used="100,5 ГБ" limit="∞" :ratio="null" />
+            <XUsagePill used="через 9 д" limit="30 д" :ratio="0.7" textual />
+          </div>
+        </div>
+        <div class="kit__variant">
+          <h3 class="kit__h3">Status dot · badge · counter</h3>
+          <div class="kit__row kit__row--wrap">
+            <XStatusDot tone="ok" label="ok" />
+            <XStatusDot tone="warn" label="warn" />
+            <XStatusDot tone="err" label="err" />
+            <XStatusDot tone="unl" label="unlimited" />
+            <XStatusDot tone="off" label="off" />
+            <XStatusDot tone="ok" pulse label="online" />
+          </div>
+          <div class="kit__row kit__row--wrap">
+            <XBadge mono>vless</XBadge>
+            <XBadge mono>shadowsocks</XBadge>
+            <XBadge kind="outline" mono>xhttp</XBadge>
+            <XBadge kind="outline" mono>grpc</XBadge>
+            <XBadge kind="accent" mono>reality</XBadge>
+            <XBadge kind="accent">NEW</XBadge>
+            <XCounter>12</XCounter>
+            <XCounter accent>3</XCounter>
+          </div>
+        </div>
+        <div class="kit__variant">
+          <h3 class="kit__h3">Segmented · pager</h3>
+          <div class="kit__row kit__row--wrap">
+            <XSegmented
+              v-model="view"
+              label="Фильтр"
+              :options="[{ value: 'all', label: 'Все' }, { value: 'online', label: 'Онлайн' }, { value: 'depleted', label: 'Исчерпано' }]"
+            />
+            <XSegmented
+              v-model="mode"
+              icon-only
+              label="Режим"
+              :options="[{ value: 'search', label: 'Поиск', icon: 'search' }, { value: 'filter', label: 'Фильтр', icon: 'filter' }]"
+            />
+          </div>
+          <XPager v-model="page" :pages="12" />
+        </div>
+        <div class="kit__variant">
+          <h3 class="kit__h3">Notice</h3>
+          <div class="kit__stack">
+            <XNotice tone="info">Изменения применятся после перезапуска Xray.</XNotice>
+            <XNotice tone="warn" title="Сертификат истекает">Осталось 6 дней. Продлите его до 18 октября.</XNotice>
+            <XNotice tone="err" title="Ошибка при запуске Xray">failed to listen on 0.0.0.0:443: address already in use</XNotice>
+            <XNotice tone="ok">Настройки сохранены.</XNotice>
+          </div>
+        </div>
+      </div>
+    </XCard>
+
+    <!-- Live -->
+    <div class="kit__live">
+      <XCard title="Форма">
+        <template #actions>
+          <XTooltip text="Подсказка появляется при наведении и при фокусе с клавиатуры">
+            <XButton variant="ghost" size="sm" icon="info" label="Справка" />
+          </XTooltip>
+          <XMenu v-slot="{ props }" :items="menuItems" @select="lastAction = $event">
+            <XButton v-bind="props" variant="ghost" size="sm" icon="dots" label="Действия" />
+          </XMenu>
+        </template>
+        <div class="kit__form">
+          <XField layout="row" label="Включить" hint="Подключение принимает клиентов">
+            <XSwitch v-model="form.enabled" label="Включить" />
+          </XField>
+          <div class="kit__grid">
+            <XField v-slot="f" label="Примечание" required>
+              <XInput v-bind="f" v-model="form.remark" />
+            </XField>
+            <XField v-slot="f" label="Порт" :error="form.port != null && form.port > 65535 ? 'Порт от 1 до 65535' : undefined">
+              <XNumber v-bind="f" v-model="form.port" :min="1" :max="65535" :invalid="form.port != null && form.port > 65535" style="width: 100%" />
+            </XField>
+            <XField v-slot="f" label="Язык">
+              <XSelect v-bind="f" v-model="form.lang" :options="languages" />
+            </XField>
+            <XField v-slot="f" label="Стратегия домена" hint="Как Xray определяет IP-адрес">
+              <XSelect v-bind="f" v-model="form.strategy" :options="strategies" mono />
+            </XField>
+          </div>
+          <XField v-slot="f" label="Пароль">
+            <XInput v-bind="f" v-model="form.password" type="password" mono autocomplete="new-password" />
+          </XField>
+          <XField v-slot="f" label="Правила" hint="Enter — из списка, запятая — свой вариант">
+            <XTagInput v-bind="f" v-model="form.tags" :presets="geo" mono placeholder="geoip:… или geosite:…" />
+          </XField>
+          <XField v-slot="f" label="Объявление">
+            <XTextarea v-bind="f" v-model="form.note" />
+          </XField>
+          <XSection v-model:open="sectionOpen" title="Sniffing" description="Определение протокола по первым байтам соединения.">
+            <template #meta><XSwitch v-model="form.sniffing" label="Sniffing" /></template>
+            <XField layout="row" label="Только маршрутизация">
+              <XSwitch v-model="form.routeOnly" label="Только маршрутизация" />
+            </XField>
+            <XCheckbox v-model="form.agree">Переопределять адрес назначения</XCheckbox>
+          </XSection>
+          <div class="kit__row kit__row--end">
+            <XButton>Отмена</XButton>
+            <XButton variant="primary" icon="check">Сохранить</XButton>
+          </div>
+        </div>
+      </XCard>
+
+      <XCard title="Окна и поведение">
+        <div class="kit__stack">
+          <p class="kit__p">Последнее действие меню: <code>{{ lastAction }}</code></p>
+          <div class="kit__row kit__row--wrap">
+            <XSegmented
+              v-model="sheetSize"
+              label="Размер окна"
+              :options="[{ value: 'sm', label: 'sm 440' }, { value: 'md', label: 'md 560' }, { value: 'lg', label: 'lg 720' }]"
+            />
+            <XButton variant="primary" @click="modalOpen = true">Открыть окно</XButton>
+          </div>
+          <XField layout="row" label="Оптимистичный переключатель" hint="Спиннер на время запроса">
+            <XSwitch v-model="sw.b" :loading="sw.loading" label="Применить" @update:model-value="applySwitch" />
+          </XField>
+        </div>
+      </XCard>
+    </div>
+
+    <XModal v-model:open="modalOpen" title="Создать подключение" :size="sheetSize">
+      <XField v-slot="f" label="Примечание">
+        <XInput v-bind="f" v-model="form.remark" autofocus />
+      </XField>
+      <XField v-slot="f" label="Протокол">
+        <XSelect v-bind="f" v-model="form.strategy" :options="strategies" />
+      </XField>
+      <XField layout="row" label="Включить">
+        <XSwitch v-model="form.enabled" label="Включить" />
+      </XField>
+      <template #footer>
+        <XButton @click="modalOpen = false">Отмена</XButton>
+        <XButton variant="primary" @click="modalOpen = false">Создать</XButton>
+      </template>
+    </XModal>
+  </div>
+</template>
+
+<style scoped>
+.kit {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 32px 24px 56px;
+}
+
+.kit__top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.kit__title {
+  margin: 0;
+  font: 600 var(--fs-24) / var(--lh-tight) var(--font-sans);
+  letter-spacing: -.4px;
+}
+
+.kit__sub,
+.kit__p {
+  margin: 4px 0 0;
+  color: var(--mut);
+}
+
+.kit__h3 {
+  margin: 0 0 10px;
+  color: var(--dim);
+  font: 500 var(--fs-11) / 1 var(--font-mono);
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+
+.kit__tokens {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+.kit__swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.kit__swatch {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  font-size: var(--fs-10);
+  color: var(--dim);
+}
+
+.kit__swatch-color {
+  width: 44px;
+  height: 32px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-8);
+}
+
+.kit__radius {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--acc-line);
+  background: var(--acc-soft);
+  color: var(--acc);
+  font: 500 var(--fs-11) var(--font-mono);
+}
+
+.kit__fonts {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.kit__mono {
+  margin-top: 6px;
+  color: var(--fg2);
+}
+
+.kit__spacing {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.kit__space {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--fs-10);
+  color: var(--dim);
+}
+
+.kit__space span {
+  height: 8px;
+  border-radius: 2px;
+  background: var(--acc);
+}
+
+.kit__table-wrap {
+  overflow-x: auto;
+}
+
+.kit__table {
+  width: 100%;
+  min-width: 1180px;
+  border-collapse: collapse;
+}
+
+.kit__table th,
+.kit__table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--div);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.kit__table td {
+  width: 13%;
+  border-left: 1px solid var(--div);
+}
+
+.kit__table thead th {
+  color: var(--dim);
+  font: 500 var(--fs-10) / 1 var(--font-mono);
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+
+.kit__table tbody th {
+  min-width: 150px;
+}
+
+.kit__table tbody th b {
+  display: block;
+  font-weight: 600;
+}
+
+.kit__table tbody th code {
+  color: var(--dim);
+  font-size: var(--fs-11);
+}
+
+.kit__table tbody tr:last-child > * {
+  border-bottom: 0;
+}
+
+.kit__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.kit__row--wrap {
+  flex-wrap: wrap;
+}
+
+.kit__row--end {
+  justify-content: flex-end;
+}
+
+.kit__stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.kit__stack > .x-notice,
+.kit__stack > .x-field {
+  align-self: stretch;
+}
+
+.kit__variants {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 28px;
+}
+
+.kit__variant {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.kit__live {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.kit__form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.kit__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+@media (max-width: 960px) {
+  .kit__live {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 767px) {
+  .kit {
+    padding: 20px 16px 40px;
+  }
+
+  .kit__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .kit__variants {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+</style>

@@ -1,0 +1,284 @@
+/*
+ * Design tokens. Every colour, radius, size and font size the panel uses is
+ * defined here once; components read them and never hard-code values.
+ * Dark is the default, light is set with <html data-theme="light">.
+ */
+
+:root {
+  /* Type */
+  --font-sans: 'IBM Plex Sans', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+  --fs-10: 10px;
+  --fs-11: 11px;
+  --fs-12: 12px;
+  --fs-13: 13px;
+  --fs-14: 14px;
+  --fs-16: 16px;
+  --fs-18: 18px;
+  --fs-20: 20px;
+  --fs-24: 24px;
+  --lh-tight: 1.2;
+  --lh-text: 1.45;
+  --lh-code: 1.65;
+
+  /* Radius */
+  --r-4: 4px;
+  --r-6: 6px;
+  --r-8: 8px;
+  --r-10: 10px;
+  --r-12: 12px;
+  --r-16: 16px;
+  --r-22: 22px;
+  --r-pill: 999px;
+
+  /* Spacing */
+  --sp-1: 1px;
+  --sp-2: 2px;
+  --sp-4: 4px;
+  --sp-6: 6px;
+  --sp-8: 8px;
+  --sp-10: 10px;
+  --sp-12: 12px;
+  --sp-14: 14px;
+  --sp-16: 16px;
+  --sp-20: 20px;
+  --sp-24: 24px;
+  --sp-32: 32px;
+  --sp-40: 40px;
+  --sp-48: 48px;
+  --sp-56: 56px;
+
+  /* Controls (desktop; phones override below) */
+  --ctl-h: 34px;
+  --ctl-r: var(--r-10);
+  --ctl-fs: var(--fs-13);
+  --input-fs: var(--fs-13);
+  --btn-px: 16px;
+  --input-px: 12px;
+  --ctl-sm-h: 28px;
+  --ctl-sm-r: var(--r-8);
+  --ctl-sm-fs: var(--fs-12);
+  --menu-item-h: 34px;
+  --sidebar-item-h: 38px;
+  --switch-w: 38px;
+  --switch-h: 22px;
+  --check: 16px;
+  --check-r: var(--r-4);
+  --chip-h: 22px;
+  --badge-h: 20px;
+  --counter-h: 16px;
+  --icon-s: 12px;
+  --icon-m: 14px;
+  --icon-l: 16px;
+
+  /* Motion */
+  --ease: cubic-bezier(.2, .7, .3, 1);
+  --t-fast: 120ms;
+  --t-med: 200ms;
+
+  color-scheme: dark;
+
+  /* Surfaces */
+  --bg: #0B0E13;
+  --side: #0E1218;
+  --card: #13171F;
+  --nest: #0F131A;
+  --dlg: #151A23;
+  --foot: rgba(11, 14, 19, .4);
+  --gut: #0D1118;
+  --scrim: rgba(8, 11, 16, .55);
+  --line: rgba(255, 255, 255, .08);
+  --div: rgba(255, 255, 255, .07);
+  --skel: rgba(255, 255, 255, .06);
+
+  /* Text */
+  --fg: #E6E9EF;
+  --fg2: #C7CCD6;
+  --mut: #9AA3B2;
+  --dim: #6E7787;
+  --faint: #4E5563;
+
+  /* Fields and controls */
+  --field: #111520;
+  --field-line: rgba(255, 255, 255, .1);
+  --field-hover: rgba(255, 255, 255, .22);
+  --ctrl: #161B24;
+  --hov: rgba(255, 255, 255, .05);
+  --press: rgba(255, 255, 255, .09);
+  --seg: #232A38;
+  --chip: #1D2330;
+  --chip-line: rgba(255, 255, 255, .08);
+  --track: #2A3141;
+  --knob: #C7CCD6;
+  --knob-on: #06201A;
+  --scrollbar: #2A3141;
+  --scrollbar-hover: #3A4352;
+
+  /* Accent */
+  --acc: #2FD4A0;
+  --acc-ink: #06201A;
+  --acc-soft: #172A26;
+  --acc-line: rgba(47, 212, 160, .5);
+  --acc-ring: rgba(47, 212, 160, .14);
+  --acc-glow: rgba(47, 212, 160, .3);
+  --acc-hover: #48DEB0;
+  --acc-press: #22B88A;
+
+  /* Status tones: solid, text, tint background, tint line */
+  --ok: var(--acc);
+  --ok-t: #5FE0B6;
+  --ok-bg: rgba(47, 212, 160, .12);
+  --ok-line: rgba(47, 212, 160, .4);
+  --warn: #E8A13A;
+  --warn-t: #F0B75C;
+  --warn-bg: rgba(232, 161, 58, .12);
+  --warn-line: rgba(232, 161, 58, .4);
+  --err: #F2555A;
+  --err-t: #FF9498;
+  --err-bg: rgba(242, 85, 90, .12);
+  --err-line: rgba(242, 85, 90, .4);
+  --err-ring: rgba(242, 85, 90, .16);
+  --unl: #B18CFF;
+  --unl-t: #C9B0FF;
+  --unl-bg: rgba(177, 140, 255, .12);
+  --unl-line: rgba(177, 140, 255, .4);
+  --on: #7AA7FF;
+  --on-t: #A3C1FF;
+  --on-bg: rgba(122, 167, 255, .12);
+  --on-line: rgba(122, 167, 255, .4);
+  --off: #5A6272;
+  --off-t: #9AA3B2;
+  --off-bg: #1D2330;
+  --off-line: rgba(255, 255, 255, .08);
+
+  /* Unsaved changes are marked in blue */
+  --mod: var(--on);
+  --mod-bg: rgba(122, 167, 255, .06);
+  --mod-line: rgba(122, 167, 255, .5);
+
+  /* Usage bars, search highlight */
+  --bar-track: rgba(255, 255, 255, .08);
+  --bar-unl: #3A4252;
+  --hl: rgba(232, 161, 58, .28);
+
+  /* Code */
+  --syn-key: oklch(80% .1 250);
+  --syn-str: oklch(80% .1 150);
+  --syn-num: oklch(80% .1 300);
+  --syn-lit: oklch(80% .1 30);
+  --syn-pun: #6E7787;
+
+  /* Elevation */
+  --shadow-pop: 0 18px 48px rgba(0, 0, 0, .5);
+  --shadow-modal: 0 24px 60px rgba(0, 0, 0, .5);
+  --shadow-sheet: 0 -24px 70px rgba(0, 0, 0, .5);
+  --shadow-knob: 0 1px 3px rgba(0, 0, 0, .28);
+  --shadow-seg: 0 1px 2px rgba(0, 0, 0, .18), 0 0 0 1px var(--line);
+  --lift: 0 14px 34px rgba(0, 0, 0, .55);
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+
+  --bg: #F3F5F7;
+  --side: #FFFFFF;
+  --card: #FFFFFF;
+  --nest: #F7F8FA;
+  --dlg: #FFFFFF;
+  --foot: #F8F9FA;
+  --gut: #F1F3F6;
+  --scrim: rgba(16, 20, 28, .32);
+  --line: rgba(16, 20, 28, .09);
+  --div: rgba(16, 20, 28, .07);
+  --skel: rgba(16, 20, 28, .07);
+
+  --fg: #13171E;
+  --fg2: #39404D;
+  --mut: #5C6371;
+  --dim: #686F7D;
+  --faint: #9AA1AD;
+
+  --field: #F7F8FA;
+  --field-line: rgba(16, 20, 28, .13);
+  --field-hover: rgba(16, 20, 28, .28);
+  --ctrl: #F5F6F8;
+  --hov: rgba(16, 20, 28, .045);
+  --press: rgba(16, 20, 28, .08);
+  --seg: #FFFFFF;
+  --chip: #EDEFF3;
+  --chip-line: rgba(16, 20, 28, .08);
+  --track: #C9CED7;
+  --knob: #FFFFFF;
+  --knob-on: #FFFFFF;
+  --scrollbar: #C9CED7;
+  --scrollbar-hover: #AAB1BC;
+
+  --acc: #0A7A59;
+  --acc-ink: #FFFFFF;
+  --acc-soft: #E4F5EE;
+  --acc-line: rgba(10, 122, 89, .5);
+  --acc-ring: rgba(10, 122, 89, .15);
+  --acc-glow: rgba(10, 122, 89, .22);
+  --acc-hover: #0C8B66;
+  --acc-press: #08684C;
+
+  --ok-t: #0A7A59;
+  --ok-bg: rgba(10, 122, 89, .08);
+  --ok-line: rgba(10, 122, 89, .3);
+  --warn: #B4761A;
+  --warn-t: #8A5A10;
+  --warn-bg: rgba(180, 118, 26, .08);
+  --warn-line: rgba(180, 118, 26, .3);
+  --err: #C42A31;
+  --err-t: #C22D34;
+  --err-bg: rgba(196, 42, 49, .08);
+  --err-line: rgba(196, 42, 49, .3);
+  --err-ring: rgba(196, 42, 49, .13);
+  --unl: #7B4FE0;
+  --unl-t: #6339C9;
+  --unl-bg: rgba(123, 79, 224, .08);
+  --unl-line: rgba(123, 79, 224, .3);
+  --on: #2F6BD8;
+  --on-t: #2459B8;
+  --on-bg: rgba(47, 107, 216, .08);
+  --on-line: rgba(47, 107, 216, .3);
+  --off: #AEB4BE;
+  --off-t: #5C6371;
+  --off-bg: #EDEFF3;
+  --off-line: rgba(16, 20, 28, .08);
+
+  --mod-bg: rgba(47, 107, 216, .05);
+  --mod-line: rgba(47, 107, 216, .5);
+
+  --bar-track: rgba(16, 20, 28, .08);
+  --bar-unl: #C3C8D1;
+  --hl: rgba(180, 118, 26, .24);
+
+  --syn-key: oklch(48% .13 250);
+  --syn-str: oklch(48% .13 150);
+  --syn-num: oklch(48% .13 300);
+  --syn-lit: oklch(50% .14 30);
+  --syn-pun: #8A919D;
+
+  --shadow-pop: 0 18px 48px rgba(16, 20, 28, .16);
+  --shadow-modal: 0 24px 60px rgba(16, 20, 28, .18);
+  --shadow-sheet: 0 -24px 70px rgba(16, 20, 28, .18);
+  --shadow-knob: 0 1px 3px rgba(16, 20, 28, .25);
+  --lift: 0 14px 34px rgba(16, 20, 28, .18);
+}
+
+/* Phones: 44px touch targets, 16px inputs so iOS does not zoom. */
+@media (max-width: 767px) {
+  :root {
+    --ctl-h: 44px;
+    --ctl-r: var(--r-12);
+    --ctl-fs: var(--fs-14);
+    --input-fs: var(--fs-16);
+    --menu-item-h: 44px;
+    --switch-w: 44px;
+    --switch-h: 26px;
+    --check: 20px;
+    --check-r: var(--r-6);
+    --chip-h: 24px;
+  }
+}
