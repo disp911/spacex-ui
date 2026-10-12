@@ -112,7 +112,7 @@ onBeforeUnmount(() => clearInterval(timer))
     </header>
 
     <main class="login__main">
-      <form class="login__card" novalidate @submit.prevent="submit">
+      <form class="login__card x-ctl-lg" novalidate @submit.prevent="submit">
         <h1 class="login__title">{{ t('auth.title') }}</h1>
         <i18n-t keypath="common.server" tag="p" class="login__server">
           <template #host><span class="login__host">{{ host }}</span></template>
@@ -120,7 +120,7 @@ onBeforeUnmount(() => clearInterval(timer))
 
         <div class="login__fields">
           <div class="login__field">
-            <label class="login__label" :for="`${id}-user`">{{ t('auth.username') }}</label>
+            <label class="x-caps x-caps--lg" :for="`${id}-user`">{{ t('auth.username') }}</label>
             <XInput
               :id="`${id}-user`"
               ref="usernameInput"
@@ -134,7 +134,7 @@ onBeforeUnmount(() => clearInterval(timer))
             />
           </div>
           <div class="login__field">
-            <label class="login__label" :for="`${id}-pass`">{{ t('auth.password') }}</label>
+            <label class="x-caps x-caps--lg" :for="`${id}-pass`">{{ t('auth.password') }}</label>
             <XInput
               :id="`${id}-pass`"
               ref="passwordInput"
@@ -148,7 +148,7 @@ onBeforeUnmount(() => clearInterval(timer))
             />
           </div>
           <div v-if="twoFactor" class="login__field">
-            <label class="login__label" :for="`${id}-code`">{{ t('auth.code') }}</label>
+            <label class="x-caps x-caps--lg" :for="`${id}-code`">{{ t('auth.code') }}</label>
             <XInput
               :id="`${id}-code`"
               ref="codeInput"
@@ -189,7 +189,7 @@ onBeforeUnmount(() => clearInterval(timer))
         </XButton>
 
         <footer class="login__foot" aria-live="polite">
-          <XStatusDot :tone="pingTone" pulse />
+          <XStatusDot :tone="pingTone" pulse class="login__dot" />
           <span v-if="pingFailed">{{ t('auth.noConnection') }}</span>
           <span v-else-if="ping != null">{{ t('auth.ping', { value: formatMilliseconds(ping) }) }}</span>
         </footer>
@@ -200,9 +200,6 @@ onBeforeUnmount(() => clearInterval(timer))
 
 <style scoped>
 .login {
-  /* The login form uses the large controls of the mockup on every screen. */
-  --ctl-h: 44px;
-  --ctl-r: var(--r-12);
   position: relative;
   display: flex;
   flex-direction: column;
@@ -222,9 +219,6 @@ onBeforeUnmount(() => clearInterval(timer))
 .login__tools {
   display: flex;
   gap: 8px;
-  /* The page's controls stay at the regular size. */
-  --ctl-h: 34px;
-  --ctl-r: var(--r-10);
 }
 
 .login__main {
@@ -280,16 +274,8 @@ onBeforeUnmount(() => clearInterval(timer))
   gap: 6px;
 }
 
-.login__label {
-  color: var(--dim);
-  font: 500 var(--fs-11) / var(--lh-tight) var(--font-mono);
-  letter-spacing: .07em;
-  text-transform: uppercase;
-}
-
 .login__error {
   margin-top: 14px;
-  align-items: center;
 }
 
 .login__dismiss {
@@ -298,7 +284,6 @@ onBeforeUnmount(() => clearInterval(timer))
 
 .login__submit {
   margin-top: 16px;
-  font-size: var(--fs-14);
 }
 
 .login__submit.is-success {
@@ -325,7 +310,7 @@ onBeforeUnmount(() => clearInterval(timer))
   line-height: var(--lh-tight);
 }
 
-.login__foot :deep(.x-dot) {
+.login__dot {
   /* The dot's 16px box holds an 8px dot: line it up with the text above. */
   margin-left: -4px;
 }

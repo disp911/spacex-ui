@@ -3,7 +3,7 @@ import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { api } from '../../api'
 import { formatNumber } from '../../i18n/format'
-import { XButton, XIcon, XMenu, type MenuItem } from '../../kit'
+import { XButton, XMenu, type MenuItem } from '../../kit'
 
 /** CPU load history; the server averages it into 60 buckets of the chosen size. */
 const { t } = useI18n()
@@ -61,12 +61,9 @@ const area = computed(() => (line.value ? `${line.value} L${W} ${H} L0 ${H} Z` :
 <template>
   <div class="cpu">
     <div class="cpu__head">
-      <span class="cpu__title">{{ t('dashboard.cpuLoad') }}</span>
+      <span class="x-caps cpu__title">{{ t('dashboard.cpuLoad') }}</span>
       <XMenu v-slot="{ props }" :items="items" placement="bottom-start" @select="bucket = Number($event)">
-        <XButton v-bind="props" size="sm" class="cpu__range">
-          {{ t('dashboard.range', { range: t(current.key) }) }}
-          <XIcon name="caret" :size="10" :stroke="1.6" />
-        </XButton>
+        <XButton v-bind="props" size="sm" mono caret>{{ t('dashboard.range', { range: t(current.key) }) }}</XButton>
       </XMenu>
       <span v-if="points.length" class="cpu__peak">{{ t('dashboard.peak', { value: `${formatNumber(peak, 1)}%` }) }}</span>
     </div>
@@ -90,22 +87,7 @@ const area = computed(() => (line.value ? `${line.value} L${W} ${H} L0 ${H} Z` :
 }
 
 .cpu__title {
-  color: var(--dim);
-  font: 500 var(--fs-10) / var(--lh-tight) var(--font-mono);
-  letter-spacing: .07em;
-  text-transform: uppercase;
   white-space: nowrap;
-}
-
-.x-btn.cpu__range {
-  font-family: var(--font-mono);
-  font-weight: 500;
-}
-
-.cpu__range :deep(.x-btn__text) {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
 }
 
 .cpu__peak {

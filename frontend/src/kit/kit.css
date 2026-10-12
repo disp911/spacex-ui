@@ -143,3 +143,22 @@
   opacity: 0;
   transform: translateY(-4px);
 }
+
+/* Caps label: field names, card titles, toolbar labels. */
+.x-caps {
+  color: var(--dim);
+  font: 500 var(--fs-10) / var(--lh-tight) var(--font-mono);
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+
+.x-caps--lg {
+  font-size: var(--fs-11);
+}
+
+/* Large controls for a whole region, e.g. the login form: 44px on every screen. */
+.x-ctl-lg {
+  --ctl-h: 44px;
+  --ctl-r: var(--r-12);
+  --ctl-fs: var(--fs-14);
+}

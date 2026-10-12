@@ -126,7 +126,7 @@ function choose(item: MenuItem) {
         :style="asSheet ? undefined : style"
         @keydown="onMenuKeydown"
       >
-        <div v-if="title" class="x-menu__title" aria-hidden="true">{{ title }}</div>
+        <div v-if="title" class="x-caps x-menu__title" aria-hidden="true">{{ title }}</div>
         <template v-for="item in items" :key="item.key">
           <div v-if="item.divided" class="x-menu__divider" role="separator" />
           <button
@@ -178,8 +178,6 @@ function choose(item: MenuItem) {
 .x-menu--sheet .x-menu__title {
   margin-bottom: 6px;
   padding: 0 6px;
-  font-size: var(--fs-11);
-  letter-spacing: .07em;
 }
 
 .x-menu--sheet .x-popup-item {
@@ -222,10 +220,6 @@ function choose(item: MenuItem) {
 
 .x-menu__title {
   padding: 8px 10px 6px;
-  color: var(--dim);
-  font: 500 var(--fs-10) / 1 var(--font-mono);
-  letter-spacing: .09em;
-  text-transform: uppercase;
 }
 
 .x-menu__dot {

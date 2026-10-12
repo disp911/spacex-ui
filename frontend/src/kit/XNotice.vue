@@ -4,13 +4,21 @@ import XIcon from './XIcon.vue'
 import type { IconName } from './icons'
 
 /** Inline message inside a page or a dialog. */
-const props = withDefaults(defineProps<{ tone?: 'info' | 'ok' | 'warn' | 'err'; title?: string }>(), { tone: 'info' })
+const props = withDefaults(
+  defineProps<{
+    tone?: 'info' | 'ok' | 'warn' | 'err'
+    title?: string
+    /** A slim one-line notice beside a page title: smaller text and padding. */
+    compact?: boolean
+  }>(),
+  { tone: 'info' },
+)
 
 const icon = computed<IconName>(() => (props.tone === 'ok' ? 'check' : props.tone === 'info' ? 'info' : 'alert'))
 </script>
 
 <template>
-  <div :class="['x-notice', `x-notice--${tone}`]" :role="tone === 'err' ? 'alert' : 'status'">
+  <div :class="['x-notice', `x-notice--${tone}`, { 'x-notice--compact': compact, 'x-notice--plain': !title }]" :role="tone === 'err' ? 'alert' : 'status'">
     <XIcon :name="icon" :size="16" :stroke="1.5" class="x-notice__icon" />
     <div class="x-notice__body">
       <p v-if="title" class="x-notice__title">{{ title }}</p>
@@ -48,6 +56,27 @@ const icon = computed<IconName>(() => (props.tone === 'ok' ? 'check' : props.ton
   margin: 0 0 2px;
   color: var(--tone-t);
   font-weight: 600;
+}
+
+.x-notice--compact {
+  align-items: center;
+  padding: 6px 6px 6px 12px;
+  font-size: var(--fs-12);
+  line-height: var(--lh-tight);
+}
+
+.x-notice--compact .x-notice__title {
+  margin-bottom: 1px;
+}
+
+/* Without a title the text is one short message: the icon and actions centre on it. */
+.x-notice--plain {
+  align-items: center;
+}
+
+.x-notice--compact .x-notice__icon,
+.x-notice--plain .x-notice__icon {
+  margin-top: 0;
 }
 
 .x-notice__actions {

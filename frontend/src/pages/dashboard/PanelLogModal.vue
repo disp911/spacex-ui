@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { api, ApiError } from '../../api'
-import { XButton, XCheckbox, XIcon, XMenu, XModal, type MenuItem } from '../../kit'
+import { XButton, XCheckbox, XEmpty, XMenu, XModal, type MenuItem } from '../../kit'
 
 /** The panel's own log, or the x-ui unit's journal with SysLog on. */
 const open = defineModel<boolean>('open', { default: false })
@@ -88,25 +88,20 @@ const skeleton = [62, 48, 71, 55, 38, 66, 52, 44, 69, 58, 41, 63]
       <XButton icon="refresh" :label="t('dashboard.logRefresh')" :loading="loading" @click="load" />
 
       <XMenu v-slot="{ props }" :items="countItems" :title="t('dashboard.logRows')" placement="bottom-start" sheet @select="count = Number($event)">
-        <XButton v-bind="props" :label="`${t('dashboard.logRows')}: ${count}`" class="log-filter log-filter--count">
-          <span class="log-filter__label log-filter__label--wide">{{ t('dashboard.logRows') }}</span>
-          <span class="mono log-filter__value">{{ count }}</span>
-          <XIcon name="caret" :size="10" :stroke="1.6" class="log-filter__caret" />
+        <XButton v-bind="props" :label="`${t('dashboard.logRows')}: ${count}`" caret>
+          <span class="x-caps log-filter__label">{{ t('dashboard.logRows') }}</span> <span class="mono">{{ count }}</span>
         </XButton>
       </XMenu>
 
       <XMenu v-slot="{ props }" :items="levelItems" :title="t('dashboard.logLevel')" placement="bottom-start" sheet @select="level = $event">
-        <XButton v-bind="props" :label="`${t('dashboard.logLevel')}: ${current.label}`" class="log-filter">
-          <span class="log-filter__label log-filter__label--wide">{{ t('dashboard.logLevel') }}</span>
-          <span :class="['log-dot', `log-tone--${current.tone}`]" />
-          <span class="log-filter__value">{{ current.label }}</span>
-          <XIcon name="caret" :size="10" :stroke="1.6" class="log-filter__caret" />
+        <XButton v-bind="props" :label="`${t('dashboard.logLevel')}: ${current.label}`" caret>
+          <span class="x-caps log-filter__label">{{ t('dashboard.logLevel') }}</span> <span :class="['log-dot', `log-tone--${current.tone}`]" /> {{ current.label }}
         </XButton>
       </XMenu>
 
-      <XCheckbox v-model="syslog" class="log-syslog">SysLog</XCheckbox>
+      <XCheckbox v-model="syslog" boxed>SysLog</XCheckbox>
 
-      <XButton icon="download" :label="t('dashboard.logDownload')" :disabled="!lines.length" class="log-download" @click="download">
+      <XButton icon="download" :label="t('dashboard.logDownload')" :disabled="!lines.length" phone-icon-only class="log-download" @click="download">
         {{ t('dashboard.logDownload') }}
       </XButton>
     </div>
@@ -120,11 +115,11 @@ const skeleton = [62, 48, 71, 55, 38, 66, 52, 44, 69, 58, 41, 63]
               <span class="log-skeleton__bar" :style="{ width: `${w}%` }" />
             </div>
           </div>
-          <div v-else-if="!rows.length" class="log-empty">
-            <span class="log-empty__icon"><XIcon name="doc" :size="16" :stroke="1.3" /></span>
-            <span class="log-empty__title">{{ failed ? t('dashboard.logFailed', { error: failed }) : t('dashboard.logEmpty') }}</span>
-            <span v-if="!failed" class="log-empty__hint">{{ t('dashboard.logEmptyHint') }}</span>
-          </div>
+          <XEmpty
+            v-else-if="!rows.length"
+            :title="failed ? t('dashboard.logFailed', { error: failed }) : t('dashboard.logEmpty')"
+            :hint="failed ? undefined : t('dashboard.logEmptyHint')"
+          />
           <template v-else>
             <div v-for="(row, i) in rows" :key="i" class="log-line">
               <!-- One line, so copied text keeps the spaces between the fields. -->
@@ -151,67 +146,21 @@ const skeleton = [62, 48, 71, 55, 38, 66, 52, 44, 69, 58, 41, 63]
   background: var(--foot);
 }
 
-.x-btn.log-filter {
-  padding: 0 10px 0 12px;
-  font-size: var(--fs-12);
-  font-weight: 500;
-}
-
-.log-filter :deep(.x-btn__text) {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
 .log-filter__label {
-  flex: none;
-  color: var(--dim);
-  font: 500 var(--fs-10) / 1 var(--font-mono);
-  letter-spacing: .07em;
-  text-transform: uppercase;
-}
-
-.log-filter__value {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.log-filter__caret {
-  flex: none;
-  color: var(--dim);
+  margin-right: 2px;
 }
 
 .log-dot {
-  flex: none;
+  display: inline-block;
   width: 6px;
   height: 6px;
+  margin: 0 2px;
   border-radius: 50%;
   background: var(--tone);
+  vertical-align: middle;
 }
 
-.log-syslog {
-  flex: none;
-  height: var(--ctl-h);
-  padding: 0 12px 0 10px;
-  border: 1px solid var(--field-line);
-  border-radius: var(--ctl-r);
-  background: var(--ctrl);
-  font-size: var(--fs-12);
-  font-weight: 500;
-  transition: border-color var(--t-fast);
-}
-
-.log-syslog:hover {
-  border-color: var(--field-hover);
-}
-
-.log-syslog:has(:focus-visible) {
-  border-color: var(--acc-line);
-  box-shadow: 0 0 0 3px var(--acc-ring);
-}
-
-.x-btn.log-download {
+.log-download {
   margin-left: auto;
 }
 
@@ -284,44 +233,9 @@ const skeleton = [62, 48, 71, 55, 38, 66, 52, 44, 69, 58, 41, 63]
   background: var(--skel);
 }
 
-.log-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  height: 100%;
-  min-height: 200px;
-  padding: 0 16px;
-  text-align: center;
-  font-family: var(--font-sans);
-}
-
-.log-empty__icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border: 1px dashed var(--track);
-  border-radius: var(--r-12);
-  color: var(--faint);
-}
-
-.log-empty__title {
-  color: var(--mut);
-  font: 500 var(--fs-13) / var(--lh-tight) var(--font-sans);
-}
-
-.log-empty__hint {
-  color: var(--dim);
-  font: 400 var(--fs-12) / var(--lh-text) var(--font-sans);
-  text-wrap: pretty;
-}
-
 @media (max-width: 767px) {
   /* 44px controls leave no room for the filter labels: the sheet titles name them.
-     Lines and level share what is left; narrow phones scroll the row. */
+     The row scrolls sideways when it does not fit, as in the mockup. */
   .log-bar {
     gap: 6px;
     padding: 10px 14px;
@@ -333,40 +247,7 @@ const skeleton = [62, 48, 71, 55, 38, 66, 52, 44, 69, 58, 41, 63]
     flex: none;
   }
 
-  .log-bar > .x-btn.log-filter {
-    flex: 1 1 auto;
-    min-width: 0;
-    justify-content: space-between;
-    padding: 0 8px 0 10px;
-  }
-
-  .log-bar > .x-btn.log-filter--count {
-    flex-shrink: 0;
-  }
-
-  .log-filter :deep(.x-btn__text) {
-    flex: 1;
-    gap: 6px;
-  }
-
-  .log-filter__caret {
-    margin-left: auto;
-  }
-
-  .log-syslog {
-    padding: 0 10px 0 8px;
-  }
-
-  .log-filter__label--wide {
-    display: none;
-  }
-
-  .x-btn.log-download {
-    width: var(--ctl-h);
-    padding: 0;
-  }
-
-  .log-download :deep(.x-btn__text) {
+  .log-filter__label {
     display: none;
   }
 

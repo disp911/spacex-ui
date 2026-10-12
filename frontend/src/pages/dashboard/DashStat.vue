@@ -1,11 +1,11 @@
 <script setup lang="ts">
-/** A labelled figure; short is the label phones show. */
-defineProps<{ label: string; short?: string; value: string }>()
+/** A labelled figure; short is the label phones show. Small figures are secondary, coloured by direction. */
+defineProps<{ label: string; short?: string; value: string; small?: boolean; tone?: 'up' | 'down' }>()
 </script>
 
 <template>
-  <div class="stat">
-    <div class="stat__label">
+  <div :class="['stat', { 'stat--small': small }, tone && `stat--${tone}`]">
+    <div class="x-caps stat__label">
       <span :class="{ 'stat__long': short }">{{ label }}</span>
       <span v-if="short" class="stat__short">{{ short }}</span>
     </div>
@@ -21,13 +21,17 @@ defineProps<{ label: string; short?: string; value: string }>()
 .stat__label {
   margin-bottom: 4px;
   overflow: hidden;
-  color: var(--dim);
-  font: 500 var(--fs-10) / var(--lh-tight) var(--font-mono);
-  letter-spacing: .07em;
-  text-transform: uppercase;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
+
+.stat--small .stat__value {
+  color: var(--fg2);
+  font-size: var(--fs-14);
+}
+
+.stat--up .stat__value { color: var(--upload); }
+.stat--down .stat__value { color: var(--acc); }
 
 .stat__short {
   display: none;

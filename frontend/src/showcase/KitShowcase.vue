@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue'
 import { useTheme } from '../stores/theme'
 import {
-  XBadge, XButton, XCard, XCheckbox, XChip, XCounter, XField, XInput, XMenu, XModal, XNotice, XNumber,
+  XBadge, XButton, XCard, XCheckbox, XChip, XCounter, XEmpty, XField, XInput, XMenu, XModal, XNotice, XNumber,
   XPager, XSection, XSegmented, XSelect, XStatusDot, XSwitch, XTagInput, XTextarea, XTooltip, XUsagePill,
   type MenuItem,
 } from '../kit'
@@ -55,7 +55,8 @@ const view = ref<'all' | 'online' | 'depleted'>('all')
 const mode = ref<'search' | 'filter'>('search')
 const page = ref(5)
 const modalOpen = ref(false)
-const sheetSize = ref<'sm' | 'md' | 'lg'>('md')
+const sheetSize = ref<'sm' | 'md' | 'lg' | 'xl'>('md')
+const boxedCheck = ref(true)
 const lastAction = ref('—')
 const sectionOpen = ref(true)
 const sw = ref({ a: false, b: true, loading: false })
@@ -397,7 +398,26 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
             <XNotice tone="warn" title="Сертификат истекает">Осталось 6 дней. Продлите его до 18 октября.</XNotice>
             <XNotice tone="err" title="Ошибка при запуске Xray">failed to listen on 0.0.0.0:443: address already in use</XNotice>
             <XNotice tone="ok">Настройки сохранены.</XNotice>
+            <XNotice tone="warn" title="Соединение не защищено (HTTP)" compact>Не вводите конфиденциальные данные</XNotice>
           </div>
+        </div>
+        <div class="kit__variant">
+          <h3 class="kit__h3">Кнопки с меню · кнопка-чекбокс · подпись</h3>
+          <div class="kit__row kit__row--wrap">
+            <XButton caret><span class="x-caps">Строк</span> 100</XButton>
+            <XButton size="sm" mono caret>за 2 мин</XButton>
+            <XCheckbox v-model="boxedCheck" boxed>SysLog</XCheckbox>
+            <XButton icon="download" phone-icon-only>Скачать</XButton>
+            <XButton variant="soft" size="sm" phone-block>Обновить панель</XButton>
+          </div>
+          <div class="kit__row kit__row--wrap">
+            <span class="x-caps">Подпись 10</span>
+            <span class="x-caps x-caps--lg">Подпись 11</span>
+          </div>
+        </div>
+        <div class="kit__variant">
+          <h3 class="kit__h3">Пусто</h3>
+          <XEmpty title="Нет записей" hint="Для выбранного уровня и глубины журнал пуст" />
         </div>
       </div>
     </XCard>
@@ -461,7 +481,7 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
             <XSegmented
               v-model="sheetSize"
               label="Размер окна"
-              :options="[{ value: 'sm', label: 'sm 440' }, { value: 'md', label: 'md 560' }, { value: 'lg', label: 'lg 720' }]"
+              :options="[{ value: 'sm', label: 'sm 440' }, { value: 'md', label: 'md 560' }, { value: 'lg', label: 'lg 720' }, { value: 'xl', label: 'xl 800' }]"
             />
             <XButton variant="primary" @click="modalOpen = true">Открыть окно</XButton>
           </div>

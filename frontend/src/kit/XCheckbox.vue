@@ -3,6 +3,8 @@ import XIcon from './XIcon.vue'
 
 defineProps<{
   disabled?: boolean
+  /** Drawn as a control in a toolbar: the frame and height of a secondary button. */
+  boxed?: boolean
   indeterminate?: boolean
   invalid?: boolean
 }>()
@@ -11,7 +13,7 @@ const model = defineModel<boolean>({ default: false })
 </script>
 
 <template>
-  <label :class="['x-check', { 'is-disabled': disabled }]">
+  <label :class="['x-check', { 'x-check--boxed': boxed, 'is-disabled': disabled }]">
     <input
       v-model="model"
       class="x-check__input sr-only"
@@ -80,6 +82,32 @@ const model = defineModel<boolean>({ default: false })
 .x-check__box.is-invalid {
   border-color: var(--err);
   box-shadow: 0 0 0 3px var(--err-ring);
+}
+
+.x-check--boxed {
+  flex: none;
+  height: var(--ctl-h);
+  padding: 0 12px 0 10px;
+  border: 1px solid var(--field-line);
+  border-radius: var(--ctl-r);
+  background: var(--ctrl);
+  font-weight: 500;
+  transition: border-color var(--t-fast), box-shadow var(--t-fast);
+}
+
+.x-check--boxed:hover,
+.x-check--boxed.is-hover {
+  border-color: var(--field-hover);
+}
+
+.x-check--boxed:has(:focus-visible),
+.x-check--boxed.is-focus {
+  border-color: var(--acc-line);
+  box-shadow: 0 0 0 3px var(--acc-ring);
+}
+
+.x-check--boxed .x-check__input:focus-visible + .x-check__box {
+  box-shadow: none;
 }
 
 .x-check.is-disabled {

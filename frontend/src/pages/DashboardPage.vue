@@ -108,10 +108,10 @@ const dash = '—'
       </i18n-t>
     </template>
     <template v-if="insecure && !httpDismissed" #aside>
-      <XNotice tone="warn" :title="t('dashboard.httpTitle')" class="http">
+      <XNotice tone="warn" :title="t('dashboard.httpTitle')" compact>
         {{ t('dashboard.httpText') }}
         <template #actions>
-          <XButton variant="ghost" size="sm" icon="close" :label="t('kit.close')" class="http__close" @click="dismissHttp" />
+          <XButton variant="ghost" size="sm" icon="close" :label="t('kit.close')" @click="dismissHttp" />
         </template>
       </XNotice>
     </template>
@@ -154,10 +154,10 @@ const dash = '—'
           <div class="version">
             <span class="version__label">{{ t('dashboard.panelVersion') }}</span>
             <span class="mono version__value">v{{ config.version }}</span>
-            <button v-if="update?.updateAvailable" type="button" class="version__update">
-              <span class="version__dot" />
+            <XButton v-if="update?.updateAvailable" variant="soft" size="sm" phone-block class="version__update">
+              <template #icon><span class="version__dot" /></template>
               {{ t('dashboard.update', { version: update.latestVersion }) }}
-            </button>
+            </XButton>
           </div>
         </DashCard>
 
@@ -175,11 +175,11 @@ const dash = '—'
           </template>
           <div class="tiles">
             <div class="tile">
-              <div class="tile__label">IPv4</div>
+              <div class="x-caps tile__label">IPv4</div>
               <div :class="['tile__ip', { 'is-hidden': ipHidden }]">{{ ip(status?.publicIP.ipv4) }}</div>
             </div>
             <div class="tile">
-              <div class="tile__label">IPv6</div>
+              <div class="x-caps tile__label">IPv6</div>
               <div :class="['tile__ip', { 'is-hidden': ipHidden }]">{{ ip(status?.publicIP.ipv6) }}</div>
             </div>
           </div>
@@ -192,14 +192,14 @@ const dash = '—'
         <DashCard :title="t('dashboard.network')" class="area-network">
           <div class="tiles">
             <div class="tile tile--total">
-              <div class="tile__label">
+              <div class="x-caps tile__label">
                 <XIcon name="arrowUp" :size="13" class="up" />
                 <span class="long">{{ t('dashboard.sent') }}</span><span class="short">{{ t('dashboard.sentShort') }}</span>
               </div>
               <div class="tile__total up">{{ status ? sent.n : dash }} <small v-if="status">{{ sent.unit }}</small></div>
             </div>
             <div class="tile tile--total">
-              <div class="tile__label">
+              <div class="x-caps tile__label">
                 <XIcon name="arrowDown" :size="13" class="down" />
                 <span class="long">{{ t('dashboard.received') }}</span><span class="short">{{ t('dashboard.receivedShort') }}</span>
               </div>
@@ -208,12 +208,12 @@ const dash = '—'
           </div>
           <div class="net-figures">
             <div class="net-figures__pair">
-              <DashStat :label="t('dashboard.upload')" :value="status ? formatSpeed(status.netIO.up) : dash" class="small up" />
-              <DashStat :label="t('dashboard.download')" :value="status ? formatSpeed(status.netIO.down) : dash" class="small down" />
+              <DashStat :label="t('dashboard.upload')" :value="status ? formatSpeed(status.netIO.up) : dash" small tone="up" />
+              <DashStat :label="t('dashboard.download')" :value="status ? formatSpeed(status.netIO.down) : dash" small tone="down" />
             </div>
             <div class="net-figures__pair">
-              <DashStat label="TCP" :value="status ? formatNumber(status.tcpCount) : dash" class="small" />
-              <DashStat label="UDP" :value="status ? formatNumber(status.udpCount) : dash" class="small" />
+              <DashStat label="TCP" :value="status ? formatNumber(status.tcpCount) : dash" small />
+              <DashStat label="UDP" :value="status ? formatNumber(status.udpCount) : dash" small />
             </div>
           </div>
         </DashCard>
@@ -245,23 +245,6 @@ const dash = '—'
 .mono {
   color: var(--fg2);
   font-family: var(--font-mono);
-}
-
-.http {
-  align-items: center;
-  padding: 6px 6px 6px 12px;
-  border-radius: var(--r-12);
-  font-size: var(--fs-12);
-  line-height: var(--lh-tight);
-}
-
-.http :deep(.x-notice__icon) {
-  margin-top: 0;
-}
-
-.http :deep(.x-notice__title) {
-  margin-bottom: 1px;
-  font-size: var(--fs-12);
 }
 
 .dash {
@@ -312,26 +295,7 @@ const dash = '—'
 }
 
 .version__update {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: var(--ctl-sm-h);
   margin-left: auto;
-  padding: 0 10px;
-  border: 1px solid var(--acc-line);
-  border-radius: var(--r-8);
-  background: var(--acc-soft);
-  color: var(--acc);
-  font: 500 var(--fs-12) / 1 var(--font-sans);
-  white-space: nowrap;
-  outline: none;
-  transition: box-shadow var(--t-fast), border-color var(--t-fast);
-}
-
-.version__update:hover,
-.version__update:focus-visible {
-  border-color: var(--acc);
-  box-shadow: 0 0 0 3px var(--acc-ring);
 }
 
 .version__dot {
@@ -376,10 +340,6 @@ const dash = '—'
   align-items: center;
   gap: 6px;
   margin-bottom: 8px;
-  color: var(--dim);
-  font: 500 var(--fs-10) / var(--lh-tight) var(--font-mono);
-  letter-spacing: .07em;
-  text-transform: uppercase;
   white-space: nowrap;
 }
 
@@ -436,22 +396,6 @@ const dash = '—'
 
 .net-figures__pair {
   padding: 0 14px;
-}
-
-.small :deep(.stat__value) {
-  font-size: var(--fs-14);
-}
-
-.small.up :deep(.stat__value) {
-  color: var(--upload);
-}
-
-.small.down :deep(.stat__value) {
-  color: var(--acc);
-}
-
-.small:not(.up, .down) :deep(.stat__value) {
-  color: var(--fg2);
 }
 
 /* System */
@@ -544,12 +488,7 @@ const dash = '—'
   }
 
   .version__update {
-    flex-basis: 100%;
-    justify-content: center;
-    height: var(--ctl-h);
     margin: 2px 0 0;
-    border-radius: var(--ctl-r);
-    font-size: var(--fs-13);
   }
 }
 </style>

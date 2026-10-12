@@ -20,6 +20,14 @@ const props = withDefaults(
     href?: string
     /** Renders a link to a route of the app. */
     to?: RouteLocationRaw
+    /** Opens a menu: a caret after the text. */
+    caret?: boolean
+    /** Values and codes: monospace text. */
+    mono?: boolean
+    /** On phones only the icon is shown; the text stays the accessible name. */
+    phoneIconOnly?: boolean
+    /** On phones the button takes the whole row at the regular control height. */
+    phoneBlock?: boolean
   }>(),
   { variant: 'secondary', size: 'md', type: 'button' },
 )
@@ -37,7 +45,12 @@ const linkAttrs = computed(() => (props.to ? { to: props.to } : props.href ? { h
   <component
     :is="tag"
     v-bind="linkAttrs"
-    :class="['x-btn', `x-btn--${variant}`, `x-btn--${size}`, { 'x-btn--icon': iconOnly, 'x-btn--block': block, 'is-loading': loading }]"
+    :class="[
+      'x-btn',
+      `x-btn--${variant}`,
+      `x-btn--${size}`,
+      { 'x-btn--icon': iconOnly, 'x-btn--block': block, 'x-btn--mono': mono, 'x-btn--phone-icon': phoneIconOnly && !iconOnly, 'x-btn--phone-block': phoneBlock, 'is-loading': loading },
+    ]"
     :disabled="isLink ? undefined : disabled"
     :aria-disabled="loading || (isLink && disabled) || undefined"
     :aria-busy="loading || undefined"
@@ -47,6 +60,7 @@ const linkAttrs = computed(() => (props.to ? { to: props.to } : props.href ? { h
     <XSpinner v-if="loading" :size="iconSize - 1" />
     <slot v-else name="icon"><XIcon v-if="icon" :name="icon" :size="iconSize" /></slot>
     <span v-if="$slots.default" class="x-btn__text"><slot /></span>
+    <XIcon v-if="caret" name="caret" :size="10" :stroke="1.6" class="x-btn__caret" />
   </component>
 </template>
 
@@ -99,6 +113,48 @@ const linkAttrs = computed(() => (props.to ? { to: props.to } : props.href ? { h
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.x-btn--mono {
+  font-family: var(--font-mono);
+  font-weight: 500;
+}
+
+/* Pushed to the far edge when the button is stretched. */
+.x-btn__caret {
+  flex: none;
+  margin-left: auto;
+  color: var(--dim);
+}
+
+@media (max-width: 767px) {
+  .x-btn--phone-icon {
+    position: relative;
+    width: var(--ctl-h);
+    padding: 0;
+  }
+
+  .x-btn--sm.x-btn--phone-icon {
+    width: var(--ctl-sm-h);
+  }
+
+  .x-btn--phone-block {
+    display: flex;
+    width: 100%;
+    height: var(--ctl-h);
+    padding: 0 var(--btn-px);
+    border-radius: var(--ctl-r);
+    font-size: var(--ctl-fs);
+  }
+
+  .x-btn--phone-icon .x-btn__text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
 }
 
 .x-btn.is-loading {

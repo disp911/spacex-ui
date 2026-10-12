@@ -6,7 +6,7 @@ defineProps<{ title: string }>()
 <template>
   <section class="dash-card">
     <header class="dash-card__head">
-      <h2 class="dash-card__title">{{ title }}</h2>
+      <h2 class="x-caps x-caps--lg dash-card__title">{{ title }}</h2>
       <div v-if="$slots.head" class="dash-card__extra"><slot name="head" /></div>
     </header>
     <slot />
@@ -38,10 +38,6 @@ defineProps<{ title: string }>()
 
 .dash-card__title {
   margin: 0;
-  color: var(--dim);
-  font: 500 var(--fs-11) / var(--lh-tight) var(--font-mono);
-  letter-spacing: .07em;
-  text-transform: uppercase;
   white-space: nowrap;
 }
 

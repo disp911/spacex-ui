@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { locales, setLocale, type Locale } from '../i18n'
-import { XButton, XIcon, XMenu, type MenuItem } from '../kit'
+import { XButton, XMenu, type MenuItem } from '../kit'
 
 /** Language picker; the page behind the open menu is blurred. */
 const { t, locale } = useI18n()
@@ -15,10 +15,7 @@ const items = computed<MenuItem[]>(() =>
 
 <template>
   <XMenu v-slot="{ props, open }" :items="items" :title="t('common.language')" @select="setLocale($event as Locale)">
-    <XButton v-bind="props" icon="globe" :label="t('common.language')" class="lang">
-      {{ code(locale) }}
-      <XIcon name="caret" :size="10" :stroke="1.6" class="lang__caret" />
-    </XButton>
+    <XButton v-bind="props" icon="globe" :label="t('common.language')" caret>{{ code(locale) }}</XButton>
     <Teleport to="body">
       <Transition name="lang-scrim">
         <div v-if="open" class="lang-scrim" aria-hidden="true" />
@@ -28,21 +25,6 @@ const items = computed<MenuItem[]>(() =>
 </template>
 
 <style scoped>
-.x-btn.lang {
-  padding: 0 10px 0 12px;
-  font-size: var(--fs-12);
-}
-
-.lang :deep(.x-btn__text) {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.lang__caret {
-  color: var(--dim);
-}
-
 .lang-scrim {
   position: fixed;
   inset: 0;
