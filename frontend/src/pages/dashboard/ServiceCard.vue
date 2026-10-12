@@ -98,7 +98,7 @@ const dash = '—'
     'stats actions';
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: end;
-  gap: 13px 12px;
+  gap: 12px;
 }
 
 .service__state {
@@ -122,7 +122,7 @@ const dash = '—'
 .service__version {
   display: inline-flex;
   align-items: center;
-  height: 24px;
+  height: var(--chip-h);
   padding: 0 10px;
   border: 1px solid var(--line);
   border-radius: var(--r-8);
@@ -140,7 +140,7 @@ const dash = '—'
   border-radius: var(--r-8);
   background: none;
   color: var(--tone);
-  font: 600 var(--fs-18) / normal var(--font-sans);
+  font: 600 var(--fs-18) / var(--lh-tight) var(--font-sans);
   letter-spacing: -.4px;
   outline: none;
 }
@@ -159,8 +159,8 @@ const dash = '—'
 .service__status--off { --tone: var(--dim); }
 
 .service__dot {
-  width: 9px;
-  height: 9px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background: var(--tone);
   animation: service-pulse 2.4s infinite;
@@ -179,7 +179,7 @@ const dash = '—'
   min-height: 28px;
   margin-bottom: 8px;
   color: var(--fg);
-  font: 600 var(--fs-13) / 1.2 var(--font-sans);
+  font: 600 var(--fs-13) / var(--lh-tight) var(--font-sans);
 }
 
 .service__error-head > span {
@@ -191,13 +191,13 @@ const dash = '—'
   flex-direction: column;
   gap: 2px;
   max-height: 200px;
-  padding: 9px 11px;
+  padding: 8px 12px;
   overflow: auto;
   border: 1px solid var(--err-line);
   border-radius: var(--r-8);
   background: var(--err-bg);
   color: var(--err-t);
-  font: 400 var(--fs-11) / 1.55 var(--font-mono);
+  font: 400 var(--fs-11) / var(--lh-code) var(--font-mono);
   word-break: break-word;
 }
 

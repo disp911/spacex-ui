@@ -68,7 +68,7 @@ const model = defineModel<boolean>({ default: false })
 .x-check__dash {
   width: 8px;
   height: 2px;
-  border-radius: 1px;
+  border-radius: var(--r-pill);
   background: currentColor;
 }
 

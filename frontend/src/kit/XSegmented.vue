@@ -70,7 +70,7 @@ function onKeydown(e: KeyboardEvent) {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 0 11px;
+  padding: 0 12px;
   border: 0;
   border-radius: var(--r-8);
   background: transparent;

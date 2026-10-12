@@ -85,22 +85,21 @@ const area = computed(() => (line.value ? `${line.value} L${W} ${H} L0 ${H} Z` :
 .cpu__head {
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 8px;
   margin-bottom: 8px;
 }
 
 .cpu__title {
   color: var(--dim);
-  font: 500 var(--fs-10) / normal var(--font-mono);
+  font: 500 var(--fs-10) / var(--lh-tight) var(--font-mono);
   letter-spacing: .07em;
   text-transform: uppercase;
   white-space: nowrap;
 }
 
 .x-btn.cpu__range {
-  height: 24px;
-  padding: 0 7px 0 9px;
-  font: 500 var(--fs-11) / 1 var(--font-mono);
+  font-family: var(--font-mono);
+  font-weight: 500;
 }
 
 .cpu__range :deep(.x-btn__text) {

@@ -126,10 +126,10 @@ function onBlur() {
 <style scoped>
 .x-tags {
   flex-wrap: wrap;
-  gap: 5px;
+  gap: 4px;
   height: auto;
   min-height: var(--ctl-h);
-  padding: 4px 5px;
+  padding: 4px;
   cursor: text;
 }
 

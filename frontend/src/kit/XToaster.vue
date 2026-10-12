@@ -68,7 +68,7 @@ import { dismissToast, toasts } from './toast'
 
 .x-toast__text {
   color: var(--fg);
-  font: 500 var(--fs-13) / 1.4 var(--font-sans);
+  font: 500 var(--fs-13) / var(--lh-text) var(--font-sans);
   text-wrap: pretty;
 }
 

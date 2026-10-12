@@ -49,7 +49,7 @@ defineProps<{ title: string }>()
 }
 
 .page__subtitle {
-  margin: 3px 0 0;
+  margin: 4px 0 0;
   color: var(--dim);
   font-size: var(--fs-12);
   white-space: nowrap;

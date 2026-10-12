@@ -70,13 +70,13 @@ const fill = computed(() => (props.disabled ? 'off' : props.ratio == null ? 'neu
   flex: 1;
   height: 4px;
   overflow: hidden;
-  border-radius: 2px;
+  border-radius: var(--r-pill);
   background: var(--bar-track);
 }
 
 .x-usage__bar {
   height: 100%;
-  border-radius: 2px;
+  border-radius: var(--r-pill);
   transition: width var(--t-med) var(--ease);
 }
 

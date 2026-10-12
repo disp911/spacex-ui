@@ -96,7 +96,7 @@ watch(() => route.fullPath, () => (drawerOpen.value = false))
 }
 
 .sidebar__logo {
-  padding: 0 5px 0 4px;
+  padding: 0 4px;
 }
 
 .topbar,
@@ -109,7 +109,7 @@ watch(() => route.fullPath, () => (drawerOpen.value = false))
   display: flex;
   flex-direction: column;
   min-width: 0;
-  padding: 20px 26px 28px;
+  padding: 20px 24px 24px;
 }
 
 @media (max-width: 767px) {
@@ -128,9 +128,9 @@ watch(() => route.fullPath, () => (drawerOpen.value = false))
     z-index: 10;
     display: flex;
     align-items: center;
-    gap: 11px;
+    gap: 12px;
     height: 64px;
-    padding: 0 15px;
+    padding: 0 16px;
     border-bottom: 1px solid var(--div);
     background: var(--side);
   }

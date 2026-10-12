@@ -63,7 +63,8 @@ const icon = computed<IconName>(() => (props.tone === 'ok' ? 'check' : props.ton
 
   .x-notice__actions {
     flex-basis: 100%;
-    padding-left: 26px;
+    /* Under the text: past the icon and the gap. */
+    padding-left: calc(var(--icon-l) + var(--sp-10));
   }
 }
 

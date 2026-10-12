@@ -67,13 +67,13 @@ const tone = (v: number) => (v >= 90 ? 'err' : v >= 80 ? 'warn' : 'ok')
 .res__head {
   display: flex;
   align-items: baseline;
-  gap: 9px;
+  gap: 8px;
   min-width: 0;
 }
 
 .res__label {
   color: var(--fg2);
-  font: 500 var(--fs-12) / normal var(--font-mono);
+  font: 500 var(--fs-12) / var(--lh-tight) var(--font-mono);
   letter-spacing: .06em;
   text-transform: uppercase;
   white-space: nowrap;
@@ -82,7 +82,7 @@ const tone = (v: number) => (v >= 90 ? 'err' : v >= 80 ? 'warn' : 'ok')
 .res__detail {
   overflow: hidden;
   color: var(--dim);
-  font: 400 var(--fs-11) / normal var(--font-mono);
+  font: 400 var(--fs-11) / var(--lh-tight) var(--font-mono);
   white-space: nowrap;
   text-overflow: ellipsis;
 }
@@ -90,7 +90,7 @@ const tone = (v: number) => (v >= 90 ? 'err' : v >= 80 ? 'warn' : 'ok')
 .res__value {
   margin-left: auto;
   color: var(--tone);
-  font: 600 var(--fs-16) / normal var(--font-mono);
+  font: 600 var(--fs-16) / var(--lh-tight) var(--font-mono);
   white-space: nowrap;
 }
 
@@ -104,21 +104,21 @@ const tone = (v: number) => (v >= 90 ? 'err' : v >= 80 ? 'warn' : 'ok')
 .res__bar {
   height: 6px;
   overflow: hidden;
-  border-radius: 3px;
+  border-radius: var(--r-pill);
   background: var(--bar-track);
 }
 
 .res__bar span {
   display: block;
   height: 100%;
-  border-radius: 3px;
+  border-radius: var(--r-pill);
   background: var(--tone);
   transition: width var(--t-med) var(--ease);
 }
 
 .chart {
   margin-top: 14px;
-  padding-top: 13px;
+  padding-top: 12px;
   border-top: 1px solid var(--div);
 }
 </style>

@@ -96,7 +96,7 @@ const dash = '—'
 </script>
 
 <template>
-  <AppPage :title="t('nav.dashboard')" class="dashboard">
+  <AppPage :title="t('nav.dashboard')">
     <template #subtitle>
       <i18n-t keypath="common.server" tag="span">
         <template #host><span class="mono">{{ host }}</span></template>
@@ -233,17 +233,6 @@ const dash = '—'
 </template>
 
 <style scoped>
-/* The dashboard mockup pads the content 22px from the top and 24px from the bottom. */
-.dashboard {
-  margin: 2px 0 -4px;
-}
-
-@media (max-width: 767px) {
-  .dashboard {
-    margin: 1px 0 -8px;
-  }
-}
-
 .mono {
   color: var(--fg2);
   font-family: var(--font-mono);
@@ -251,11 +240,10 @@ const dash = '—'
 
 .http {
   align-items: center;
-  min-height: 45px;
-  padding: 4px 6px 4px 12px;
+  padding: 6px 6px 6px 12px;
   border-radius: var(--r-12);
   font-size: var(--fs-12);
-  line-height: 1.3;
+  line-height: var(--lh-tight);
 }
 
 .http :deep(.x-notice__icon) {
@@ -317,7 +305,7 @@ const dash = '—'
 .version__update {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
+  gap: 6px;
   height: var(--ctl-sm-h);
   margin-left: auto;
   padding: 0 10px;
@@ -378,9 +366,9 @@ const dash = '—'
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-bottom: 7px;
+  margin-bottom: 8px;
   color: var(--dim);
-  font: 500 var(--fs-10) / 1.2 var(--font-mono);
+  font: 500 var(--fs-10) / var(--lh-tight) var(--font-mono);
   letter-spacing: .07em;
   text-transform: uppercase;
   white-space: nowrap;
@@ -389,7 +377,7 @@ const dash = '—'
 .tile__ip {
   overflow: hidden;
   color: var(--fg);
-  font: 500 var(--fs-14) / 1.3 var(--font-mono);
+  font: 500 var(--fs-14) / var(--lh-tight) var(--font-mono);
   white-space: nowrap;
   text-overflow: ellipsis;
   transition: filter var(--t-med);
@@ -401,7 +389,7 @@ const dash = '—'
 }
 
 .tile__total {
-  font: 600 var(--fs-20) / normal var(--font-mono);
+  font: 600 var(--fs-20) / var(--lh-tight) var(--font-mono);
   letter-spacing: -.5px;
   white-space: nowrap;
 }
@@ -434,7 +422,7 @@ const dash = '—'
 }
 
 .net-figures {
-  margin-top: 18px;
+  margin-top: 16px;
 }
 
 .net-figures__pair {
@@ -478,7 +466,7 @@ const dash = '—'
 }
 
 .system__hint {
-  margin: 5px 0 0;
+  margin: 4px 0 0;
   color: var(--dim);
   font-size: var(--fs-11);
 }

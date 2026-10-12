@@ -39,6 +39,8 @@ function toggle() {
 <style scoped>
 .x-switch {
   --knob-size: calc(var(--switch-h) - 6px);
+  /* The knob sits evenly inside the track. */
+  --inset: calc((var(--switch-h) - var(--knob-size)) / 2);
   position: relative;
   flex: none;
   width: var(--switch-w);
@@ -53,8 +55,8 @@ function toggle() {
 
 .x-switch__knob {
   position: absolute;
-  top: 3px;
-  left: 3px;
+  top: var(--inset);
+  left: var(--inset);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -72,7 +74,7 @@ function toggle() {
 }
 
 .x-switch.is-on .x-switch__knob {
-  left: calc(100% - var(--knob-size) - 3px);
+  left: calc(100% - var(--knob-size) - var(--inset));
   background: var(--knob-on);
   color: var(--acc);
 }
@@ -84,12 +86,12 @@ function toggle() {
 
 .x-switch:active:not(:disabled) .x-switch__knob,
 .x-switch.is-active .x-switch__knob {
-  width: calc(var(--knob-size) + 3px);
+  width: calc(var(--knob-size) + var(--inset));
 }
 
 .x-switch.is-on:active:not(:disabled) .x-switch__knob,
 .x-switch.is-on.is-active .x-switch__knob {
-  left: calc(100% - var(--knob-size) - 6px);
+  left: calc(100% - var(--knob-size) - 2 * var(--inset));
 }
 
 .x-switch:focus-visible,

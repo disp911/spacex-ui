@@ -35,9 +35,9 @@ const props = withDefaults(
   display: inline-flex;
   flex: none;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   height: var(--chip-h);
-  padding: 0 7px;
+  padding: 0 8px;
   border: 1px solid var(--tone-line);
   border-radius: var(--r-6);
   background: var(--tone-bg);

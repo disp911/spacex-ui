@@ -135,7 +135,7 @@ function choose(item: MenuItem) {
 
 <style scoped>
 .x-menu__title {
-  padding: 7px 10px 6px;
+  padding: 8px 10px 6px;
   color: var(--dim);
   font: 500 var(--fs-10) / 1 var(--font-mono);
   letter-spacing: .09em;

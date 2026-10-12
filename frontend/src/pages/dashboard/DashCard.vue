@@ -15,8 +15,6 @@ defineProps<{ title: string }>()
 
 <style scoped>
 .dash-card {
-  /* The mockup keeps the browser's normal line height in the dashboard. */
-  line-height: normal;
   display: flex;
   flex-direction: column;
   min-width: 0;
@@ -30,10 +28,10 @@ defineProps<{ title: string }>()
   display: flex;
   align-items: center;
   gap: 10px;
-  /* The mockup's header is one 14px line; badges on the right overflow it evenly. */
+  /* One 14px line; badges on the right overflow it evenly. */
   box-sizing: content-box;
   height: 14px;
-  margin: 0 -20px 13px;
+  margin: 0 -20px 12px;
   padding: 0 20px 14px;
   border-bottom: 1px solid var(--div);
 }
@@ -41,7 +39,7 @@ defineProps<{ title: string }>()
 .dash-card__title {
   margin: 0;
   color: var(--dim);
-  font: 500 var(--fs-11) / normal var(--font-mono);
+  font: 500 var(--fs-11) / var(--lh-tight) var(--font-mono);
   letter-spacing: .07em;
   text-transform: uppercase;
   white-space: nowrap;
@@ -56,12 +54,12 @@ defineProps<{ title: string }>()
 
 @media (max-width: 767px) {
   .dash-card {
-    padding: 13px 15px;
+    padding: 12px 16px;
   }
 
   .dash-card__head {
-    margin: 0 -15px 12px;
-    padding: 0 15px 12px;
+    margin: 0 -16px 12px;
+    padding: 0 16px 12px;
   }
 }
 </style>

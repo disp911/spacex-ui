@@ -39,9 +39,9 @@ const session = useSession()
 .nav__item {
   display: flex;
   align-items: center;
-  gap: 11px;
+  gap: 12px;
   height: var(--sidebar-item-h);
-  padding: 0 11px;
+  padding: 0 12px;
   border-radius: var(--r-10);
   color: var(--mut);
   font: 400 var(--fs-13) / 1 var(--font-sans);

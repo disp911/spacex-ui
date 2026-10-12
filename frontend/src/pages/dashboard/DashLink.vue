@@ -17,11 +17,11 @@ defineProps<{ icon: IconName; label: string }>()
 .dash-link {
   display: flex;
   align-items: center;
-  gap: 11px;
-  width: calc(100% + 22px);
+  gap: 12px;
+  width: calc(100% + 24px);
   height: var(--ctl-h);
-  margin: 0 -11px;
-  padding: 0 11px;
+  margin: 0 -12px;
+  padding: 0 12px;
   border: 0;
   border-radius: var(--r-10);
   background: transparent;

@@ -55,7 +55,7 @@ const linkAttrs = computed(() => (props.to ? { to: props.to } : props.href ? { h
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
+  gap: 6px;
   height: var(--ctl-h);
   padding: 0 var(--btn-px);
   border: 1px solid transparent;

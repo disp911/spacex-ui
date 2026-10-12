@@ -103,7 +103,8 @@ const id = useId()
 }
 
 .x-section__description {
-  margin: 0 10px 4px 30px;
+  /* Text lines up with the title: header padding, chevron, gap. */
+  margin: 0 var(--sp-10) var(--sp-4) calc(var(--sp-10) + var(--icon-s) + var(--sp-8));
   color: var(--dim);
   font: 400 var(--fs-12) / var(--lh-text) var(--font-sans);
 }
@@ -112,7 +113,7 @@ const id = useId()
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 8px 10px 12px 30px;
+  padding: 8px 10px 12px calc(var(--sp-10) + var(--icon-s) + var(--sp-8));
 }
 
 @media (max-width: 767px) {

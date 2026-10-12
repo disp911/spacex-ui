@@ -595,7 +595,7 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
 
 .kit__space span {
   height: 8px;
-  border-radius: 2px;
+  border-radius: var(--r-pill);
   background: var(--acc);
 }
 
@@ -676,7 +676,7 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
 .kit__variants {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-  gap: 28px;
+  gap: 32px;
 }
 
 .kit__variant {

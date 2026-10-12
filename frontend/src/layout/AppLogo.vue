@@ -30,7 +30,7 @@ defineProps<{ large?: boolean }>()
 }
 
 .logo--large {
-  gap: 11px;
+  gap: 12px;
 }
 
 .logo--large svg {

@@ -29,7 +29,7 @@ const items = computed<MenuItem[]>(() =>
 
 <style scoped>
 .x-btn.lang {
-  padding: 0 10px 0 11px;
+  padding: 0 10px 0 12px;
   font-size: var(--fs-12);
 }
 
