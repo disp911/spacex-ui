@@ -1473,7 +1473,8 @@
           protocol: inbound.protocol,
           settings: inbound.settings.toString(),
         };
-        if (inbound.canEnableStream()) {
+        // mtproto has no Xray transport but keeps External Proxy addresses there.
+        if (inbound.canEnableStream() || inbound.protocol === Protocols.MTPROTO) {
           data.streamSettings = inbound.stream.toString();
         } else if (inbound.stream?.sockopt) {
           data.streamSettings = JSON.stringify({
@@ -1500,7 +1501,8 @@
           protocol: inbound.protocol,
           settings: inbound.settings.toString(),
         };
-        if (inbound.canEnableStream()) {
+        // mtproto has no Xray transport but keeps External Proxy addresses there.
+        if (inbound.canEnableStream() || inbound.protocol === Protocols.MTPROTO) {
           data.streamSettings = inbound.stream.toString();
         } else if (inbound.stream?.sockopt) {
           data.streamSettings = JSON.stringify({
