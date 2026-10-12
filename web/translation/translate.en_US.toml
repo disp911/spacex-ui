@@ -734,6 +734,9 @@
 # v3 frontend. Parameters are written {name}.
 
 [common]
+"language" = "Interface language"
+"lightTheme" = "Switch to the light theme"
+"darkTheme" = "Switch to the dark theme"
 "notFound" = "Page not found"
 "notFoundHint" = "The address may be mistyped, or the page was removed."
 "toDashboard" = "Go to the dashboard"
@@ -751,6 +754,19 @@
 
 [auth]
 "title" = "Log in"
+"server" = "Server {host}"
+"username" = "Username"
+"password" = "Password"
+"code" = "2FA code"
+"submit" = "Log in to the panel"
+"checking" = "Checking…"
+"success" = "Logged in"
+"enterUsername" = "Enter the username"
+"enterPassword" = "Enter the password"
+"enterCode" = "Enter the 2FA code"
+"wrongCredentials" = "Wrong username or password"
+"noConnection" = "No connection to the server"
+"ping" = "Ping · {value}"
 
 [kit]
 "clear" = "Clear"
@@ -774,3 +790,4 @@
 "hours" = "{n}h"
 "minutes" = "{n}m"
 "seconds" = "{n}s"
+"milliseconds" = "{n} ms"

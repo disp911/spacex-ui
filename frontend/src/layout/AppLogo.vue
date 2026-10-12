@@ -1,6 +1,10 @@
+<script setup lang="ts">
+defineProps<{ large?: boolean }>()
+</script>
+
 <template>
-  <div class="logo">
-    <svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true">
+  <div :class="['logo', { 'logo--large': large }]">
+    <svg viewBox="0 0 32 32" aria-hidden="true">
       <rect width="32" height="32" rx="9" fill="var(--acc)" />
       <ellipse cx="16" cy="16" rx="11" ry="4.6" transform="rotate(-32 16 16)" fill="none" stroke="var(--acc-ink)" stroke-width="1.7" opacity=".9" />
       <circle cx="16" cy="16" r="3.2" fill="var(--acc-ink)" />
@@ -21,6 +25,32 @@
 .logo svg {
   display: block;
   flex: none;
+  width: 26px;
+  height: 26px;
+}
+
+.logo--large {
+  gap: 11px;
+}
+
+.logo--large svg {
+  width: 32px;
+  height: 32px;
+}
+
+.logo--large .logo__name {
+  font-size: var(--fs-16);
+}
+
+@media (max-width: 767px) {
+  .logo--large svg {
+    width: 28px;
+    height: 28px;
+  }
+
+  .logo--large .logo__name {
+    font-size: var(--fs-14);
+  }
 }
 
 .logo__name {

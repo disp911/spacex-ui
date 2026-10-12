@@ -49,7 +49,12 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      '^/(panel|login|logout|getTwoFactorEnable)': { target: panel, changeOrigin: true },
+      '^/(panel|login|logout|getTwoFactorEnable)': {
+        target: panel,
+        changeOrigin: true,
+        // Page loads stay with the app: its /login screen shares the path of the server's endpoint.
+        bypass: (req) => (req.method === 'GET' && req.headers.accept?.includes('text/html') ? '/index.html' : undefined),
+      },
       '/ws': { target: panel, ws: true, changeOrigin: true },
     },
   },

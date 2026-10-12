@@ -12,6 +12,10 @@ export interface MenuItem {
   disabled?: boolean
   /** Thin line above the item. */
   divided?: boolean
+  /** Short text at the right edge, e.g. a language code. */
+  hint?: string
+  /** Makes the item a choice: a check marks the chosen one. */
+  checked?: boolean
 }
 
 /**
@@ -20,7 +24,7 @@ export interface MenuItem {
  *     <XButton v-bind="props" variant="ghost" icon="dots" label="More" />
  *   </XMenu>
  */
-const props = withDefaults(defineProps<{ items: MenuItem[]; placement?: Placement }>(), { placement: 'bottom-end' })
+const props = withDefaults(defineProps<{ items: MenuItem[]; placement?: Placement; title?: string }>(), { placement: 'bottom-end' })
 const emit = defineEmits<{ select: [key: string] }>()
 
 const id = useId()
@@ -30,7 +34,7 @@ const open = ref(false)
 const { style } = useFloating(anchor, menu, open, { placement: props.placement, onDismiss: () => close(!!menu.value?.contains(document.activeElement)) })
 
 function enabledItems() {
-  return [...(menu.value?.querySelectorAll<HTMLElement>('[role="menuitem"]:not([aria-disabled="true"])') ?? [])]
+  return [...(menu.value?.querySelectorAll<HTMLElement>('[role^="menuitem"]:not([aria-disabled="true"])') ?? [])]
 }
 
 function focusItem(index: number) {
@@ -96,19 +100,32 @@ function choose(item: MenuItem) {
   />
   <Teleport to="body">
     <Transition name="x-popup">
-      <div v-if="open" :id="`${id}-menu`" ref="menu" role="menu" class="x-popup x-menu" :style="style" @keydown="onMenuKeydown">
+      <div
+        v-if="open"
+        :id="`${id}-menu`"
+        ref="menu"
+        role="menu"
+        :aria-label="title"
+        class="x-popup x-menu"
+        :style="style"
+        @keydown="onMenuKeydown"
+      >
+        <div v-if="title" class="x-menu__title" aria-hidden="true">{{ title }}</div>
         <template v-for="item in items" :key="item.key">
           <div v-if="item.divided" class="x-menu__divider" role="separator" />
           <button
             type="button"
-            role="menuitem"
+            :role="item.checked === undefined ? 'menuitem' : 'menuitemradio'"
             tabindex="-1"
+            :aria-checked="item.checked"
             :aria-disabled="item.disabled || undefined"
-            :class="['x-popup-item', { 'is-danger': item.danger }]"
+            :class="['x-popup-item', { 'is-danger': item.danger, 'is-selected': item.checked }]"
             @click="choose(item)"
           >
             <XIcon v-if="item.icon" :name="item.icon" :size="14" :stroke="1.4" />
-            <span>{{ item.label }}</span>
+            <span class="x-menu__label">{{ item.label }}</span>
+            <span v-if="item.hint" class="x-menu__hint">{{ item.hint }}</span>
+            <XIcon v-if="item.checked !== undefined" name="check" :size="13" :stroke="1.8" :class="['x-menu__check', { 'is-on': item.checked }]" />
           </button>
         </template>
       </div>
@@ -117,6 +134,32 @@ function choose(item: MenuItem) {
 </template>
 
 <style scoped>
+.x-menu__title {
+  padding: 7px 10px 6px;
+  color: var(--dim);
+  font: 500 var(--fs-10) / 1 var(--font-mono);
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+
+.x-menu__label {
+  flex: 1;
+  min-width: 0;
+}
+
+.x-menu__hint {
+  color: var(--dim);
+  font: 500 var(--fs-10) / 1 var(--font-mono);
+}
+
+.x-menu__check {
+  visibility: hidden;
+}
+
+.x-menu__check.is-on {
+  visibility: visible;
+}
+
 .x-menu__divider {
   height: 1px;
   margin: 4px 6px;

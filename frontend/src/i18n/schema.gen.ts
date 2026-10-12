@@ -2,6 +2,9 @@
 
 export interface MessageSchema {
   "common": {
+    "language": string
+    "lightTheme": string
+    "darkTheme": string
     "notFound": string
     "notFoundHint": string
     "toDashboard": string
@@ -19,6 +22,19 @@ export interface MessageSchema {
   }
   "auth": {
     "title": string
+    "server": string
+    "username": string
+    "password": string
+    "code": string
+    "submit": string
+    "checking": string
+    "success": string
+    "enterUsername": string
+    "enterPassword": string
+    "enterCode": string
+    "wrongCredentials": string
+    "noConnection": string
+    "ping": string
   }
   "units": {
     "byte": string
@@ -32,6 +48,7 @@ export interface MessageSchema {
     "hours": string
     "minutes": string
     "seconds": string
+    "milliseconds": string
   }
   "kit": {
     "clear": string

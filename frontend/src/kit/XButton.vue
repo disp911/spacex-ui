@@ -25,7 +25,7 @@ const props = withDefaults(
 )
 
 const slots = useSlots()
-const iconOnly = computed(() => !slots.default && !!props.icon)
+const iconOnly = computed(() => !slots.default && !!(props.icon || slots.icon))
 const iconSize = computed(() => (props.size === 'sm' ? 14 : 15))
 const tag = computed(() => (props.to ? RouterLink : props.href ? 'a' : 'button'))
 const isLink = computed(() => !!(props.to || props.href))
@@ -45,7 +45,7 @@ const linkAttrs = computed(() => (props.to ? { to: props.to } : props.href ? { h
     :title="iconOnly ? label : undefined"
   >
     <XSpinner v-if="loading" :size="iconSize - 1" />
-    <XIcon v-else-if="icon" :name="icon" :size="iconSize" />
+    <slot v-else name="icon"><XIcon v-if="icon" :name="icon" :size="iconSize" /></slot>
     <span v-if="$slots.default" class="x-btn__text"><slot /></span>
   </component>
 </template>

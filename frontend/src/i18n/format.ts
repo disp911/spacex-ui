@@ -30,6 +30,10 @@ export function formatSpeed(bytesPerSecond: number) {
   return t('units.perSecond', { value: formatBytes(bytesPerSecond) })
 }
 
+export function formatMilliseconds(ms: number) {
+  return t('units.milliseconds', { n: formatNumber(Math.round(ms)) })
+}
+
 const durationUnits = [
   ['units.days', 86400],
   ['units.hours', 3600],

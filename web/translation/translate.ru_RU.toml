@@ -734,6 +734,9 @@
 # v3 frontend. Parameters are written {name}.
 
 [common]
+"language" = "Язык интерфейса"
+"lightTheme" = "Включить светлую тему"
+"darkTheme" = "Включить тёмную тему"
 "notFound" = "Страница не найдена"
 "notFoundHint" = "Возможно, в адресе опечатка или страницу удалили."
 "toDashboard" = "На дашборд"
@@ -751,6 +754,19 @@
 
 [auth]
 "title" = "Вход"
+"server" = "Сервер {host}"
+"username" = "Логин"
+"password" = "Пароль"
+"code" = "Код 2FA"
+"submit" = "Войти в панель"
+"checking" = "Проверка…"
+"success" = "Вход выполнен"
+"enterUsername" = "Введите логин"
+"enterPassword" = "Введите пароль"
+"enterCode" = "Введите код 2FA"
+"wrongCredentials" = "Неверный логин или пароль"
+"noConnection" = "Нет связи с сервером"
+"ping" = "Пинг · {value}"
 
 [kit]
 "clear" = "Очистить"
@@ -774,3 +790,4 @@
 "hours" = "{n} ч"
 "minutes" = "{n} мин"
 "seconds" = "{n} с"
+"milliseconds" = "{n} мс"
