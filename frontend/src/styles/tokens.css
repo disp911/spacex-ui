@@ -275,6 +275,7 @@
     --ctl-fs: var(--fs-14);
     --input-fs: var(--fs-16);
     --menu-item-h: 44px;
+    --sidebar-item-h: 44px;
     --switch-w: 44px;
     --switch-h: 26px;
     --check: 20px;

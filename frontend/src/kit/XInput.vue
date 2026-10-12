@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import XIcon from './XIcon.vue'
 import type { IconName } from './icons'
 import { useFieldAttrs } from './useFieldAttrs'
@@ -26,6 +27,7 @@ const props = withDefaults(
 )
 
 const model = defineModel<string>({ default: '' })
+const { t } = useI18n()
 const { wrapper, control } = useFieldAttrs()
 const input = ref<HTMLInputElement | null>(null)
 const revealed = ref(false)
@@ -62,7 +64,7 @@ defineExpose({ focus: () => input.value?.focus() })
       v-if="clearable && model && !disabled && !readonly"
       type="button"
       class="x-input__action"
-      aria-label="Clear"
+      :aria-label="t('kit.clear')"
       @click="clear"
     >
       <XIcon name="close" :size="13" :stroke="1.6" />
@@ -71,7 +73,7 @@ defineExpose({ focus: () => input.value?.focus() })
       v-if="type === 'password'"
       type="button"
       class="x-input__action"
-      :aria-label="revealed ? 'Hide' : 'Show'"
+      :aria-label="revealed ? t('kit.hidePassword') : t('kit.showPassword')"
       :aria-pressed="revealed"
       :disabled="disabled"
       @click="revealed = !revealed"

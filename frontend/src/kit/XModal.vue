@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { nextTick, onBeforeUnmount, ref, useId, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import XButton from './XButton.vue'
 
 /** Dialog on desktop, bottom sheet on phones. */
@@ -14,6 +15,7 @@ const props = withDefaults(
 )
 
 const open = defineModel<boolean>('open', { default: false })
+const { t } = useI18n()
 const id = useId()
 const dialog = ref<HTMLElement | null>(null)
 let returnFocus: HTMLElement | null = null
@@ -80,7 +82,7 @@ onBeforeUnmount(() => {
           <header class="x-modal__head">
             <h2 :id="`${id}-title`" class="x-modal__title">{{ title }}</h2>
             <slot name="head" />
-            <XButton variant="ghost" size="sm" icon="close" label="Close" :disabled="!dismissible" @click="close" />
+            <XButton variant="ghost" size="sm" icon="close" :label="t('kit.close')" :disabled="!dismissible" @click="close" />
           </header>
           <div class="x-modal__body"><slot /></div>
           <footer v-if="$slots.footer" class="x-modal__foot"><slot name="footer" /></footer>

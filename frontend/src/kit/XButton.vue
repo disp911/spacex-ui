@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, useSlots } from 'vue'
+import { RouterLink, type RouteLocationRaw } from 'vue-router'
 import XIcon from './XIcon.vue'
 import XSpinner from './XSpinner.vue'
 import type { IconName } from './icons'
@@ -15,6 +16,10 @@ const props = withDefaults(
     type?: 'button' | 'submit' | 'reset'
     /** Accessible name for an icon-only button. */
     label?: string
+    /** Renders a link to a page outside the app. */
+    href?: string
+    /** Renders a link to a route of the app. */
+    to?: RouteLocationRaw
   }>(),
   { variant: 'secondary', size: 'md', type: 'button' },
 )
@@ -22,14 +27,19 @@ const props = withDefaults(
 const slots = useSlots()
 const iconOnly = computed(() => !slots.default && !!props.icon)
 const iconSize = computed(() => (props.size === 'sm' ? 14 : 15))
+const tag = computed(() => (props.to ? RouterLink : props.href ? 'a' : 'button'))
+const isLink = computed(() => !!(props.to || props.href))
+// Only the attributes of the element that is rendered: RouterLink builds its own href.
+const linkAttrs = computed(() => (props.to ? { to: props.to } : props.href ? { href: props.href } : { type: props.type }))
 </script>
 
 <template>
-  <button
-    :type="type"
+  <component
+    :is="tag"
+    v-bind="linkAttrs"
     :class="['x-btn', `x-btn--${variant}`, `x-btn--${size}`, { 'x-btn--icon': iconOnly, 'x-btn--block': block, 'is-loading': loading }]"
-    :disabled="disabled"
-    :aria-disabled="loading || undefined"
+    :disabled="isLink ? undefined : disabled"
+    :aria-disabled="loading || (isLink && disabled) || undefined"
     :aria-busy="loading || undefined"
     :aria-label="label"
     :title="iconOnly ? label : undefined"
@@ -37,7 +47,7 @@ const iconSize = computed(() => (props.size === 'sm' ? 14 : 15))
     <XSpinner v-if="loading" :size="iconSize - 1" />
     <XIcon v-else-if="icon" :name="icon" :size="iconSize" />
     <span v-if="$slots.default" class="x-btn__text"><slot /></span>
-  </button>
+  </component>
 </template>
 
 <style scoped>
@@ -52,9 +62,15 @@ const iconSize = computed(() => (props.size === 'sm' ? 14 : 15))
   border-radius: var(--ctl-r);
   font: 600 var(--ctl-fs) / 1 var(--font-sans);
   white-space: nowrap;
+  text-decoration: none;
   user-select: none;
   outline: none;
   transition: background-color var(--t-fast), border-color var(--t-fast), color var(--t-fast), box-shadow var(--t-fast), transform var(--t-fast);
+}
+
+.x-btn[aria-disabled='true'] {
+  pointer-events: none;
+  opacity: .5;
 }
 
 .x-btn--sm {

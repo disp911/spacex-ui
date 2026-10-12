@@ -36,6 +36,9 @@ export const icons = {
   shield: path('M8 1.6 13.6 3.7v4.1c0 3.2-2.3 5.6-5.6 6.6-3.3-1-5.6-3.4-5.6-6.6V3.7z'),
   sun: circle(8, 8, 3) + path('M8 1.5v1.6M8 12.9v1.6M1.5 8h1.6M12.9 8h1.6M3.4 3.4l1.1 1.1M11.5 11.5l1.1 1.1M3.4 12.6l1.1-1.1M11.5 4.5l1.1-1.1'),
   moon: path('M13.2 9.8A5.6 5.6 0 0 1 6.2 2.8a5.6 5.6 0 1 0 7 7z'),
+  dashboard: [[1.8, 1.8], [9.1, 1.8], [1.8, 9.1], [9.1, 9.1]].map(([x, y]) => `<rect x="${x}" y="${y}" width="5.1" height="5.1" rx="1.4"/>`).join(''),
+  xray: path('M8 1.8l5.4 3.1v6.2L8 14.2l-5.4-3.1V4.9z') + circle(8, 8, 2),
+  sliders: path('M2 4.6h12M2 11.4h12') + '<circle cx="10.2" cy="4.6" r="2.1" style="fill:var(--acc-soft)"/><circle cx="5.8" cy="11.4" r="2.1" style="fill:var(--acc-soft)"/>',
   swap: path('M2.6 5.4h10.4M10.4 2.8 13 5.4 10.4 8M13.4 10.6H3M5.6 8 3 10.6l2.6 2.6'),
 } as const
 

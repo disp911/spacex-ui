@@ -1,5 +1,3 @@
-import './kit.css'
-
 export { default as XBadge } from './XBadge.vue'
 export { default as XButton } from './XButton.vue'
 export { default as XCard } from './XCard.vue'

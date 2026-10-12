@@ -38,3 +38,7 @@ docker-compose.override.yml
 
 # Ignore .env (Environment Variables) file
 .env
+
+# v3 frontend build output, embedded by web/web.go
+/web/app/*
+!/web/app/.gitkeep

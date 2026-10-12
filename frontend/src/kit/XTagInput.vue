@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, useId, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import XIcon from './XIcon.vue'
 import { useFloating } from './floating'
 import { useFieldAttrs } from './useFieldAttrs'
@@ -17,6 +18,7 @@ const props = defineProps<{
 }>()
 
 const model = defineModel<string[]>({ default: () => [] })
+const { t } = useI18n()
 const { wrapper, control } = useFieldAttrs()
 
 const id = useId()
@@ -78,7 +80,7 @@ function onBlur() {
   >
     <span v-for="(tag, i) in model" :key="tag" class="x-tags__chip">
       <span class="x-tags__text">{{ tag }}</span>
-      <button v-if="!disabled" type="button" class="x-tags__remove" :aria-label="`Remove ${tag}`" @click.stop="remove(i)">
+      <button v-if="!disabled" type="button" class="x-tags__remove" :aria-label="t('kit.remove', { value: tag })" @click.stop="remove(i)">
         <XIcon name="close" :size="10" :stroke="1.8" />
       </button>
     </span>

@@ -730,3 +730,45 @@
 "userPassMustBeNotEmpty" = "The new username and password is empty"
 "getOutboundTrafficError" = "Error getting traffics"
 "resetOutboundTrafficError" = "Error in reset outbound traffics"
+
+# v3 frontend. Parameters are written {name}.
+
+[common]
+"notFound" = "Page not found"
+"notFoundHint" = "The address may be mistyped, or the page was removed."
+"toDashboard" = "Go to the dashboard"
+"screenMoving" = "This screen is still moving to the new interface."
+"openOldScreen" = "Open in the old interface"
+
+[nav]
+"main" = "Main menu"
+"dashboard" = "Dashboard"
+"inbounds" = "Inbounds"
+"xray" = "Xray settings"
+"settings" = "Settings"
+"logout" = "Log out"
+"openMenu" = "Open menu"
+"closeMenu" = "Close menu"
+
+[kit]
+"clear" = "Clear"
+"showPassword" = "Show password"
+"hidePassword" = "Hide password"
+"close" = "Close"
+"remove" = "Remove {value}"
+"pages" = "Pages"
+"previousPage" = "Previous page"
+"nextPage" = "Next page"
+
+[units]
+"byte" = "{n} B"
+"kilobyte" = "{n} KB"
+"megabyte" = "{n} MB"
+"gigabyte" = "{n} GB"
+"terabyte" = "{n} TB"
+"petabyte" = "{n} PB"
+"perSecond" = "{value}/s"
+"days" = "{n}d"
+"hours" = "{n}h"
+"minutes" = "{n}m"
+"seconds" = "{n}s"

@@ -730,3 +730,45 @@
 "userPassMustBeNotEmpty" = "Новое имя пользователя и новый пароль должны быть заполнены"
 "getOutboundTrafficError" = "Ошибка получения трафика исходящего подключения"
 "resetOutboundTrafficError" = "Ошибка сброса трафика исходящего подключения"
+
+# v3 frontend. Parameters are written {name}.
+
+[common]
+"notFound" = "Страница не найдена"
+"notFoundHint" = "Возможно, в адресе опечатка или страницу удалили."
+"toDashboard" = "На дашборд"
+"screenMoving" = "Этот экран ещё переносится в новый интерфейс."
+"openOldScreen" = "Открыть в старом интерфейсе"
+
+[nav]
+"main" = "Главное меню"
+"dashboard" = "Дашборд"
+"inbounds" = "Подключения"
+"xray" = "Настройки Xray"
+"settings" = "Настройки"
+"logout" = "Выход"
+"openMenu" = "Открыть меню"
+"closeMenu" = "Закрыть меню"
+
+[kit]
+"clear" = "Очистить"
+"showPassword" = "Показать пароль"
+"hidePassword" = "Скрыть пароль"
+"close" = "Закрыть"
+"remove" = "Удалить {value}"
+"pages" = "Страницы"
+"previousPage" = "Предыдущая страница"
+"nextPage" = "Следующая страница"
+
+[units]
+"byte" = "{n} Б"
+"kilobyte" = "{n} КБ"
+"megabyte" = "{n} МБ"
+"gigabyte" = "{n} ГБ"
+"terabyte" = "{n} ТБ"
+"petabyte" = "{n} ПБ"
+"perSecond" = "{value}/с"
+"days" = "{n} д"
+"hours" = "{n} ч"
+"minutes" = "{n} мин"
+"seconds" = "{n} с"

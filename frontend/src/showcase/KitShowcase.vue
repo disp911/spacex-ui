@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, watchEffect } from 'vue'
+import { computed, ref } from 'vue'
+import { useTheme } from '../stores/theme'
 import {
   XBadge, XButton, XCard, XCheckbox, XChip, XCounter, XField, XInput, XMenu, XModal, XNotice, XNumber,
   XPager, XSection, XSegmented, XSelect, XStatusDot, XSwitch, XTagInput, XTextarea, XTooltip, XUsagePill,
@@ -12,10 +13,8 @@ import {
  * that the components accept next to the real pseudo-classes.
  */
 
-const theme = ref<'dark' | 'light'>(matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark')
-watchEffect(() => {
-  document.documentElement.dataset.theme = theme.value
-})
+const store = useTheme()
+const theme = computed({ get: () => store.theme, set: (v) => store.set(v) })
 
 const states = [
   { key: 'default', label: 'Обычное', cls: '' },

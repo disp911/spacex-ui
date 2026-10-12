@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import XIcon from './XIcon.vue'
 
 const props = defineProps<{ pages: number }>()
 const page = defineModel<number>({ default: 1 })
+const { t } = useI18n()
 
 /** Page numbers with null for a gap: 1 … 4 5 6 … 12. */
 const items = computed(() => {
@@ -26,8 +28,8 @@ function go(to: number) {
 </script>
 
 <template>
-  <nav class="x-pager" aria-label="Pages">
-    <button type="button" class="x-pager__chip x-pager__step" aria-label="Previous page" :disabled="page <= 1" @click="go(page - 1)">
+  <nav class="x-pager" :aria-label="t('kit.pages')">
+    <button type="button" class="x-pager__chip x-pager__step" :aria-label="t('kit.previousPage')" :disabled="page <= 1" @click="go(page - 1)">
       <XIcon name="chevronLeft" :size="12" :stroke="1.8" />
     </button>
     <template v-for="(item, i) in items" :key="i">
@@ -43,7 +45,7 @@ function go(to: number) {
       </button>
     </template>
     <span class="x-pager__compact">{{ page }} / {{ pages }}</span>
-    <button type="button" class="x-pager__chip x-pager__step" aria-label="Next page" :disabled="page >= pages" @click="go(page + 1)">
+    <button type="button" class="x-pager__chip x-pager__step" :aria-label="t('kit.nextPage')" :disabled="page >= pages" @click="go(page + 1)">
       <XIcon name="chevron" :size="12" :stroke="1.8" />
     </button>
   </nav>

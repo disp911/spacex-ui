@@ -55,6 +55,17 @@ const icon = computed<IconName>(() => (props.tone === 'ok' ? 'check' : props.ton
   gap: 8px;
 }
 
+@media (max-width: 767px) {
+  .x-notice {
+    flex-wrap: wrap;
+  }
+
+  .x-notice__actions {
+    flex-basis: 100%;
+    padding-left: 26px;
+  }
+}
+
 .x-notice--info {
   --tone-t: var(--on-t);
   --tone-bg: var(--on-bg);

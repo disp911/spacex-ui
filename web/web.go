@@ -25,6 +25,8 @@ import (
 	"github.com/disp911/spacex-ui/v2/web/middleware"
 	"github.com/disp911/spacex-ui/v2/web/network"
 	"github.com/disp911/spacex-ui/v2/web/service"
+	"github.com/disp911/spacex-ui/v2/web/session"
+	"github.com/disp911/spacex-ui/v2/web/spa"
 	"github.com/disp911/spacex-ui/v2/web/websocket"
 
 	"github.com/gin-contrib/gzip"
@@ -42,6 +44,12 @@ var htmlFS embed.FS
 
 //go:embed translation/*
 var i18nFS embed.FS
+
+// appFS holds the v3 frontend that Vite builds from frontend/ into web/app.
+// The directory keeps a .gitkeep, so the panel compiles before the first build.
+//
+//go:embed all:app
+var appFS embed.FS
 
 var startTime = time.Now()
 
@@ -275,6 +283,15 @@ func (s *Server) initRouter() (*gin.Engine, error) {
 	s.index = controller.NewIndexController(g)
 	s.panel = controller.NewXUIController(g)
 	s.api = controller.NewAPIController(g, s.customGeoService)
+
+	// The v3 frontend lives next to the old pages while screens move to it.
+	var app fs.FS = os.DirFS("web/app")
+	if !config.IsDebug() {
+		app, _ = fs.Sub(appFS, "app")
+	}
+	g.GET("/v3/*path", spa.Handler(app, func(c *gin.Context) spa.Config {
+		return spa.Config{Base: basePath, Mount: basePath + "v3/", LoggedIn: session.IsLogin(c), Version: config.GetVersion()}
+	}))
 
 	// Initialize WebSocket hub
 	s.wsHub = websocket.NewHub()

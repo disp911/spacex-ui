@@ -1,4 +1,15 @@
 # ========================================================
+# Stage: Frontend (built once on the build machine's platform)
+# ========================================================
+FROM --platform=$BUILDPLATFORM node:24-alpine AS frontend
+WORKDIR /app
+COPY frontend/package.json frontend/package-lock.json frontend/
+RUN npm ci --prefix frontend
+COPY frontend frontend
+COPY web/translation web/translation
+RUN npm --prefix frontend run build
+
+# ========================================================
 # Stage: Builder
 # ========================================================
 FROM golang:1.26-alpine AS builder
@@ -12,6 +23,7 @@ RUN apk --no-cache --update add \
   unzip
 
 COPY . .
+COPY --from=frontend /app/web/app web/app
 
 ENV CGO_ENABLED=1
 ENV CGO_CFLAGS="-D_LARGEFILE64_SOURCE"
