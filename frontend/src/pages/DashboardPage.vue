@@ -96,7 +96,7 @@ const dash = '—'
 </script>
 
 <template>
-  <AppPage :title="t('nav.dashboard')">
+  <AppPage :title="t('nav.dashboard')" class="dashboard">
     <template #subtitle>
       <i18n-t keypath="common.server" tag="span">
         <template #host><span class="mono">{{ host }}</span></template>
@@ -115,6 +115,7 @@ const dash = '—'
       <div class="dash__col">
         <ServiceCard
           title="Xray"
+          version-prefix="v"
           class="area-xray"
           :service="status?.xray"
           :error-title="t('dashboard.xrayError')"
@@ -199,10 +200,14 @@ const dash = '—'
             </div>
           </div>
           <div class="net-figures">
-            <DashStat :label="t('dashboard.upload')" :value="status ? formatSpeed(status.netIO.up) : dash" class="small up" />
-            <DashStat :label="t('dashboard.download')" :value="status ? formatSpeed(status.netIO.down) : dash" class="small down" />
-            <DashStat label="TCP" :value="status ? formatNumber(status.tcpCount) : dash" class="small" />
-            <DashStat label="UDP" :value="status ? formatNumber(status.udpCount) : dash" class="small" />
+            <div class="net-figures__pair">
+              <DashStat :label="t('dashboard.upload')" :value="status ? formatSpeed(status.netIO.up) : dash" class="small up" />
+              <DashStat :label="t('dashboard.download')" :value="status ? formatSpeed(status.netIO.down) : dash" class="small down" />
+            </div>
+            <div class="net-figures__pair">
+              <DashStat label="TCP" :value="status ? formatNumber(status.tcpCount) : dash" class="small" />
+              <DashStat label="UDP" :value="status ? formatNumber(status.udpCount) : dash" class="small" />
+            </div>
           </div>
         </DashCard>
 
@@ -228,6 +233,17 @@ const dash = '—'
 </template>
 
 <style scoped>
+/* The dashboard mockup pads the content 22px from the top and 24px from the bottom. */
+.dashboard {
+  margin: 2px 0 -4px;
+}
+
+@media (max-width: 767px) {
+  .dashboard {
+    margin: 1px 0 -8px;
+  }
+}
+
 .mono {
   color: var(--fg2);
   font-family: var(--font-mono);
@@ -235,8 +251,15 @@ const dash = '—'
 
 .http {
   align-items: center;
-  padding: 8px 10px 8px 12px;
+  min-height: 45px;
+  padding: 4px 6px 4px 12px;
+  border-radius: var(--r-12);
   font-size: var(--fs-12);
+  line-height: 1.3;
+}
+
+.http :deep(.x-notice__icon) {
+  margin-top: 0;
 }
 
 .http :deep(.x-notice__title) {
@@ -244,13 +267,9 @@ const dash = '—'
   font-size: var(--fs-12);
 }
 
-.http :deep(.x-notice__text) {
-  color: var(--warn-t);
-  opacity: .8;
-}
-
 .dash {
   display: grid;
+  flex: 1 0 auto;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
   align-items: stretch;
@@ -359,7 +378,7 @@ const dash = '—'
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-bottom: 6px;
+  margin-bottom: 7px;
   color: var(--dim);
   font: 500 var(--fs-10) / 1.2 var(--font-mono);
   letter-spacing: .07em;
@@ -382,7 +401,7 @@ const dash = '—'
 }
 
 .tile__total {
-  font: 600 var(--fs-20) / 1.2 var(--font-mono);
+  font: 600 var(--fs-20) / normal var(--font-mono);
   letter-spacing: -.5px;
   white-space: nowrap;
 }
@@ -406,12 +425,19 @@ const dash = '—'
   display: none;
 }
 
-/* Network figures */
-.net-figures {
+/* Network figures: two pairs under the two totals. */
+.net-figures,
+.net-figures__pair {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px 24px;
-  margin-top: 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.net-figures {
+  margin-top: 18px;
+}
+
+.net-figures__pair {
   padding: 0 14px;
 }
 
@@ -487,8 +513,11 @@ const dash = '—'
   .area-system { order: 7; }
 
   .net-figures {
-    padding: 0;
-    gap: 12px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .net-figures__pair {
+    display: contents;
   }
 
   .tile__total {
@@ -503,8 +532,27 @@ const dash = '—'
     display: inline;
   }
 
+  .system {
+    gap: 20px;
+  }
+
   .system__hint {
     display: none;
+  }
+
+  /* On phones the update offer is a full-width button under the version. */
+  .version {
+    margin-top: 0;
+    padding-top: 12px;
+  }
+
+  .version__update {
+    flex-basis: 100%;
+    justify-content: center;
+    height: var(--ctl-h);
+    margin: 2px 0 0;
+    border-radius: var(--ctl-r);
+    font-size: var(--fs-13);
   }
 }
 </style>

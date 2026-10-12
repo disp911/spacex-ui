@@ -24,6 +24,7 @@ defineProps<{ title: string }>()
 <style scoped>
 .page {
   display: flex;
+  flex: 1 0 auto;
   flex-direction: column;
   gap: 16px;
 }

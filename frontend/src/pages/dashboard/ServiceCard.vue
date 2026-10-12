@@ -14,6 +14,8 @@ const props = defineProps<{
   service?: ServiceStatus
   errorTitle: string
   busy?: 'restart' | 'stop' | null
+  /** Xray versions are shown as v26.4.25, the Telegram proxy's without the v. */
+  versionPrefix?: string
 }>()
 defineEmits<{ restart: []; stop: []; log: [] }>()
 const { t } = useI18n()
@@ -34,7 +36,7 @@ const dash = '—'
 <template>
   <DashCard :title="title">
     <template v-if="service?.version" #head>
-      <span class="service__version">{{ service.version }}</span>
+      <span class="service__version">{{ versionPrefix }}{{ service.version }}</span>
     </template>
 
     <div class="service">
@@ -96,7 +98,7 @@ const dash = '—'
     'stats actions';
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: end;
-  gap: 12px;
+  gap: 13px 12px;
 }
 
 .service__state {
@@ -138,7 +140,7 @@ const dash = '—'
   border-radius: var(--r-8);
   background: none;
   color: var(--tone);
-  font: 600 var(--fs-18) / 1.2 var(--font-sans);
+  font: 600 var(--fs-18) / normal var(--font-sans);
   letter-spacing: -.4px;
   outline: none;
 }

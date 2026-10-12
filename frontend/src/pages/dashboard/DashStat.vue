@@ -22,7 +22,7 @@ defineProps<{ label: string; short?: string; value: string }>()
   margin-bottom: 5px;
   overflow: hidden;
   color: var(--dim);
-  font: 500 var(--fs-10) / 1.2 var(--font-mono);
+  font: 500 var(--fs-10) / normal var(--font-mono);
   letter-spacing: .07em;
   text-transform: uppercase;
   white-space: nowrap;
@@ -36,7 +36,7 @@ defineProps<{ label: string; short?: string; value: string }>()
 .stat__value {
   overflow: hidden;
   color: var(--fg);
-  font: 500 var(--fs-16) / 1.2 var(--font-mono);
+  font: 500 var(--fs-16) / normal var(--font-mono);
   white-space: nowrap;
   text-overflow: ellipsis;
 }

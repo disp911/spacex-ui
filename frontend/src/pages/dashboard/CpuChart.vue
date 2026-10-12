@@ -91,7 +91,7 @@ const area = computed(() => (line.value ? `${line.value} L${W} ${H} L0 ${H} Z` :
 
 .cpu__title {
   color: var(--dim);
-  font: 500 var(--fs-10) / 1 var(--font-mono);
+  font: 500 var(--fs-10) / normal var(--font-mono);
   letter-spacing: .07em;
   text-transform: uppercase;
   white-space: nowrap;

@@ -6,7 +6,7 @@ import type { IconName } from './icons'
 /** Inline message inside a page or a dialog. */
 const props = withDefaults(defineProps<{ tone?: 'info' | 'ok' | 'warn' | 'err'; title?: string }>(), { tone: 'info' })
 
-const icon = computed<IconName>(() => (props.tone === 'ok' ? 'check' : props.tone === 'info' ? 'info' : 'warning'))
+const icon = computed<IconName>(() => (props.tone === 'ok' ? 'check' : props.tone === 'info' ? 'info' : 'alert'))
 </script>
 
 <template>
@@ -41,6 +41,7 @@ const icon = computed<IconName>(() => (props.tone === 'ok' ? 'check' : props.ton
 .x-notice__body {
   flex: 1;
   min-width: 0;
+  color: var(--tone-text, var(--fg2));
 }
 
 .x-notice__title {
@@ -78,11 +79,13 @@ const icon = computed<IconName>(() => (props.tone === 'ok' ? 'check' : props.ton
 }
 .x-notice--warn {
   --tone-t: var(--warn-t);
+  --tone-text: var(--warn-x);
   --tone-bg: var(--warn-bg);
   --tone-line: var(--warn-line);
 }
 .x-notice--err {
   --tone-t: var(--err-t);
+  --tone-text: var(--err-t);
   --tone-bg: var(--err-bg);
   --tone-line: var(--err-line);
 }

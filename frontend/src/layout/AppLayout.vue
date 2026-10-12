@@ -105,8 +105,11 @@ watch(() => route.fullPath, () => (drawerOpen.value = false))
 }
 
 .content {
+  /* Pages may stretch to the bottom of the window, as the dashboard does. */
+  display: flex;
+  flex-direction: column;
   min-width: 0;
-  padding: 24px 28px 40px;
+  padding: 20px 26px 28px;
 }
 
 @media (max-width: 767px) {
@@ -125,9 +128,9 @@ watch(() => route.fullPath, () => (drawerOpen.value = false))
     z-index: 10;
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 11px;
     height: 64px;
-    padding: 0 14px;
+    padding: 0 15px;
     border-bottom: 1px solid var(--div);
     background: var(--side);
   }
@@ -202,7 +205,7 @@ watch(() => route.fullPath, () => (drawerOpen.value = false))
   }
 
   .content {
-    padding: 14px 14px 32px;
+    padding: 12px 14px 24px;
   }
 }
 </style>

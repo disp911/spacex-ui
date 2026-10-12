@@ -208,7 +208,7 @@ onBeforeUnmount(() => clearInterval(timer))
   flex-direction: column;
   min-height: 100vh;
   min-height: 100dvh;
-  padding: 32px 40px;
+  padding: 34px 44px;
 }
 
 .login__top {
@@ -234,6 +234,8 @@ onBeforeUnmount(() => clearInterval(timer))
   align-items: center;
   justify-content: center;
   padding: 24px 0 40px;
+  /* The mockup centres the card on the space under the top bar, less 40px at the bottom. */
+  padding-top: 0;
 }
 
 .login__card {
@@ -241,7 +243,7 @@ onBeforeUnmount(() => clearInterval(timer))
   flex-direction: column;
   width: 100%;
   max-width: 396px;
-  padding: 32px;
+  padding: 30px 32px;
   border: 1px solid var(--line);
   border-radius: var(--r-16);
   background: color-mix(in srgb, var(--card) 86%, transparent);
@@ -250,8 +252,8 @@ onBeforeUnmount(() => clearInterval(timer))
 }
 
 .login__title {
-  margin: 0 0 4px;
-  font: 600 var(--fs-20) / var(--lh-tight) var(--font-sans);
+  margin: 0 0 5px;
+  font: 600 var(--fs-20) / normal var(--font-sans);
   letter-spacing: -.4px;
 }
 
@@ -259,6 +261,7 @@ onBeforeUnmount(() => clearInterval(timer))
   margin: 0 0 24px;
   color: var(--dim);
   font-size: var(--fs-13);
+  line-height: normal;
 }
 
 .login__host {
@@ -275,12 +278,12 @@ onBeforeUnmount(() => clearInterval(timer))
 .login__field {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 7px;
 }
 
 .login__label {
   color: var(--dim);
-  font: 500 var(--fs-11) / 1 var(--font-mono);
+  font: 500 var(--fs-11) / normal var(--font-mono);
   letter-spacing: .07em;
   text-transform: uppercase;
 }
@@ -313,12 +316,14 @@ onBeforeUnmount(() => clearInterval(timer))
   display: flex;
   align-items: center;
   gap: 4px;
-  min-height: 37px;
+  /* Keeps its height before the first ping arrives. */
+  min-height: 32px;
   margin-top: 20px;
   padding-top: 16px;
   border-top: 1px solid var(--div);
   color: var(--mut);
   font-size: var(--fs-12);
+  line-height: normal;
 }
 
 .login__foot :deep(.x-dot) {
@@ -350,7 +355,7 @@ onBeforeUnmount(() => clearInterval(timer))
 
 @media (max-width: 767px) {
   .login {
-    padding: 16px 20px 24px;
+    padding: 16px 22px 30px;
   }
 
   .login__tools {
@@ -362,7 +367,7 @@ onBeforeUnmount(() => clearInterval(timer))
   }
 
   .login__card {
-    padding: 24px 20px;
+    padding: 26px 22px;
   }
 
   .login__title {
