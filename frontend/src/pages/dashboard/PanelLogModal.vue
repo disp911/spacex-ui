@@ -81,7 +81,7 @@ const skeleton = [62, 48, 71, 55, 38, 66, 52, 44, 69, 58, 41, 63]
 <template>
   <XModal v-model:open="open" :title="t('dashboard.panelLog')" size="xl" flush full>
     <template #subtitle>
-      {{ t('dashboard.logLines', { n: count }) }}<template v-if="syslog"> · <span class="mono">journalctl -u x-ui</span></template>
+      {{ t('dashboard.logLines', { n: count }) }} · <span class="mono">journalctl -u x-ui</span>
     </template>
 
     <div class="log-bar">
@@ -95,13 +95,13 @@ const skeleton = [62, 48, 71, 55, 38, 66, 52, 44, 69, 58, 41, 63]
 
       <XMenu v-slot="{ props }" :items="levelItems" :title="t('dashboard.logLevel')" placement="bottom-start" sheet @select="level = $event">
         <XButton v-bind="props" :label="`${t('dashboard.logLevel')}: ${current.label}`" caret>
-          <span class="x-caps log-filter__label">{{ t('dashboard.logLevel') }}</span> <span :class="['log-dot', `log-tone--${current.tone}`]" /> {{ current.label }}
+          <span class="x-caps log-filter__label log-filter__label--level">{{ t('dashboard.logLevel') }}</span> <span :class="['log-dot', `log-tone--${current.tone}`]" /> {{ current.label }}
         </XButton>
       </XMenu>
 
       <XCheckbox v-model="syslog" boxed>SysLog</XCheckbox>
 
-      <XButton icon="download" :label="t('dashboard.logDownload')" :disabled="!lines.length" phone-icon-only class="log-download" @click="download">
+      <XButton icon="download" :label="t('dashboard.logDownload')" phone-icon-only class="log-download" @click="download">
         {{ t('dashboard.logDownload') }}
       </XButton>
     </div>
@@ -234,8 +234,7 @@ const skeleton = [62, 48, 71, 55, 38, 66, 52, 44, 69, 58, 41, 63]
 }
 
 @media (max-width: 767px) {
-  /* 44px controls leave no room for the filter labels: the sheet titles name them.
-     The row scrolls sideways when it does not fit, as in the mockup. */
+  /* As in the mockup: no level label on phones; the row scrolls sideways. */
   .log-bar {
     gap: 6px;
     padding: 10px 14px;
@@ -247,7 +246,7 @@ const skeleton = [62, 48, 71, 55, 38, 66, 52, 44, 69, 58, 41, 63]
     flex: none;
   }
 
-  .log-filter__label {
+  .log-filter__label--level {
     display: none;
   }
 

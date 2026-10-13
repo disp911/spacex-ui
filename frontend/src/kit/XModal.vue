@@ -89,7 +89,7 @@ onBeforeUnmount(() => {
               <p v-if="$slots.subtitle" class="x-modal__subtitle"><slot name="subtitle" /></p>
             </div>
             <slot name="head" />
-            <XButton variant="ghost" size="sm" icon="close" :label="t('kit.close')" :disabled="!dismissible" @click="close" />
+            <XButton size="sm" icon="close" :label="t('kit.close')" :disabled="!dismissible" @click="close" />
           </header>
           <div :class="['x-modal__body', { 'x-modal__body--flush': flush }]"><slot /></div>
           <footer v-if="$slots.footer" class="x-modal__foot"><slot name="footer" /></footer>
