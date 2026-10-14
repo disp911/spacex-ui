@@ -74,7 +74,6 @@ const skeleton = [34, 30, 38, 28, 32, 36, 30, 26]
 .x-pick__list {
   display: flex;
   flex-direction: column;
-  gap: 1px;
 }
 
 .x-pick__item {

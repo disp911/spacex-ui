@@ -60,7 +60,6 @@
   z-index: 1000;
   display: flex;
   flex-direction: column;
-  gap: 1px;
   min-width: 160px;
   padding: 4px;
   overflow-y: auto;
@@ -95,15 +94,24 @@
 .x-popup-item:hover,
 .x-popup-item.is-hover,
 .x-popup-item.is-active {
-  background: var(--hov);
+  background-color: var(--hov);
   color: var(--fg);
 }
 
-/* A hairline in the 1px gap between neighbouring items, inset like their text. */
+/*
+ * A 1px gap between neighbouring items with a hairline in it, inset like their text.
+ * The gap is a transparent border, not a flex gap: borders snap to whole screen
+ * pixels, so at 125% scale every gap stays one pixel instead of one or two.
+ */
+.x-popup-item + .x-popup-item {
+  border-top: 1px solid transparent;
+  background-clip: padding-box;
+}
+
 .x-popup-item + .x-popup-item::before {
   content: '';
   position: absolute;
-  top: -1px;
+  bottom: 100%;
   right: var(--item-px);
   left: var(--item-px);
   border-top: 1px solid var(--div);
@@ -127,7 +135,7 @@
 .x-popup-item.is-selected:hover,
 .x-popup-item.is-selected.is-hover,
 .x-popup-item.is-selected.is-active {
-  background: var(--acc-soft);
+  background-color: var(--acc-soft);
   color: var(--acc);
 }
 
@@ -138,12 +146,12 @@
 .x-popup-item.is-danger:hover,
 .x-popup-item.is-danger.is-hover,
 .x-popup-item.is-danger.is-active {
-  background: var(--err-bg);
+  background-color: var(--err-bg);
 }
 
 .x-popup-item[aria-disabled='true'] {
   color: var(--faint);
-  background: transparent;
+  background-color: transparent;
   cursor: not-allowed;
 }
 
