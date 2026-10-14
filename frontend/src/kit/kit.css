@@ -156,11 +156,18 @@
   font-size: var(--fs-11);
 }
 
-/* Large controls for a whole region, e.g. the login form: 44px on every screen. */
+/* Large controls for a whole region, e.g. the login form: 44px; on phones the regular 38. */
 .x-ctl-lg {
   --ctl-h: 44px;
   --ctl-r: var(--r-12);
   --ctl-fs: var(--fs-14);
+}
+
+@media (max-width: 767px) {
+  .x-ctl-lg {
+    --ctl-h: 38px;
+    --ctl-r: var(--r-10);
+  }
 }
 
 /* Scrollbar: one look for the page and every scrolling box. 9px, a pill thumb, no arrows. */

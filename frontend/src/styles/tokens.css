@@ -70,7 +70,7 @@
   --icon-s: 12px;
   --icon-m: 14px;
   --icon-l: 16px;
-  /* Square icon buttons and icon squares: 34, 38 on phones */
+  /* Square icon buttons and icon squares: the regular control size, also inside .x-ctl-lg */
   --btn-sq: var(--ctl-h);
   --btn-sq-r: var(--ctl-r);
   /* Icon in a regular button and in the squares */
@@ -282,18 +282,16 @@
   --lift: 0 14px 34px rgba(16, 20, 28, .18);
 }
 
-/* Phones: 44px touch targets, 16px inputs so iOS does not zoom; control text stays 13px as on desktop. */
+/* Phones: 38px controls and list items, 16px inputs so iOS does not zoom; control text stays 13px as on desktop. */
 @media (max-width: 767px) {
   :root {
-    --ctl-h: 44px;
-    --ctl-r: var(--r-12);
+    --ctl-h: 38px;
+    --ctl-r: var(--r-10);
     --ctl-sm-h: 30px;
-    --btn-sq: 38px;
-    --btn-sq-r: var(--r-10);
     --btn-icon: 20px;
     --input-fs: var(--fs-16);
-    --menu-item-h: 44px;
-    --sidebar-item-h: 44px;
+    --menu-item-h: 38px;
+    --sidebar-item-h: 38px;
     --switch-w: 44px;
     --switch-h: 26px;
     --check: 20px;

@@ -72,7 +72,6 @@ defineProps<{ icon: IconName; label: string; to?: RouteLocationRaw; danger?: boo
 
 @media (max-width: 767px) {
   .x-nav-item {
-    border-radius: var(--r-12);
     font-size: var(--fs-14);
   }
 }

@@ -184,7 +184,7 @@ function choose(item: MenuItem) {
 
 .x-menu--sheet .x-popup-item {
   padding: 0 12px;
-  border-radius: var(--r-12);
+  border-radius: var(--r-10);
 }
 
 .x-menu--sheet .x-menu__check {

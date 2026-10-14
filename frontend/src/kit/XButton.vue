@@ -37,7 +37,7 @@ const props = withDefaults(
 
 const slots = useSlots()
 const iconOnly = computed(() => !slots.default && !!(props.icon || slots.icon))
-// Every square icon button is one size: 34, 44 on phones.
+// Every square icon button is one size: 34, 38 on phones.
 const sizeClass = computed(() => (iconOnly.value ? 'md' : props.size))
 const iconSize = computed(() => (sizeClass.value === 'sm' ? 14 : 16))
 const tag = computed(() => (props.to ? RouterLink : props.href ? 'a' : 'button'))
