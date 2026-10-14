@@ -83,6 +83,13 @@ const skeleton = [34, 30, 38, 28, 32, 36, 30, 26]
   display: block;
   margin: 0 10px;
   border-top: 1px solid var(--div);
+  transition: border-color var(--t-fast);
+}
+
+/* The hovered row drops the hairlines above and below it. */
+.x-pick__list > li:has(> .x-pick__item:hover)::before,
+.x-pick__list > li:has(> .x-pick__item:hover) + li::before {
+  border-color: transparent;
 }
 
 .x-pick__item {
