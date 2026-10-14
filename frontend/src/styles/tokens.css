@@ -70,7 +70,10 @@
   --icon-s: 12px;
   --icon-m: 14px;
   --icon-l: 16px;
-  /* Icon in a regular button and in other 34/44 squares */
+  /* Square icon buttons and icon squares: 34, 38 on phones */
+  --btn-sq: var(--ctl-h);
+  --btn-sq-r: var(--ctl-r);
+  /* Icon in a regular button and in the squares */
   --btn-icon: 16px;
 
   /* Motion */
@@ -285,6 +288,8 @@
     --ctl-h: 44px;
     --ctl-r: var(--r-12);
     --ctl-sm-h: 30px;
+    --btn-sq: 38px;
+    --btn-sq-r: var(--r-10);
     --btn-icon: 20px;
     --input-fs: var(--fs-16);
     --menu-item-h: 44px;

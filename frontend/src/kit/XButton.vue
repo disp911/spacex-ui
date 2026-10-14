@@ -102,10 +102,11 @@ const linkAttrs = computed(() => (props.to ? { to: props.to } : props.href ? { h
 }
 
 .x-btn--icon {
-  width: var(--ctl-h);
+  width: var(--btn-sq);
+  height: var(--btn-sq);
   padding: 0;
+  border-radius: var(--btn-sq-r);
 }
-
 
 /* 16px, 20px on phones: the regular button grows there, its icon too. */
 .x-btn--md .x-btn__icon {
@@ -139,13 +140,10 @@ const linkAttrs = computed(() => (props.to ? { to: props.to } : props.href ? { h
 @media (max-width: 767px) {
   .x-btn--phone-icon {
     position: relative;
-    width: var(--ctl-h);
+    width: var(--btn-sq);
+    height: var(--btn-sq);
     padding: 0;
-  }
-
-  .x-btn--sm.x-btn--phone-icon {
-    height: var(--ctl-h);
-    border-radius: var(--ctl-r);
+    border-radius: var(--btn-sq-r);
   }
 
   .x-btn--phone-block {

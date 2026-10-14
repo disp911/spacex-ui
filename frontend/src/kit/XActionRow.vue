@@ -99,9 +99,9 @@ defineProps<{ title: string; icon: IconName; loading?: boolean; disabled?: boole
   flex: none;
   align-items: center;
   justify-content: center;
-  width: var(--ctl-h);
-  height: var(--ctl-h);
-  border-radius: var(--ctl-r);
+  width: var(--btn-sq);
+  height: var(--btn-sq);
+  border-radius: var(--btn-sq-r);
   background: var(--acc);
   color: var(--acc-ink);
   transition: background-color var(--t-fast), box-shadow var(--t-fast);
