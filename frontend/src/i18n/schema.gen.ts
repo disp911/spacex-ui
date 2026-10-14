@@ -110,6 +110,10 @@ export interface MessageSchema {
     "backupExportText": string
     "backupImport": string
     "backupImportText": string
+    "backupRestoreTitle": string
+    "backupRestoreText": string
+    "backupRestore": string
+    "backupRestoring": string
   }
   "units": {
     "value": string

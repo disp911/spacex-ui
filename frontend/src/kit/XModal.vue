@@ -2,6 +2,7 @@
 import { nextTick, onBeforeUnmount, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import XButton from './XButton.vue'
+import { lockScroll } from './scrollLock'
 
 /**
  * Dialog on desktop, bottom sheet on phones. The sheet has a handle instead
@@ -11,13 +12,15 @@ import XButton from './XButton.vue'
 const props = withDefaults(
   defineProps<{
     title: string
-    size?: 'sm' | 'md' | 'lg' | 'xl'
+    size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
     /** Close on Escape and on a click outside. Off while a form is saving. */
     dismissible?: boolean
     /** The body draws its own sections edge to edge: no padding, no gap. */
     flush?: boolean
     /** On phones fills the screen instead of rising as a sheet: logs, editors. */
     full?: boolean
+    /** No title bar: the body carries the title, as XConfirm does. */
+    headless?: boolean
   }>(),
   { size: 'md', dismissible: true },
 )
@@ -53,12 +56,8 @@ function onKeydown(e: KeyboardEvent) {
   }
 }
 
-function lockScroll(lock: boolean) {
-  document.documentElement.style.overflow = lock ? 'hidden' : ''
-}
-
-watch(open, async (on) => {
-  lockScroll(on)
+watch(open, async (on, was) => {
+  if (on !== !!was) lockScroll(on)
   if (on) {
     returnFocus = document.activeElement as HTMLElement | null
     await nextTick()
@@ -83,11 +82,12 @@ onBeforeUnmount(() => {
           ref="dialog"
           role="dialog"
           aria-modal="true"
-          :aria-labelledby="`${id}-title`"
+          :aria-labelledby="headless ? undefined : `${id}-title`"
+          :aria-label="headless ? title : undefined"
           tabindex="-1"
-          :class="['x-modal__dialog', `x-modal__dialog--${size}`, { 'x-modal__dialog--full': full }]"
+          :class="['x-modal__dialog', `x-modal__dialog--${size}`, { 'x-modal__dialog--full': full, 'x-modal__dialog--headless': headless }]"
         >
-          <header :class="['x-modal__head', { 'x-modal__head--sub': $slots.subtitle }]">
+          <header v-if="!headless" :class="['x-modal__head', { 'x-modal__head--sub': $slots.subtitle }]">
             <div class="x-modal__heading">
               <h2 :id="`${id}-title`" class="x-modal__title">{{ title }}</h2>
               <p v-if="$slots.subtitle" class="x-modal__subtitle"><slot name="subtitle" /></p>
@@ -132,6 +132,7 @@ onBeforeUnmount(() => {
   outline: none;
 }
 
+.x-modal__dialog--xs { max-width: 400px; }
 .x-modal__dialog--sm { max-width: 440px; }
 .x-modal__dialog--md { max-width: 560px; }
 .x-modal__dialog--lg { max-width: 720px; }
@@ -266,6 +267,11 @@ onBeforeUnmount(() => {
 
   .x-modal__dialog:not(.x-modal__dialog--full) .x-modal__body:not(.x-modal__body--flush) {
     padding: 14px 16px 16px;
+  }
+
+  /* Without a title bar the body sits right under the handle. */
+  .x-modal__dialog--headless:not(.x-modal__dialog--full) .x-modal__body:not(.x-modal__body--flush) {
+    padding-top: 0;
   }
 
   .x-modal__foot--phone {

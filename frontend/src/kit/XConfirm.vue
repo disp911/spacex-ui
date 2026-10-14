@@ -1,0 +1,86 @@
+<script setup lang="ts">
+import { useI18n } from 'vue-i18n'
+import XButton from './XButton.vue'
+import XIcon from './XIcon.vue'
+import XModal from './XModal.vue'
+
+/**
+ * Asks before an action that changes a lot: a warning icon, a title, the
+ * text (the slot), Cancel and the action. While busy the action shows a
+ * spinner and its busy label, and the window cannot be closed.
+ */
+const props = defineProps<{ title: string; cta: string; busy?: boolean; busyLabel?: string }>()
+const emit = defineEmits<{ confirm: [] }>()
+const open = defineModel<boolean>('open', { default: false })
+const { t } = useI18n()
+
+function run() {
+  if (!props.busy) emit('confirm')
+}
+</script>
+
+<template>
+  <XModal v-model:open="open" :title="title" size="xs" headless :dismissible="!busy">
+    <div class="x-confirm">
+      <span class="x-confirm__icon"><XIcon name="alert" :size="17" :stroke="1.4" /></span>
+      <div class="x-confirm__body">
+        <h2 class="x-confirm__title">{{ title }}</h2>
+        <div class="x-confirm__text"><slot /></div>
+      </div>
+    </div>
+    <template #footer>
+      <XButton :disabled="busy" @click="open = false">{{ t('kit.cancel') }}</XButton>
+      <XButton variant="primary" :loading="busy" @click="run">{{ busy && busyLabel ? busyLabel : cta }}</XButton>
+    </template>
+  </XModal>
+</template>
+
+<style scoped>
+.x-confirm {
+  display: flex;
+  gap: 12px;
+}
+
+.x-confirm__icon {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--warn-line);
+  border-radius: var(--r-10);
+  background: var(--warn-bg);
+  color: var(--warn);
+}
+
+.x-confirm__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.x-confirm__title {
+  margin: 0 0 4px;
+  color: var(--fg);
+  font: 600 var(--fs-14) / var(--lh-tight) var(--font-sans);
+  letter-spacing: -.2px;
+  text-wrap: pretty;
+}
+
+.x-confirm__text {
+  color: var(--mut);
+  font: 400 var(--fs-12) / var(--lh-text) var(--font-sans);
+  text-wrap: pretty;
+}
+
+@media (max-width: 767px) {
+  .x-confirm__title {
+    margin-bottom: 6px;
+    font-size: var(--fs-16);
+  }
+
+  .x-confirm__text {
+    font-size: var(--fs-13);
+  }
+}
+</style>

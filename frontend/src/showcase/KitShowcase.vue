@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue'
 import { useTheme } from '../stores/theme'
 import {
-  XActionList, XActionRow, XBadge, XButton, XCard, XCheckbox, XChip, XCounter, XEmpty, XErrorBox, XField, XInput, XMenu, XModal, XNavItem, XNotice, XNumber,
+  XActionList, XActionRow, XBadge, XButton, XCard, XCheckbox, XChip, XConfirm, XCounter, XEmpty, XErrorBox, XField, XInput, XMenu, XModal, XNavItem, XNotice, XNumber,
   XPager, XRowLink, XSection, XSegmented, XSelect, XStatusDot, XSwitch, XTagInput, XTextarea, XTooltip, XUsagePill,
   type MenuItem,
 } from '../kit'
@@ -59,6 +59,15 @@ const sheetSize = ref<'sm' | 'md' | 'lg' | 'xl'>('md')
 const boxedCheck = ref(true)
 const successDemo = ref(false)
 const logOpen = ref(false)
+const confirmOpen = ref(false)
+const confirmBusy = ref(false)
+function runConfirm() {
+  confirmBusy.value = true
+  setTimeout(() => {
+    confirmBusy.value = false
+    confirmOpen.value = false
+  }, 1500)
+}
 const level = ref('info')
 const levelItems = computed<MenuItem[]>(() =>
   [
@@ -519,6 +528,7 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
             />
             <XButton variant="primary" @click="modalOpen = true">Открыть окно</XButton>
             <XButton @click="logOpen = true">Окно на весь экран телефона</XButton>
+            <XButton @click="confirmOpen = true">Подтверждение</XButton>
           </div>
           <div class="kit__row kit__row--wrap">
             <XMenu v-slot="{ props }" :items="levelItems" title="Уровень" placement="bottom-start" sheet @select="level = $event">
@@ -550,6 +560,10 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
         <XButton variant="primary" @click="modalOpen = false">Создать</XButton>
       </template>
     </XModal>
+
+    <XConfirm v-model:open="confirmOpen" title="Восстановить базу данных?" cta="Восстановить" :busy="confirmBusy" busy-label="Восстановление…" @confirm="runConfirm">
+      Текущая база данных будет заменена файлом backup.db, после этого панель перезапустится.
+    </XConfirm>
 
     <XModal v-model:open="logOpen" title="Журнал панели" size="xl" flush full>
       <template #subtitle>Подзаголовок · <span class="kit__mono">flush</span>: тело без отступов, <span class="kit__mono">full</span>: весь экран телефона</template>
