@@ -7,7 +7,7 @@ import type { ServiceStatus } from '../../stores/server'
 import DashCard from './DashCard.vue'
 import DashStat from './DashStat.vue'
 
-/** Xray or the Telegram proxy: state, figures, restart and stop. The error popover links to the panel log. */
+/** Xray or the Telegram proxy: state with its version, figures, restart and stop. The error popover links to the panel log. */
 const props = defineProps<{
   title: string
   /** Undefined until the first status arrives. */
@@ -35,10 +35,6 @@ const dash = '—'
 
 <template>
   <DashCard :title="title">
-    <template v-if="service?.version" #head>
-      <XBadge mono>{{ versionPrefix }}{{ service.version }}</XBadge>
-    </template>
-
     <div class="service">
       <div class="service__state">
         <XPopover :disabled="!errorLines.length" :label="errorTitle">
@@ -68,6 +64,7 @@ const dash = '—'
             <XErrorBox :text="service?.errorMsg ?? ''" />
           </template>
         </XPopover>
+        <XBadge v-if="service?.version" mono>{{ versionPrefix }}{{ service.version }}</XBadge>
       </div>
 
       <div class="service__stats">
@@ -107,6 +104,9 @@ const dash = '—'
 .service__state {
   grid-area: state;
   display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
 }
 
 .service__stats {
