@@ -158,7 +158,6 @@ function choose(item: MenuItem) {
   right: 0;
   bottom: 0;
   left: 0;
-  gap: 2px;
   max-height: calc(100% - 48px);
   padding: 10px 12px calc(16px + env(safe-area-inset-bottom));
   border-width: 1px 0 0;
@@ -183,7 +182,7 @@ function choose(item: MenuItem) {
 }
 
 .x-menu--sheet .x-popup-item {
-  padding: 0 12px;
+  --item-px: 12px;
   border-radius: var(--r-10);
 }
 

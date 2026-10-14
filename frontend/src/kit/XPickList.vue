@@ -33,19 +33,19 @@ const skeleton = [34, 30, 38, 28, 32, 36, 30, 26]
         </div>
       </div>
       <div v-else-if="!items.length" class="x-pick__empty"><slot /></div>
-      <ul v-else class="x-pick__list">
-        <li v-for="item in items" :key="item.key">
-          <button
-            type="button"
-            :class="['x-popup-item', 'x-pick__item', { 'is-selected': item.current }]"
-            :aria-current="item.current || undefined"
-            @click="pick(item)"
-          >
-            <span class="x-pick__label">{{ item.label }}</span>
-            <XStatusDot v-if="item.current" size="sm" blink :label="currentLabel" />
-          </button>
-        </li>
-      </ul>
+      <div v-else class="x-pick__list">
+        <button
+          v-for="item in items"
+          :key="item.key"
+          type="button"
+          :class="['x-popup-item', 'x-pick__item', { 'is-selected': item.current }]"
+          :aria-current="item.current || undefined"
+          @click="pick(item)"
+        >
+          <span class="x-pick__label">{{ item.label }}</span>
+          <XStatusDot v-if="item.current" size="sm" blink :label="currentLabel" />
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -72,26 +72,8 @@ const skeleton = [34, 30, 38, 28, 32, 36, 30, 26]
 }
 
 .x-pick__list {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-/* A hairline between rows, inset like the row text. A border, so screens scaled to 125% keep it one pixel sharp. */
-.x-pick__list > li + li::before {
-  content: '';
-  display: block;
-  margin: 0 10px;
-  border-top: 1px solid var(--div);
-  transition: border-color var(--t-fast);
-}
-
-/* The hovered and the current row drop the hairlines above and below them. */
-.x-pick__list > li:has(> .x-pick__item:hover)::before,
-.x-pick__list > li:has(> .x-pick__item:hover) + li::before,
-.x-pick__list > li:has(> .x-pick__item.is-selected)::before,
-.x-pick__list > li:has(> .x-pick__item.is-selected) + li::before {
-  border-color: transparent;
+  display: flex;
+  flex-direction: column;
 }
 
 .x-pick__item {
