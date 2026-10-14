@@ -106,6 +106,10 @@ export interface MessageSchema {
     "logEmpty": string
     "logEmptyHint": string
     "logFailed": string
+    "backupExport": string
+    "backupExportText": string
+    "backupImport": string
+    "backupImportText": string
   }
   "units": {
     "value": string
@@ -128,6 +132,7 @@ export interface MessageSchema {
     "showPassword": string
     "hidePassword": string
     "close": string
+    "cancel": string
     "remove": string
     "pages": string
     "previousPage": string

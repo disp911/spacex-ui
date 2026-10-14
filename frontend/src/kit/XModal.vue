@@ -3,7 +3,11 @@ import { nextTick, onBeforeUnmount, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import XButton from './XButton.vue'
 
-/** Dialog on desktop, bottom sheet on phones. */
+/**
+ * Dialog on desktop, bottom sheet on phones. The sheet has a handle instead
+ * of the close button; a window without its own footer gets a Cancel button
+ * there on phones.
+ */
 const props = withDefaults(
   defineProps<{
     title: string
@@ -89,10 +93,13 @@ onBeforeUnmount(() => {
               <p v-if="$slots.subtitle" class="x-modal__subtitle"><slot name="subtitle" /></p>
             </div>
             <slot name="head" />
-            <XButton size="sm" icon="close" :label="t('kit.close')" :disabled="!dismissible" @click="close" />
+            <XButton size="sm" icon="close" :label="t('kit.close')" :disabled="!dismissible" class="x-modal__close" @click="close" />
           </header>
           <div :class="['x-modal__body', { 'x-modal__body--flush': flush }]"><slot /></div>
           <footer v-if="$slots.footer" class="x-modal__foot"><slot name="footer" /></footer>
+          <footer v-else-if="!full" class="x-modal__foot x-modal__foot--phone">
+            <XButton :disabled="!dismissible" @click="close">{{ t('kit.cancel') }}</XButton>
+          </footer>
         </div>
       </div>
     </Transition>
@@ -188,6 +195,10 @@ onBeforeUnmount(() => {
   background: var(--foot);
 }
 
+.x-modal__foot--phone {
+  display: none;
+}
+
 .x-modal-enter-active,
 .x-modal-leave-active {
   transition: opacity var(--t-med);
@@ -226,6 +237,39 @@ onBeforeUnmount(() => {
   .x-modal__body {
     overflow-y: auto;
     overscroll-behavior: contain;
+  }
+
+  /* Sheet: a handle on top, the title under it with no line, no close button. */
+  .x-modal__dialog:not(.x-modal__dialog--full) {
+    padding-top: 10px;
+  }
+
+  .x-modal__dialog:not(.x-modal__dialog--full)::before {
+    content: '';
+    flex: none;
+    align-self: center;
+    width: 38px;
+    height: 4px;
+    margin-bottom: 14px;
+    border-radius: var(--r-pill);
+    background: var(--track);
+  }
+
+  .x-modal__dialog:not(.x-modal__dialog--full) .x-modal__head {
+    padding: 0 16px;
+    border-bottom: 0;
+  }
+
+  .x-modal__dialog:not(.x-modal__dialog--full) .x-modal__close {
+    display: none;
+  }
+
+  .x-modal__dialog:not(.x-modal__dialog--full) .x-modal__body:not(.x-modal__body--flush) {
+    padding: 14px 16px 16px;
+  }
+
+  .x-modal__foot--phone {
+    display: flex;
   }
 
   .x-modal--full {

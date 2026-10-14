@@ -41,6 +41,7 @@ export const icons = {
   sliders: path('M2 4.6h12M2 11.4h12') + '<circle cx="10.2" cy="4.6" r="2.1" style="fill:var(--acc-soft)"/><circle cx="5.8" cy="11.4" r="2.1" style="fill:var(--acc-soft)"/>',
   doc: path('M3.4 2.4h9.2v11.2H3.4z') + path('M5.8 5.6h4.4M5.8 8h4.4M5.8 10.4h2.6'),
   download: path('M8 2.4v7.2M5.2 7l2.8 2.8L10.8 7M2.8 12.4h10.4'),
+  upload: path('M8 9.6V2.4M5.2 5.2 8 2.4l2.8 2.8M2.8 12.4h10.4'),
   code: path('M6 3.4 2.8 8 6 12.6M10 3.4 13.2 8 10 12.6'),
   database: '<ellipse cx="8" cy="4" rx="5" ry="2"/>' + path('M3 4v8c0 1.1 2.2 2 5 2s5-.9 5-2V4M3 8c0 1.1 2.2 2 5 2s5-.9 5-2'),
   stop: '<rect x="4.2" y="4.2" width="7.6" height="7.6" rx="1.6"/>',

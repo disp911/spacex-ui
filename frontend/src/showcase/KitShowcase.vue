@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue'
 import { useTheme } from '../stores/theme'
 import {
-  XBadge, XButton, XCard, XCheckbox, XChip, XCounter, XEmpty, XErrorBox, XField, XInput, XMenu, XModal, XNavItem, XNotice, XNumber,
+  XActionList, XActionRow, XBadge, XButton, XCard, XCheckbox, XChip, XCounter, XEmpty, XErrorBox, XField, XInput, XMenu, XModal, XNavItem, XNotice, XNumber,
   XPager, XRowLink, XSection, XSegmented, XSelect, XStatusDot, XSwitch, XTagInput, XTextarea, XTooltip, XUsagePill,
   type MenuItem,
 } from '../kit'
@@ -440,6 +440,13 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
             <XNavItem icon="sliders" label="Настройки" />
             <XNavItem icon="logout" label="Выход" danger />
           </div>
+        </div>
+        <div class="kit__variant">
+          <h3 class="kit__h3">Список действий</h3>
+          <XActionList style="max-width: 400px">
+            <XActionRow title="Экспорт базы данных" icon="download">Скачать файл <code>.db</code> с резервной копией.</XActionRow>
+            <XActionRow title="Импорт базы данных" icon="upload" loading>Загрузить файл <code>.db</code> с устройства.</XActionRow>
+          </XActionList>
         </div>
         <div class="kit__variant">
           <h3 class="kit__h3">Пусто · ошибка</h3>

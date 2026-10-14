@@ -9,6 +9,7 @@ import AppPage from '../layout/AppPage.vue'
 import { useServerStatus } from '../stores/server'
 import DashCard from './dashboard/DashCard.vue'
 import DashStat from './dashboard/DashStat.vue'
+import BackupModal from './dashboard/BackupModal.vue'
 import PanelLogModal from './dashboard/PanelLogModal.vue'
 import ResourcesCard from './dashboard/ResourcesCard.vue'
 import ServiceCard from './dashboard/ServiceCard.vue'
@@ -82,6 +83,7 @@ const ip = (v?: string) => (!v || v === 'N/A' ? '—' : v)
 // --- Windows ----------------------------------------------------------------
 
 const panelLogOpen = ref(false)
+const backupOpen = ref(false)
 
 // --- Panel version ----------------------------------------------------------
 
@@ -148,7 +150,7 @@ const dash = '—'
           <div class="links">
             <XRowLink icon="doc" :label="t('dashboard.panelLog')" @click="panelLogOpen = true" />
             <XRowLink icon="code" :label="t('dashboard.config')" />
-            <XRowLink icon="database" :label="t('dashboard.backup')" />
+            <XRowLink icon="database" :label="t('dashboard.backup')" @click="backupOpen = true" />
           </div>
           <div class="version">
             <span class="version__label">{{ t('dashboard.panelVersion') }}</span>
@@ -237,6 +239,7 @@ const dash = '—'
     </div>
 
     <PanelLogModal v-model:open="panelLogOpen" />
+    <BackupModal v-model:open="backupOpen" />
   </AppPage>
 </template>
 

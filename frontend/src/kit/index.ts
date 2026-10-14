@@ -1,3 +1,5 @@
+export { default as XActionList } from './XActionList.vue'
+export { default as XActionRow } from './XActionRow.vue'
 export { default as XBadge } from './XBadge.vue'
 export { default as XButton } from './XButton.vue'
 export { default as XCard } from './XCard.vue'

@@ -838,12 +838,17 @@
 "logEmpty" = "No entries"
 "logEmptyHint" = "The log is empty for the chosen level and depth"
 "logFailed" = "Couldn't load the log: {error}"
+"backupExport" = "Export database"
+"backupExportText" = "Download a {ext} file with a backup of the current database to your device."
+"backupImport" = "Import database"
+"backupImportText" = "Upload a {ext} file from your device and restore the database from the backup."
 
 [kit]
 "clear" = "Clear"
 "showPassword" = "Show password"
 "hidePassword" = "Hide password"
 "close" = "Close"
+"cancel" = "Cancel"
 "remove" = "Remove {value}"
 "pages" = "Pages"
 "previousPage" = "Previous page"

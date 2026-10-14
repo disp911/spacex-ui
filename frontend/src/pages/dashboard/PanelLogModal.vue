@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { api, ApiError } from '../../api'
+import { api, ApiError, saveFile } from '../../api'
 import { XButton, XCheckbox, XEmpty, XMenu, XModal, XStatusDot, type MenuItem } from '../../kit'
 
 /** The panel's own log, or the x-ui unit's journal with SysLog on. */
@@ -66,12 +66,7 @@ watch(open, (on) => on && load(), { immediate: true })
 watch([count, level, syslog], () => open.value && load())
 
 function download() {
-  const url = URL.createObjectURL(new Blob([lines.value.join('\n')], { type: 'text/plain' }))
-  const a = document.createElement('a')
-  a.href = url
-  a.download = 'x-ui.log'
-  a.click()
-  URL.revokeObjectURL(url)
+  saveFile(lines.value.join('\n'), 'x-ui.log')
 }
 
 // Skeleton bars: message widths vary like real lines.
