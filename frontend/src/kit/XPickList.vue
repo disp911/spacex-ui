@@ -77,13 +77,12 @@ const skeleton = [34, 30, 38, 28, 32, 36, 30, 26]
   list-style: none;
 }
 
-/* A hairline between rows, inset like the row text. */
+/* A hairline between rows, inset like the row text. A border, so screens scaled to 125% keep it one pixel sharp. */
 .x-pick__list > li + li::before {
   content: '';
   display: block;
-  height: 1px;
   margin: 0 10px;
-  background: var(--div);
+  border-top: 1px solid var(--div);
 }
 
 .x-pick__item {
