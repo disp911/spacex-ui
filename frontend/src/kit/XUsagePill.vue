@@ -50,7 +50,7 @@ const fill = computed(() => (props.disabled ? 'off' : props.ratio == null ? 'neu
 
 .x-usage__used {
   flex: none;
-  width: 54px;
+  width: 60px;
   color: var(--fg2);
   text-align: right;
 }
@@ -90,7 +90,7 @@ const fill = computed(() => (props.disabled ? 'off' : props.ratio == null ? 'neu
 
 .x-usage__limit {
   flex: none;
-  width: 38px;
+  width: 42px;
   color: var(--mut);
 }
 
