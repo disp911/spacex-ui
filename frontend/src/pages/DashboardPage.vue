@@ -10,6 +10,7 @@ import { useServerStatus } from '../stores/server'
 import DashCard from './dashboard/DashCard.vue'
 import DashStat from './dashboard/DashStat.vue'
 import BackupModal from './dashboard/BackupModal.vue'
+import XrayVersionModal from './dashboard/XrayVersionModal.vue'
 import PanelLogModal from './dashboard/PanelLogModal.vue'
 import ResourcesCard from './dashboard/ResourcesCard.vue'
 import ServiceCard from './dashboard/ServiceCard.vue'
@@ -93,6 +94,7 @@ const ip = (v?: string) => (!v || v === 'N/A' ? '—' : v)
 
 const panelLogOpen = ref(false)
 const backupOpen = ref(false)
+const xrayVersionOpen = ref(false)
 
 // --- Panel version ----------------------------------------------------------
 
@@ -140,7 +142,7 @@ const dash = '—'
           @log="panelLogOpen = true"
         >
           <XRowLink icon="doc" :label="t('dashboard.xrayLog')" />
-          <XRowLink icon="download" :label="t('dashboard.xrayVersion')" />
+          <XRowLink icon="download" :label="t('dashboard.xrayVersion')" @click="xrayVersionOpen = true" />
         </ServiceCard>
 
         <ServiceCard
@@ -241,6 +243,7 @@ const dash = '—'
 
     <PanelLogModal v-model:open="panelLogOpen" />
     <BackupModal v-model:open="backupOpen" />
+    <XrayVersionModal v-model:open="xrayVersionOpen" />
   </AppPage>
 </template>
 

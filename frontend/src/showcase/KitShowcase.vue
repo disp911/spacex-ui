@@ -3,7 +3,7 @@ import { computed, ref } from 'vue'
 import { useTheme } from '../stores/theme'
 import {
   XActionList, XActionRow, XBadge, XButton, XCard, XCheckbox, XChip, XConfirm, XCounter, XEmpty, XErrorBox, XField, XInput, XMenu, XModal, XNavItem, XNotice, XNumber,
-  XPager, XRowLink, XSection, XSegmented, XSelect, XStatusDot, XSwitch, XTagInput, XTextarea, XTooltip, XUsagePill,
+  XPager, XPickList, XRowLink, XSection, XSegmented, XSelect, XStatusDot, XSwitch, XTagInput, XTextarea, XTooltip, XUsagePill,
   type MenuItem,
 } from '../kit'
 
@@ -78,6 +78,7 @@ const levelItems = computed<MenuItem[]>(() =>
   ].map((i) => ({ ...i, checked: i.key === level.value })),
 )
 const lastAction = ref('—')
+const pickItems = ['v26.4.25', 'v26.3.27', 'v25.12.8', 'v25.11.11'].map((v, i) => ({ key: v, label: v, current: i === 0 }))
 const sectionOpen = ref(true)
 const sw = ref({ a: false, b: true, loading: false })
 
@@ -461,6 +462,11 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
           <h3 class="kit__h3">Пусто · ошибка</h3>
           <XEmpty title="Нет записей" hint="Для выбранного уровня и глубины журнал пуст" />
           <XErrorBox text="failed to listen on 0.0.0.0:443&#10;bind: address already in use" />
+        </div>
+        <div class="kit__variant">
+          <h3 class="kit__h3">Список выбора · загрузка</h3>
+          <XPickList :items="pickItems" current-label="Установлена" style="max-width: 400px" />
+          <XPickList :items="[]" loading style="max-width: 400px" />
         </div>
         <div class="kit__variant">
           <h3 class="kit__h3">Полоса прокрутки</h3>

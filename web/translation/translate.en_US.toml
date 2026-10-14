@@ -846,6 +846,18 @@
 "backupRestoreText" = "The current database will be replaced with {name}, then the panel restarts."
 "backupRestore" = "Restore"
 "backupRestoring" = "Restoring…"
+"xrayUpdate" = "Xray update"
+"xrayVersionWarnTitle" = "Important"
+"xrayVersionWarn" = "Older versions may not support the current settings."
+"xrayInstalled" = "Installed"
+"xrayVersionsEmpty" = "No versions available"
+"xrayVersionsFailed" = "Could not get the list of versions: {error}"
+"retry" = "Try again"
+"xrayInstallTitle" = "Change the Xray version?"
+"xrayInstallText" = "{version} will be installed instead of {current}, and the core will restart."
+"xrayInstallTextNew" = "{version} will be installed, and the core will restart."
+"xrayInstall" = "Update Xray"
+"xrayInstalling" = "Updating…"
 
 [kit]
 "clear" = "Clear"

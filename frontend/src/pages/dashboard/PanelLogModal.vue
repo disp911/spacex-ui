@@ -104,10 +104,10 @@ const skeleton = [62, 48, 71, 55, 38, 66, 52, 44, 69, 58, 41, 63]
     <div class="log-area">
       <div class="log-box">
         <div class="log-scroll" tabindex="0" :aria-busy="loading || undefined">
-          <div v-if="loading" class="log-skeleton" aria-hidden="true">
+          <div v-if="loading" class="x-skeleton log-skeleton" aria-hidden="true">
             <div v-for="w in skeleton" :key="w" class="log-skeleton__row">
-              <span class="log-skeleton__bar" style="width: 30%; max-width: 132px" />
-              <span class="log-skeleton__bar" :style="{ width: `${w}%` }" />
+              <span class="x-skeleton__bar" style="width: 30%; max-width: 132px" />
+              <span class="x-skeleton__bar" :style="{ width: `${w}%` }" />
             </div>
           </div>
           <XEmpty
@@ -207,7 +207,6 @@ const skeleton = [62, 48, 71, 55, 38, 66, 52, 44, 69, 58, 41, 63]
 .log-skeleton {
   display: flex;
   flex-direction: column;
-  animation: x-blink 1.4s ease-in-out infinite;
 }
 
 .log-skeleton__row {
@@ -215,13 +214,6 @@ const skeleton = [62, 48, 71, 55, 38, 66, 52, 44, 69, 58, 41, 63]
   align-items: center;
   gap: 10px;
   height: 20px;
-}
-
-.log-skeleton__bar {
-  flex: none;
-  height: 8px;
-  border-radius: var(--r-4);
-  background: var(--skel);
 }
 
 @media (max-width: 767px) {

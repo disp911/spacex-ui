@@ -846,6 +846,18 @@
 "backupRestoreText" = "Текущая база данных будет заменена файлом {name}, после этого панель перезапустится."
 "backupRestore" = "Восстановить"
 "backupRestoring" = "Восстановление…"
+"xrayUpdate" = "Обновление Xray"
+"xrayVersionWarnTitle" = "Важно"
+"xrayVersionWarn" = "Старые версии могут не поддерживать текущие настройки."
+"xrayInstalled" = "Установлена"
+"xrayVersionsEmpty" = "Нет доступных версий"
+"xrayVersionsFailed" = "Не удалось получить список версий: {error}"
+"retry" = "Повторить"
+"xrayInstallTitle" = "Вы точно хотите обновить версию Xray?"
+"xrayInstallText" = "Будет установлена {version} вместо {current}, ядро перезапустится."
+"xrayInstallTextNew" = "Будет установлена {version}, ядро перезапустится."
+"xrayInstall" = "Обновить Xray"
+"xrayInstalling" = "Обновление…"
 
 [kit]
 "clear" = "Очистить"

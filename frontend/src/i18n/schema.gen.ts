@@ -114,6 +114,18 @@ export interface MessageSchema {
     "backupRestoreText": string
     "backupRestore": string
     "backupRestoring": string
+    "xrayUpdate": string
+    "xrayVersionWarnTitle": string
+    "xrayVersionWarn": string
+    "xrayInstalled": string
+    "xrayVersionsEmpty": string
+    "xrayVersionsFailed": string
+    "retry": string
+    "xrayInstallTitle": string
+    "xrayInstallText": string
+    "xrayInstallTextNew": string
+    "xrayInstall": string
+    "xrayInstalling": string
   }
   "units": {
     "value": string

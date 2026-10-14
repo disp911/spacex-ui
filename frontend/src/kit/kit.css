@@ -156,6 +156,19 @@
   font-size: var(--fs-11);
 }
 
+/* Loading placeholder: grey bars that fade slowly, as in the mockups. */
+.x-skeleton {
+  animation: x-blink 1.4s ease-in-out infinite;
+}
+
+.x-skeleton__bar {
+  display: block;
+  flex: none;
+  height: 8px;
+  border-radius: var(--r-4);
+  background: var(--skel);
+}
+
 /* Large controls for a whole region, e.g. the login form: 44px; on phones the regular 38. */
 .x-ctl-lg {
   --ctl-h: 44px;
