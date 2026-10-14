@@ -282,6 +282,7 @@
   :root {
     --ctl-h: 44px;
     --ctl-r: var(--r-12);
+    --ctl-sm-h: 30px;
     --input-fs: var(--fs-16);
     --menu-item-h: 44px;
     --sidebar-item-h: 44px;

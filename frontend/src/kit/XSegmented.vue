@@ -82,7 +82,7 @@ function onKeydown(e: KeyboardEvent) {
 }
 
 .x-seg__item--icon {
-  width: calc(var(--ctl-h) - 6px);
+  width: calc(var(--ctl-h) - 4px);
   padding: 0;
   color: var(--dim);
 }
