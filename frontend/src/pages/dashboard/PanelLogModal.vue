@@ -230,7 +230,6 @@ const skeleton = [62, 48, 71, 55, 38, 66, 52, 44, 69, 58, 41, 63]
     gap: 6px;
     padding: 10px 14px;
     overflow-x: auto;
-    scrollbar-width: none;
   }
 
   .log-bar > * {

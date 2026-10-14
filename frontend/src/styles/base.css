@@ -7,6 +7,8 @@
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  /* The page keeps room for its scrollbar, so nothing shifts when it appears or a window locks scrolling. */
+  scrollbar-gutter: stable;
 }
 
 body {
@@ -74,6 +76,21 @@ samp {
 
 *::-webkit-scrollbar-thumb:hover {
   background-color: var(--scrollbar-hover);
+}
+
+/* Phones scroll by touch: no scrollbars anywhere, as in the mockups. */
+@media (max-width: 767px) {
+  html {
+    scrollbar-gutter: auto;
+  }
+
+  * {
+    scrollbar-width: none;
+  }
+
+  *::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 @keyframes x-spin {
