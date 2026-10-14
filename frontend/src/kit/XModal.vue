@@ -130,6 +130,8 @@ onBeforeUnmount(() => {
   background: var(--card);
   box-shadow: var(--shadow-modal);
   outline: none;
+  /* Bars and flush bodies with their own background follow the rounded corners; popups are teleported, so nothing is cut. */
+  overflow: clip;
 }
 
 .x-modal__dialog--xs { max-width: 400px; }
@@ -192,7 +194,6 @@ onBeforeUnmount(() => {
   gap: 8px;
   padding: 12px 16px;
   border-top: 1px solid var(--div);
-  border-radius: 0 0 var(--r-16) var(--r-16);
   background: var(--foot);
 }
 
@@ -304,7 +305,6 @@ onBeforeUnmount(() => {
 
   .x-modal__foot {
     padding-bottom: calc(12px + env(safe-area-inset-bottom));
-    border-radius: 0;
   }
 
   .x-modal__foot > :deep(*) {
