@@ -108,7 +108,7 @@ const linkAttrs = computed(() => (props.to ? { to: props.to } : props.href ? { h
   border-radius: var(--btn-sq-r);
 }
 
-/* 16px, 20px on phones: the regular button grows there, its icon too. */
+/* 16px, 18px on phones: the regular button grows there, its icon too. */
 .x-btn--md .x-btn__icon {
   width: var(--btn-icon);
   height: var(--btn-icon);
