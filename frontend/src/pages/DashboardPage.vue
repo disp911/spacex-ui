@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { api, ApiError } from '../api'
 import { config } from '../config'
 import { bytesParts, formatDuration, formatNumber, formatSpeed } from '../i18n/format'
-import { toast, XButton, XIcon, XNotice, XRowLink, XStatusDot } from '../kit'
+import { toast, XButton, XIcon, XInlineButton, XNotice, XRowLink, XStatusDot } from '../kit'
 import AppPage from '../layout/AppPage.vue'
 import { useServerStatus } from '../stores/server'
 import DashCard from './dashboard/DashCard.vue'
@@ -57,11 +57,20 @@ function dismissHttp() {
   write('dash.httpDismissed', '1', sessionStorage)
 }
 
-const ipHidden = ref(read('dash.ipShown', localStorage) !== '1')
-function toggleIp() {
-  ipHidden.value = !ipHidden.value
-  write('dash.ipShown', ipHidden.value ? '0' : '1', localStorage)
+// Each address has its own eye, like a password field; the choice is remembered.
+type IpKind = 'ipv4' | 'ipv6'
+const ipShown = ref<Record<IpKind, boolean>>({
+  ipv4: read('dash.ipShown.ipv4', localStorage) === '1',
+  ipv6: read('dash.ipShown.ipv6', localStorage) === '1',
+})
+function toggleIp(kind: IpKind) {
+  ipShown.value[kind] = !ipShown.value[kind]
+  write(`dash.ipShown.${kind}`, ipShown.value[kind] ? '1' : '0', localStorage)
 }
+const ipTiles = [
+  { kind: 'ipv4', name: 'IPv4' },
+  { kind: 'ipv6', name: 'IPv6' },
+] as const
 
 function read(key: string, storage: Storage) {
   try {
@@ -162,25 +171,18 @@ const dash = '—'
           </div>
         </DashCard>
 
-        <DashCard :title="t('dashboard.ip')" tool class="area-ip">
-          <template #head>
-            <XButton
-              variant="ghost"
-              :icon="ipHidden ? 'eye' : 'eyeOff'"
-              :label="ipHidden ? t('dashboard.showIp') : t('dashboard.hideIp')"
-              :aria-pressed="!ipHidden"
-              class="ip-toggle"
-              @click="toggleIp"
-            />
-          </template>
+        <DashCard :title="t('dashboard.ip')" class="area-ip">
           <div class="tiles">
-            <div class="tile">
-              <div class="x-caps tile__label">IPv4</div>
-              <div :class="['tile__ip', { 'is-hidden': ipHidden }]">{{ ip(status?.publicIP.ipv4) }}</div>
-            </div>
-            <div class="tile">
-              <div class="x-caps tile__label">IPv6</div>
-              <div :class="['tile__ip', { 'is-hidden': ipHidden }]">{{ ip(status?.publicIP.ipv6) }}</div>
+            <div v-for="tile in ipTiles" :key="tile.kind" class="tile tile--ip">
+              <div class="x-caps tile__label">{{ tile.name }}</div>
+              <div :class="['tile__ip', { 'is-hidden': !ipShown[tile.kind] }]">{{ ip(status?.publicIP[tile.kind]) }}</div>
+              <XInlineButton
+                :icon="ipShown[tile.kind] ? 'eyeOff' : 'eye'"
+                :label="t(ipShown[tile.kind] ? 'dashboard.hideAddress' : 'dashboard.showAddress', { name: tile.name })"
+                :aria-pressed="ipShown[tile.kind]"
+                class="tile__eye"
+                @click="toggleIp(tile.kind)"
+              />
             </div>
           </div>
         </DashCard>
@@ -300,16 +302,6 @@ const dash = '—'
 }
 
 /* Tiles: IP addresses and traffic totals */
-/* Takes 14px of the head line on desktop: the rest spills into the card padding. */
-.ip-toggle {
-  margin: -10px 0;
-}
-
-@media (max-width: 767px) {
-  .ip-toggle {
-    margin: -4px 0;
-  }
-}
 
 .tiles {
   display: grid;
@@ -327,6 +319,19 @@ const dash = '—'
 
 .tile--total {
   padding: 12px 14px;
+}
+
+/* The eye sits at the right, across the label and the address, like in a password field. */
+.tile--ip {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 8px;
+  align-items: center;
+}
+
+.tile__eye {
+  grid-column: 2;
+  grid-row: 1 / span 2;
 }
 
 .tile__label {

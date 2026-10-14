@@ -1,11 +1,11 @@
 <script setup lang="ts">
-/** Dashboard card: a small caps title, optional header content and the body. tool: the head holds a button. */
-defineProps<{ title: string; tool?: boolean }>()
+/** Dashboard card: a small caps title, optional header content and the body. */
+defineProps<{ title: string }>()
 </script>
 
 <template>
   <section class="dash-card">
-    <header :class="['dash-card__head', { 'dash-card__head--tool': tool }]">
+    <header class="dash-card__head">
       <h2 class="x-caps x-caps--lg dash-card__title">{{ title }}</h2>
       <div v-if="$slots.head" class="dash-card__extra"><slot name="head" /></div>
     </header>
@@ -28,7 +28,7 @@ defineProps<{ title: string; tool?: boolean }>()
   display: flex;
   align-items: center;
   gap: 10px;
-  /* One 14px line; badges and buttons on the right overflow it evenly. */
+  /* One 14px line; badges on the right overflow it evenly. */
   box-sizing: content-box;
   height: 14px;
   margin: 0 -20px 12px;
@@ -56,11 +56,6 @@ defineProps<{ title: string; tool?: boolean }>()
   .dash-card__head {
     margin: 0 -16px 12px;
     padding: 0 16px 12px;
-  }
-
-  /* A 44px button does not fit the card padding around a 14px line: the line grows. */
-  .dash-card__head--tool {
-    height: auto;
   }
 }
 </style>

@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import XIcon from './XIcon.vue'
+import XInlineButton from './XInlineButton.vue'
 import type { IconName } from './icons'
 import { useFieldAttrs } from './useFieldAttrs'
 
@@ -60,26 +61,24 @@ defineExpose({ focus: () => input.value?.focus() })
       :spellcheck="mono ? false : undefined"
     />
     <span v-if="suffix" class="x-input__suffix">{{ suffix }}</span>
-    <button
+    <XInlineButton
       v-if="clearable && model && !disabled && !readonly"
-      type="button"
+      icon="close"
+      :icon-size="13"
+      :stroke="1.6"
+      :label="t('kit.clear')"
       class="x-input__action"
-      :aria-label="t('kit.clear')"
       @click="clear"
-    >
-      <XIcon name="close" :size="13" :stroke="1.6" />
-    </button>
-    <button
+    />
+    <XInlineButton
       v-if="type === 'password'"
-      type="button"
-      class="x-input__action"
-      :aria-label="revealed ? t('kit.hidePassword') : t('kit.showPassword')"
+      :icon="revealed ? 'eyeOff' : 'eye'"
+      :label="revealed ? t('kit.hidePassword') : t('kit.showPassword')"
       :aria-pressed="revealed"
       :disabled="disabled"
+      class="x-input__action"
       @click="revealed = !revealed"
-    >
-      <XIcon :name="revealed ? 'eyeOff' : 'eye'" :size="15" :stroke="1.35" />
-    </button>
+    />
   </div>
 </template>
 
@@ -115,29 +114,8 @@ defineExpose({ focus: () => input.value?.focus() })
   font: 400 var(--fs-12) var(--font-mono);
 }
 
+/* Closer to the field's edge than the text is. */
 .x-input__action {
-  flex: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
   margin-right: -6px;
-  padding: 0;
-  border: 0;
-  border-radius: var(--r-8);
-  background: transparent;
-  color: var(--dim);
-  outline: none;
-}
-
-.x-input__action:hover {
-  background: var(--hov);
-  color: var(--fg);
-}
-
-.x-input__action:focus-visible {
-  box-shadow: 0 0 0 2px var(--acc-line);
-  color: var(--fg);
 }
 </style>

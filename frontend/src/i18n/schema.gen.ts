@@ -85,8 +85,8 @@ export interface MessageSchema {
     "upload": string
     "download": string
     "ip": string
-    "showIp": string
-    "hideIp": string
+    "showAddress": string
+    "hideAddress": string
     "manage": string
     "panelLog": string
     "config": string
