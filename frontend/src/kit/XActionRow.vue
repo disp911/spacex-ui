@@ -24,7 +24,7 @@ defineProps<{ title: string; icon: IconName; loading?: boolean; disabled?: boole
     </span>
     <span class="x-action-row__icon" aria-hidden="true">
       <XSpinner v-if="loading" :size="15" />
-      <XIcon v-else :name="icon" :size="16" :stroke="1.6" />
+      <XIcon v-else :name="icon" :size="16" :stroke="1.6" class="x-action-row__glyph" />
     </span>
   </button>
 </template>
@@ -87,6 +87,11 @@ defineProps<{ title: string; icon: IconName; loading?: boolean; disabled?: boole
 .x-action-row__text :deep(code) {
   color: var(--fg2);
   font-family: var(--font-mono);
+}
+
+.x-action-row__glyph {
+  width: var(--btn-icon);
+  height: var(--btn-icon);
 }
 
 .x-action-row__icon {

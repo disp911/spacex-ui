@@ -39,7 +39,7 @@ const slots = useSlots()
 const iconOnly = computed(() => !slots.default && !!(props.icon || slots.icon))
 // Every square icon button is one size: 34, 44 on phones.
 const sizeClass = computed(() => (iconOnly.value ? 'md' : props.size))
-const iconSize = computed(() => (sizeClass.value === 'sm' ? 14 : 15))
+const iconSize = computed(() => (sizeClass.value === 'sm' ? 14 : 16))
 const tag = computed(() => (props.to ? RouterLink : props.href ? 'a' : 'button'))
 const isLink = computed(() => !!(props.to || props.href))
 // Only the attributes of the element that is rendered: RouterLink builds its own href.
@@ -63,8 +63,8 @@ const linkAttrs = computed(() => (props.to ? { to: props.to } : props.href ? { h
     :title="iconOnly ? label : undefined"
   >
     <XSpinner v-if="loading" :size="iconSize - 1" />
-    <XIcon v-else-if="success" name="check" :size="iconSize" :stroke="2" class="x-btn__check" />
-    <slot v-else name="icon"><XIcon v-if="icon" :name="icon" :size="iconSize" /></slot>
+    <XIcon v-else-if="success" name="check" :size="iconSize" :stroke="2" class="x-btn__icon x-btn__check" />
+    <slot v-else name="icon"><XIcon v-if="icon" :name="icon" :size="iconSize" class="x-btn__icon" /></slot>
     <span v-if="$slots.default" class="x-btn__text"><slot /></span>
     <XIcon v-if="caret" name="caret" :size="10" :stroke="1.6" class="x-btn__caret" />
   </component>
@@ -106,6 +106,12 @@ const linkAttrs = computed(() => (props.to ? { to: props.to } : props.href ? { h
   padding: 0;
 }
 
+
+/* 16px, 20px on phones: the regular button grows there, its icon too. */
+.x-btn--md .x-btn__icon {
+  width: var(--btn-icon);
+  height: var(--btn-icon);
+}
 
 .x-btn--block {
   display: flex;

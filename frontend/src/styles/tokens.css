@@ -70,6 +70,8 @@
   --icon-s: 12px;
   --icon-m: 14px;
   --icon-l: 16px;
+  /* Icon in a regular button and in other 34/44 squares */
+  --btn-icon: 16px;
 
   /* Motion */
   --ease: cubic-bezier(.2, .7, .3, 1);
@@ -283,6 +285,7 @@
     --ctl-h: 44px;
     --ctl-r: var(--r-12);
     --ctl-sm-h: 30px;
+    --btn-icon: 20px;
     --input-fs: var(--fs-16);
     --menu-item-h: 44px;
     --sidebar-item-h: 44px;

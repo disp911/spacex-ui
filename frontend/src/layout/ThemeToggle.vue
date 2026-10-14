@@ -25,13 +25,15 @@ const store = useTheme()
 <style scoped>
 .theme-icons {
   position: relative;
-  width: 16px;
-  height: 16px;
+  width: var(--btn-icon);
+  height: var(--btn-icon);
 }
 
 .theme-icons__icon {
   position: absolute;
   inset: 0;
+  width: 100%;
+  height: 100%;
   transition: transform .42s cubic-bezier(.34, 1.32, .5, 1), opacity .26s ease;
 }
 
