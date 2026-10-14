@@ -86,9 +86,11 @@ const skeleton = [34, 30, 38, 28, 32, 36, 30, 26]
   transition: border-color var(--t-fast);
 }
 
-/* The hovered row drops the hairlines above and below it. */
+/* The hovered and the current row drop the hairlines above and below them. */
 .x-pick__list > li:has(> .x-pick__item:hover)::before,
-.x-pick__list > li:has(> .x-pick__item:hover) + li::before {
+.x-pick__list > li:has(> .x-pick__item:hover) + li::before,
+.x-pick__list > li:has(> .x-pick__item.is-selected)::before,
+.x-pick__list > li:has(> .x-pick__item.is-selected) + li::before {
   border-color: transparent;
 }
 
