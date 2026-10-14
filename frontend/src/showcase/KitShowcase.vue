@@ -2,8 +2,8 @@
 import { computed, ref } from 'vue'
 import { useTheme } from '../stores/theme'
 import {
-  XBadge, XButton, XCard, XCheckbox, XChip, XCounter, XEmpty, XErrorBox, XField, XInput, XMenu, XModal, XNotice, XNumber,
-  XPager, XSection, XSegmented, XSelect, XStatusDot, XSwitch, XTagInput, XTextarea, XTooltip, XUsagePill,
+  XBadge, XButton, XCard, XCheckbox, XChip, XCounter, XEmpty, XErrorBox, XField, XInput, XMenu, XModal, XNavItem, XNotice, XNumber,
+  XPager, XRowLink, XSection, XSegmented, XSelect, XStatusDot, XSwitch, XTagInput, XTextarea, XTooltip, XUsagePill,
   type MenuItem,
 } from '../kit'
 
@@ -427,6 +427,18 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
           <div class="kit__row kit__row--wrap">
             <span class="x-caps">Подпись 10</span>
             <span class="x-caps x-caps--lg">Подпись 11</span>
+          </div>
+        </div>
+        <div class="kit__variant">
+          <h3 class="kit__h3">Строка-ссылка · пункт меню</h3>
+          <div class="kit__stack" style="max-width: 280px; padding: 0 12px">
+            <XRowLink icon="doc" label="Журнал панели" />
+            <XRowLink icon="database" label="Резервная копия" />
+          </div>
+          <div class="kit__stack" style="max-width: 236px">
+            <XNavItem icon="dashboard" label="Дашборд" to="/kit" />
+            <XNavItem icon="sliders" label="Настройки" />
+            <XNavItem icon="logout" label="Выход" danger />
           </div>
         </div>
         <div class="kit__variant">

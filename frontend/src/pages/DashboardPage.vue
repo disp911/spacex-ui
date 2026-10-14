@@ -4,11 +4,10 @@ import { useI18n } from 'vue-i18n'
 import { api, ApiError } from '../api'
 import { config } from '../config'
 import { bytesParts, formatDuration, formatNumber, formatSpeed } from '../i18n/format'
-import { toast, XButton, XIcon, XNotice, XStatusDot } from '../kit'
+import { toast, XButton, XIcon, XNotice, XRowLink, XStatusDot } from '../kit'
 import AppPage from '../layout/AppPage.vue'
 import { useServerStatus } from '../stores/server'
 import DashCard from './dashboard/DashCard.vue'
-import DashLink from './dashboard/DashLink.vue'
 import DashStat from './dashboard/DashStat.vue'
 import PanelLogModal from './dashboard/PanelLogModal.vue'
 import ResourcesCard from './dashboard/ResourcesCard.vue'
@@ -129,8 +128,8 @@ const dash = '—'
           @stop="act('xray', 'stop')"
           @log="panelLogOpen = true"
         >
-          <DashLink icon="doc" :label="t('dashboard.xrayLog')" />
-          <DashLink icon="download" :label="t('dashboard.xrayVersion')" />
+          <XRowLink icon="doc" :label="t('dashboard.xrayLog')" />
+          <XRowLink icon="download" :label="t('dashboard.xrayVersion')" />
         </ServiceCard>
 
         <ServiceCard
@@ -147,9 +146,9 @@ const dash = '—'
 
         <DashCard :title="t('dashboard.manage')" class="grow area-manage">
           <div class="links">
-            <DashLink icon="doc" :label="t('dashboard.panelLog')" @click="panelLogOpen = true" />
-            <DashLink icon="code" :label="t('dashboard.config')" />
-            <DashLink icon="database" :label="t('dashboard.backup')" />
+            <XRowLink icon="doc" :label="t('dashboard.panelLog')" @click="panelLogOpen = true" />
+            <XRowLink icon="code" :label="t('dashboard.config')" />
+            <XRowLink icon="database" :label="t('dashboard.backup')" />
           </div>
           <div class="version">
             <span class="version__label">{{ t('dashboard.panelVersion') }}</span>

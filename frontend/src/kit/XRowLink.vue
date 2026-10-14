@@ -1,20 +1,24 @@
 <script setup lang="ts">
-import { XIcon, type IconName } from '../../kit'
+import XIcon from './XIcon.vue'
+import type { IconName } from './icons'
 
-/** A row that opens a window: icon, label and a chevron. */
+/**
+ * A row in a card that opens a window: icon, label and a chevron. Its icon
+ * lines up with the card's text; the hover area reaches 12px past it.
+ */
 defineProps<{ icon: IconName; label: string }>()
 </script>
 
 <template>
-  <button type="button" class="dash-link">
+  <button type="button" class="x-row-link">
     <XIcon :name="icon" :size="16" :stroke="1.4" />
-    <span class="dash-link__label">{{ label }}</span>
-    <XIcon name="chevron" :size="12" :stroke="1.6" class="dash-link__chevron" />
+    <span class="x-row-link__label">{{ label }}</span>
+    <XIcon name="chevron" :size="12" :stroke="1.6" class="x-row-link__chevron" />
   </button>
 </template>
 
 <style scoped>
-.dash-link {
+.x-row-link {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -32,21 +36,23 @@ defineProps<{ icon: IconName; label: string }>()
   transition: background-color var(--t-fast), color var(--t-fast);
 }
 
-.dash-link:hover {
+.x-row-link:hover,
+.x-row-link.is-hover {
   background: var(--hov);
   color: var(--fg);
 }
 
-.dash-link:focus-visible {
+.x-row-link:focus-visible,
+.x-row-link.is-focus {
   box-shadow: inset 0 0 0 2px var(--acc-line);
 }
 
-.dash-link__label {
+.x-row-link__label {
   flex: 1;
   min-width: 0;
 }
 
-.dash-link__chevron {
+.x-row-link__chevron {
   color: var(--faint);
 }
 </style>
