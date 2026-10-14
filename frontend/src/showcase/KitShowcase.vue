@@ -58,6 +58,16 @@ const modalOpen = ref(false)
 const sheetSize = ref<'sm' | 'md' | 'lg' | 'xl'>('md')
 const boxedCheck = ref(true)
 const successDemo = ref(false)
+const logOpen = ref(false)
+const level = ref('info')
+const levelItems = computed<MenuItem[]>(() =>
+  [
+    { key: 'debug', label: 'Debug', dot: 'var(--upload)' },
+    { key: 'info', label: 'Info', dot: 'var(--acc)' },
+    { key: 'warning', label: 'Warning', dot: 'var(--warn)' },
+    { key: 'err', label: 'Error', dot: 'var(--err)' },
+  ].map((i) => ({ ...i, checked: i.key === level.value })),
+)
 const lastAction = ref('—')
 const sectionOpen = ref(true)
 const sw = ref({ a: false, b: true, loading: false })
@@ -489,6 +499,15 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
               :options="[{ value: 'sm', label: 'sm 440' }, { value: 'md', label: 'md 560' }, { value: 'lg', label: 'lg 720' }, { value: 'xl', label: 'xl 800' }]"
             />
             <XButton variant="primary" @click="modalOpen = true">Открыть окно</XButton>
+            <XButton @click="logOpen = true">Окно на весь экран телефона</XButton>
+          </div>
+          <div class="kit__row kit__row--wrap">
+            <XMenu v-slot="{ props }" :items="levelItems" title="Уровень" placement="bottom-start" sheet @select="level = $event">
+              <XButton v-bind="props" caret>Меню-лист на телефоне</XButton>
+            </XMenu>
+            <XMenu v-slot="{ props }" :items="levelItems" title="Уровень" placement="bottom-start" scrim @select="level = $event">
+              <XButton v-bind="props" caret>Меню с затемнением</XButton>
+            </XMenu>
           </div>
           <XField layout="row" label="Оптимистичный переключатель" hint="Спиннер на время запроса">
             <XSwitch v-model="sw.b" :loading="sw.loading" label="Применить" @update:model-value="applySwitch" />
@@ -511,6 +530,11 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
         <XButton @click="modalOpen = false">Отмена</XButton>
         <XButton variant="primary" @click="modalOpen = false">Создать</XButton>
       </template>
+    </XModal>
+
+    <XModal v-model:open="logOpen" title="Журнал панели" size="xl" flush full>
+      <template #subtitle>Подзаголовок · <span class="kit__mono">flush</span>: тело без отступов, <span class="kit__mono">full</span>: весь экран телефона</template>
+      <XEmpty title="Нет записей" hint="Тело окна рисует сам экран" />
     </XModal>
   </div>
 </template>
