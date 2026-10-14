@@ -462,6 +462,12 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
           <XEmpty title="Нет записей" hint="Для выбранного уровня и глубины журнал пуст" />
           <XErrorBox text="failed to listen on 0.0.0.0:443&#10;bind: address already in use" />
         </div>
+        <div class="kit__variant">
+          <h3 class="kit__h3">Полоса прокрутки</h3>
+          <div class="kit__scroll" tabindex="0">
+            <div v-for="n in 12" :key="n" class="mono">{{ String(n).padStart(2, '0') }} · 2026/10/14 12:00:{{ String(n).padStart(2, '0') }} INFO - XRAY: accepted tcp:www.example.com:443 [inbound-443 -> direct]</div>
+          </div>
+        </div>
       </div>
     </XCard>
 
@@ -765,6 +771,19 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+.kit__scroll {
+  max-width: 400px;
+  height: 140px;
+  padding: 8px 12px;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--r-12);
+  color: var(--mut);
+  font-size: var(--fs-12);
+  line-height: var(--lh-code);
+  white-space: nowrap;
 }
 
 .kit__live {

@@ -162,3 +162,59 @@
   --ctl-r: var(--r-12);
   --ctl-fs: var(--fs-14);
 }
+
+/* Scrollbar: one look for the page and every scrolling box. 9px, a pill thumb, no arrows. */
+html {
+  /* The page keeps room for its scrollbar, so nothing shifts when it appears or a window locks scrolling. */
+  scrollbar-gutter: stable;
+}
+
+*::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+
+*::-webkit-scrollbar-track,
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--scrollbar);
+  border: 2px solid transparent;
+  border-radius: var(--r-pill);
+  background-clip: content-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: var(--scrollbar-hover);
+}
+
+/* Chrome draws its own bar, with arrows, once scrollbar-width is set: only browsers without the rules above get it. */
+@supports not selector(::-webkit-scrollbar) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar) transparent;
+  }
+}
+
+/* Phones scroll by touch: no scrollbars anywhere, as in the mockups. */
+@media (max-width: 767px) {
+  html {
+    scrollbar-gutter: auto;
+  }
+
+  * {
+    scrollbar-width: none;
+  }
+
+  *::-webkit-scrollbar {
+    display: none;
+  }
+}
