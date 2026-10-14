@@ -179,6 +179,11 @@ html {
   background: transparent;
 }
 
+/* The bar stops short of the box's ends, so the thumb clears rounded corners. */
+*::-webkit-scrollbar-track {
+  margin: 6px;
+}
+
 *::-webkit-scrollbar-button {
   display: none;
   width: 0;
