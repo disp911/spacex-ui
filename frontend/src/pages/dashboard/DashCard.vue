@@ -18,7 +18,7 @@ defineProps<{ title: string }>()
   display: flex;
   flex-direction: column;
   min-width: 0;
-  padding: 14px 20px;
+  padding: 10px 20px 14px;
   border: 1px solid var(--line);
   border-radius: var(--r-16);
   background: var(--card);
@@ -32,7 +32,7 @@ defineProps<{ title: string }>()
   box-sizing: content-box;
   height: 14px;
   margin: 0 -20px 12px;
-  padding: 0 20px 14px;
+  padding: 0 20px 10px;
   border-bottom: 1px solid var(--div);
 }
 
@@ -50,12 +50,12 @@ defineProps<{ title: string }>()
 
 @media (max-width: 767px) {
   .dash-card {
-    padding: 12px 16px;
+    padding: 10px 16px 12px;
   }
 
   .dash-card__head {
     margin: 0 -16px 12px;
-    padding: 0 16px 12px;
+    padding: 0 16px 10px;
   }
 }
 </style>
