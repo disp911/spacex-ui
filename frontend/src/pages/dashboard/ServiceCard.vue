@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { formatBytes, formatDuration, formatNumber } from '../../i18n/format'
-import { XButton, XIcon, XPopover } from '../../kit'
+import { XBadge, XButton, XErrorBox, XIcon, XPopover, XStatusDot, type Tone } from '../../kit'
 import type { ServiceStatus } from '../../stores/server'
 import DashCard from './DashCard.vue'
 import DashStat from './DashStat.vue'
@@ -20,7 +20,7 @@ const props = defineProps<{
 defineEmits<{ restart: []; stop: []; log: [] }>()
 const { t } = useI18n()
 
-const state = computed(() => {
+const state = computed<{ tone: Tone; label: string }>(() => {
   switch (props.service?.state) {
     case 'running': return { tone: 'ok', label: t('dashboard.running') }
     case 'stop': return { tone: 'warn', label: t('dashboard.stopped') }
@@ -36,7 +36,7 @@ const dash = '—'
 <template>
   <DashCard :title="title">
     <template v-if="service?.version" #head>
-      <span class="service__version">{{ versionPrefix }}{{ service.version }}</span>
+      <XBadge mono>{{ versionPrefix }}{{ service.version }}</XBadge>
     </template>
 
     <div class="service">
@@ -50,7 +50,7 @@ const dash = '—'
             :class="['service__status', `service__status--${state.tone}`, { 'is-clickable': errorLines.length }]"
             :title="errorLines.length ? t('dashboard.showError') : undefined"
           >
-            <span class="service__dot" />
+            <XStatusDot :tone="state.tone" blink />
             <span>{{ state.label }}</span>
             <XIcon v-if="errorLines.length" name="caret" :size="14" :stroke="1.6" />
           </component>
@@ -66,9 +66,7 @@ const dash = '—'
                 @click="close(); $emit('log')"
               />
             </div>
-            <div class="service__error">
-              <div v-for="(line, i) in errorLines" :key="i">{{ line }}</div>
-            </div>
+            <XErrorBox :text="service?.errorMsg ?? ''" />
           </template>
         </XPopover>
       </div>
@@ -125,18 +123,6 @@ const dash = '—'
   gap: 8px;
 }
 
-.service__version {
-  display: inline-flex;
-  align-items: center;
-  height: var(--chip-h);
-  padding: 0 10px;
-  border: 1px solid var(--line);
-  border-radius: var(--r-8);
-  background: var(--ctrl);
-  color: var(--fg);
-  font: 500 var(--fs-13) / 1 var(--font-mono);
-}
-
 .service__status {
   display: inline-flex;
   align-items: center;
@@ -164,20 +150,6 @@ const dash = '—'
 .service__status--err { --tone: var(--err); }
 .service__status--off { --tone: var(--dim); }
 
-.service__dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--tone);
-  animation: service-pulse 2.4s infinite;
-}
-
-@keyframes service-pulse {
-  50% {
-    opacity: .35;
-  }
-}
-
 .service__error-head {
   display: flex;
   align-items: center;
@@ -190,21 +162,6 @@ const dash = '—'
 
 .service__error-head > span {
   flex: 1;
-}
-
-.service__error {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  max-height: 200px;
-  padding: 8px 12px;
-  overflow: auto;
-  border: 1px solid var(--err-line);
-  border-radius: var(--r-8);
-  background: var(--err-bg);
-  color: var(--err-t);
-  font: 400 var(--fs-11) / var(--lh-code) var(--font-mono);
-  word-break: break-word;
 }
 
 .service__links {
@@ -222,10 +179,6 @@ const dash = '—'
       'state actions'
       'stats stats';
     align-items: center;
-  }
-
-  .service__version {
-    font-size: var(--fs-12);
   }
 }
 </style>

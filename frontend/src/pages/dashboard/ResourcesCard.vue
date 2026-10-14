@@ -32,7 +32,7 @@ const tone = (v: number) => (v >= 90 ? 'err' : v >= 80 ? 'warn' : 'ok')
     <div class="rows">
       <div v-for="row in rows" :key="row.key" :class="['res', `res--${tone(row.value)}`]">
         <div class="res__head">
-          <span class="res__label">{{ row.label }}</span>
+          <span class="x-caps x-caps--lg res__label">{{ row.label }}</span>
           <span class="res__detail">{{ row.detail }}</span>
           <span class="res__value">{{ formatNumber(row.value, row.value < 10 ? 2 : 1) }}<small>%</small></span>
         </div>
@@ -72,10 +72,6 @@ const tone = (v: number) => (v >= 90 ? 'err' : v >= 80 ? 'warn' : 'ok')
 }
 
 .res__label {
-  color: var(--fg2);
-  font: 500 var(--fs-12) / var(--lh-tight) var(--font-mono);
-  letter-spacing: .06em;
-  text-transform: uppercase;
   white-space: nowrap;
 }
 

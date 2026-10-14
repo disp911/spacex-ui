@@ -91,6 +91,13 @@ samp {
   }
 }
 
+/* The mockups' slow fade: service states, offers, skeletons. */
+@keyframes x-blink {
+  50% {
+    opacity: .35;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

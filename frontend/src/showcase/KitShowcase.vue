@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue'
 import { useTheme } from '../stores/theme'
 import {
-  XBadge, XButton, XCard, XCheckbox, XChip, XCounter, XEmpty, XField, XInput, XMenu, XModal, XNotice, XNumber,
+  XBadge, XButton, XCard, XCheckbox, XChip, XCounter, XEmpty, XErrorBox, XField, XInput, XMenu, XModal, XNotice, XNumber,
   XPager, XSection, XSegmented, XSelect, XStatusDot, XSwitch, XTagInput, XTextarea, XTooltip, XUsagePill,
   type MenuItem,
 } from '../kit'
@@ -57,6 +57,7 @@ const page = ref(5)
 const modalOpen = ref(false)
 const sheetSize = ref<'sm' | 'md' | 'lg' | 'xl'>('md')
 const boxedCheck = ref(true)
+const successDemo = ref(false)
 const lastAction = ref('—')
 const sectionOpen = ref(true)
 const sw = ref({ a: false, b: true, loading: false })
@@ -362,6 +363,8 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
             <XStatusDot tone="unl" label="unlimited" />
             <XStatusDot tone="off" label="off" />
             <XStatusDot tone="ok" pulse label="online" />
+            <XStatusDot tone="err" blink label="blink" />
+            <XStatusDot size="sm" blink label="sm" />
           </div>
           <div class="kit__row kit__row--wrap">
             <XBadge mono>vless</XBadge>
@@ -409,6 +412,7 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
             <XCheckbox v-model="boxedCheck" boxed>SysLog</XCheckbox>
             <XButton icon="download" phone-icon-only>Скачать</XButton>
             <XButton variant="soft" size="sm" phone-block>Обновить панель</XButton>
+            <XButton variant="primary" :success="successDemo" @click="successDemo = !successDemo">Успех</XButton>
           </div>
           <div class="kit__row kit__row--wrap">
             <span class="x-caps">Подпись 10</span>
@@ -416,8 +420,9 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
           </div>
         </div>
         <div class="kit__variant">
-          <h3 class="kit__h3">Пусто</h3>
+          <h3 class="kit__h3">Пусто · ошибка</h3>
           <XEmpty title="Нет записей" hint="Для выбранного уровня и глубины журнал пуст" />
+          <XErrorBox text="failed to listen on 0.0.0.0:443&#10;bind: address already in use" />
         </div>
       </div>
     </XCard>

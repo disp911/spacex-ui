@@ -14,32 +14,8 @@ const items = computed<MenuItem[]>(() =>
 </script>
 
 <template>
-  <XMenu v-slot="{ props, open }" :items="items" :title="t('common.language')" @select="setLocale($event as Locale)">
+  <XMenu v-slot="{ props }" :items="items" :title="t('common.language')" scrim @select="setLocale($event as Locale)">
     <XButton v-bind="props" icon="globe" :label="t('common.language')" caret>{{ code(locale) }}</XButton>
-    <Teleport to="body">
-      <Transition name="lang-scrim">
-        <div v-if="open" class="lang-scrim" aria-hidden="true" />
-      </Transition>
-    </Teleport>
   </XMenu>
 </template>
 
-<style scoped>
-.lang-scrim {
-  position: fixed;
-  inset: 0;
-  z-index: 999;
-  background: rgba(8, 11, 16, .14);
-  backdrop-filter: blur(3px) saturate(.92);
-}
-
-.lang-scrim-enter-active,
-.lang-scrim-leave-active {
-  transition: opacity var(--t-fast);
-}
-
-.lang-scrim-enter-from,
-.lang-scrim-leave-to {
-  opacity: 0;
-}
-</style>

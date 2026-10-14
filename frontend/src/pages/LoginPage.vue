@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { api, ApiError } from '../api'
 import { formatMilliseconds } from '../i18n/format'
-import { XButton, XIcon, XInput, XNotice, XSpinner, XStatusDot } from '../kit'
+import { XButton, XInput, XNotice, XSpinner, XStatusDot } from '../kit'
 import AppLogo from '../layout/AppLogo.vue'
 import LanguageMenu from '../layout/LanguageMenu.vue'
 import LoginBackdrop from '../layout/LoginBackdrop.vue'
@@ -169,7 +169,7 @@ onBeforeUnmount(() => clearInterval(timer))
           <XNotice v-if="message" :id="`${id}-error`" tone="err" class="login__error">
             {{ message }}
             <template #actions>
-              <XButton variant="ghost-danger" size="sm" icon="close" :label="t('kit.close')" class="login__dismiss" @click="problem = null" />
+              <XButton variant="ghost-danger" size="sm" icon="close" :label="t('kit.close')" @click="problem = null" />
             </template>
           </XNotice>
         </Transition>
@@ -178,18 +178,18 @@ onBeforeUnmount(() => clearInterval(timer))
           type="submit"
           variant="primary"
           block
-          :class="['login__submit', { 'is-success': phase === 'success' }]"
+          :success="phase === 'success'"
+          class="login__submit"
           :aria-busy="phase === 'checking' || undefined"
         >
-          <template v-if="phase !== 'idle'" #icon>
-            <XSpinner v-if="phase === 'checking'" :size="16" />
-            <XIcon v-else name="check" :size="16" :stroke="2" class="login__check" />
+          <template v-if="phase === 'checking'" #icon>
+            <XSpinner :size="16" />
           </template>
           {{ phase === 'checking' ? t('auth.checking') : phase === 'success' ? t('auth.success') : t('auth.submit') }}
         </XButton>
 
         <footer class="login__foot" aria-live="polite">
-          <XStatusDot :tone="pingTone" pulse class="login__dot" />
+          <XStatusDot :tone="pingTone" size="sm" blink />
           <span v-if="pingFailed">{{ t('auth.noConnection') }}</span>
           <span v-else-if="ping != null">{{ t('auth.ping', { value: formatMilliseconds(ping) }) }}</span>
         </footer>
@@ -278,28 +278,15 @@ onBeforeUnmount(() => clearInterval(timer))
   margin-top: 14px;
 }
 
-.login__dismiss {
-  margin: -4px -6px -4px 0;
-}
 
 .login__submit {
   margin-top: 16px;
 }
 
-.login__submit.is-success {
-  animation: login-pop .34s ease-out;
-}
-
-.login__check {
-  stroke-dasharray: 16;
-  stroke-dashoffset: 16;
-  animation: login-check .3s ease-out forwards;
-}
-
 .login__foot {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
   /* Keeps its height before the first ping arrives. */
   min-height: 32px;
   margin-top: 20px;
@@ -310,10 +297,6 @@ onBeforeUnmount(() => clearInterval(timer))
   line-height: var(--lh-tight);
 }
 
-.login__dot {
-  /* The dot's 16px box holds an 8px dot: line it up with the text above. */
-  margin-left: -4px;
-}
 
 .login-error-enter-active,
 .login-error-leave-active {
@@ -326,17 +309,7 @@ onBeforeUnmount(() => clearInterval(timer))
   transform: translateY(-4px);
 }
 
-@keyframes login-pop {
-  40% {
-    transform: scale(.975);
-  }
-}
 
-@keyframes login-check {
-  to {
-    stroke-dashoffset: 0;
-  }
-}
 
 @media (max-width: 767px) {
   .login {

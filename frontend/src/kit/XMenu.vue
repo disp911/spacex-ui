@@ -33,6 +33,8 @@ const props = withDefaults(
     title?: string
     /** On phones opens as a bottom sheet over a scrim: filters in windows. */
     sheet?: boolean
+    /** Blurs the page behind the open menu: the language menu. */
+    scrim?: boolean
   }>(),
   { placement: 'bottom-end' },
 )
@@ -113,7 +115,7 @@ function choose(item: MenuItem) {
   />
   <Teleport to="body">
     <Transition name="x-menu-scrim">
-      <div v-if="open && asSheet" class="x-menu-scrim" aria-hidden="true" />
+      <div v-if="open && (asSheet || scrim)" :class="['x-menu-scrim', { 'x-menu-scrim--soft': !asSheet }]" aria-hidden="true" />
     </Transition>
     <Transition :name="asSheet ? 'x-menu-sheet' : 'x-popup'">
       <div
@@ -196,6 +198,10 @@ function choose(item: MenuItem) {
   z-index: 999;
   background: var(--scrim);
   backdrop-filter: blur(3px) saturate(.92);
+}
+
+.x-menu-scrim--soft {
+  background: var(--scrim-soft);
 }
 
 .x-menu-scrim-enter-active,

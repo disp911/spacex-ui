@@ -28,6 +28,8 @@ const props = withDefaults(
     phoneIconOnly?: boolean
     /** On phones the button takes the whole row at the regular control height. */
     phoneBlock?: boolean
+    /** Done: a check draws in place of the icon and the button gives a small pop. */
+    success?: boolean
   }>(),
   { variant: 'secondary', size: 'md', type: 'button' },
 )
@@ -49,7 +51,7 @@ const linkAttrs = computed(() => (props.to ? { to: props.to } : props.href ? { h
       'x-btn',
       `x-btn--${variant}`,
       `x-btn--${size}`,
-      { 'x-btn--icon': iconOnly, 'x-btn--block': block, 'x-btn--mono': mono, 'x-btn--phone-icon': phoneIconOnly && !iconOnly, 'x-btn--phone-block': phoneBlock, 'is-loading': loading },
+      { 'x-btn--icon': iconOnly, 'x-btn--block': block, 'x-btn--mono': mono, 'x-btn--phone-icon': phoneIconOnly && !iconOnly, 'x-btn--phone-block': phoneBlock, 'is-loading': loading, 'is-success': success },
     ]"
     :disabled="isLink ? undefined : disabled"
     :aria-disabled="loading || (isLink && disabled) || undefined"
@@ -58,6 +60,7 @@ const linkAttrs = computed(() => (props.to ? { to: props.to } : props.href ? { h
     :title="iconOnly ? label : undefined"
   >
     <XSpinner v-if="loading" :size="iconSize - 1" />
+    <XIcon v-else-if="success" name="check" :size="iconSize" :stroke="2" class="x-btn__check" />
     <slot v-else name="icon"><XIcon v-if="icon" :name="icon" :size="iconSize" /></slot>
     <span v-if="$slots.default" class="x-btn__text"><slot /></span>
     <XIcon v-if="caret" name="caret" :size="10" :stroke="1.6" class="x-btn__caret" />
@@ -154,6 +157,28 @@ const linkAttrs = computed(() => (props.to ? { to: props.to } : props.href ? { h
     overflow: hidden;
     clip-path: inset(50%);
     white-space: nowrap;
+  }
+}
+
+.x-btn.is-success {
+  animation: x-btn-pop .34s ease-out;
+}
+
+.x-btn__check {
+  stroke-dasharray: 16;
+  stroke-dashoffset: 16;
+  animation: x-btn-check .34s .05s ease-out forwards;
+}
+
+@keyframes x-btn-pop {
+  40% {
+    transform: scale(.975);
+  }
+}
+
+@keyframes x-btn-check {
+  to {
+    stroke-dashoffset: 0;
   }
 }
 

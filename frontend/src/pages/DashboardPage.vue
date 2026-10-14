@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { api, ApiError } from '../api'
 import { config } from '../config'
 import { bytesParts, formatDuration, formatNumber, formatSpeed } from '../i18n/format'
-import { toast, XButton, XIcon, XNotice } from '../kit'
+import { toast, XButton, XIcon, XNotice, XStatusDot } from '../kit'
 import AppPage from '../layout/AppPage.vue'
 import { useServerStatus } from '../stores/server'
 import DashCard from './dashboard/DashCard.vue'
@@ -155,7 +155,7 @@ const dash = '—'
             <span class="version__label">{{ t('dashboard.panelVersion') }}</span>
             <span class="mono version__value">v{{ config.version }}</span>
             <XButton v-if="update?.updateAvailable" variant="soft" size="sm" phone-block class="version__update">
-              <template #icon><span class="version__dot" /></template>
+              <template #icon><XStatusDot size="sm" blink /></template>
               {{ t('dashboard.update', { version: update.latestVersion }) }}
             </XButton>
           </div>
@@ -296,20 +296,6 @@ const dash = '—'
 
 .version__update {
   margin-left: auto;
-}
-
-.version__dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--acc);
-  animation: dash-pulse 2.4s infinite;
-}
-
-@keyframes dash-pulse {
-  50% {
-    opacity: .35;
-  }
 }
 
 /* Tiles: IP addresses and traffic totals */

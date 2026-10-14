@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { api, ApiError } from '../../api'
-import { XButton, XCheckbox, XEmpty, XMenu, XModal, type MenuItem } from '../../kit'
+import { XButton, XCheckbox, XEmpty, XMenu, XModal, XStatusDot, type MenuItem } from '../../kit'
 
 /** The panel's own log, or the x-ui unit's journal with SysLog on. */
 const open = defineModel<boolean>('open', { default: false })
@@ -95,7 +95,7 @@ const skeleton = [62, 48, 71, 55, 38, 66, 52, 44, 69, 58, 41, 63]
 
       <XMenu v-slot="{ props }" :items="levelItems" :title="t('dashboard.logLevel')" placement="bottom-start" sheet @select="level = $event">
         <XButton v-bind="props" :label="`${t('dashboard.logLevel')}: ${current.label}`" caret>
-          <span class="x-caps log-filter__label log-filter__label--level">{{ t('dashboard.logLevel') }}</span> <span :class="['log-dot', `log-tone--${current.tone}`]" /> {{ current.label }}
+          <span class="x-caps log-filter__label log-filter__label--level">{{ t('dashboard.logLevel') }}</span> <XStatusDot size="sm" :color="current.dot" class="log-filter__dot" /> {{ current.label }}
         </XButton>
       </XMenu>
 
@@ -150,13 +150,9 @@ const skeleton = [62, 48, 71, 55, 38, 66, 52, 44, 69, 58, 41, 63]
   margin-right: 2px;
 }
 
-.log-dot {
-  display: inline-block;
-  width: 6px;
-  height: 6px;
+/* Sits in the button's text line. */
+.log-filter__dot {
   margin: 0 2px;
-  border-radius: 50%;
-  background: var(--tone);
   vertical-align: middle;
 }
 
@@ -216,7 +212,7 @@ const skeleton = [62, 48, 71, 55, 38, 66, 52, 44, 69, 58, 41, 63]
 .log-skeleton {
   display: flex;
   flex-direction: column;
-  animation: x-pulse 1.4s ease-in-out infinite;
+  animation: x-blink 1.4s ease-in-out infinite;
 }
 
 .log-skeleton__row {
