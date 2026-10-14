@@ -172,7 +172,7 @@ const dash = '—'
         </DashCard>
 
         <DashCard :title="t('dashboard.ip')" class="area-ip">
-          <div class="tiles">
+          <div class="tiles tiles--ip">
             <div v-for="tile in ipTiles" :key="tile.kind" class="tile tile--ip">
               <div class="x-caps tile__label">{{ tile.name }}</div>
               <div :class="['tile__ip', { 'is-hidden': !ipShown[tile.kind] }]">{{ ip(status?.publicIP[tile.kind]) }}</div>
@@ -435,6 +435,11 @@ const dash = '—'
 
 /* Phones: one column in the order of the mockup. */
 @media (max-width: 767px) {
+  /* IP addresses need the full width next to their eye. */
+  .tiles--ip {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .dash {
     display: flex;
     flex-direction: column;
