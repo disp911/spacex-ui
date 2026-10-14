@@ -112,7 +112,7 @@ const dash = '—'
       <XNotice tone="warn" :title="t('dashboard.httpTitle')" compact>
         {{ t('dashboard.httpText') }}
         <template #actions>
-          <XButton variant="ghost" size="sm" icon="close" :label="t('kit.close')" @click="dismissHttp" />
+          <XButton variant="ghost" icon="close" :label="t('kit.close')" @click="dismissHttp" />
         </template>
       </XNotice>
     </template>
@@ -162,11 +162,10 @@ const dash = '—'
           </div>
         </DashCard>
 
-        <DashCard :title="t('dashboard.ip')" class="area-ip">
+        <DashCard :title="t('dashboard.ip')" tool class="area-ip">
           <template #head>
             <XButton
               variant="ghost"
-              size="sm"
               :icon="ipHidden ? 'eye' : 'eyeOff'"
               :label="ipHidden ? t('dashboard.showIp') : t('dashboard.hideIp')"
               :aria-pressed="!ipHidden"
@@ -301,8 +300,15 @@ const dash = '—'
 }
 
 /* Tiles: IP addresses and traffic totals */
+/* Takes 14px of the head line on desktop: the rest spills into the card padding. */
 .ip-toggle {
-  margin: -4px 0;
+  margin: -10px 0;
+}
+
+@media (max-width: 767px) {
+  .ip-toggle {
+    margin: -4px 0;
+  }
 }
 
 .tiles {

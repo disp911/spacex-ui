@@ -60,7 +60,6 @@ const dash = '—'
               <span>{{ errorTitle }}</span>
               <XButton
                 variant="ghost"
-                size="sm"
                 icon="doc"
                 :label="t('dashboard.panelLog')"
                 @click="close(); $emit('log')"

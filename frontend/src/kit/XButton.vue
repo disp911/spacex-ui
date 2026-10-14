@@ -8,6 +8,7 @@ import type { IconName } from './icons'
 const props = withDefaults(
   defineProps<{
     variant?: 'primary' | 'secondary' | 'soft' | 'danger' | 'ghost' | 'ghost-danger'
+    /** sm is for text buttons; a square icon button is always the regular size. */
     size?: 'md' | 'sm'
     icon?: IconName
     loading?: boolean
@@ -36,7 +37,9 @@ const props = withDefaults(
 
 const slots = useSlots()
 const iconOnly = computed(() => !slots.default && !!(props.icon || slots.icon))
-const iconSize = computed(() => (props.size === 'sm' ? 14 : 15))
+// Every square icon button is one size: 34, 44 on phones.
+const sizeClass = computed(() => (iconOnly.value ? 'md' : props.size))
+const iconSize = computed(() => (sizeClass.value === 'sm' ? 14 : 15))
 const tag = computed(() => (props.to ? RouterLink : props.href ? 'a' : 'button'))
 const isLink = computed(() => !!(props.to || props.href))
 // Only the attributes of the element that is rendered: RouterLink builds its own href.
@@ -50,7 +53,7 @@ const linkAttrs = computed(() => (props.to ? { to: props.to } : props.href ? { h
     :class="[
       'x-btn',
       `x-btn--${variant}`,
-      `x-btn--${size}`,
+      `x-btn--${sizeClass}`,
       { 'x-btn--icon': iconOnly, 'x-btn--block': block, 'x-btn--mono': mono, 'x-btn--phone-icon': phoneIconOnly && !iconOnly, 'x-btn--phone-block': phoneBlock, 'is-loading': loading, 'is-success': success },
     ]"
     :disabled="isLink ? undefined : disabled"
@@ -103,9 +106,6 @@ const linkAttrs = computed(() => (props.to ? { to: props.to } : props.href ? { h
   padding: 0;
 }
 
-.x-btn--sm.x-btn--icon {
-  width: var(--ctl-sm-h);
-}
 
 .x-btn--block {
   display: flex;
@@ -138,7 +138,8 @@ const linkAttrs = computed(() => (props.to ? { to: props.to } : props.href ? { h
   }
 
   .x-btn--sm.x-btn--phone-icon {
-    width: var(--ctl-sm-h);
+    height: var(--ctl-h);
+    border-radius: var(--ctl-r);
   }
 
   .x-btn--phone-block {

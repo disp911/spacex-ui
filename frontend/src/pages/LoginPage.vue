@@ -169,7 +169,7 @@ onBeforeUnmount(() => clearInterval(timer))
           <XNotice v-if="message" :id="`${id}-error`" tone="err" class="login__error">
             {{ message }}
             <template #actions>
-              <XButton variant="ghost-danger" size="sm" icon="close" :label="t('kit.close')" @click="problem = null" />
+              <XButton variant="ghost-danger" icon="close" :label="t('kit.close')" @click="problem = null" />
             </template>
           </XNotice>
         </Transition>
