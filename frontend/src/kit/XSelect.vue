@@ -14,6 +14,8 @@ const props = defineProps<{
   disabled?: boolean
   invalid?: boolean
   modified?: boolean
+  /** Single symbols: the list is a grid of this many columns at the right edge of the field. */
+  columns?: number
 }>()
 
 const model = defineModel<T | null>({ default: null })
@@ -24,7 +26,7 @@ const trigger = ref<HTMLButtonElement | null>(null)
 const list = ref<HTMLElement | null>(null)
 const open = ref(false)
 const active = ref(-1)
-const { style } = useFloating(trigger, list, open, { matchWidth: true, onDismiss: close })
+const { style } = useFloating(trigger, list, open, props.columns ? { placement: 'bottom-end', onDismiss: close } : { matchWidth: true, onDismiss: close })
 
 const selected = computed(() => props.options.find((o) => o.value === model.value))
 
@@ -120,7 +122,14 @@ function onKeydown(e: KeyboardEvent) {
   </button>
   <Teleport to="body">
     <Transition name="x-popup">
-      <ul v-if="open" :id="`${id}-list`" ref="list" role="listbox" class="x-popup x-select__list" :style="style">
+      <ul
+        v-if="open"
+        :id="`${id}-list`"
+        ref="list"
+        role="listbox"
+        :class="['x-popup', 'x-select__list', { 'x-select__list--grid': columns }]"
+        :style="[style, columns ? { gridTemplateColumns: `repeat(${columns}, 34px)` } : {}]"
+      >
         <li
           v-for="(o, i) in options"
           :id="`${id}-${i}`"
@@ -130,10 +139,14 @@ function onKeydown(e: KeyboardEvent) {
           :aria-disabled="o.disabled || undefined"
           :class="['x-popup-item', { 'is-active': i === active, 'is-selected': o.value === model, 'x-select__option--mono': mono }]"
           @pointermove="!o.disabled && (active = i)"
+          :title="columns ? o.label : undefined"
           @click="choose(i)"
         >
-          <span class="x-select__label">{{ o.label }}</span>
-          <XIcon v-if="o.value === model" name="check" :size="14" :stroke="1.8" />
+          <span v-if="columns" class="x-select__glyph">{{ o.glyph ?? o.label }}</span>
+          <template v-else>
+            <span class="x-select__label">{{ o.label }}</span>
+            <XIcon v-if="o.value === model" name="check" :size="14" :stroke="1.8" />
+          </template>
         </li>
       </ul>
     </Transition>
@@ -180,6 +193,29 @@ function onKeydown(e: KeyboardEvent) {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+}
+
+/* A grid of symbols: square cells, no lines between them. */
+.x-select__list--grid {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 6px;
+}
+
+.x-select__list--grid .x-popup-item {
+  justify-content: center;
+  min-height: 32px;
+  padding: 0;
+  border-top: 0;
+}
+
+.x-select__list--grid .x-popup-item::before {
+  display: none;
+}
+
+.x-select__glyph {
+  font: 500 var(--fs-14) / 1 var(--font-mono);
 }
 
 .x-select__option--mono {

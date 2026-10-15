@@ -158,6 +158,11 @@ export const checks: Partial<Record<SettingKey, Check>> = {
   ldapDefaultTotalGB: { min: 0 },
   ldapDefaultExpiryDays: { min: 0 },
   ldapDefaultLimitIP: { min: 0 },
+  subPort: { min: 1, max: 65535 },
+  subPath: { path: 'both' },
+  subCertFile: { path: 'start' },
+  subKeyFile: { path: 'start' },
+  subUpdates: { min: 1 },
 }
 
 /** Why a value fails its check, as a translation key with its values; null when it passes. */

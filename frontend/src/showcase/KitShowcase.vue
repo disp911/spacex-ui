@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { useTheme } from '../stores/theme'
 import {
-  XActionBar, XActionList, XActionRow, XBadge, XBusyOverlay, XButton, XCard, XCheckbox, XChip, XCodeArea, XCodeInput, XConfirm, XCounter, XDataTable, XEmpty, XErrorBox, XField, XFieldNote, XInfoRow, XInput, XMenu, XModal, XMultiSelect, XNavItem, XNest, XNotice, XNumber,
+  XActionBar, XActionList, XActionRow, XBadge, XBusyOverlay, XButton, XCard, XCheckbox, XChip, XCodeArea, XCodeInput, XConfirm, XCounter, XDataTable, XEmpty, XErrorBox, XExample, XField, XFieldNote, XInfoRow, XInput, XMenu, XModal, XMultiSelect, XNavItem, XNest, XNotice, XNumber, XOrderToggles,
   XPager, XPickList, XQrCode, XRecordCard, XRowLink, XSection, XSegmented, XSelect, XSettingBlock, XSettingDivider, XSettingRow, XSettingsSection, XSettingsSkeleton, XStatusDot, XStatusText, XSwitch, XTabs, XTagInput, XTextarea, XTooltip, XUsagePill,
   type MenuItem,
 } from '../kit'
@@ -96,6 +96,8 @@ const restartAsk = ref(false)
 const setTheme = ref('dark')
 const demoCode = ref('')
 const demoTfa = ref(false)
+const demoParts = ref(['Inbound', 'Email'])
+const demoSep = ref('-')
 watch(busyOpen, (on) => on && setTimeout(() => (busyOpen.value = false), 3000))
 const typeChecks = ref({ direct: true, blocked: true, proxy: false })
 const tableColumns = [
@@ -596,6 +598,17 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
             </template>
             <template #actions><XButton variant="soft" icon="lock">Подтвердить</XButton></template>
           </XSettingBlock>
+          <XSettingRow title="Модель примечания" description="Части по порядку, разделитель — сеткой символов" tall>
+            <div style="display: flex; flex-direction: column; gap: 8px">
+              <XExample label="Пример примечания:" :value="'#' + demoParts.join(demoSep)" />
+              <div style="display: flex; gap: 8px">
+                <XOrderToggles v-model="demoParts" :options="[{ value: 'Inbound', label: 'Inbound' }, { value: 'Email', label: 'Email' }, { value: 'Other', label: 'Other' }]" mono />
+                <div style="flex: none; width: 98px">
+                  <XSelect v-model="demoSep" :options="[' ', '-', '_', '@', ':', '~', '|', ',', '.', '/'].map((v) => ({ value: v, label: v === ' ' ? 'пробел' : v, glyph: v === ' ' ? '␣' : undefined }))" :columns="5" mono />
+                </div>
+              </div>
+            </div>
+          </XSettingRow>
           <XSettingRow title="Включить 2FA" description="Подпись состояния слева от переключателя" inline>
             <XSwitch v-model="demoTfa" :text="demoTfa ? 'Включена' : 'Выключена'" label="2FA" />
           </XSettingRow>

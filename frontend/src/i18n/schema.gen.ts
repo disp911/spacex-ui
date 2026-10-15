@@ -298,6 +298,53 @@ export interface MessageSchema {
     "ldapTotalGb": string
     "ldapExpiryDays": string
     "ldapLimitIp": string
+    "secInfo": string
+    "secIntervals": string
+    "groupMain": string
+    "groupHapp": string
+    "remarkModel": string
+    "remarkModelDesc": string
+    "remarkSample": string
+    "remarkParts": string
+    "remarkSeparator": string
+    "space": string
+    "subEnable": string
+    "subEnableDesc": string
+    "subJson": string
+    "subJsonDesc": string
+    "subClash": string
+    "subClashDesc": string
+    "subListen": string
+    "subListenDesc": string
+    "subDomain": string
+    "subDomainDesc": string
+    "subPort": string
+    "subPortDesc": string
+    "subPath": string
+    "subPathDesc": string
+    "subUri": string
+    "subUriDesc": string
+    "subEncrypt": string
+    "subEncryptDesc": string
+    "subShowInfo": string
+    "subShowInfoDesc": string
+    "subTitle": string
+    "subTitleDesc": string
+    "subSupportUrl": string
+    "subSupportUrlDesc": string
+    "subProfileUrl": string
+    "subProfileUrlDesc": string
+    "subAnnounce": string
+    "subAnnounceDesc": string
+    "subRouting": string
+    "subRoutingDesc": string
+    "subRoutingRules": string
+    "subRoutingRulesDesc": string
+    "subCertFile": string
+    "subKeyFile": string
+    "subUpdates": string
+    "subUpdatesDesc": string
+    "unitHours": string
   }
   "units": {
     "value": string

@@ -13,6 +13,7 @@ import PanelTab from './settings/PanelTab.vue'
 import UiTab from './settings/UiTab.vue'
 import AccountTab from './settings/AccountTab.vue'
 import LdapTab from './settings/LdapTab.vue'
+import SubTab from './settings/SubTab.vue'
 
 const { t } = useI18n()
 
@@ -205,6 +206,7 @@ async function restart() {
       <UiTab v-else-if="tab === 'ui'" />
       <AccountTab v-else-if="tab === 'account'" />
       <LdapTab v-else-if="tab === 'ldap'" />
+      <SubTab v-else-if="tab === 'sub'" />
       <XCard v-else>
         <XEmpty :title="t('common.screenDraft')" />
       </XCard>
