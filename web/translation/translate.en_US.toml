@@ -1148,6 +1148,16 @@
 "partInbounds" = "Inbounds"
 "partOutbounds" = "Outbounds"
 "partRules" = "Routing Rules"
+"ruleAdd" = "Add Rule"
+"geoFiles" = "Geo files"
+"ruleSource" = "Source"
+"ruleNetwork" = "Network"
+"ruleDestination" = "Destination"
+"ruleInbound" = "Inbound"
+"ruleOutbound" = "Outbound"
+"ruleN" = "Rule {n}"
+"edit" = "Edit"
+"delete" = "Delete"
 
 [kit]
 "addValue" = "Add “{value}”"
@@ -1174,6 +1184,9 @@
 "jsonTrailing" = "extra text after the JSON"
 "jsonString" = "invalid string"
 "jsonNumber" = "invalid number"
+"moveRow" = "Move {row}"
+"moveHint" = "Space to lift · ↑↓ to move · Space or Esc to drop"
+"rowActions" = "Actions for {row}"
 
 [units]
 "value" = "{n} {unit}"

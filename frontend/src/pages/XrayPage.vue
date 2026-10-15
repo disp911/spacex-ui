@@ -13,6 +13,7 @@ import {
 } from './xray/model'
 import GeneralTab from './xray/GeneralTab.vue'
 import AdvancedTab from './xray/AdvancedTab.vue'
+import RoutingTab from './xray/RoutingTab.vue'
 
 const { t } = useI18n()
 
@@ -184,6 +185,7 @@ async function restart() {
     </XCard>
     <div v-else :key="tab" class="x-tab-panel">
       <GeneralTab v-if="tab === 'general'" />
+      <RoutingTab v-else-if="tab === 'routing'" />
       <AdvancedTab v-else-if="tab === 'advanced'" />
       <XNotice v-else tone="info">{{ t('common.screenDraft') }}</XNotice>
     </div>

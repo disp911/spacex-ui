@@ -193,6 +193,8 @@
 
   /* Elevation */
   --shadow-pop: 0 18px 48px rgba(0, 0, 0, .5);
+  /* A row lifted to be dragged: closer than a popup, so a tighter shadow. */
+  --shadow-lift: 0 14px 34px rgba(0, 0, 0, .55);
   --shadow-modal: 0 24px 60px rgba(0, 0, 0, .5);
   --shadow-sheet: 0 -24px 70px rgba(0, 0, 0, .5);
   --shadow-knob: 0 1px 3px rgba(0, 0, 0, .28);
@@ -295,6 +297,7 @@
   --syn-pun: #8A919D;
 
   --shadow-pop: 0 18px 48px rgba(16, 20, 28, .16);
+  --shadow-lift: 0 14px 34px rgba(16, 20, 28, .18);
   --shadow-modal: 0 24px 60px rgba(16, 20, 28, .18);
   --shadow-sheet: 0 -24px 70px rgba(16, 20, 28, .18);
   --shadow-knob: 0 1px 3px rgba(16, 20, 28, .25);

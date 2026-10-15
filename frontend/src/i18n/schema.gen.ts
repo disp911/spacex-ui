@@ -416,6 +416,16 @@ export interface MessageSchema {
     "partInbounds": string
     "partOutbounds": string
     "partRules": string
+    "ruleAdd": string
+    "geoFiles": string
+    "ruleSource": string
+    "ruleNetwork": string
+    "ruleDestination": string
+    "ruleInbound": string
+    "ruleOutbound": string
+    "ruleN": string
+    "edit": string
+    "delete": string
   }
   "units": {
     "value": string
@@ -458,5 +468,8 @@ export interface MessageSchema {
     "jsonTrailing": string
     "jsonString": string
     "jsonNumber": string
+    "moveRow": string
+    "moveHint": string
+    "rowActions": string
   }
 }

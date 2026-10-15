@@ -2,9 +2,9 @@
 import { computed, ref, watch } from 'vue'
 import { useTheme } from '../stores/theme'
 import {
-  XActionBar, XActionList, XActionRow, XBackToTop, XBadge, XBusyOverlay, XButton, XCard, XCheckbox, XChip, XCodeArea, XCodeEditor, XCodeInput, XConfirm, XCounter, XDataTable, XEmpty, XErrorBox, XExample, XField, XFieldNote, XInfoRow, XInput, XMenu, XModal, XMultiSelect, XNavItem, XNest, XNestCard, XNotice,
-  XNumber, XOrderToggles, XPager, XPickList, XProcessError, XProgressLine, XQrCode, XRecordCard, XRowLink, XSection, XSegmented, XSelect, XSettingBlock, XSettingDivider, XSettingRow, XSettingsSection, XSettingsSkeleton, XStatusDot, XStatusText, XStepArrow, XSwitch, XTabs, XTagInput, XTextarea,
-  XTooltip, XUsagePill,
+  XActionBar, XActionList, XActionRow, XBackToTop, XBadge, XBusyOverlay, XButton, XCard, XCheckbox, XChip, XCodeArea, XCodeEditor, XCodeInput, XConfirm, XCounter, XDataTable, XEmpty, XErrorBox, XExample, XField, XFieldNote, XGridTable, XInfoRow, XInput, XMenu, XModal, XMultiSelect, XNavItem, XNest, XNestCard, XNotice,
+  XNumber, XOrderToggles, XPager, XPickList, XProcessError, XProgressLine, XQrCode, XRecordCard, XRouteTarget, XRowLink, XSection, XSegmented, XSelect, XSettingBlock, XSettingDivider, XSettingRow, XSettingsSection, XSettingsSkeleton, XStatusDot, XStatusText, XStepArrow, XSwitch, XTabs, XTagInput, XTextarea,
+  XTooltip, XUsagePill, XValueChip,
   type MenuItem,
 } from '../kit'
 
@@ -92,6 +92,18 @@ const setTabs = [
 const setOpen = ref(true)
 const xrayOpen = ref(true)
 const editorPart = ref('all')
+const demoRules = ref([
+  { dest: ['geosite:category-ads-all', 'geosite:category-ads', 'domain:doubleclick.net'], to: 'blocked', bal: false },
+  { dest: ['geoip:private'], to: 'direct', bal: false },
+  { dest: [] as string[], to: 'eu-pool', bal: true },
+])
+const demoColumns = [
+  { key: 'dest', label: 'Пункт назначения' },
+  { key: 'to', label: 'Исходящее подключение', size: '.85fr', phone: 'head' as const },
+]
+function moveDemo(from: number, to: number) {
+  demoRules.value.splice(to, 0, demoRules.value.splice(from, 1)[0]!)
+}
 const editorText = ref(`{
   "log": {
     "access": "none",
@@ -682,6 +694,19 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
           <XButton variant="primary" icon="refresh">Перезапуск Xray</XButton>
         </XActionBar>
         <span>Кнопка «Наверх» появляется справа снизу, когда страница прокручена дальше 200px.</span>
+        <XGridTable
+          :columns="demoColumns"
+          :rows="demoRules"
+          :row-key="(r) => r.to"
+          :blank="(r, key) => key === 'dest' && !r.dest.length"
+          :menu="() => [{ key: 'edit', label: 'Изменить', icon: 'edit' }, { key: 'delete', label: 'Удалить', icon: 'delete', danger: true }]"
+          sortable
+          numbered
+          @move="moveDemo"
+        >
+          <template #cell-dest="{ row }"><XValueChip label="Domain" :values="row.dest" /></template>
+          <template #cell-to="{ row }"><XRouteTarget :tag="row.to" :balancer="row.bal" /></template>
+        </XGridTable>
         <XCard title="Шаблон конфигурации Xray" description="Карточка без линии под заголовком; переключатель прокручивается, если не помещается." seamless>
           <template #actions>
             <XSegmented v-model="editorPart" :options="[{ value: 'all', label: 'Все' }, { value: 'in', label: 'Входящие подключения' }, { value: 'out', label: 'Исходящие подключения' }, { value: 'rules', label: 'Маршрутизация' }]" scroll />

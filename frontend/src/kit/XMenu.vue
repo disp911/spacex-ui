@@ -108,7 +108,7 @@ function choose(item: MenuItem) {
   <slot
     :open="open"
     :props="{
-      'aria-haspopup': 'menu',
+      'aria-haspopup': 'menu' as const,
       'aria-expanded': open,
       'aria-controls': `${id}-menu`,
       onClick: onTriggerClick,

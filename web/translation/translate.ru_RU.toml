@@ -1148,6 +1148,16 @@
 "partInbounds" = "Входящие подключения"
 "partOutbounds" = "Исходящие подключения"
 "partRules" = "Маршрутизация"
+"ruleAdd" = "Создать правило"
+"geoFiles" = "Geo-файлы"
+"ruleSource" = "Источник"
+"ruleNetwork" = "Сеть"
+"ruleDestination" = "Пункт назначения"
+"ruleInbound" = "Входящее подключение"
+"ruleOutbound" = "Исходящее подключение"
+"ruleN" = "Правило {n}"
+"edit" = "Изменить"
+"delete" = "Удалить"
 
 [kit]
 "addValue" = "Добавить «{value}»"
@@ -1174,6 +1184,9 @@
 "jsonTrailing" = "лишний текст после конца JSON"
 "jsonString" = "ошибка в строке"
 "jsonNumber" = "ошибка в числе"
+"moveRow" = "Переместить: {row}"
+"moveHint" = "Space — взять · ↑↓ — двигать · Space/Esc — отпустить"
+"rowActions" = "Действия: {row}"
 
 [units]
 "value" = "{n} {unit}"

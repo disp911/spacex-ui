@@ -159,3 +159,57 @@ export function changes(tab: TabKey, draft: XraySetting, saved: XraySetting): nu
 
 /** Whether the panel is opened over plain HTTP. */
 export const insecure = () => location.protocol !== 'https:'
+
+// --- Routing rules ----------------------------------------------------------------
+
+export type Rule = Json
+
+/** A rule's field as a list: Xray takes some as arrays and some as comma-separated text. */
+export const listOf = (v: unknown): string[] =>
+  Array.isArray(v) ? v.map(String) : typeof v === 'string' ? v.split(',').map((s) => s.trim()).filter(Boolean) : []
+
+/** What a rule matches, grouped as the table shows it: a label and the values of each part. */
+export const ruleGroups: { key: string; label: Text; parts: [string, (r: Rule) => string[]][] }[] = [
+  {
+    key: 'source',
+    label: 'xray.ruleSource',
+    parts: [
+      ['IP', (r) => listOf(r.sourceIP ?? r.source)],
+      ['Port', (r) => listOf(r.sourcePort)],
+      ['VLESS', (r) => listOf(r.vlessRoute)],
+    ],
+  },
+  {
+    key: 'network',
+    label: 'xray.ruleNetwork',
+    parts: [
+      ['L4', (r) => (r.network ? [String(r.network)] : [])],
+      ['Protocol', (r) => listOf(r.protocol)],
+      ['Attrs', (r) => (r.attrs && typeof r.attrs === 'object' ? Object.entries(r.attrs).map(([k, v]) => `${k}=${v}`) : listOf(r.attrs))],
+    ],
+  },
+  {
+    key: 'destination',
+    label: 'xray.ruleDestination',
+    parts: [
+      ['IP', (r) => listOf(r.ip)],
+      ['Domain', (r) => listOf(r.domain)],
+      ['Port', (r) => listOf(r.port)],
+    ],
+  },
+  {
+    key: 'inbound',
+    label: 'xray.ruleInbound',
+    parts: [
+      ['Tag', (r) => listOf(r.inboundTag)],
+      ['User', (r) => listOf(r.user)],
+    ],
+  },
+]
+
+/** Where a rule sends what it matches: an outbound, or a balancer that picks one. */
+export function ruleTarget(r: Rule): { kind: 'outbound' | 'balancer'; tag: string } | null {
+  if (r.outboundTag) return { kind: 'outbound', tag: String(r.outboundTag) }
+  if (r.balancerTag) return { kind: 'balancer', tag: String(r.balancerTag) }
+  return null
+}
