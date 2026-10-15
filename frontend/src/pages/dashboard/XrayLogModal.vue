@@ -227,7 +227,7 @@ async function download() {
 
       <XCheckbox v-for="k in kinds" :key="k.key" v-model="shown[k.key]" boxed :tone="k.tone" class="xlog-wide">{{ k.label }}</XCheckbox>
 
-      <XButton icon="download" :label="t('dashboard.logDownload')" :loading="downloading" class="xlog-wide" @click="download">
+      <XButton icon="download" :label="t('dashboard.logDownload')" :loading="downloading" phone-icon-only class="xlog-download" @click="download">
         {{ t('dashboard.logDownload') }}
       </XButton>
     </div>
@@ -355,13 +355,17 @@ async function download() {
     display: none;
   }
 
-  /* As in the mockup: search on its own line, then date, client and types side by side. */
+  /* Search with the download square on the first line, then date, client and types side by side. */
   .xlog-bar {
     padding: 10px 14px;
   }
 
   .xlog-search {
-    flex-basis: 100%;
+    flex-basis: calc(100% - var(--btn-sq) - 8px);
+    order: -2;
+  }
+
+  .xlog-download {
     order: -1;
   }
 
