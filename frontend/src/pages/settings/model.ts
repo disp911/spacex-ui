@@ -136,3 +136,44 @@ export function securityAlerts(s: AllSetting) {
   if (s.subJsonEnable && subPathOf(s.subJsonURI, s.subJsonPath) === '/json/') alerts.push('settings.securityJsonPath')
   return alerts
 }
+
+/** What a setting must hold: a whole number, within min and max; or a path with its slashes. */
+export interface Check {
+  min?: number
+  max?: number
+  /** both: begins and ends with a slash; start: begins with one. An empty path passes. */
+  path?: 'both' | 'start'
+}
+
+export const checks: Partial<Record<SettingKey, Check>> = {
+  webPort: { min: 1, max: 65535 },
+  webBasePath: { path: 'both' },
+  sessionMaxAge: { min: 60 },
+  webCertFile: { path: 'start' },
+  webKeyFile: { path: 'start' },
+  pageSize: { min: 0 },
+  expireDiff: { min: 0 },
+  trafficDiff: { min: 0 },
+}
+
+/** Why a value fails its check, as a translation key with its values; null when it passes. */
+export function checkValue(c: Check, value: unknown): [Text, Record<string, number>?] | null {
+  if (c.path) {
+    const s = String(value ?? '')
+    if (!s) return null
+    if (c.path === 'both' && !(s.startsWith('/') && s.endsWith('/'))) return ['settings.errPathBoth']
+    if (c.path === 'start' && !s.startsWith('/')) return ['settings.errPathStart']
+    return null
+  }
+  if (typeof value !== 'number' || !Number.isInteger(value)) return ['settings.errInteger']
+  if (c.min != null && c.max != null && (value < c.min || value > c.max)) return ['settings.errRange', { min: c.min, max: c.max }]
+  if (c.min != null && value < c.min) return ['settings.errMin', { min: c.min }]
+  return null
+}
+
+/** The panel's address with these settings, as shown under the fields that make it up. */
+export function panelAddress(s: AllSetting) {
+  const scheme = s.webCertFile && s.webKeyFile ? 'https://' : 'http://'
+  const host = s.webDomain || s.webListen || location.hostname
+  return `${scheme}${host}:${s.webPort}${s.webBasePath || '/'}`
+}

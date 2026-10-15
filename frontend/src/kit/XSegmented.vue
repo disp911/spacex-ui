@@ -8,6 +8,8 @@ const props = defineProps<{
   options: { value: T; label: string; icon?: IconName; disabled?: boolean }[]
   /** Show only icons; labels become tooltips and accessible names. */
   iconOnly?: boolean
+  /** Takes the width it is given; the options share it equally. */
+  block?: boolean
   disabled?: boolean
   label?: string
 }>()
@@ -33,7 +35,7 @@ function onKeydown(e: KeyboardEvent) {
 </script>
 
 <template>
-  <div ref="root" role="radiogroup" :aria-label="label" :class="['x-seg', { 'is-disabled': disabled }]" @keydown="onKeydown">
+  <div ref="root" role="radiogroup" :aria-label="label" :class="['x-seg', { 'x-seg--block': block, 'is-disabled': disabled }]" @keydown="onKeydown">
     <button
       v-for="o in options"
       :key="String(o.value)"
@@ -63,6 +65,16 @@ function onKeydown(e: KeyboardEvent) {
   border: 1px solid var(--field-line);
   border-radius: var(--ctl-r);
   background: var(--field);
+}
+
+.x-seg--block {
+  display: flex;
+  width: 100%;
+}
+
+.x-seg--block .x-seg__item {
+  flex: 1;
+  min-width: 0;
 }
 
 .x-seg__item {

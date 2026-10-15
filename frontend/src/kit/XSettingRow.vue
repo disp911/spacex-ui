@@ -19,6 +19,8 @@ withDefaults(
     inline?: boolean
     /** A short value, e.g. a port: 140px at the right; on phones the full width under the title. */
     narrow?: boolean
+    /** A short choice, e.g. the language: 220px at the right; on phones the full width under the title. */
+    compact?: boolean
     /** A tall control: the title stays at its top. */
     tall?: boolean
   }>(),
@@ -27,7 +29,7 @@ withDefaults(
 </script>
 
 <template>
-  <div :class="['x-setting', { 'is-modified': modified, 'is-invalid': !!error, 'x-setting--inline': inline, 'x-setting--narrow': narrow, 'x-setting--tall': tall }]">
+  <div :class="['x-setting', { 'is-modified': modified, 'is-invalid': !!error, 'x-setting--inline': inline, 'x-setting--narrow': narrow, 'x-setting--compact': compact, 'x-setting--tall': tall }]">
     <div class="x-setting__text">
       <div class="x-setting__head">
         <span class="x-setting__title">{{ title }}</span>
@@ -118,12 +120,17 @@ withDefaults(
 }
 
 .x-setting--inline .x-setting__control,
-.x-setting--narrow .x-setting__control {
+.x-setting--narrow .x-setting__control,
+.x-setting--compact .x-setting__control {
   align-items: flex-end;
 }
 
 .x-setting--narrow .x-setting__control > :first-child {
   width: 140px;
+}
+
+.x-setting--compact .x-setting__control > :first-child {
+  width: 220px;
 }
 
 .x-setting__nested {
@@ -160,11 +167,13 @@ withDefaults(
     column-gap: 14px;
   }
 
-  .x-setting--narrow .x-setting__control {
+  .x-setting--narrow .x-setting__control,
+  .x-setting--compact .x-setting__control {
     align-items: stretch;
   }
 
-  .x-setting--narrow .x-setting__control > :first-child {
+  .x-setting--narrow .x-setting__control > :first-child,
+  .x-setting--compact .x-setting__control > :first-child {
     width: auto;
   }
 

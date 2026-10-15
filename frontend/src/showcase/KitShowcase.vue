@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { useTheme } from '../stores/theme'
 import {
-  XActionBar, XActionList, XActionRow, XBadge, XBusyOverlay, XButton, XCard, XCheckbox, XChip, XCodeArea, XConfirm, XCounter, XDataTable, XEmpty, XErrorBox, XField, XInfoRow, XInput, XMenu, XModal, XMultiSelect, XNavItem, XNest, XNotice, XNumber,
+  XActionBar, XActionList, XActionRow, XBadge, XBusyOverlay, XButton, XCard, XCheckbox, XChip, XCodeArea, XConfirm, XCounter, XDataTable, XEmpty, XErrorBox, XField, XFieldNote, XInfoRow, XInput, XMenu, XModal, XMultiSelect, XNavItem, XNest, XNotice, XNumber,
   XPager, XPickList, XRecordCard, XRowLink, XSection, XSegmented, XSelect, XSettingDivider, XSettingRow, XSettingsSection, XSettingsSkeleton, XStatusDot, XStatusText, XSwitch, XTabs, XTagInput, XTextarea, XTooltip, XUsagePill,
   type MenuItem,
 } from '../kit'
@@ -93,6 +93,7 @@ const setVals = ref({ port: 2054, session: 30, json: true, path: '/panel-x7/', r
 const setInbounds = ['inbound-443', 'inbound-8443', 'vless-reality', 'trojan-ws'].map((v) => ({ value: v, label: v }))
 const busyOpen = ref(false)
 const restartAsk = ref(false)
+const setTheme = ref('dark')
 watch(busyOpen, (on) => on && setTimeout(() => (busyOpen.value = false), 3000))
 const typeChecks = ref({ direct: true, blocked: true, proxy: false })
 const tableColumns = [
@@ -554,6 +555,10 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
           <XSettingDivider label="Расширенный шаблон" />
           <XSettingRow title="Корневой путь URL-адреса панели" description="Должен начинаться и заканчиваться символом /" modified>
             <XInput v-model="setVals.path" mono modified />
+            <template #note><XFieldNote>После перезапуска: <code>http://127.0.0.1:2053/panel-x7Q2/</code></XFieldNote></template>
+          </XSettingRow>
+          <XSettingRow title="Тема" compact>
+            <XSegmented v-model="setTheme" :options="[{ value: 'light', label: 'Светлая', icon: 'sun' }, { value: 'dark', label: 'Тёмная', icon: 'moon' }]" block label="Тема" />
           </XSettingRow>
           <XSettingRow title="Правила маршрутизации" description="Длинное значение: растёт до трёх строк, Enter не переносит" tall>
             <XTextarea v-model="setVals.rules" mono :grow="3" />

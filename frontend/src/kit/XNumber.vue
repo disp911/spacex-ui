@@ -10,6 +10,8 @@ const props = defineProps<{
   /** Allow fractions; whole numbers otherwise. */
   decimal?: boolean
   unit?: string
+  /** What the arrow keys add or take away; Shift makes it ten times more. 1 by default. */
+  step?: number
   placeholder?: string
   disabled?: boolean
   readonly?: boolean
@@ -54,10 +56,11 @@ function clamp() {
   text.value = format(v)
 }
 
-function step(e: KeyboardEvent, by: number) {
+function nudge(e: KeyboardEvent, by: number) {
   if (props.readonly) return
   e.preventDefault()
-  text.value = format((parse(text.value) ?? props.min ?? 0) + (e.shiftKey ? by * 10 : by))
+  const size = (props.step ?? 1) * (e.shiftKey ? 10 : 1)
+  text.value = format((parse(text.value) ?? props.min ?? 0) + by * size)
   clamp()
 }
 </script>
@@ -82,8 +85,8 @@ function step(e: KeyboardEvent, by: number) {
       autocomplete="off"
       @input="onInput"
       @blur="clamp"
-      @keydown.up="step($event, 1)"
-      @keydown.down="step($event, -1)"
+      @keydown.up="nudge($event, 1)"
+      @keydown.down="nudge($event, -1)"
     />
     <span v-if="unit" class="x-number__unit">{{ unit }}</span>
   </div>

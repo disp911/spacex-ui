@@ -1,13 +1,16 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, provide, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { api, ApiError } from '../api'
 import {
   toast, XActionBar, XBusyOverlay, XButton, XCard, XConfirm, XEmpty, XNotice, XSettingsSkeleton, XStatusText, XTabs, type TabItem,
 } from '../kit'
 import AppPage from '../layout/AppPage.vue'
-import { securityAlerts, tabs, type AllSetting, type SettingKey, type TabKey } from './settings/model'
+import { formKey } from './settings/form'
+import { checks, checkValue, securityAlerts, tabs, type AllSetting, type SettingKey, type TabKey } from './settings/model'
 import { addressAfterRestart, waitForPanel } from './settings/restart'
+import PanelTab from './settings/PanelTab.vue'
+import UiTab from './settings/UiTab.vue'
 
 const { t } = useI18n()
 
@@ -42,14 +45,31 @@ const ready = computed(() => !loading.value && !failed.value && !!draft.value)
 // --- Changes and errors -------------------------------------------------------
 
 const isDirty = (k: SettingKey) => !!draft.value && !!saved.value && draft.value[k] !== saved.value[k]
-/** Messages of fields that do not pass their checks; the fields add them. */
-const errors = computed<Partial<Record<SettingKey, string>>>(() => ({}))
+/** Messages of the settings that fail their checks. */
+const errors = computed(() => {
+  const out: Partial<Record<SettingKey, string>> = {}
+  if (!draft.value) return out
+  for (const [key, check] of Object.entries(checks) as [SettingKey, NonNullable<(typeof checks)[SettingKey]>][]) {
+    const fail = checkValue(check, draft.value[key])
+    if (fail) out[key] = t(fail[0], fail[1] ?? {})
+  }
+  return out
+})
 
 const count = (keys: SettingKey[]) => ({
   dirty: keys.filter(isDirty).length,
   errors: keys.filter((k) => errors.value[k]).length,
 })
 const total = computed(() => count(tabs.flatMap((tab) => tab.keys)))
+
+provide(formKey, {
+  get draft() {
+    return draft.value as AllSetting
+  },
+  isDirty,
+  error: (k) => errors.value[k],
+  count,
+})
 
 const status = computed(() => {
   const { dirty, errors: n } = total.value
@@ -174,6 +194,8 @@ async function restart() {
     <XCard v-else-if="failed">
       <XEmpty tone="err" icon="alert" :title="t('settings.loadFailed')" />
     </XCard>
+    <PanelTab v-else-if="tab === 'panel'" />
+    <UiTab v-else-if="tab === 'ui'" />
     <XCard v-else>
       <XEmpty :title="t('common.screenDraft')" />
     </XCard>

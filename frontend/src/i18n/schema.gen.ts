@@ -194,6 +194,51 @@ export interface MessageSchema {
     "securityPath": string
     "securitySubPath": string
     "securityJsonPath": string
+    "secGeneral": string
+    "secCerts": string
+    "secClients": string
+    "secDateTime": string
+    "secExpiring": string
+    "webListen": string
+    "webListenDesc": string
+    "webDomain": string
+    "webDomainDesc": string
+    "webPort": string
+    "webPortDesc": string
+    "webBasePath": string
+    "pathBothDesc": string
+    "sessionMaxAge": string
+    "sessionMaxAgeDesc": string
+    "webCertFile": string
+    "webKeyFile": string
+    "certPathDesc": string
+    "restartXray": string
+    "restartXrayDesc": string
+    "externalTraffic": string
+    "externalTrafficDesc": string
+    "externalTrafficUri": string
+    "externalTrafficUriDesc": string
+    "afterRestart": string
+    "language": string
+    "theme": string
+    "themeLight": string
+    "themeDark": string
+    "pageSize": string
+    "pageSizeDesc": string
+    "timeLocation": string
+    "timeLocationDesc": string
+    "expireDiff": string
+    "expireDiffDesc": string
+    "trafficDiff": string
+    "trafficDiffDesc": string
+    "unitMinutes": string
+    "unitDays": string
+    "unitGb": string
+    "errInteger": string
+    "errRange": string
+    "errMin": string
+    "errPathBoth": string
+    "errPathStart": string
   }
   "units": {
     "value": string
