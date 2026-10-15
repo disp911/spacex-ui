@@ -269,6 +269,35 @@ export interface MessageSchema {
     "codeShort": string
     "enabled": string
     "disabled": string
+    "secLdapConnection": string
+    "secLdapSync": string
+    "ldapEnable": string
+    "ldapHost": string
+    "ldapPort": string
+    "ldapUseTls": string
+    "ldapBindDn": string
+    "ldapPassword": string
+    "ldapBaseDn": string
+    "ldapUserFilter": string
+    "ldapUserAttr": string
+    "ldapVlessField": string
+    "ldapFlagField": string
+    "ldapFlagFieldDesc": string
+    "ldapTruthy": string
+    "ldapTruthyDesc": string
+    "ldapInvert": string
+    "ldapInvertDesc": string
+    "ldapCron": string
+    "ldapCronDesc": string
+    "ldapInbounds": string
+    "ldapInboundsDesc": string
+    "ldapInboundsPick": string
+    "ldapInboundsNone": string
+    "ldapAutoCreate": string
+    "ldapAutoDelete": string
+    "ldapTotalGb": string
+    "ldapExpiryDays": string
+    "ldapLimitIp": string
   }
   "units": {
     "value": string

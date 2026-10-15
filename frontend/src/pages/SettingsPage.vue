@@ -12,6 +12,7 @@ import { addressAfterRestart, waitForPanel } from './settings/restart'
 import PanelTab from './settings/PanelTab.vue'
 import UiTab from './settings/UiTab.vue'
 import AccountTab from './settings/AccountTab.vue'
+import LdapTab from './settings/LdapTab.vue'
 
 const { t } = useI18n()
 
@@ -203,6 +204,7 @@ async function restart() {
       <PanelTab v-if="tab === 'panel'" />
       <UiTab v-else-if="tab === 'ui'" />
       <AccountTab v-else-if="tab === 'account'" />
+      <LdapTab v-else-if="tab === 'ldap'" />
       <XCard v-else>
         <XEmpty :title="t('common.screenDraft')" />
       </XCard>

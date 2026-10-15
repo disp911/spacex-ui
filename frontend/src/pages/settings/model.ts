@@ -154,6 +154,10 @@ export const checks: Partial<Record<SettingKey, Check>> = {
   pageSize: { min: 0 },
   expireDiff: { min: 0 },
   trafficDiff: { min: 0 },
+  ldapPort: { min: 1, max: 65535 },
+  ldapDefaultTotalGB: { min: 0 },
+  ldapDefaultExpiryDays: { min: 0 },
+  ldapDefaultLimitIP: { min: 0 },
 }
 
 /** Why a value fails its check, as a translation key with its values; null when it passes. */
