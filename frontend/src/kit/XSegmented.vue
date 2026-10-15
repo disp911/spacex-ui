@@ -63,7 +63,8 @@ function onKeydown(e: KeyboardEvent) {
       @click="model = o.value"
     >
       <XIcon v-if="o.icon" :name="o.icon" :size="15" />
-      <span v-if="!iconOnly">{{ o.label }}</span>
+      <!-- The bold copy keeps the width the same when the option is chosen. -->
+      <span v-if="!iconOnly" class="x-seg__label" :data-label="o.label"><span>{{ o.label }}</span></span>
     </button>
   </div>
 </template>
@@ -115,6 +116,23 @@ function onKeydown(e: KeyboardEvent) {
   white-space: nowrap;
   outline: none;
   transition: background-color var(--t-fast), color var(--t-fast), box-shadow var(--t-fast);
+}
+
+.x-seg__label {
+  display: inline-grid;
+}
+
+.x-seg__label > span,
+.x-seg__label::after {
+  grid-area: 1 / 1;
+}
+
+.x-seg__label::after {
+  content: attr(data-label);
+  height: 0;
+  overflow: hidden;
+  font-weight: 600;
+  visibility: hidden;
 }
 
 .x-seg__item--icon {
