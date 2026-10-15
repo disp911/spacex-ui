@@ -7,6 +7,7 @@ const path = (d: string) => `<path d="${d}"/>`
 
 export const icons = {
   plus: path('M8 3v10M3 8h10'),
+  minus: path('M3 8h10'),
   close: path('M4 4l8 8M12 4l-8 8'),
   check: path('M3.4 8.4 6.5 11.5 12.6 4.9'),
   chevron: path('M6 3.5 10.5 8 6 12.5'),

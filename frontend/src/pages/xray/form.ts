@@ -9,6 +9,9 @@ export interface XrayForm {
   readonly draft: XraySetting
   /** The template as the server has it. */
   readonly saved: XraySetting
+  /** Tags of the panel's inbounds and of the clients' reverse proxies, for routing rules. */
+  readonly inboundTags: string[]
+  readonly reverseTags: string[]
   isDirty(key: FieldKey): boolean
   /** Changed fields among these, for a section's badge. */
   count(keys: FieldKey[]): number

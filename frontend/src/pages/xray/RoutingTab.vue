@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { XButton, XCard, XEmpty, XGridTable, XRouteTarget, XValueChip, type GridColumn, type MenuItem } from '../../kit'
 import { useXrayForm } from './form'
 import { ruleGroups, ruleTarget, type Rule } from './model'
+import RuleModal from './RuleModal.vue'
 
 /** The routing rules in their order: Xray takes the first that matches. */
 const { t } = useI18n()
@@ -32,15 +33,35 @@ function move(from: number, to: number) {
   list.splice(to, 0, list.splice(from, 1)[0]!)
 }
 
+// The rule window: a new rule, or the one at editing.
+const ruleOpen = ref(false)
+const editing = ref(-1)
+
+function create() {
+  editing.value = -1
+  ruleOpen.value = true
+}
+
 function select(key: string, _row: Rule, index: number) {
   if (key === 'delete') (f.draft.config.routing.rules as Rule[]).splice(index, 1)
+  else if (key === 'edit') {
+    editing.value = index
+    ruleOpen.value = true
+  }
+}
+
+function saveRule(rule: Rule) {
+  const routing = (f.draft.config.routing ??= {})
+  const list = (routing.rules ??= []) as Rule[]
+  if (editing.value >= 0) list[editing.value] = rule
+  else list.push(rule)
 }
 </script>
 
 <template>
   <div class="xray-tab">
     <div class="xray-tab__tools">
-      <XButton variant="primary" icon="plus" class="xray-tab__main">{{ t('xray.ruleAdd') }}</XButton>
+      <XButton variant="primary" icon="plus" class="xray-tab__main" @click="create">{{ t('xray.ruleAdd') }}</XButton>
       <XButton icon="globe">{{ t('xray.geoFiles') }}</XButton>
     </div>
 
@@ -67,6 +88,8 @@ function select(key: string, _row: Rule, index: number) {
     <XCard v-else>
       <XEmpty icon="rules" />
     </XCard>
+
+    <RuleModal v-model:open="ruleOpen" :rule="editing >= 0 ? rules[editing] ?? null : null" :index="editing" @save="saveRule" />
   </div>
 </template>
 

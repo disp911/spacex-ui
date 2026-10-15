@@ -426,6 +426,18 @@ export interface MessageSchema {
     "ruleN": string
     "edit": string
     "delete": string
+    "ruleEdit": string
+    "useComma": string
+    "attrName": string
+    "attrValue": string
+    "balancerDesc": string
+    "customSuffix": string
+    "catalogRegions": string
+    "catalogThreats": string
+    "catalogServices": string
+    "catalogCustom": string
+    "yes": string
+    "close": string
   }
   "units": {
     "value": string
@@ -471,5 +483,7 @@ export interface MessageSchema {
     "moveRow": string
     "moveHint": string
     "rowActions": string
+    "addRow": string
+    "removeRow": string
   }
 }

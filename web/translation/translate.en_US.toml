@@ -1158,6 +1158,18 @@
 "ruleN" = "Rule {n}"
 "edit" = "Edit"
 "delete" = "Delete"
+"ruleEdit" = "Edit Rule {n}"
+"useComma" = "Comma-separated items"
+"attrName" = "Name"
+"attrValue" = "Value"
+"balancerDesc" = "It is not possible to use balancerTag and outboundTag at the same time. If used at the same time, only outboundTag will work."
+"customSuffix" = " (custom)"
+"catalogRegions" = "Countries & zones"
+"catalogThreats" = "Ads & threats"
+"catalogServices" = "Services"
+"catalogCustom" = "Custom geo files"
+"yes" = "Sure"
+"close" = "Close"
 
 [kit]
 "addValue" = "Add “{value}”"
@@ -1187,6 +1199,8 @@
 "moveRow" = "Move {row}"
 "moveHint" = "Space to lift · ↑↓ to move · Space or Esc to drop"
 "rowActions" = "Actions for {row}"
+"addRow" = "Add to {list}"
+"removeRow" = "Remove row {n}"
 
 [units]
 "value" = "{n} {unit}"

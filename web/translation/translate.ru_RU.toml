@@ -1158,6 +1158,18 @@
 "ruleN" = "Правило {n}"
 "edit" = "Изменить"
 "delete" = "Удалить"
+"ruleEdit" = "Редактировать правило {n}"
+"useComma" = "Элементы, разделённые запятыми"
+"attrName" = "Имя"
+"attrValue" = "Значение"
+"balancerDesc" = "Невозможно одновременно использовать balancerTag и outboundTag. При одновременном использовании будет работать только outboundTag."
+"customSuffix" = " (свой)"
+"catalogRegions" = "Страны и зоны"
+"catalogThreats" = "Реклама и угрозы"
+"catalogServices" = "Сервисы"
+"catalogCustom" = "Свои geo-файлы"
+"yes" = "Да"
+"close" = "Закрыть"
 
 [kit]
 "addValue" = "Добавить «{value}»"
@@ -1187,6 +1199,8 @@
 "moveRow" = "Переместить: {row}"
 "moveHint" = "Space — взять · ↑↓ — двигать · Space/Esc — отпустить"
 "rowActions" = "Действия: {row}"
+"addRow" = "Добавить: {list}"
+"removeRow" = "Удалить строку {n}"
 
 [units]
 "value" = "{n} {unit}"

@@ -82,6 +82,12 @@ provide(formKey, {
   get saved() {
     return saved.value as XraySetting
   },
+  get inboundTags() {
+    return inboundTags.value
+  },
+  get reverseTags() {
+    return reverseTags.value
+  },
   isDirty,
   count: (keys) => keys.filter(isDirty).length,
   async resetToDefault() {

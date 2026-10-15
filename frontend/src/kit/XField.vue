@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, useId } from 'vue'
+import XTooltip from './XTooltip.vue'
 
 /**
  * Label, control and its hint or error. The control receives id and
@@ -9,6 +10,8 @@ import { computed, useId } from 'vue'
 const props = withDefaults(
   defineProps<{
     label?: string
+    /** A round ? after the label that tells more on hover or focus. */
+    help?: string
     hint?: string
     error?: string
     required?: boolean
@@ -29,6 +32,9 @@ const describedBy = computed(() => (props.error || props.hint ? `${id}-note` : u
         <slot name="label">{{ label }}</slot>
         <span v-if="required" class="x-field__required" aria-hidden="true">*</span>
       </label>
+      <XTooltip v-if="help" :text="help">
+        <span class="x-field__help" tabindex="0" :aria-label="help">?</span>
+      </XTooltip>
       <p v-if="layout === 'row' && (error || hint)" :id="`${id}-note`" :class="['x-field__note', { 'is-error': !!error }]">
         {{ error || hint }}
       </p>
@@ -82,6 +88,32 @@ const describedBy = computed(() => (props.error || props.hint ? `${id}-note` : u
 .x-field--row .x-field__label {
   color: var(--fg2);
   font-size: var(--ctl-fs);
+}
+
+.x-field--stack .x-field__head:has(.x-field__help) {
+  flex-direction: row;
+  align-items: center;
+  gap: 5px;
+}
+
+.x-field__help {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border: 1.2px solid;
+  border-radius: 50%;
+  color: var(--dim);
+  font: 600 9px / 1 var(--font-sans);
+  cursor: help;
+  outline: none;
+}
+
+.x-field__help:hover,
+.x-field__help:focus-visible {
+  color: var(--fg);
 }
 
 .x-field__required {

@@ -3,7 +3,7 @@ import { computed, ref, watch } from 'vue'
 import { useTheme } from '../stores/theme'
 import {
   XActionBar, XActionList, XActionRow, XBackToTop, XBadge, XBusyOverlay, XButton, XCard, XCheckbox, XChip, XCodeArea, XCodeEditor, XCodeInput, XConfirm, XCounter, XDataTable, XEmpty, XErrorBox, XExample, XField, XFieldNote, XGridTable, XInfoRow, XInput, XMenu, XModal, XMultiSelect, XNavItem, XNest, XNestCard, XNotice,
-  XNumber, XOrderToggles, XPager, XPickList, XProcessError, XProgressLine, XQrCode, XRecordCard, XRouteTarget, XRowLink, XSection, XSegmented, XSelect, XSettingBlock, XSettingDivider, XSettingRow, XSettingsSection, XSettingsSkeleton, XStatusDot, XStatusText, XStepArrow, XSwitch, XTabs, XTagInput, XTextarea,
+  XNumber, XOrderToggles, XPager, XPairList, XPickList, XProcessError, XProgressLine, XQrCode, XRecordCard, XRouteTarget, XRowLink, XSection, XSegmented, XSelect, XSettingBlock, XSettingDivider, XSettingRow, XSettingsSection, XSettingsSkeleton, XStatusDot, XStatusText, XStepArrow, XSwitch, XTabs, XTagInput, XTextarea,
   XTooltip, XUsagePill, XValueChip,
   type MenuItem,
 } from '../kit'
@@ -92,6 +92,12 @@ const setTabs = [
 const setOpen = ref(true)
 const xrayOpen = ref(true)
 const editorPart = ref('all')
+const demoAttrs = ref<[string, string][]>([[':method', 'GET'], [':path', '/api/*']])
+const demoDomains = ref(['geosite:netflix', 'geosite:disney'])
+const demoCatalog = [
+  { title: 'Сервисы', options: [{ label: 'Google', value: 'geosite:google' }, { label: 'Netflix', value: 'geosite:netflix' }, { label: 'OpenAI', value: 'geosite:openai' }] },
+  { title: 'Реклама и угрозы', options: [{ label: 'Ads All', value: 'geosite:category-ads-all' }] },
+]
 const demoRules = ref([
   { dest: ['geosite:category-ads-all', 'geosite:category-ads', 'domain:doubleclick.net'], to: 'blocked', bal: false },
   { dest: ['geoip:private'], to: 'direct', bal: false },
@@ -694,6 +700,10 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
           <XButton variant="primary" icon="refresh">Перезапуск Xray</XButton>
         </XActionBar>
         <span>Кнопка «Наверх» появляется справа снизу, когда страница прокручена дальше 200px.</span>
+        <XField v-slot="a" label="Domain" help="Элементы, разделённые запятыми">
+          <XTagInput v-bind="a" v-model="demoDomains" :groups="demoCatalog" mono placeholder="e.g. google.com, geosite:cn" />
+        </XField>
+        <XPairList v-model="demoAttrs" title="Attributes" name-label="Имя" value-label="Значение" mono />
         <XGridTable
           :columns="demoColumns"
           :rows="demoRules"
