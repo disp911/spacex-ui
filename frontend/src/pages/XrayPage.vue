@@ -12,6 +12,7 @@ import {
   changes, defaultTestUrl, fieldValue, insecure, tabs, type FieldKey, type TabKey, type XrayConfig, type XrayReply, type XraySetting,
 } from './xray/model'
 import GeneralTab from './xray/GeneralTab.vue'
+import AdvancedTab from './xray/AdvancedTab.vue'
 
 const { t } = useI18n()
 
@@ -183,6 +184,7 @@ async function restart() {
     </XCard>
     <div v-else :key="tab" class="x-tab-panel">
       <GeneralTab v-if="tab === 'general'" />
+      <AdvancedTab v-else-if="tab === 'advanced'" />
       <XNotice v-else tone="info">{{ t('common.screenDraft') }}</XNotice>
     </div>
 

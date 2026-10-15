@@ -1,5 +1,5 @@
 <script setup lang="ts" generic="T extends OptionValue">
-import { ref } from 'vue'
+import { nextTick, onMounted, ref, watch } from 'vue'
 import XIcon from './XIcon.vue'
 import type { IconName } from './icons'
 import type { OptionValue } from './types'
@@ -12,10 +12,23 @@ const props = defineProps<{
   block?: boolean
   disabled?: boolean
   label?: string
+  /** Wider than its place, e.g. on a phone: scrolls sideways instead of squeezing the options. */
+  scroll?: boolean
 }>()
 
 const model = defineModel<T>({ required: true })
 const root = ref<HTMLElement | null>(null)
+
+// A strip that scrolls keeps the chosen option in sight, without moving the page.
+function reveal() {
+  const box = root.value
+  const el = box?.querySelector<HTMLElement>('.is-selected')
+  if (!props.scroll || !box || !el) return
+  if (el.offsetLeft < box.scrollLeft) box.scrollLeft = el.offsetLeft - 3
+  else if (el.offsetLeft + el.offsetWidth > box.scrollLeft + box.clientWidth) box.scrollLeft = el.offsetLeft + el.offsetWidth - box.clientWidth + 3
+}
+onMounted(reveal)
+watch(model, () => nextTick(reveal))
 
 function onKeydown(e: KeyboardEvent) {
   const dir = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1 : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 0
@@ -35,7 +48,7 @@ function onKeydown(e: KeyboardEvent) {
 </script>
 
 <template>
-  <div ref="root" role="radiogroup" :aria-label="label" :class="['x-seg', { 'x-seg--block': block, 'is-disabled': disabled }]" @keydown="onKeydown">
+  <div ref="root" role="radiogroup" :aria-label="label" :class="['x-seg', { 'x-seg--block': block, 'x-seg--scroll': scroll, 'is-disabled': disabled }]" @keydown="onKeydown">
     <button
       v-for="o in options"
       :key="String(o.value)"
@@ -70,6 +83,17 @@ function onKeydown(e: KeyboardEvent) {
 .x-seg--block {
   display: flex;
   width: 100%;
+}
+
+.x-seg--scroll {
+  position: relative;
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.x-seg--scroll .x-seg__item {
+  flex: none;
 }
 
 .x-seg--block .x-seg__item {

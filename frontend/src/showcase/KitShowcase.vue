@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { useTheme } from '../stores/theme'
 import {
-  XActionBar, XActionList, XActionRow, XBackToTop, XBadge, XBusyOverlay, XButton, XCard, XCheckbox, XChip, XCodeArea, XCodeInput, XConfirm, XCounter, XDataTable, XEmpty, XErrorBox, XExample, XField, XFieldNote, XInfoRow, XInput, XMenu, XModal, XMultiSelect, XNavItem, XNest, XNestCard, XNotice,
+  XActionBar, XActionList, XActionRow, XBackToTop, XBadge, XBusyOverlay, XButton, XCard, XCheckbox, XChip, XCodeArea, XCodeEditor, XCodeInput, XConfirm, XCounter, XDataTable, XEmpty, XErrorBox, XExample, XField, XFieldNote, XInfoRow, XInput, XMenu, XModal, XMultiSelect, XNavItem, XNest, XNestCard, XNotice,
   XNumber, XOrderToggles, XPager, XPickList, XProcessError, XProgressLine, XQrCode, XRecordCard, XRowLink, XSection, XSegmented, XSelect, XSettingBlock, XSettingDivider, XSettingRow, XSettingsSection, XSettingsSkeleton, XStatusDot, XStatusText, XStepArrow, XSwitch, XTabs, XTagInput, XTextarea,
   XTooltip, XUsagePill,
   type MenuItem,
@@ -91,6 +91,18 @@ const setTabs = [
 ]
 const setOpen = ref(true)
 const xrayOpen = ref(true)
+const editorPart = ref('all')
+const editorText = ref(`{
+  "log": {
+    "access": "none",
+    "dnsLog": false
+    "loglevel": "warning"
+  },
+  "routing": {
+    "domainStrategy": "AsIs",
+    "rules": [{ "type": "field", "outboundTag": "blocked", "ip": ["geoip:private"] }]
+  }
+}`)
 const xrayLog = ref('')
 const xrayBusy = ref(false)
 const xrayErrorOpen = ref(false)
@@ -670,6 +682,12 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
           <XButton variant="primary" icon="refresh">Перезапуск Xray</XButton>
         </XActionBar>
         <span>Кнопка «Наверх» появляется справа снизу, когда страница прокручена дальше 200px.</span>
+        <XCard title="Шаблон конфигурации Xray" description="Карточка без линии под заголовком; переключатель прокручивается, если не помещается." seamless>
+          <template #actions>
+            <XSegmented v-model="editorPart" :options="[{ value: 'all', label: 'Все' }, { value: 'in', label: 'Входящие подключения' }, { value: 'out', label: 'Исходящие подключения' }, { value: 'rules', label: 'Маршрутизация' }]" scroll />
+          </template>
+          <XCodeEditor v-model="editorText" :height="240" :phone-height="240" label="JSON" />
+        </XCard>
       </div>
     </XCard>
     <XBackToTop label="Наверх" />

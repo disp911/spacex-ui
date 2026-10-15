@@ -1142,6 +1142,12 @@
 "dnsLog" = "Логи DNS"
 "dnsLogDesc" = "Включить логи запросов DNS"
 "secReset" = "Восстановить настройки по умолчанию"
+"template" = "Шаблон конфигурации Xray"
+"templateDesc" = "На основе шаблона создаётся конфигурационный файл Xray."
+"partAll" = "Все"
+"partInbounds" = "Входящие подключения"
+"partOutbounds" = "Исходящие подключения"
+"partRules" = "Маршрутизация"
 
 [kit]
 "addValue" = "Добавить «{value}»"
@@ -1156,6 +1162,18 @@
 "nextPage" = "Следующая страница"
 "modified" = "изменено: {n}"
 "errors" = "ошибок: {n}"
+"unfold" = "Развернуть"
+"jsonLine" = "Строка {line}: {reason}"
+"jsonNotApplied" = "Изменения не применены"
+"jsonCommaOrBrace" = "ожидалась «,» или «{'}'}»"
+"jsonCommaOrBracket" = "ожидалась «,» или «]»"
+"jsonKey" = "ожидалось имя свойства в кавычках"
+"jsonColon" = "ожидалось «:»"
+"jsonValue" = "ожидалось значение"
+"jsonEnd" = "текст обрывается"
+"jsonTrailing" = "лишний текст после конца JSON"
+"jsonString" = "ошибка в строке"
+"jsonNumber" = "ошибка в числе"
 
 [units]
 "value" = "{n} {unit}"

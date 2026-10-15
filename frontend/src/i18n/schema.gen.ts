@@ -410,6 +410,12 @@ export interface MessageSchema {
     "dnsLog": string
     "dnsLogDesc": string
     "secReset": string
+    "template": string
+    "templateDesc": string
+    "partAll": string
+    "partInbounds": string
+    "partOutbounds": string
+    "partRules": string
   }
   "units": {
     "value": string
@@ -440,5 +446,17 @@ export interface MessageSchema {
     "nextPage": string
     "modified": string
     "errors": string
+    "unfold": string
+    "jsonLine": string
+    "jsonNotApplied": string
+    "jsonCommaOrBrace": string
+    "jsonCommaOrBracket": string
+    "jsonKey": string
+    "jsonColon": string
+    "jsonValue": string
+    "jsonEnd": string
+    "jsonTrailing": string
+    "jsonString": string
+    "jsonNumber": string
   }
 }

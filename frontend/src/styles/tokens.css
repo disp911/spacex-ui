@@ -90,6 +90,12 @@
   --side: #0E1218;
   --card: #13171F;
   --nest: #0F131A;
+  /* The code editor: its gutter a step darker than a field, and the colours of JSON. */
+  --gut: #0D1118;
+  --syn-key: oklch(80% .1 250);
+  --syn-str: oklch(80% .1 150);
+  --syn-num: oklch(80% .1 300);
+  --syn-lit: oklch(80% .1 30);
   --dlg: #151A23;
   --foot: rgba(11, 14, 19, .4);
   --gut: #0D1118;
@@ -201,6 +207,11 @@
   --side: #FFFFFF;
   --card: #FFFFFF;
   --nest: #F7F8FA;
+  --gut: #F1F3F6;
+  --syn-key: oklch(48% .13 250);
+  --syn-str: oklch(48% .13 150);
+  --syn-num: oklch(48% .13 300);
+  --syn-lit: oklch(50% .14 30);
   --dlg: #FFFFFF;
   --foot: #F8F9FA;
   --gut: #F1F3F6;

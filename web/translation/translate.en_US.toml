@@ -1142,6 +1142,12 @@
 "dnsLog" = "DNS Log"
 "dnsLogDesc" = "Whether to enable DNS query logs"
 "secReset" = "Reset to Default"
+"template" = "Advanced Xray Configuration Template"
+"templateDesc" = "The final Xray config file will be generated based on this template."
+"partAll" = "All"
+"partInbounds" = "Inbounds"
+"partOutbounds" = "Outbounds"
+"partRules" = "Routing Rules"
 
 [kit]
 "addValue" = "Add “{value}”"
@@ -1156,6 +1162,18 @@
 "nextPage" = "Next page"
 "modified" = "changed: {n}"
 "errors" = "errors: {n}"
+"unfold" = "Unfold"
+"jsonLine" = "Line {line}: {reason}"
+"jsonNotApplied" = "Changes not applied"
+"jsonCommaOrBrace" = "expected a comma or a closing brace"
+"jsonCommaOrBracket" = "expected a comma or a closing bracket"
+"jsonKey" = "expected a property name in quotes"
+"jsonColon" = "expected a colon"
+"jsonValue" = "expected a value"
+"jsonEnd" = "the text ends too early"
+"jsonTrailing" = "extra text after the JSON"
+"jsonString" = "invalid string"
+"jsonNumber" = "invalid number"
 
 [units]
 "value" = "{n} {unit}"

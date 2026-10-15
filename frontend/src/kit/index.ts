@@ -1,3 +1,5 @@
+import { defineAsyncComponent } from 'vue'
+
 export { default as XActionList } from './XActionList.vue'
 export { default as XActionBar } from './XActionBar.vue'
 export { default as XActionRow } from './XActionRow.vue'
@@ -64,5 +66,9 @@ export type { RowTone, TableColumn } from './XDataTable.vue'
 export type { TabItem } from './XTabs.vue'
 export { toast } from './toast'
 export { copyText } from './clipboard'
+export { checkJson, type JsonIssue } from './jsonCheck'
 export type { IconName } from './icons'
 export type { Option, OptionValue, Tone } from './types'
+
+// The code editor brings CodeMirror along: it loads with the first screen that shows it.
+export const XCodeEditor = defineAsyncComponent(() => import('./XCodeEditor.vue'))
