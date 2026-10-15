@@ -172,6 +172,11 @@
   transform: translateY(-4px);
 }
 
+/* Monospace for technical values inside other text: dates, addresses, commands. */
+.mono {
+  font-family: var(--font-mono);
+}
+
 /* Caps label: field names, card titles, toolbar labels. */
 .x-caps {
   color: var(--dim);

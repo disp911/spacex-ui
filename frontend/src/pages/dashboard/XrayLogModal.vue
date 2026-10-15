@@ -208,7 +208,7 @@ async function download() {
 
       <XMenu v-slot="{ props }" :items="clientItems" :title="t('dashboard.xlogClient')" placement="bottom-start" sheet @select="client = $event">
         <XButton v-bind="props" :label="`${t('dashboard.xlogClient')}: ${client || t('dashboard.xlogAllClients')}`" caret class="xlog-filter">
-          <span class="x-caps xlog-filter__label">{{ t('dashboard.xlogClient') }}</span> <span class="xlog-client">{{ client || t('dashboard.xlogAllClients') }}</span>
+          <span class="x-caps xlog-filter__label">{{ t('dashboard.xlogClient') }}</span> <span class="mono">{{ client || t('dashboard.xlogAllClients') }}</span>
         </XButton>
       </XMenu>
 
@@ -309,11 +309,6 @@ async function download() {
   min-width: 160px;
 }
 
-/* The client is monospace in the toolbar, plain on phones, as in the mockup. */
-.xlog-client {
-  font-family: var(--font-mono);
-}
-
 /* Sits in the cell's text line. */
 .xlog-dot {
   margin-right: 2px;
@@ -377,10 +372,6 @@ async function download() {
 
   .xlog-filter__label {
     display: none;
-  }
-
-  .xlog-client {
-    font-family: inherit;
   }
 
   .xlog-area {
