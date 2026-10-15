@@ -858,6 +858,14 @@
 "xrayInstallTextNew" = "{version} will be installed, and the core will restart."
 "xrayInstall" = "Update Xray"
 "xrayInstalling" = "Updating…"
+"panelUpdate" = "Panel update"
+"panelUpdateText" = "The panel will be updated to the latest version and restarted."
+"panelCurrent" = "Current version"
+"panelLatest" = "Latest version"
+"panelUpToDate" = "The panel is up to date"
+"panelUpdated" = "Up to date"
+"panelUpdateRun" = "Update"
+"panelUpdating" = "Updating…"
 
 [kit]
 "clear" = "Clear"

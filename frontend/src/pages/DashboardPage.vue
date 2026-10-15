@@ -12,6 +12,7 @@ import DashStat from './dashboard/DashStat.vue'
 import BackupModal from './dashboard/BackupModal.vue'
 import XrayVersionModal from './dashboard/XrayVersionModal.vue'
 import PanelLogModal from './dashboard/PanelLogModal.vue'
+import PanelUpdateModal, { type PanelUpdateInfo } from './dashboard/PanelUpdateModal.vue'
 import ResourcesCard from './dashboard/ResourcesCard.vue'
 import ServiceCard from './dashboard/ServiceCard.vue'
 
@@ -98,7 +99,8 @@ const xrayVersionOpen = ref(false)
 
 // --- Panel version ----------------------------------------------------------
 
-const update = ref<{ latestVersion: string; updateAvailable: boolean } | null>(null)
+const update = ref<PanelUpdateInfo | null>(null)
+const updateOpen = ref(false)
 onMounted(async () => {
   try {
     update.value = await api.get('panel/api/server/getPanelUpdateInfo')
@@ -166,7 +168,7 @@ const dash = '—'
           <div class="version">
             <span class="version__label">{{ t('dashboard.panelVersion') }}</span>
             <span class="mono version__value">v{{ config.version }}</span>
-            <XButton v-if="update?.updateAvailable" variant="soft" size="sm" phone-block class="version__update">
+            <XButton v-if="update?.updateAvailable" variant="soft" size="sm" phone-block class="version__update" @click="updateOpen = true">
               <template #icon><XStatusDot size="sm" blink /></template>
               {{ t('dashboard.update', { version: update.latestVersion }) }}
             </XButton>
@@ -244,6 +246,7 @@ const dash = '—'
     <PanelLogModal v-model:open="panelLogOpen" />
     <BackupModal v-model:open="backupOpen" />
     <XrayVersionModal v-model:open="xrayVersionOpen" />
+    <PanelUpdateModal v-if="update" v-model:open="updateOpen" v-model:info="update" />
   </AppPage>
 </template>
 

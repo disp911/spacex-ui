@@ -858,6 +858,14 @@
 "xrayInstallTextNew" = "Будет установлена {version}, ядро перезапустится."
 "xrayInstall" = "Обновить Xray"
 "xrayInstalling" = "Обновление…"
+"panelUpdate" = "Обновление панели"
+"panelUpdateText" = "Панель будет обновлена до последней версии и перезапущена."
+"panelCurrent" = "Текущая версия"
+"panelLatest" = "Последняя версия"
+"panelUpToDate" = "Панель обновлена"
+"panelUpdated" = "Обновлено"
+"panelUpdateRun" = "Обновить"
+"panelUpdating" = "Обновление…"
 
 [kit]
 "clear" = "Очистить"

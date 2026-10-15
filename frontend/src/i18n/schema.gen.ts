@@ -126,6 +126,14 @@ export interface MessageSchema {
     "xrayInstallTextNew": string
     "xrayInstall": string
     "xrayInstalling": string
+    "panelUpdate": string
+    "panelUpdateText": string
+    "panelCurrent": string
+    "panelLatest": string
+    "panelUpToDate": string
+    "panelUpdated": string
+    "panelUpdateRun": string
+    "panelUpdating": string
   }
   "units": {
     "value": string

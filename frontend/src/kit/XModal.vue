@@ -6,8 +6,8 @@ import { lockScroll } from './scrollLock'
 
 /**
  * Dialog on desktop, bottom sheet on phones. The sheet has a handle instead
- * of the close button; a window without its own footer gets a Cancel button
- * there on phones.
+ * of the close button, so its footer always starts with Cancel, before the
+ * window's own buttons. On desktop Cancel shows only with the cancel prop.
  */
 const props = withDefaults(
   defineProps<{
@@ -21,6 +21,8 @@ const props = withDefaults(
     full?: boolean
     /** No title bar: the body carries the title, as XConfirm does. */
     headless?: boolean
+    /** Cancel in the footer on desktop too, before the window's buttons. */
+    cancel?: boolean
   }>(),
   { size: 'md', dismissible: true },
 )
@@ -96,9 +98,11 @@ onBeforeUnmount(() => {
             <XButton icon="close" :label="t('kit.close')" :disabled="!dismissible" class="x-modal__close" @click="close" />
           </header>
           <div :class="['x-modal__body', { 'x-modal__body--flush': flush }]"><slot /></div>
-          <footer v-if="$slots.footer" class="x-modal__foot"><slot name="footer" /></footer>
-          <footer v-else-if="!full" class="x-modal__foot x-modal__foot--phone">
-            <XButton :disabled="!dismissible" @click="close">{{ t('kit.cancel') }}</XButton>
+          <footer v-if="$slots.footer || cancel || !full" :class="['x-modal__foot', { 'x-modal__foot--phone': !$slots.footer && !cancel }]">
+            <XButton v-if="cancel || !full" :disabled="!dismissible" :class="{ 'x-modal__cancel--phone': !cancel }" @click="close">
+              {{ t('kit.cancel') }}
+            </XButton>
+            <slot name="footer" />
           </footer>
         </div>
       </div>
@@ -197,7 +201,8 @@ onBeforeUnmount(() => {
   background: var(--foot);
 }
 
-.x-modal__foot--phone {
+.x-modal__foot--phone,
+.x-modal__cancel--phone {
   display: none;
 }
 
@@ -275,7 +280,8 @@ onBeforeUnmount(() => {
     padding-top: 0;
   }
 
-  .x-modal__foot--phone {
+  .x-modal__foot--phone,
+  .x-modal__cancel--phone {
     display: flex;
   }
 

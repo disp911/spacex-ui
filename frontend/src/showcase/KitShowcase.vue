@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue'
 import { useTheme } from '../stores/theme'
 import {
-  XActionList, XActionRow, XBadge, XButton, XCard, XCheckbox, XChip, XConfirm, XCounter, XEmpty, XErrorBox, XField, XInput, XMenu, XModal, XNavItem, XNotice, XNumber,
+  XActionList, XActionRow, XBadge, XButton, XCard, XCheckbox, XChip, XConfirm, XCounter, XEmpty, XErrorBox, XField, XInfoRow, XInput, XMenu, XModal, XNavItem, XNotice, XNumber,
   XPager, XPickList, XRowLink, XSection, XSegmented, XSelect, XStatusDot, XSwitch, XTagInput, XTextarea, XTooltip, XUsagePill,
   type MenuItem,
 } from '../kit'
@@ -464,6 +464,14 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
           <XErrorBox text="failed to listen on 0.0.0.0:443&#10;bind: address already in use" />
         </div>
         <div class="kit__variant">
+          <h3 class="kit__h3">Строка значения</h3>
+          <div class="kit__stack" style="max-width: 400px">
+            <XInfoRow label="Текущая версия">3.0.0</XInfoRow>
+            <XInfoRow label="Последняя версия" accent><XStatusDot size="sm" blink />3.0.1</XInfoRow>
+            <XInfoRow label="Панель обновлена" accent><XChip tone="ok">Обновлено</XChip></XInfoRow>
+          </div>
+        </div>
+        <div class="kit__variant">
           <h3 class="kit__h3">Список выбора · загрузка</h3>
           <XPickList :items="pickItems" current-label="Установлена" style="max-width: 400px" />
           <XPickList :items="[]" loading style="max-width: 400px" />
@@ -557,7 +565,7 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
       </XCard>
     </div>
 
-    <XModal v-model:open="modalOpen" title="Создать подключение" :size="sheetSize">
+    <XModal v-model:open="modalOpen" title="Создать подключение" :size="sheetSize" cancel>
       <XField v-slot="f" label="Примечание">
         <XInput v-bind="f" v-model="form.remark" autofocus />
       </XField>
@@ -568,7 +576,6 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
         <XSwitch v-model="form.enabled" label="Включить" />
       </XField>
       <template #footer>
-        <XButton @click="modalOpen = false">Отмена</XButton>
         <XButton variant="primary" @click="modalOpen = false">Создать</XButton>
       </template>
     </XModal>

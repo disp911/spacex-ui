@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n'
 import XButton from './XButton.vue'
 import XIcon from './XIcon.vue'
 import XModal from './XModal.vue'
@@ -12,7 +11,6 @@ import XModal from './XModal.vue'
 const props = defineProps<{ title: string; cta: string; busy?: boolean; busyLabel?: string }>()
 const emit = defineEmits<{ confirm: [] }>()
 const open = defineModel<boolean>('open', { default: false })
-const { t } = useI18n()
 
 function run() {
   if (!props.busy) emit('confirm')
@@ -20,7 +18,7 @@ function run() {
 </script>
 
 <template>
-  <XModal v-model:open="open" :title="title" size="xs" headless :dismissible="!busy">
+  <XModal v-model:open="open" :title="title" size="xs" headless cancel :dismissible="!busy">
     <div class="x-confirm">
       <span class="x-confirm__icon"><XIcon name="alert" :size="17" :stroke="1.4" /></span>
       <div class="x-confirm__body">
@@ -29,7 +27,6 @@ function run() {
       </div>
     </div>
     <template #footer>
-      <XButton :disabled="busy" @click="open = false">{{ t('kit.cancel') }}</XButton>
       <XButton variant="primary" :loading="busy" @click="run">{{ busy && busyLabel ? busyLabel : cta }}</XButton>
     </template>
   </XModal>

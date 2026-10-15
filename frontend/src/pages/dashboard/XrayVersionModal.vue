@@ -63,7 +63,7 @@ async function install() {
 </script>
 
 <template>
-  <XModal v-model:open="open" :title="t('dashboard.xrayUpdate')">
+  <XModal v-model:open="open" :title="t('dashboard.xrayUpdate')" cancel>
     <template #subtitle>{{ t('dashboard.xrayVersion') }}</template>
 
     <XNotice tone="warn" :title="t('dashboard.xrayVersionWarnTitle')">{{ t('dashboard.xrayVersionWarn') }}</XNotice>
@@ -73,10 +73,6 @@ async function install() {
         <XButton v-if="failed" size="sm" icon="refresh" @click="load">{{ t('dashboard.retry') }}</XButton>
       </XEmpty>
     </XPickList>
-
-    <template #footer>
-      <XButton @click="open = false">{{ t('kit.cancel') }}</XButton>
-    </template>
   </XModal>
 
   <XConfirm
