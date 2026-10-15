@@ -201,20 +201,20 @@ async function download() {
       <XButton icon="refresh" :label="t('dashboard.logRefresh')" :loading="loading" class="xlog-wide" @click="load" />
 
       <XMenu v-slot="{ props }" :items="dayItems" :title="t('dashboard.xlogDate')" placement="bottom-start" sheet @select="date = $event">
-        <XButton v-bind="props" :label="`${t('dashboard.xlogDate')}: ${day}`" caret class="x-ctl-tight xlog-filter">
+        <XButton v-bind="props" :label="`${t('dashboard.xlogDate')}: ${day}`" caret class="xlog-filter">
           <span class="x-caps xlog-filter__label">{{ t('dashboard.xlogDate') }}</span> <span class="mono">{{ day }}</span>
         </XButton>
       </XMenu>
 
       <XMenu v-slot="{ props }" :items="clientItems" :title="t('dashboard.xlogClient')" placement="bottom-start" sheet @select="client = $event">
-        <XButton v-bind="props" :label="`${t('dashboard.xlogClient')}: ${client || t('dashboard.xlogAllClients')}`" caret class="x-ctl-tight xlog-filter">
+        <XButton v-bind="props" :label="`${t('dashboard.xlogClient')}: ${client || t('dashboard.xlogAllClients')}`" caret class="xlog-filter">
           <span class="x-caps xlog-filter__label">{{ t('dashboard.xlogClient') }}</span> <span class="xlog-client">{{ client || t('dashboard.xlogAllClients') }}</span>
         </XButton>
       </XMenu>
 
       <XMenu :items="kindItems" :title="t('dashboard.xlogTypes')" placement="bottom-start" sheet multiple @select="shown[$event as Kind] = !shown[$event as Kind]">
         <template #default="{ props }">
-          <XButton v-bind="props" :label="`${t('dashboard.xlogTypes')}: ${kindsLabel}`" caret class="x-ctl-tight xlog-filter xlog-narrow">{{ kindsLabel }}</XButton>
+          <XButton v-bind="props" :label="`${t('dashboard.xlogTypes')}: ${kindsLabel}`" caret class="xlog-filter xlog-narrow">{{ kindsLabel }}</XButton>
         </template>
         <template #footer="{ close }">
           <XButton variant="primary" :loading="loading" block @click="close">
