@@ -239,6 +239,37 @@ export interface MessageSchema {
     "errMin": string
     "errPathBoth": string
     "errPathStart": string
+    "secAdmin": string
+    "secAdminNote": string
+    "currentUsername": string
+    "currentPassword": string
+    "newUsername": string
+    "newPassword": string
+    "credentialsHint": string
+    "confirm": string
+    "checking": string
+    "credentialsEmpty": string
+    "secTwoFactor": string
+    "twoFactor": string
+    "twoFactorDesc": string
+    "twoFactorOn": string
+    "twoFactorOff": string
+    "twoFactorChanging": string
+    "twoFactorFailed": string
+    "enableTitle": string
+    "enableSteps": string
+    "enableScan": string
+    "copyToken": string
+    "enableCode": string
+    "disableTitle": string
+    "disableText": string
+    "credentialsTitle": string
+    "credentialsText": string
+    "code": string
+    "codeWrong": string
+    "codeShort": string
+    "enabled": string
+    "disabled": string
   }
   "units": {
     "value": string

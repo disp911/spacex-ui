@@ -1,7 +1,10 @@
 <script setup lang="ts">
+import { computed, useAttrs } from 'vue'
 import XSpinner from './XSpinner.vue'
 
-defineProps<{
+defineOptions({ inheritAttrs: false })
+
+const props = defineProps<{
   disabled?: boolean
   /** The change is being applied; the knob shows a spinner. */
   loading?: boolean
@@ -9,34 +12,67 @@ defineProps<{
   invalid?: boolean
   modified?: boolean
   label?: string
+  /**
+   * A word of state to the left, e.g. «On» for a setting that applies at once:
+   * accent when on, dim when off, amber while the change is applied.
+   */
+  text?: string
 }>()
 
 const model = defineModel<boolean>({ default: false })
+const attrs = useAttrs()
 
 function toggle() {
   model.value = !model.value
 }
+
+const button = computed(() => ({
+  ...attrs,
+  type: 'button' as const,
+  role: 'switch',
+  'aria-checked': model.value,
+  'aria-label': props.label,
+  'aria-busy': props.loading || undefined,
+  'aria-invalid': props.invalid || undefined,
+  disabled: props.disabled,
+  class: ['x-switch', attrs.class, { 'is-on': model.value, 'is-loading': props.loading, 'is-invalid': props.invalid, 'is-modified': props.modified }],
+}))
 </script>
 
 <template>
-  <button
-    type="button"
-    role="switch"
-    :aria-checked="model"
-    :aria-label="label"
-    :aria-busy="loading || undefined"
-    :aria-invalid="invalid || undefined"
-    :disabled="disabled"
-    :class="['x-switch', { 'is-on': model, 'is-loading': loading, 'is-invalid': invalid, 'is-modified': modified }]"
-    @click="loading || toggle()"
-  >
-    <span class="x-switch__knob">
-      <XSpinner v-if="loading" :size="10" />
-    </span>
+  <span v-if="text" class="x-switch-line">
+    <span :class="['x-switch-line__text', { 'is-on': model, 'is-loading': loading }]" aria-hidden="true">{{ text }}</span>
+    <button v-bind="button" @click="loading || toggle()">
+      <span class="x-switch__knob"><XSpinner v-if="loading" :size="10" /></span>
+    </button>
+  </span>
+  <button v-else v-bind="button" @click="loading || toggle()">
+    <span class="x-switch__knob"><XSpinner v-if="loading" :size="10" /></span>
   </button>
 </template>
 
 <style scoped>
+.x-switch-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.x-switch-line__text {
+  color: var(--dim);
+  font: 500 var(--fs-12) / var(--lh-tight) var(--font-sans);
+  white-space: nowrap;
+  transition: color var(--t-fast);
+}
+
+.x-switch-line__text.is-on {
+  color: var(--acc);
+}
+
+.x-switch-line__text.is-loading {
+  color: var(--warn-t);
+}
+
 .x-switch {
   --knob-size: calc(var(--switch-h) - 6px);
   /* The knob sits evenly inside the track. */

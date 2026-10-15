@@ -2,14 +2,16 @@
 import XIcon from './XIcon.vue'
 
 /**
- * A short warning under a field, e.g. the address the panel will have after a
- * restart. Values in the text go in <code>: mono, brighter, broken anywhere.
+ * A short line under a field or a form: a warning, e.g. the address the panel
+ * will have after a restart, or an error the server gave. Values in the text
+ * go in <code>: mono, brighter, broken anywhere.
  */
+withDefaults(defineProps<{ tone?: 'warn' | 'err' }>(), { tone: 'warn' })
 </script>
 
 <template>
-  <p class="x-field-note">
-    <XIcon name="warning" :size="13" :stroke="1.4" class="x-field-note__icon" />
+  <p :class="['x-field-note', `x-field-note--${tone}`]" :role="tone === 'err' ? 'alert' : undefined">
+    <XIcon :name="tone === 'err' ? 'alert' : 'warning'" :size="13" :stroke="1.4" class="x-field-note__icon" />
     <span class="x-field-note__text"><slot /></span>
   </p>
 </template>
@@ -21,13 +23,24 @@ import XIcon from './XIcon.vue'
   gap: 6px;
   max-width: 100%;
   margin: 0;
-  color: var(--warn-x);
   font: 400 var(--fs-12) / var(--lh-text) var(--font-sans);
+}
+
+.x-field-note--warn {
+  color: var(--warn-x);
+}
+
+.x-field-note--err {
+  color: var(--err-t);
+  font-weight: 500;
 }
 
 .x-field-note__icon {
   flex: none;
   margin-top: 2px;
+}
+
+.x-field-note--warn .x-field-note__icon {
   color: var(--warn);
 }
 

@@ -5,8 +5,8 @@ import XIcon from './XIcon.vue'
 
 /**
  * A card of settings that folds: a header with a chevron, the title and the
- * number of rows, and on the right a note and the counts of changed fields and
- * errors inside. The rows (XSettingRow, XSettingDivider) are the slot. When
+ * number of rows, and on the right a note (desktop only) and the counts of
+ * changed fields and errors inside. The rows (XSettingRow, XSettingDivider) are the slot. When
  * the header is too narrow the badges move to a line of their own.
  */
 defineProps<{
@@ -29,7 +29,7 @@ const { t } = useI18n()
       <span class="x-settings__title">{{ title }}</span>
       <span v-if="count" class="x-settings__count">{{ count }}</span>
       <span v-if="note || modified || errors" class="x-settings__badges">
-        <XChip v-if="note">{{ note }}</XChip>
+        <XChip v-if="note" class="x-settings__note">{{ note }}</XChip>
         <XChip v-if="modified" tone="on" dot mono>{{ t('kit.modified', { n: modified }) }}</XChip>
         <XChip v-if="errors" tone="err" mono>{{ t('kit.errors', { n: errors }) }}</XChip>
       </span>
@@ -118,6 +118,11 @@ const { t } = useI18n()
 @media (max-width: 767px) {
   .x-settings__head {
     padding: 6px 16px;
+  }
+
+  /* Phones keep the header to the title and the counts. */
+  .x-settings__note {
+    display: none;
   }
 }
 </style>

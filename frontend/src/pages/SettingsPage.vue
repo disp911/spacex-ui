@@ -1,16 +1,17 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, provide, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { api, ApiError } from '../api'
+import { api } from '../api'
 import {
   toast, XActionBar, XBusyOverlay, XButton, XCard, XConfirm, XEmpty, XNotice, XSettingsSkeleton, XStatusText, XTabs, type TabItem,
 } from '../kit'
 import AppPage from '../layout/AppPage.vue'
-import { formKey } from './settings/form'
+import { cause, formKey } from './settings/form'
 import { checks, checkValue, securityAlerts, tabs, type AllSetting, type SettingKey, type TabKey } from './settings/model'
 import { addressAfterRestart, waitForPanel } from './settings/restart'
 import PanelTab from './settings/PanelTab.vue'
 import UiTab from './settings/UiTab.vue'
+import AccountTab from './settings/AccountTab.vue'
 
 const { t } = useI18n()
 
@@ -66,9 +67,18 @@ provide(formKey, {
   get draft() {
     return draft.value as AllSetting
   },
+  get saved() {
+    return saved.value as AllSetting
+  },
   isDirty,
   error: (k) => errors.value[k],
   count,
+  async applyNow(patch) {
+    if (!saved.value || !draft.value) return
+    await api.post('panel/setting/update', { ...saved.value, ...patch })
+    Object.assign(saved.value, patch)
+    Object.assign(draft.value, patch)
+  },
 })
 
 const status = computed(() => {
@@ -108,11 +118,6 @@ const showBanner = computed(() => ready.value && !bannerClosed.value && alerts.v
 const saving = ref(false)
 const canSave = computed(() => ready.value && total.value.dirty > 0 && !total.value.errors && !saving.value)
 
-/** The server wraps the cause in parentheses after its own words; the cause is what helps. */
-const cause = (e: unknown) => {
-  const msg = e instanceof ApiError ? e.message : String(e)
-  return /\((.+)\)$/s.exec(msg)?.[1] ?? msg
-}
 
 async function save() {
   if (!canSave.value || !draft.value) return
@@ -197,6 +202,7 @@ async function restart() {
     <div v-else :key="tab" class="x-tab-panel">
       <PanelTab v-if="tab === 'panel'" />
       <UiTab v-else-if="tab === 'ui'" />
+      <AccountTab v-else-if="tab === 'account'" />
       <XCard v-else>
         <XEmpty :title="t('common.screenDraft')" />
       </XCard>

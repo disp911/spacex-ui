@@ -2,8 +2,8 @@
 import { computed, ref, watch } from 'vue'
 import { useTheme } from '../stores/theme'
 import {
-  XActionBar, XActionList, XActionRow, XBadge, XBusyOverlay, XButton, XCard, XCheckbox, XChip, XCodeArea, XConfirm, XCounter, XDataTable, XEmpty, XErrorBox, XField, XFieldNote, XInfoRow, XInput, XMenu, XModal, XMultiSelect, XNavItem, XNest, XNotice, XNumber,
-  XPager, XPickList, XRecordCard, XRowLink, XSection, XSegmented, XSelect, XSettingDivider, XSettingRow, XSettingsSection, XSettingsSkeleton, XStatusDot, XStatusText, XSwitch, XTabs, XTagInput, XTextarea, XTooltip, XUsagePill,
+  XActionBar, XActionList, XActionRow, XBadge, XBusyOverlay, XButton, XCard, XCheckbox, XChip, XCodeArea, XCodeInput, XConfirm, XCounter, XDataTable, XEmpty, XErrorBox, XField, XFieldNote, XInfoRow, XInput, XMenu, XModal, XMultiSelect, XNavItem, XNest, XNotice, XNumber,
+  XPager, XPickList, XQrCode, XRecordCard, XRowLink, XSection, XSegmented, XSelect, XSettingBlock, XSettingDivider, XSettingRow, XSettingsSection, XSettingsSkeleton, XStatusDot, XStatusText, XSwitch, XTabs, XTagInput, XTextarea, XTooltip, XUsagePill,
   type MenuItem,
 } from '../kit'
 
@@ -94,6 +94,8 @@ const setInbounds = ['inbound-443', 'inbound-8443', 'vless-reality', 'trojan-ws'
 const busyOpen = ref(false)
 const restartAsk = ref(false)
 const setTheme = ref('dark')
+const demoCode = ref('')
+const demoTfa = ref(false)
 watch(busyOpen, (on) => on && setTimeout(() => (busyOpen.value = false), 3000))
 const typeChecks = ref({ direct: true, blocked: true, proxy: false })
 const tableColumns = [
@@ -582,6 +584,22 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
           <XButton variant="primary">Сохранить</XButton>
           <XButton icon="refresh" disabled>Перезапуск</XButton>
         </XActionBar>
+        <XSettingsSection title="Отдельная форма и 2FA" :count="2" note="Отдельная форма">
+          <XSettingBlock>
+            <div class="kit__row kit__row--wrap">
+              <XCodeInput v-model="demoCode" label="Код" style="width: 260px" />
+              <XQrCode value="otpauth://totp/SpaceX%20UI:Administrator?secret=JBSWY3DPEHPK3PXP" copy="JBSWY3DPEHPK3PXP" copy-label="Скопировать токен" :size="120" />
+            </div>
+            <template #note>
+              <XFieldNote tone="err">Неверное имя пользователя или пароль</XFieldNote>
+              <span>Применяется кнопкой «Подтвердить», отдельно от «Сохранить».</span>
+            </template>
+            <template #actions><XButton variant="soft" icon="lock">Подтвердить</XButton></template>
+          </XSettingBlock>
+          <XSettingRow title="Включить 2FA" description="Подпись состояния слева от переключателя" inline>
+            <XSwitch v-model="demoTfa" :text="demoTfa ? 'Включена' : 'Выключена'" label="2FA" />
+          </XSettingRow>
+        </XSettingsSection>
         <XSettingsSkeleton :rows="[2]" />
         <XCard>
           <XEmpty tone="err" icon="alert" title="Произошла ошибка при получении параметров." />
