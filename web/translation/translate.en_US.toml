@@ -888,6 +888,10 @@
 "xlogRangeEmpty" = "No entries for the current filters"
 "xlogNothing" = "Nothing found"
 "xlogNothingHint" = "Loosen the filters or pick another day"
+"configFailed" = "Could not load the configuration: {error}"
+"configCopy" = "Copy"
+"configCopied" = "Copied"
+"configCopyFailed" = "Could not copy: the browser did not allow access to the clipboard"
 
 [kit]
 "clear" = "Clear"

@@ -10,6 +10,7 @@ import { useServerStatus } from '../stores/server'
 import DashCard from './dashboard/DashCard.vue'
 import DashStat from './dashboard/DashStat.vue'
 import BackupModal from './dashboard/BackupModal.vue'
+import ConfigModal from './dashboard/ConfigModal.vue'
 import XrayLogModal from './dashboard/XrayLogModal.vue'
 import XrayVersionModal from './dashboard/XrayVersionModal.vue'
 import PanelLogModal from './dashboard/PanelLogModal.vue'
@@ -96,6 +97,7 @@ const ip = (v?: string) => (!v || v === 'N/A' ? '—' : v)
 
 const panelLogOpen = ref(false)
 const backupOpen = ref(false)
+const configOpen = ref(false)
 const xrayVersionOpen = ref(false)
 const xrayLogOpen = ref(false)
 
@@ -164,7 +166,7 @@ const dash = '—'
         <DashCard :title="t('dashboard.manage')" class="grow area-manage">
           <div class="links">
             <XRowLink icon="doc" :label="t('dashboard.panelLog')" @click="panelLogOpen = true" />
-            <XRowLink icon="code" :label="t('dashboard.config')" />
+            <XRowLink icon="code" :label="t('dashboard.config')" @click="configOpen = true" />
             <XRowLink icon="database" :label="t('dashboard.backup')" @click="backupOpen = true" />
           </div>
           <div class="version">
@@ -247,6 +249,7 @@ const dash = '—'
 
     <PanelLogModal v-model:open="panelLogOpen" />
     <BackupModal v-model:open="backupOpen" />
+    <ConfigModal v-model:open="configOpen" />
     <XrayVersionModal v-model:open="xrayVersionOpen" />
     <XrayLogModal v-model:open="xrayLogOpen" />
     <PanelUpdateModal v-if="update" v-model:open="updateOpen" v-model:info="update" />

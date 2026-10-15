@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue'
 import { useTheme } from '../stores/theme'
 import {
-  XActionList, XActionRow, XBadge, XButton, XCard, XCheckbox, XChip, XConfirm, XCounter, XDataTable, XEmpty, XErrorBox, XField, XInfoRow, XInput, XMenu, XModal, XNavItem, XNotice, XNumber,
+  XActionList, XActionRow, XBadge, XButton, XCard, XCheckbox, XChip, XCodeArea, XConfirm, XCounter, XDataTable, XEmpty, XErrorBox, XField, XInfoRow, XInput, XMenu, XModal, XNavItem, XNotice, XNumber,
   XPager, XPickList, XRecordCard, XRowLink, XSection, XSegmented, XSelect, XStatusDot, XSwitch, XTagInput, XTextarea, XTooltip, XUsagePill,
   type MenuItem,
 } from '../kit'
@@ -78,6 +78,7 @@ const levelItems = computed<MenuItem[]>(() =>
   ].map((i) => ({ ...i, checked: i.key === level.value })),
 )
 const lastAction = ref('—')
+const codeText = ref(JSON.stringify({ log: { loglevel: 'warning' }, dns: { servers: ['https://1.1.1.1/dns-query'] }, routing: { domainStrategy: 'AsIs' } }, null, 2))
 const typeChecks = ref({ direct: true, blocked: true, proxy: false })
 const tableColumns = [
   { key: 'time', label: 'Дата', width: 110, dim: true },
@@ -485,6 +486,10 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
             <XRecordCard v-for="r in tableRows" :key="r.to" :title="r.to" time="23:58:58" name="alice" detail="inbound-443" :badge="r.out" :tone="r.tone" />
             <XRecordCard loading />
           </div>
+        </div>
+        <div class="kit__variant">
+          <h3 class="kit__h3">Текст с номерами строк</h3>
+          <XCodeArea v-model="codeText" :height="160" label="config.json" />
         </div>
         <div class="kit__variant">
           <h3 class="kit__h3">Строка значения</h3>

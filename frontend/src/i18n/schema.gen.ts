@@ -156,6 +156,10 @@ export interface MessageSchema {
     "xlogRangeEmpty": string
     "xlogNothing": string
     "xlogNothingHint": string
+    "configFailed": string
+    "configCopy": string
+    "configCopied": string
+    "configCopyFailed": string
   }
   "units": {
     "value": string
