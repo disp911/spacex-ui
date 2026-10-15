@@ -187,5 +187,7 @@ export interface MessageSchema {
     "pages": string
     "previousPage": string
     "nextPage": string
+    "modified": string
+    "errors": string
   }
 }

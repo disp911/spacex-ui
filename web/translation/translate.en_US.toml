@@ -903,6 +903,8 @@
 "pages" = "Pages"
 "previousPage" = "Previous page"
 "nextPage" = "Next page"
+"modified" = "changed: {n}"
+"errors" = "errors: {n}"
 
 [units]
 "value" = "{n} {unit}"

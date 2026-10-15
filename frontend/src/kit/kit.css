@@ -172,6 +172,52 @@
   transform: translateY(-4px);
 }
 
+/* A value chip with a remove cross inside a field: tag input, multiple choice. */
+.x-tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  height: var(--chip-h);
+  padding: 0 4px 0 8px;
+  border: 1px solid var(--chip-line);
+  border-radius: var(--r-6);
+  background: var(--chip);
+  color: var(--fg2);
+  font: 500 var(--fs-11) / 1 var(--font-sans);
+  white-space: nowrap;
+}
+
+.x-field-box--mono .x-tag-chip {
+  font-family: var(--font-mono);
+}
+
+.x-tag-chip__text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.x-tag-chip__remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--r-4);
+  background: transparent;
+  color: var(--dim);
+  outline: none;
+}
+
+.x-tag-chip__remove:hover,
+.x-tag-chip__remove:focus-visible {
+  background: var(--press);
+  color: var(--fg);
+}
+
 /* Monospace for technical values inside other text: dates, addresses, commands. */
 .mono {
   font-family: var(--font-mono);

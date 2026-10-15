@@ -1,0 +1,123 @@
+<script setup lang="ts">
+import { useI18n } from 'vue-i18n'
+import XChip from './XChip.vue'
+import XIcon from './XIcon.vue'
+
+/**
+ * A card of settings that folds: a header with a chevron, the title and the
+ * number of rows, and on the right a note and the counts of changed fields and
+ * errors inside. The rows (XSettingRow, XSettingDivider) are the slot. When
+ * the header is too narrow the badges move to a line of their own.
+ */
+defineProps<{
+  title: string
+  /** Rows inside, shown after the title. */
+  count?: number
+  /** A short remark at the right of the header. */
+  note?: string
+  modified?: number
+  errors?: number
+}>()
+const open = defineModel<boolean>('open', { default: true })
+const { t } = useI18n()
+</script>
+
+<template>
+  <section :class="['x-settings', { 'is-open': open }]">
+    <button type="button" class="x-settings__head" :aria-expanded="open" @click="open = !open">
+      <XIcon name="chevron" :size="14" :stroke="1.6" class="x-settings__chevron" />
+      <span class="x-settings__title">{{ title }}</span>
+      <span v-if="count" class="x-settings__count">{{ count }}</span>
+      <span v-if="note || modified || errors" class="x-settings__badges">
+        <XChip v-if="note">{{ note }}</XChip>
+        <XChip v-if="modified" tone="on" dot mono>{{ t('kit.modified', { n: modified }) }}</XChip>
+        <XChip v-if="errors" tone="err" mono>{{ t('kit.errors', { n: errors }) }}</XChip>
+      </span>
+    </button>
+    <div v-show="open" class="x-settings__body"><slot /></div>
+  </section>
+</template>
+
+<style scoped>
+.x-settings {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--r-16);
+  background: var(--card);
+  /* Tinted rows follow the rounded corners; popups are teleported, so nothing is cut. */
+  overflow: clip;
+}
+
+.x-settings__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  width: 100%;
+  min-height: 45px;
+  padding: 6px 20px;
+  border: 0;
+  background: none;
+  color: var(--fg);
+  text-align: left;
+  cursor: pointer;
+  user-select: none;
+  outline: none;
+  transition: background-color var(--t-fast);
+}
+
+.x-settings__head:hover {
+  background: var(--hov);
+}
+
+.x-settings__head:active {
+  background: var(--press);
+}
+
+.x-settings__head:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--acc-line);
+}
+
+.x-settings__chevron {
+  flex: none;
+  color: var(--dim);
+  transition: transform var(--t-fast);
+}
+
+.is-open .x-settings__chevron {
+  transform: rotate(90deg);
+}
+
+.x-settings__title {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  font: 600 var(--fs-14) / var(--lh-tight) var(--font-sans);
+  letter-spacing: -.2px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.x-settings__count {
+  flex: none;
+  color: var(--faint);
+  font: 500 var(--fs-11) / 1 var(--font-mono);
+}
+
+.x-settings__badges {
+  display: flex;
+  flex: 0 1 auto;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  margin-left: auto;
+}
+
+@media (max-width: 767px) {
+  .x-settings__head {
+    padding: 6px 16px;
+  }
+}
+</style>

@@ -78,9 +78,9 @@ function onBlur() {
     :class="['x-field-box', 'x-tags', { 'x-field-box--mono': mono, 'is-disabled': disabled, 'is-invalid': invalid, 'is-modified': modified }]"
     @click="input?.focus()"
   >
-    <span v-for="(tag, i) in model" :key="tag" class="x-tags__chip">
-      <span class="x-tags__text">{{ tag }}</span>
-      <button v-if="!disabled" type="button" class="x-tags__remove" :aria-label="t('kit.remove', { value: tag })" @click.stop="remove(i)">
+    <span v-for="(tag, i) in model" :key="tag" class="x-tag-chip">
+      <span class="x-tag-chip__text">{{ tag }}</span>
+      <button v-if="!disabled" type="button" class="x-tag-chip__remove" :aria-label="t('kit.remove', { value: tag })" @click.stop="remove(i)">
         <XIcon name="close" :size="10" :stroke="1.8" />
       </button>
     </span>
@@ -131,51 +131,6 @@ function onBlur() {
   min-height: var(--ctl-h);
   padding: 4px;
   cursor: text;
-}
-
-.x-tags__chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  max-width: 100%;
-  height: var(--chip-h);
-  padding: 0 4px 0 8px;
-  border: 1px solid var(--chip-line);
-  border-radius: var(--r-6);
-  background: var(--chip);
-  color: var(--fg2);
-  font: 500 var(--fs-11) / 1 var(--font-sans);
-  white-space: nowrap;
-}
-
-.x-field-box--mono .x-tags__chip {
-  font-family: var(--font-mono);
-}
-
-.x-tags__text {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.x-tags__remove {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 16px;
-  height: 16px;
-  padding: 0;
-  border: 0;
-  border-radius: var(--r-4);
-  background: transparent;
-  color: var(--dim);
-  outline: none;
-}
-
-.x-tags__remove:hover,
-.x-tags__remove:focus-visible {
-  background: var(--press);
-  color: var(--fg);
 }
 
 .x-tags__control {

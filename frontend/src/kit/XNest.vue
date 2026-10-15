@@ -1,0 +1,36 @@
+<script setup lang="ts">
+/**
+ * A block nested under a setting that a switch opens: a caps title and the
+ * fields, one step below the card. With columns, fields fill a grid of at
+ * least that many px each.
+ */
+defineProps<{ title?: string; columns?: number }>()
+</script>
+
+<template>
+  <div class="x-nest">
+    <div v-if="title" class="x-caps x-caps--lg x-nest__title">{{ title }}</div>
+    <div :class="{ 'x-nest__grid': columns }" :style="columns ? { '--nest-col': `${columns}px` } : undefined"><slot /></div>
+  </div>
+</template>
+
+<style scoped>
+.x-nest {
+  min-width: 0;
+  padding: 12px 14px 14px;
+  border: 1px solid var(--div);
+  border-radius: var(--r-12);
+  background: var(--nest);
+}
+
+.x-nest__title {
+  margin-bottom: 10px;
+}
+
+.x-nest__grid {
+  display: grid;
+  /* Columns of at least --nest-col, but never wider than the block on a narrow screen. */
+  grid-template-columns: repeat(auto-fit, minmax(min(var(--nest-col), 100%), 1fr));
+  gap: 12px;
+}
+</style>

@@ -903,6 +903,8 @@
 "pages" = "Страницы"
 "previousPage" = "Предыдущая страница"
 "nextPage" = "Следующая страница"
+"modified" = "изменено: {n}"
+"errors" = "ошибок: {n}"
 
 [units]
 "value" = "{n} {unit}"

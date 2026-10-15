@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useTheme } from '../stores/theme'
 import {
-  XActionList, XActionRow, XBadge, XButton, XCard, XCheckbox, XChip, XCodeArea, XConfirm, XCounter, XDataTable, XEmpty, XErrorBox, XField, XInfoRow, XInput, XMenu, XModal, XNavItem, XNotice, XNumber,
-  XPager, XPickList, XRecordCard, XRowLink, XSection, XSegmented, XSelect, XStatusDot, XSwitch, XTagInput, XTextarea, XTooltip, XUsagePill,
+  XActionBar, XActionList, XActionRow, XBadge, XBusyOverlay, XButton, XCard, XCheckbox, XChip, XCodeArea, XConfirm, XCounter, XDataTable, XEmpty, XErrorBox, XField, XInfoRow, XInput, XMenu, XModal, XMultiSelect, XNavItem, XNest, XNotice, XNumber,
+  XPager, XPickList, XRecordCard, XRowLink, XSection, XSegmented, XSelect, XSettingDivider, XSettingRow, XSettingsSection, XStatusDot, XStatusText, XSwitch, XTabs, XTagInput, XTextarea, XTooltip, XUsagePill,
   type MenuItem,
 } from '../kit'
 
@@ -79,6 +79,20 @@ const levelItems = computed<MenuItem[]>(() =>
 )
 const lastAction = ref('—')
 const codeText = ref(JSON.stringify({ log: { loglevel: 'warning' }, dns: { servers: ['https://1.1.1.1/dns-query'] }, routing: { domainStrategy: 'AsIs' } }, null, 2))
+const setTab = ref('panel')
+const setTabs = [
+  { key: 'panel', label: 'Панель', dot: 'err' as const },
+  { key: 'ui', label: 'Интерфейс' },
+  { key: 'acct', label: 'Учетная запись' },
+  { key: 'ldap', label: 'LDAP', dot: 'mod' as const },
+  { key: 'sub', label: 'Подписка' },
+  { key: 'fmt', label: 'Formats' },
+]
+const setOpen = ref(true)
+const setVals = ref({ port: 2054, session: 30, json: true, path: '/panel-x7/', rules: 'geosite:category-ads-all,geosite:ru,geoip:private,geoip:ru', tags: ['inbound-443'], frag: true })
+const setInbounds = ['inbound-443', 'inbound-8443', 'vless-reality', 'trojan-ws'].map((v) => ({ value: v, label: v }))
+const busyOpen = ref(false)
+watch(busyOpen, (on) => on && setTimeout(() => (busyOpen.value = false), 3000))
 const typeChecks = ref({ direct: true, blocked: true, proxy: false })
 const tableColumns = [
   { key: 'time', label: 'Дата', width: 110, dim: true },
@@ -514,6 +528,57 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
     </XCard>
 
     <!-- Live -->
+    <XCard title="Страница настроек">
+      <div class="kit__stack">
+        <XTabs v-model="setTab" :items="setTabs" label="Разделы" />
+        <XNotice tone="warn" title="Предупреждение системы безопасности" :items="['Подключение к панели не защищено. Установите SSL-сертификат.', 'Порт панели по умолчанию небезопасен.']" closable>
+          Некоторые настройки уязвимы.
+        </XNotice>
+        <div class="kit__row kit__row--wrap">
+          <XStatusText tone="mod">Не сохранено: 2</XStatusText>
+          <XStatusText tone="err">Исправьте ошибки: 1 · не сохранено: 2</XStatusText>
+          <XButton @click="busyOpen = true">Перезапуск: оверлей на 3 с</XButton>
+        </div>
+        <XSettingsSection v-model:open="setOpen" title="Основное" :count="6" :modified="2" :errors="1" note="IP по умолчанию">
+          <XSettingRow title="Порт панели" description="Порт, на котором работает панель" narrow modified>
+            <XNumber v-model="setVals.port" :min="1" :max="65535" modified />
+          </XSettingRow>
+          <XSettingRow title="Продолжительность сессии" description="Значение в минутах" narrow error="Значение должно быть не меньше 60">
+            <XNumber v-model="setVals.session" unit="мин" invalid />
+          </XSettingRow>
+          <XSettingRow title="Включить JSON-подписку" description="Отдельный адрес с подпиской в формате JSON" inline>
+            <XSwitch v-model="setVals.json" label="JSON" />
+          </XSettingRow>
+          <XSettingDivider label="Расширенный шаблон" />
+          <XSettingRow title="Корневой путь URL-адреса панели" description="Должен начинаться и заканчиваться символом /" modified>
+            <XInput v-model="setVals.path" mono modified />
+          </XSettingRow>
+          <XSettingRow title="Правила маршрутизации" description="Длинное значение: растёт до трёх строк, Enter не переносит" tall>
+            <XTextarea v-model="setVals.rules" mono :grow="3" />
+          </XSettingRow>
+          <XSettingRow title="Подключения для LDAP" description="Новые клиенты попадут в выбранные подключения">
+            <XMultiSelect v-model="setVals.tags" :options="setInbounds" mono placeholder="Все подключения" empty="Подключений пока нет" />
+          </XSettingRow>
+          <XSettingRow title="Фрагментация" inline>
+            <XSwitch v-model="setVals.frag" label="Фрагментация" />
+            <template v-if="setVals.frag" #nested>
+              <XNest title="Параметры фрагментации" :columns="140">
+                <XField v-slot="f" label="Packets"><XInput v-bind="f" model-value="tlshello" mono /></XField>
+                <XField v-slot="f" label="Length"><XInput v-bind="f" model-value="100-200" mono /></XField>
+                <XField v-slot="f" label="Interval"><XInput v-bind="f" model-value="10-20" mono /></XField>
+              </XNest>
+            </template>
+          </XSettingRow>
+        </XSettingsSection>
+        <XActionBar style="position: static; border-radius: 12px">
+          <template #state><XStatusText tone="mod">Не сохранено: 2</XStatusText></template>
+          <XButton variant="primary">Сохранить</XButton>
+          <XButton icon="refresh" disabled>Перезапуск</XButton>
+        </XActionBar>
+      </div>
+    </XCard>
+    <XBusyOverlay :open="busyOpen" title="Перезапуск панели" text="Ожидание ответа панели…" />
+
     <div class="kit__live">
       <XCard title="Форма">
         <template #actions>
