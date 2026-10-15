@@ -68,3 +68,11 @@ export function formatDuration(seconds: number, parts = 2) {
   }
   return out.length ? out.join(' ') : t('units.seconds', { n: formatNumber(0) })
 }
+
+const two = (n: number) => String(n).padStart(2, '0')
+
+/** Unix seconds → «2026-10-09 14:32:05» in local time. */
+export function formatTimestamp(seconds: number) {
+  const d = new Date(seconds * 1000)
+  return `${d.getFullYear()}-${two(d.getMonth() + 1)}-${two(d.getDate())} ${two(d.getHours())}:${two(d.getMinutes())}:${two(d.getSeconds())}`
+}

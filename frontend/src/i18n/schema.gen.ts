@@ -438,6 +438,34 @@ export interface MessageSchema {
     "catalogCustom": string
     "yes": string
     "close": string
+    "geoAppliedAtOnce": string
+    "geoStandard": string
+    "geoUpdateAll": string
+    "geoUpdateTitle": string
+    "geoUpdateFile": string
+    "geoUpdateAllText": string
+    "geoUpdated": string
+    "geoCustom": string
+    "geoAdd": string
+    "geoType": string
+    "geoAlias": string
+    "geoUrl": string
+    "geoLastUpdated": string
+    "geoExt": string
+    "geoActions": string
+    "geoEdit": string
+    "geoDownload": string
+    "geoSourceAdd": string
+    "geoSourceEdit": string
+    "geoSave": string
+    "geoDeleteText": string
+    "geoHint": string
+    "geoAliasInvalid": string
+    "geoUrlInvalid": string
+    "geoAliasPlaceholder": string
+    "geoAliasTaken": string
+    "geoUpdatedAll": string
+    "confirm": string
   }
   "units": {
     "value": string

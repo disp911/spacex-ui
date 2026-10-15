@@ -213,3 +213,14 @@ export function ruleTarget(r: Rule): { kind: 'outbound' | 'balancer'; tag: strin
   if (r.balancerTag) return { kind: 'balancer', tag: String(r.balancerTag) }
   return null
 }
+
+// --- Geo files ------------------------------------------------------------------
+
+/** A geo file of the user's own: where it comes from and when it last came. */
+export interface GeoSource {
+  id: number
+  type: 'geosite' | 'geoip'
+  alias: string
+  url: string
+  lastUpdatedAt?: number
+}

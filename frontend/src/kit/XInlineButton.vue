@@ -7,11 +7,11 @@ import type { IconName } from './icons'
  * tile: show a password, clear a value, reveal an address. Square buttons on
  * their own are XButton.
  */
-withDefaults(defineProps<{ icon: IconName; label: string; iconSize?: number; stroke?: number }>(), { iconSize: 15, stroke: 1.35 })
+withDefaults(defineProps<{ icon: IconName; label: string; iconSize?: number; stroke?: number; /** Removes something: red. */ danger?: boolean }>(), { iconSize: 15, stroke: 1.35 })
 </script>
 
 <template>
-  <button type="button" class="x-inline-btn" :aria-label="label" :title="label">
+  <button type="button" :class="['x-inline-btn', { 'x-inline-btn--danger': danger }]" :aria-label="label" :title="label">
     <XIcon :name="icon" :size="iconSize" :stroke="stroke" />
   </button>
 </template>
@@ -37,6 +37,15 @@ withDefaults(defineProps<{ icon: IconName; label: string; iconSize?: number; str
 .x-inline-btn.is-hover {
   background: var(--hov);
   color: var(--fg);
+}
+
+.x-inline-btn--danger {
+  color: var(--err-t);
+}
+
+.x-inline-btn--danger:hover:not(:disabled) {
+  background: var(--err-bg);
+  color: var(--err-t);
 }
 
 .x-inline-btn:focus-visible,

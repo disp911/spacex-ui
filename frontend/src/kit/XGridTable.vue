@@ -21,7 +21,8 @@ export interface GridColumn {
  * Escape to drop), its number and a menu of actions. On phones every row
  * becomes a card: the handle, the number, the head columns and the menu on
  * top, the other columns with their labels under it, empty ones left out.
- * A cell shows the `cell-<key>` slot; a blank one shows a dash.
+ * A cell shows the `cell-<key>` slot; a blank one shows a dash. With no rows
+ * the empty slot shows under the header.
  */
 const props = defineProps<{
   columns: GridColumn[]
@@ -186,6 +187,8 @@ function rowStyle(k: number) {
       <span v-for="c in columns" :key="c.key" role="columnheader">{{ c.label }}</span>
     </div>
 
+    <div v-if="!rows.length && $slots.empty" class="x-grid__empty"><slot name="empty" /></div>
+
     <div
       v-for="(row, i) in rows"
       :key="rowKey(row, i)"
@@ -194,7 +197,7 @@ function rowStyle(k: number) {
       :style="rowStyle(i)"
       role="row"
     >
-      <div :class="phone ? 'x-grid__card-head' : 'x-grid__lead'" :role="phone ? undefined : 'cell'">
+      <div v-if="lead || (phone && headColumns.length)" :class="phone ? 'x-grid__card-head' : 'x-grid__lead'" :role="phone ? undefined : 'cell'">
         <button
           v-if="sortable"
           type="button"
@@ -378,6 +381,16 @@ function rowStyle(k: number) {
   z-index: 2;
   background: var(--dlg);
   box-shadow: var(--shadow-lift), 0 0 0 1px var(--acc-line);
+}
+
+.x-grid__empty {
+  border-top: 1px solid var(--div);
+}
+
+.x-grid--phone .x-grid__empty {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
 }
 
 /* Phones: a card per row. */

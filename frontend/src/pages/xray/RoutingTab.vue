@@ -5,6 +5,7 @@ import { XButton, XCard, XEmpty, XGridTable, XRouteTarget, XValueChip, type Grid
 import { useXrayForm } from './form'
 import { ruleGroups, ruleTarget, type Rule } from './model'
 import RuleModal from './RuleModal.vue'
+import GeoModal from './GeoModal.vue'
 
 /** The routing rules in their order: Xray takes the first that matches. */
 const { t } = useI18n()
@@ -35,6 +36,7 @@ function move(from: number, to: number) {
 
 // The rule window: a new rule, or the one at editing.
 const ruleOpen = ref(false)
+const geoOpen = ref(false)
 const editing = ref(-1)
 
 function create() {
@@ -62,7 +64,7 @@ function saveRule(rule: Rule) {
   <div class="xray-tab">
     <div class="xray-tab__tools">
       <XButton variant="primary" icon="plus" class="xray-tab__main" @click="create">{{ t('xray.ruleAdd') }}</XButton>
-      <XButton icon="globe">{{ t('xray.geoFiles') }}</XButton>
+      <XButton icon="globe" @click="geoOpen = true">{{ t('xray.geoFiles') }}</XButton>
     </div>
 
     <XGridTable
@@ -89,6 +91,7 @@ function saveRule(rule: Rule) {
       <XEmpty icon="rules" />
     </XCard>
 
+    <GeoModal v-model:open="geoOpen" />
     <RuleModal v-model:open="ruleOpen" :rule="editing >= 0 ? rules[editing] ?? null : null" :index="editing" @save="saveRule" />
   </div>
 </template>
