@@ -90,7 +90,7 @@ async function applyTwoFactor() {
 
 <template>
   <div class="settings-tab">
-    <XSettingsSection v-model:open="open.admin" :title="t('settings.secAdmin')" :count="1" :note="t('settings.secAdminNote')">
+    <XSettingsSection v-model:open="open.admin" :title="t('settings.secAdmin')" :count="1">
       <XSettingBlock>
         <form class="creds" autocomplete="off" @submit.prevent="submit">
           <XField v-slot="a" :label="t('settings.currentUsername')">

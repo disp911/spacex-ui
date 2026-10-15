@@ -240,7 +240,6 @@ export interface MessageSchema {
     "errPathBoth": string
     "errPathStart": string
     "secAdmin": string
-    "secAdminNote": string
     "currentUsername": string
     "currentPassword": string
     "newUsername": string

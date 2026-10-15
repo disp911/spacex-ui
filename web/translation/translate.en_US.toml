@@ -972,7 +972,6 @@
 "errPathBoth" = "The path must begin and end with '/'"
 "errPathStart" = "The path must begin with '/'"
 "secAdmin" = "Admin credentials"
-"secAdminNote" = "A form of its own"
 "currentUsername" = "Current Username"
 "currentPassword" = "Current Password"
 "newUsername" = "New Username"
