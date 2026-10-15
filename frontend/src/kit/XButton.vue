@@ -31,6 +31,8 @@ const props = withDefaults(
     phoneBlock?: boolean
     /** Done: a check draws in place of the icon and the button gives a small pop. */
     success?: boolean
+    /** Waits for an earlier step, e.g. Restart for Save: disabled, in a dashed outline. */
+    pending?: boolean
   }>(),
   { variant: 'secondary', size: 'md', type: 'button' },
 )
@@ -54,9 +56,9 @@ const linkAttrs = computed(() => (props.to ? { to: props.to } : props.href ? { h
       'x-btn',
       `x-btn--${variant}`,
       `x-btn--${sizeClass}`,
-      { 'x-btn--icon': iconOnly, 'x-btn--block': block, 'x-btn--mono': mono, 'x-btn--phone-icon': phoneIconOnly && !iconOnly, 'x-btn--phone-block': phoneBlock, 'is-loading': loading, 'is-success': success },
+      { 'x-btn--icon': iconOnly, 'x-btn--block': block, 'x-btn--mono': mono, 'x-btn--phone-icon': phoneIconOnly && !iconOnly, 'x-btn--phone-block': phoneBlock, 'is-loading': loading, 'is-success': success, 'is-pending': pending },
     ]"
-    :disabled="isLink ? undefined : disabled"
+    :disabled="isLink ? undefined : disabled || pending"
     :aria-disabled="loading || (isLink && disabled) || undefined"
     :aria-busy="loading || undefined"
     :aria-label="label"
@@ -350,5 +352,9 @@ const linkAttrs = computed(() => (props.to ? { to: props.to } : props.href ? { h
 .x-btn--ghost-danger:disabled {
   background: transparent;
   border-color: transparent;
+}
+.x-btn.is-pending {
+  background: transparent;
+  border: 1px dashed var(--field-hover);
 }
 </style>

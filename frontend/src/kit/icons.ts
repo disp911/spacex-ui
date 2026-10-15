@@ -14,6 +14,7 @@ export const icons = {
   caret: path('M4 6l4 4 4-4'),
   menu: path('M2.4 4h11.2M2.4 8h11.2M2.4 12h7'),
   refresh: path('M13.4 8a5.4 5.4 0 1 1-1.6-3.8M13.6 2.2v3.2h-3.2'),
+  reset: path('M2.8 8a5.2 5.2 0 1 0 1.6-3.8M2.6 2.4v3.2h3.2'),
   search: circle(7, 7, 4.6) + path('M10.5 10.5l3.1 3.1'),
   filter: path('M2.4 3.2h11.2L9.3 8.4v4.2l-2.6 1.2V8.4z'),
   dots: dot(8, 3.4) + dot(8, 8) + dot(8, 12.6),
@@ -48,6 +49,7 @@ export const icons = {
   arrowUp: path('M8 13.4V3M8 2.6l4.2 4.2M8 2.6 3.8 6.8'),
   arrowDown: path('M8 2.6V13M8 13.4l4.2-4.2M8 13.4 3.8 9.2'),
   alert: circle(8, 8, 6.9) + path('M8 4.6v4.1') + dot(8, 11.2, 0.95),
+  exclaim: path('M8 3.4v5.8') + dot(8, 12.3, 1.05),
   copy: '<rect x="5.3" y="5.3" width="8" height="8" rx="1.8"/>' + path('M10.7 3.6V3.5a1.3 1.3 0 0 0-1.3-1.3H4a1.8 1.8 0 0 0-1.8 1.8v5.4c0 .7.6 1.3 1.3 1.3'),
   swap: path('M2.6 5.4h10.4M10.4 2.8 13 5.4 10.4 8M13.4 10.6H3M5.6 8 3 10.6l2.6 2.6'),
 } as const

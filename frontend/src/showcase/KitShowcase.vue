@@ -2,8 +2,9 @@
 import { computed, ref, watch } from 'vue'
 import { useTheme } from '../stores/theme'
 import {
-  XActionBar, XActionList, XActionRow, XBadge, XBusyOverlay, XButton, XCard, XCheckbox, XChip, XCodeArea, XCodeInput, XConfirm, XCounter, XDataTable, XEmpty, XErrorBox, XExample, XField, XFieldNote, XInfoRow, XInput, XMenu, XModal, XMultiSelect, XNavItem, XNest, XNestCard, XNotice, XNumber, XOrderToggles,
-  XPager, XPickList, XQrCode, XRecordCard, XRowLink, XSection, XSegmented, XSelect, XSettingBlock, XSettingDivider, XSettingRow, XSettingsSection, XSettingsSkeleton, XStatusDot, XStatusText, XSwitch, XTabs, XTagInput, XTextarea, XTooltip, XUsagePill,
+  XActionBar, XActionList, XActionRow, XBackToTop, XBadge, XBusyOverlay, XButton, XCard, XCheckbox, XChip, XCodeArea, XCodeInput, XConfirm, XCounter, XDataTable, XEmpty, XErrorBox, XExample, XField, XFieldNote, XInfoRow, XInput, XMenu, XModal, XMultiSelect, XNavItem, XNest, XNestCard, XNotice,
+  XNumber, XOrderToggles, XPager, XPickList, XProcessError, XProgressLine, XQrCode, XRecordCard, XRowLink, XSection, XSegmented, XSelect, XSettingBlock, XSettingDivider, XSettingRow, XSettingsSection, XSettingsSkeleton, XStatusDot, XStatusText, XStepArrow, XSwitch, XTabs, XTagInput, XTextarea,
+  XTooltip, XUsagePill,
   type MenuItem,
 } from '../kit'
 
@@ -89,6 +90,12 @@ const setTabs = [
   { key: 'fmt', label: 'Formats' },
 ]
 const setOpen = ref(true)
+const xrayOpen = ref(true)
+const xrayLog = ref('')
+const xrayBusy = ref(false)
+const xrayErrorOpen = ref(false)
+const xrayStart = `Failed to start: main: failed to load config files: [bin/config.json] > infra/conf: failed to build outbound config with tag nordvpn-de
+exit status 23`
 const setVals = ref({ port: 2054, session: 30, json: true, path: '/panel-x7/', rules: 'geosite:category-ads-all,geosite:ru,geoip:private,geoip:ru', tags: ['inbound-443'], frag: true })
 const setInbounds = ['inbound-443', 'inbound-8443', 'vless-reality', 'trojan-ws'].map((v) => ({ value: v, label: v }))
 const busyOpen = ref(false)
@@ -631,6 +638,41 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
         </XCard>
       </div>
     </XCard>
+
+    <XCard title="Настройки Xray">
+      <div class="kit__stack">
+        <XTabs model-value="general" :items="[{ key: 'general', label: 'Основное' }, { key: 'routing', label: 'Маршрутизация' }]" label="Разделы, пока грузятся" disabled />
+        <XNotice tone="err" title="Предупреждение системы безопасности" closable>Соединение не защищено. Не вводите конфиденциальные данные до установки SSL-сертификата.</XNotice>
+        <div class="kit__row kit__row--wrap">
+          <XProcessError v-model:open="xrayErrorOpen" title="Ошибка при запуске Xray" :text="xrayStart" />
+          <XButton variant="primary" icon="refresh" :loading="xrayBusy" @click="xrayBusy = !xrayBusy">Перезапуск Xray</XButton>
+          <span>Линия под вкладками во время перезапуска:</span>
+        </div>
+        <XProgressLine v-if="xrayBusy" />
+        <XSettingsSection v-model:open="xrayOpen" title="Логи" :count="2">
+          <XSettingRow title="Логи ошибок" description="«Empty» в списке — обычным шрифтом курсивом">
+            <XSelect v-model="xrayLog" :options="[{ value: '', label: 'Empty', plain: true }, { value: 'none', label: 'none' }, { value: './error.log', label: './error.log' }]" mono />
+          </XSettingRow>
+        </XSettingsSection>
+        <XSettingsSection title="Восстановить настройки по умолчанию" padded>
+          <XButton variant="danger" icon="reset">Восстановить настройки по умолчанию</XButton>
+        </XSettingsSection>
+        <XActionBar fit style="position: static; border-radius: 12px">
+          <template #state><XStatusText tone="mod">Не сохранено: 1</XStatusText></template>
+          <XButton variant="primary">Сохранить</XButton>
+          <XStepArrow />
+          <XButton variant="primary" icon="refresh" pending>Перезапуск Xray</XButton>
+          <XProcessError title="Ошибка при запуске Xray" :text="xrayStart" />
+        </XActionBar>
+        <XActionBar fit style="position: static; border-radius: 12px">
+          <XButton variant="primary" disabled>Сохранить</XButton>
+          <XStepArrow done />
+          <XButton variant="primary" icon="refresh">Перезапуск Xray</XButton>
+        </XActionBar>
+        <span>Кнопка «Наверх» появляется справа снизу, когда страница прокручена дальше 200px.</span>
+      </div>
+    </XCard>
+    <XBackToTop label="Наверх" />
     <XConfirm v-model:open="restartAsk" icon="refresh" title="Перезапуск панели" cta="Да" @confirm="restartAsk = false">
       Вы уверены, что хотите перезапустить панель? Если панель будет недоступна, проверьте лог сервера
     </XConfirm>

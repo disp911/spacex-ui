@@ -8,12 +8,15 @@
  * bar of buttons that phones pin to the bottom of the screen in place of the
  * actions. With fixed, the banner, the title and the tabs stay on screen on
  * desktop while the content scrolls; on phones the tabs stay under the top bar.
+ * While busy, e.g. a restart, a line runs under the tabs and the content dims.
  */
-defineProps<{ title: string; fixed?: boolean }>()
+import { XProgressLine } from '../kit'
+
+defineProps<{ title: string; fixed?: boolean; busy?: boolean }>()
 </script>
 
 <template>
-  <div :class="['page', { 'page--fixed': fixed, 'page--bar': $slots.bar }]">
+  <div :class="['page', { 'page--fixed': fixed, 'page--bar': $slots.bar, 'page--busy': busy }]">
     <div class="page__top">
       <div v-if="$slots.banner" class="page__banner"><slot name="banner" /></div>
       <header class="page__head">
@@ -24,7 +27,10 @@ defineProps<{ title: string; fixed?: boolean }>()
         <div v-if="$slots.actions" class="page__actions"><slot name="actions" /></div>
         <div v-if="$slots.aside" class="page__aside"><slot name="aside" /></div>
       </header>
-      <div v-if="$slots.tabs" class="page__tabs"><slot name="tabs" /></div>
+      <div v-if="$slots.tabs" class="page__tabs">
+        <slot name="tabs" />
+        <XProgressLine v-if="busy" class="page__busy" />
+      </div>
     </div>
     <slot />
     <div v-if="$slots.bar" class="page__bar"><slot name="bar" /></div>
@@ -98,7 +104,28 @@ defineProps<{ title: string; fixed?: boolean }>()
 
 /* The tabs sit 14px under the title: the column gap less the 6px they borrow back. */
 .page__tabs {
+  position: relative;
   margin-top: -6px;
+}
+
+/* Over the line under the tabs, across the whole top of a fixed page. */
+.page__busy {
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  left: 0;
+}
+
+.page--fixed .page__busy {
+  right: -24px;
+  left: -24px;
+}
+
+.page--busy > :deep(:not(.page__top, .page__bar)) {
+  opacity: .5;
+  filter: saturate(.7);
+  pointer-events: none;
+  transition: opacity var(--t-med), filter var(--t-med);
 }
 
 .page__bar {
@@ -158,6 +185,12 @@ defineProps<{ title: string; fixed?: boolean }>()
     position: sticky;
     top: var(--topbar-h);
     z-index: 10;
+  }
+
+  /* The strip already reaches the edges. */
+  .page--fixed .page__busy {
+    right: 0;
+    left: 0;
   }
 
   /* Pinned to the bottom of the screen, from edge to edge, over the content's bottom padding. */

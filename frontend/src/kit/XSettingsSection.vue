@@ -17,6 +17,8 @@ defineProps<{
   note?: string
   modified?: number
   errors?: number
+  /** Free content in place of rows, e.g. a single button, kept off the card's edges. */
+  padded?: boolean
 }>()
 const open = defineModel<boolean>('open', { default: true })
 const { t } = useI18n()
@@ -34,7 +36,7 @@ const { t } = useI18n()
         <XChip v-if="errors" tone="err" mono>{{ t('kit.errors', { n: errors }) }}</XChip>
       </span>
     </button>
-    <div v-show="open" class="x-settings__body"><slot /></div>
+    <div v-show="open" :class="['x-settings__body', { 'x-settings__body--padded': padded }]"><slot /></div>
   </section>
 </template>
 
@@ -78,13 +80,21 @@ const { t } = useI18n()
   box-shadow: inset 0 0 0 2px var(--acc-line);
 }
 
+.x-settings__body--padded {
+  padding: 4px 20px 18px;
+}
+
 .x-settings__chevron {
   flex: none;
   color: var(--dim);
   transition: transform var(--t-fast);
 }
 
-.is-open .x-settings__chevron {
+.is-open .x-settings__body--padded {
+  padding: 4px 20px 18px;
+}
+
+.x-settings__chevron {
   transform: rotate(90deg);
 }
 
@@ -118,6 +128,10 @@ const { t } = useI18n()
 @media (max-width: 767px) {
   .x-settings__head {
     padding: 6px 16px;
+  }
+
+  .x-settings__body--padded {
+    padding: 4px 16px 18px;
   }
 
   /* Phones keep the header to the title and the counts. */

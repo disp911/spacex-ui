@@ -368,6 +368,49 @@ export interface MessageSchema {
     "presetPick": string
     "presetMore": string
   }
+  "xray": {
+    "tabGeneral": string
+    "tabRouting": string
+    "tabOutbounds": string
+    "tabBalancer": string
+    "tabDns": string
+    "tabAdvanced": string
+    "sections": string
+    "subtitle": string
+    "securityText": string
+    "restart": string
+    "restartFailed": string
+    "startError": string
+    "toTop": string
+    "secGeneral": string
+    "freedom": string
+    "freedomDesc": string
+    "routing": string
+    "routingDesc": string
+    "testUrl": string
+    "testUrlDesc": string
+    "secStats": string
+    "statsInboundUplink": string
+    "statsInboundUplinkDesc": string
+    "statsInboundDownlink": string
+    "statsInboundDownlinkDesc": string
+    "statsOutboundUplink": string
+    "statsOutboundUplinkDesc": string
+    "statsOutboundDownlink": string
+    "statsOutboundDownlinkDesc": string
+    "secLogs": string
+    "logLevel": string
+    "logLevelDesc": string
+    "accessLog": string
+    "accessLogDesc": string
+    "errorLog": string
+    "errorLogDesc": string
+    "maskAddress": string
+    "maskAddressDesc": string
+    "dnsLog": string
+    "dnsLogDesc": string
+    "secReset": string
+  }
   "units": {
     "value": string
     "byte": string

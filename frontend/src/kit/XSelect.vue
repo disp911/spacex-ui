@@ -137,7 +137,7 @@ function onKeydown(e: KeyboardEvent) {
           role="option"
           :aria-selected="o.value === model"
           :aria-disabled="o.disabled || undefined"
-          :class="['x-popup-item', { 'is-active': i === active, 'is-selected': o.value === model, 'x-select__option--mono': mono }]"
+          :class="['x-popup-item', { 'is-active': i === active, 'is-selected': o.value === model, 'x-select__option--mono': mono && !o.plain, 'x-select__option--plain': o.plain }]"
           @pointermove="!o.disabled && (active = i)"
           :title="columns ? o.label : undefined"
           @click="choose(i)"
@@ -221,5 +221,9 @@ function onKeydown(e: KeyboardEvent) {
 .x-select__option--mono {
   font-family: var(--font-mono);
   font-weight: 400;
+}
+
+.x-select__option--plain {
+  font-style: italic;
 }
 </style>

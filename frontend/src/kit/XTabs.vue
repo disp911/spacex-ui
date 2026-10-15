@@ -12,7 +12,12 @@ export interface TabItem<K extends string = string> {
  * Page tabs. On wide screens labels sit on a line with an accent ink under the
  * current one; on phones they are pills in a strip that scrolls sideways.
  */
-defineProps<{ items: TabItem<K>[]; label?: string }>()
+defineProps<{
+  items: TabItem<K>[]
+  label?: string
+  /** While the page loads: the tabs show but do not switch. */
+  disabled?: boolean
+}>()
 const model = defineModel<K>({ required: true })
 
 const strip = ref<HTMLElement | null>(null)
@@ -54,6 +59,7 @@ function onKeydown(e: KeyboardEvent, items: TabItem<K>[]) {
         role="tab"
         :aria-selected="tab.key === model"
         :tabindex="tab.key === model ? 0 : -1"
+        :disabled="disabled"
         :class="['x-tabs__tab', { 'is-current': tab.key === model }]"
         @click="model = tab.key"
       >
@@ -100,9 +106,14 @@ function onKeydown(e: KeyboardEvent, items: TabItem<K>[]) {
   transition: color var(--t-fast);
 }
 
-.x-tabs__tab:hover,
+.x-tabs__tab:hover:not(:disabled),
 .x-tabs__tab.is-current {
   color: var(--fg);
+}
+
+.x-tabs__tab:disabled {
+  opacity: .5;
+  cursor: default;
 }
 
 .x-tabs__tab.is-current {
