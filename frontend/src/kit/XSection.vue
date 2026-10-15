@@ -75,14 +75,18 @@ const id = useId()
   background: var(--press);
 }
 
-.x-section__head:focus-visible,
-.x-section__head.is-focus {
-  box-shadow: inset 0 0 0 2px var(--acc-line);
+/* Keyboard focus marks the chevron, not the whole header. */
+.x-section__head:focus-visible .x-section__chevron,
+.x-section__head.is-focus .x-section__chevron {
+  border-radius: 2px;
+  background: var(--acc-soft);
+  color: var(--acc);
+  box-shadow: 0 0 0 4px var(--acc-soft), 0 0 0 5px var(--acc-line);
 }
 
 .x-section__chevron {
   color: var(--dim);
-  transition: transform var(--t-fast) var(--ease);
+  transition: transform var(--t-fast) var(--ease), color var(--t-fast), box-shadow var(--t-fast);
 }
 
 .is-open > .x-section__bar .x-section__chevron {
