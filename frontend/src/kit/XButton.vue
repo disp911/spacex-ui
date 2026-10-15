@@ -7,7 +7,7 @@ import type { IconName } from './icons'
 
 const props = withDefaults(
   defineProps<{
-    variant?: 'primary' | 'secondary' | 'soft' | 'danger' | 'ghost' | 'ghost-danger'
+    variant?: 'primary' | 'secondary' | 'soft' | 'danger' | 'ghost' | 'ghost-danger' | 'dashed'
     /** sm is for text buttons; a square icon button is always the regular size. */
     size?: 'md' | 'sm'
     icon?: IconName
@@ -273,6 +273,29 @@ const linkAttrs = computed(() => (props.to ? { to: props.to } : props.href ? { h
 .x-btn--danger.is-active {
   background: var(--err-ring);
   border-color: var(--err);
+}
+
+/* dashed: adds one more of something to a list */
+.x-btn--dashed {
+  border: 1px dashed var(--field-hover);
+  background: transparent;
+  color: var(--fg2);
+  font-weight: 500;
+}
+.x-btn--dashed:hover:not(:disabled),
+.x-btn--dashed.is-hover {
+  border-color: var(--acc-line);
+  background: var(--acc-soft);
+  color: var(--acc);
+}
+.x-btn--dashed:focus-visible,
+.x-btn--dashed.is-focus {
+  border-color: var(--acc-line);
+  box-shadow: 0 0 0 3px var(--acc-ring);
+}
+.x-btn--dashed:active:not(:disabled),
+.x-btn--dashed.is-active {
+  transform: scale(.98);
 }
 
 /* ghost: row actions, "more" buttons */

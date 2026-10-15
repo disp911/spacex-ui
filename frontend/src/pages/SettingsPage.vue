@@ -7,13 +7,14 @@ import {
 } from '../kit'
 import AppPage from '../layout/AppPage.vue'
 import { cause, formKey } from './settings/form'
-import { checks, checkValue, securityAlerts, tabs, type AllSetting, type SettingKey, type TabKey } from './settings/model'
+import { securityAlerts, settingErrors, tabs, type AllSetting, type SettingKey, type TabKey, type Text } from './settings/model'
 import { addressAfterRestart, waitForPanel } from './settings/restart'
 import PanelTab from './settings/PanelTab.vue'
 import UiTab from './settings/UiTab.vue'
 import AccountTab from './settings/AccountTab.vue'
 import LdapTab from './settings/LdapTab.vue'
 import SubTab from './settings/SubTab.vue'
+import FormatsTab from './settings/FormatsTab.vue'
 
 const { t } = useI18n()
 
@@ -52,9 +53,8 @@ const isDirty = (k: SettingKey) => !!draft.value && !!saved.value && draft.value
 const errors = computed(() => {
   const out: Partial<Record<SettingKey, string>> = {}
   if (!draft.value) return out
-  for (const [key, check] of Object.entries(checks) as [SettingKey, NonNullable<(typeof checks)[SettingKey]>][]) {
-    const fail = checkValue(check, draft.value[key])
-    if (fail) out[key] = t(fail[0], fail[1] ?? {})
+  for (const [key, fail] of Object.entries(settingErrors(draft.value)) as [SettingKey, [Text, Record<string, number>?]][]) {
+    out[key] = t(fail[0], fail[1] ?? {})
   }
   return out
 })
@@ -207,9 +207,7 @@ async function restart() {
       <AccountTab v-else-if="tab === 'account'" />
       <LdapTab v-else-if="tab === 'ldap'" />
       <SubTab v-else-if="tab === 'sub'" />
-      <XCard v-else>
-        <XEmpty :title="t('common.screenDraft')" />
-      </XCard>
+      <FormatsTab v-else />
     </div>
 
     <template #bar>

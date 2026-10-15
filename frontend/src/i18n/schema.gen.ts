@@ -345,6 +345,28 @@ export interface MessageSchema {
     "subUpdates": string
     "subUpdatesDesc": string
     "unitHours": string
+    "subJsonPath": string
+    "subJsonUri": string
+    "subClashPath": string
+    "subClashUri": string
+    "fragment": string
+    "fragmentDesc": string
+    "fragmentNest": string
+    "noises": string
+    "noisesDesc": string
+    "noise": string
+    "addNoise": string
+    "remove": string
+    "mux": string
+    "muxDesc": string
+    "muxNest": string
+    "direct": string
+    "directDesc": string
+    "directIps": string
+    "directDomains": string
+    "presets": string
+    "presetPick": string
+    "presetMore": string
   }
   "units": {
     "value": string
@@ -363,6 +385,7 @@ export interface MessageSchema {
     "milliseconds": string
   }
   "kit": {
+    "addValue": string
     "clear": string
     "showPassword": string
     "hidePassword": string

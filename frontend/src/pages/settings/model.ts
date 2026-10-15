@@ -3,7 +3,8 @@
 
 import type { MessageSchema } from '../../i18n/schema.gen'
 
-type Text = `settings.${keyof MessageSchema['settings']}`
+/** A message of the settings screen. */
+export type Text = `settings.${keyof MessageSchema['settings']}`
 
 export interface AllSetting {
   webListen: string
@@ -163,6 +164,32 @@ export const checks: Partial<Record<SettingKey, Check>> = {
   subCertFile: { path: 'start' },
   subKeyFile: { path: 'start' },
   subUpdates: { min: 1 },
+  subJsonPath: { path: 'both' },
+  subClashPath: { path: 'both' },
+}
+
+/** The concurrency values of the JSON subscription's mux. */
+export const muxCheck: Check = { min: -1, max: 1024 }
+
+/** Why each setting fails its check, for the settings as edited. */
+export function settingErrors(s: AllSetting) {
+  const out: Partial<Record<SettingKey, [Text, Record<string, number>?]>> = {}
+  for (const [key, check] of Object.entries(checks) as [SettingKey, Check][]) {
+    // A format that is off keeps whatever path it had.
+    if ((key === 'subJsonPath' && !s.subJsonEnable) || (key === 'subClashPath' && !s.subClashEnable)) continue
+    const fail = checkValue(check, s[key])
+    if (fail) out[key] = fail
+  }
+  if (s.subJsonMux) {
+    try {
+      const mux = JSON.parse(s.subJsonMux) as { concurrency?: unknown; xudpConcurrency?: unknown }
+      const fail = checkValue(muxCheck, mux.concurrency) ?? checkValue(muxCheck, mux.xudpConcurrency)
+      if (fail) out.subJsonMux = fail
+    } catch {
+      // not ours to judge: the server keeps what it has
+    }
+  }
+  return out
 }
 
 /** Why a value fails its check, as a translation key with its values; null when it passes. */

@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { useTheme } from '../stores/theme'
 import {
-  XActionBar, XActionList, XActionRow, XBadge, XBusyOverlay, XButton, XCard, XCheckbox, XChip, XCodeArea, XCodeInput, XConfirm, XCounter, XDataTable, XEmpty, XErrorBox, XExample, XField, XFieldNote, XInfoRow, XInput, XMenu, XModal, XMultiSelect, XNavItem, XNest, XNotice, XNumber, XOrderToggles,
+  XActionBar, XActionList, XActionRow, XBadge, XBusyOverlay, XButton, XCard, XCheckbox, XChip, XCodeArea, XCodeInput, XConfirm, XCounter, XDataTable, XEmpty, XErrorBox, XExample, XField, XFieldNote, XInfoRow, XInput, XMenu, XModal, XMultiSelect, XNavItem, XNest, XNestCard, XNotice, XNumber, XOrderToggles,
   XPager, XPickList, XQrCode, XRecordCard, XRowLink, XSection, XSegmented, XSelect, XSettingBlock, XSettingDivider, XSettingRow, XSettingsSection, XSettingsSkeleton, XStatusDot, XStatusText, XSwitch, XTabs, XTagInput, XTextarea, XTooltip, XUsagePill,
   type MenuItem,
 } from '../kit'
@@ -98,6 +98,7 @@ const demoCode = ref('')
 const demoTfa = ref(false)
 const demoParts = ref(['Inbound', 'Email'])
 const demoSep = ref('-')
+const demoTags = ref(['geoip:private'])
 watch(busyOpen, (on) => on && setTimeout(() => (busyOpen.value = false), 3000))
 const typeChecks = ref({ direct: true, blocked: true, proxy: false })
 const tableColumns = [
@@ -613,6 +614,17 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
             <XSwitch v-model="demoTfa" :text="demoTfa ? 'Включена' : 'Выключена'" label="2FA" />
           </XSettingRow>
         </XSettingsSection>
+        <XNest title="Список внутри блока">
+          <div style="display: flex; flex-direction: column; gap: 10px">
+            <XNestCard title="Noise №1" modified :columns="130">
+              <template #actions><XButton variant="ghost-danger" size="sm" icon="delete">Удалить</XButton></template>
+              <XField v-slot="a" label="Packet"><XInput v-bind="a" model-value="10-20" mono /></XField>
+              <XField v-slot="a" label="Delay (ms)"><XInput v-bind="a" model-value="10-16" mono /></XField>
+            </XNestCard>
+            <div><XButton variant="dashed" icon="plus">Добавить Noise</XButton></div>
+            <XTagInput v-model="demoTags" :presets="[{ value: 'geoip:private', label: 'Private IP' }, { value: 'geoip:ru', label: '🇷🇺 Russia' }]" presets-title="Пресеты" placeholder="Выберите пресет или введите значение" more-placeholder="Добавить…" />
+          </div>
+        </XNest>
         <XSettingsSkeleton :rows="[2]" />
         <XCard>
           <XEmpty tone="err" icon="alert" title="Произошла ошибка при получении параметров." />
