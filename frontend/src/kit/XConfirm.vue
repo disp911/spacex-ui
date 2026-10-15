@@ -2,13 +2,15 @@
 import XButton from './XButton.vue'
 import XIcon from './XIcon.vue'
 import XModal from './XModal.vue'
+import type { IconName } from './icons'
 
 /**
  * Asks before an action that changes a lot: a warning icon, a title, the
  * text (the slot), Cancel and the action. While busy the action shows a
- * spinner and its busy label, and the window cannot be closed.
+ * spinner and its busy label, and the window cannot be closed. icon names the
+ * action in place of the warning sign, e.g. refresh for a restart.
  */
-const props = defineProps<{ title: string; cta: string; busy?: boolean; busyLabel?: string }>()
+const props = withDefaults(defineProps<{ title: string; cta: string; busy?: boolean; busyLabel?: string; icon?: IconName }>(), { icon: 'alert' })
 const emit = defineEmits<{ confirm: [] }>()
 const open = defineModel<boolean>('open', { default: false })
 
@@ -20,7 +22,7 @@ function run() {
 <template>
   <XModal v-model:open="open" :title="title" size="xs" headless cancel :dismissible="!busy">
     <div class="x-confirm">
-      <span class="x-confirm__icon"><XIcon name="alert" :size="17" :stroke="1.4" /></span>
+      <span class="x-confirm__icon"><XIcon :name="icon" :size="17" :stroke="1.4" /></span>
       <div class="x-confirm__body">
         <h2 class="x-confirm__title">{{ title }}</h2>
         <div class="x-confirm__text"><slot /></div>

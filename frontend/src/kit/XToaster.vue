@@ -86,7 +86,8 @@ import { dismissToast, toasts } from './toast'
 @media (max-width: 767px) {
   .x-toaster {
     right: 14px;
-    bottom: calc(14px + env(safe-area-inset-bottom));
+    /* Above a page's action bar while one is shown. */
+    bottom: var(--toast-bottom, calc(14px + env(safe-area-inset-bottom)));
     left: 14px;
     max-width: none;
   }

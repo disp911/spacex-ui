@@ -34,7 +34,7 @@ const routes: RouteRecordRaw[] = [
       { path: '', name: 'dashboard', component: () => import('./pages/DashboardPage.vue'), meta: { titleKey: 'nav.dashboard' } },
       { path: 'inbounds', name: 'inbounds', component: DraftPage, meta: { titleKey: 'nav.inbounds' } },
       { path: 'xray', name: 'xray', component: DraftPage, meta: { titleKey: 'nav.xray' } },
-      { path: 'settings', name: 'settings', component: DraftPage, meta: { titleKey: 'nav.settings' } },
+      { path: 'settings', name: 'settings', component: () => import('./pages/SettingsPage.vue'), meta: { titleKey: 'nav.settings' } },
       { path: ':path(.*)*', name: 'not-found', component: () => import('./pages/NotFoundPage.vue'), meta: { titleKey: 'common.notFound' } },
     ],
   },

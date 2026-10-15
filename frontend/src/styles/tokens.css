@@ -60,6 +60,8 @@
   --ctl-sm-fs: var(--fs-12);
   --menu-item-h: 34px;
   --sidebar-item-h: 38px;
+  /* The top bar of phones; what sticks under it starts here */
+  --topbar-h: 64px;
   --switch-w: 38px;
   --switch-h: 22px;
   --check: 16px;

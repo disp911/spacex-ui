@@ -1,12 +1,33 @@
 <script setup lang="ts">
+import { onBeforeUnmount, onMounted, ref } from 'vue'
+
 /**
  * Phones: a bar pinned to the bottom of a page with a line of state above the
  * page's main buttons (the slot), e.g. Save and Restart; they share the row.
+ * While it is shown, toasts rise 20px above it (--toast-bottom, read by XToaster).
  */
+const bar = ref<HTMLElement | null>(null)
+const root = document.documentElement
+let observer: ResizeObserver | undefined
+
+function lift() {
+  const h = bar.value?.offsetHeight ?? 0
+  if (h) root.style.setProperty('--toast-bottom', `${h + 20}px`)
+  else root.style.removeProperty('--toast-bottom')
+}
+
+onMounted(() => {
+  observer = new ResizeObserver(lift)
+  if (bar.value) observer.observe(bar.value)
+})
+onBeforeUnmount(() => {
+  observer?.disconnect()
+  root.style.removeProperty('--toast-bottom')
+})
 </script>
 
 <template>
-  <div class="x-action-bar">
+  <div ref="bar" class="x-action-bar">
     <div class="x-action-bar__state"><slot name="state" /></div>
     <div class="x-action-bar__buttons"><slot /></div>
   </div>

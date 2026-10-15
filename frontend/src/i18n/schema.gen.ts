@@ -161,6 +161,40 @@ export interface MessageSchema {
     "configCopied": string
     "configCopyFailed": string
   }
+  "settings": {
+    "subtitle": string
+    "sections": string
+    "tabPanel": string
+    "tabUi": string
+    "tabAccount": string
+    "tabLdap": string
+    "tabSub": string
+    "tabFormats": string
+    "save": string
+    "saving": string
+    "saved": string
+    "saveFailed": string
+    "nothingToSave": string
+    "unsaved": string
+    "fixErrors": string
+    "fixErrorsUnsaved": string
+    "loadFailed": string
+    "restart": string
+    "restartShort": string
+    "saveFirst": string
+    "restartText": string
+    "restartYes": string
+    "restartWait": string
+    "restartDone": string
+    "restartFailed": string
+    "securityTitle": string
+    "securityText": string
+    "securityTls": string
+    "securityPort": string
+    "securityPath": string
+    "securitySubPath": string
+    "securityJsonPath": string
+  }
   "units": {
     "value": string
     "byte": string

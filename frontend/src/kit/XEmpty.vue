@@ -2,13 +2,16 @@
 import XIcon from './XIcon.vue'
 import type { IconName } from './icons'
 
-/** Nothing to show yet: an icon in a dashed frame, a title and a hint. Fills and centres in its box. */
-withDefaults(defineProps<{ title: string; hint?: string; icon?: IconName }>(), { icon: 'doc' })
+/**
+ * Nothing to show yet: an icon in a dashed frame, a title and a hint. Fills and
+ * centres in its box. tone err is a failed load: a red icon and a plain title.
+ */
+withDefaults(defineProps<{ title: string; hint?: string; icon?: IconName; tone?: 'err' }>(), { icon: 'doc' })
 </script>
 
 <template>
-  <div class="x-empty">
-    <span class="x-empty__icon"><XIcon :name="icon" :size="16" :stroke="1.3" /></span>
+  <div :class="['x-empty', { 'x-empty--err': tone === 'err' }]" :role="tone === 'err' ? 'alert' : undefined">
+    <span class="x-empty__icon"><XIcon :name="icon" :size="tone === 'err' ? 18 : 16" :stroke="tone === 'err' ? 1.4 : 1.3" /></span>
     <span class="x-empty__title">{{ title }}</span>
     <span v-if="hint" class="x-empty__hint">{{ hint }}</span>
     <slot />
@@ -48,5 +51,17 @@ withDefaults(defineProps<{ title: string; hint?: string; icon?: IconName }>(), {
   color: var(--dim);
   font: 400 var(--fs-12) / var(--lh-text) var(--font-sans);
   text-wrap: pretty;
+}
+
+.x-empty--err .x-empty__icon {
+  border: 1px solid var(--err-line);
+  background: var(--err-bg);
+  color: var(--err-t);
+}
+
+.x-empty--err .x-empty__title {
+  color: var(--fg);
+  font-size: var(--fs-14);
+  font-weight: 600;
 }
 </style>

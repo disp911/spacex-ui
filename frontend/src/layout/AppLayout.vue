@@ -129,7 +129,7 @@ watch(() => route.fullPath, () => (drawerOpen.value = false))
     display: flex;
     align-items: center;
     gap: 12px;
-    height: 64px;
+    height: var(--topbar-h);
     padding: 0 16px;
     border-bottom: 1px solid var(--div);
     background: var(--side);
@@ -204,7 +204,9 @@ watch(() => route.fullPath, () => (drawerOpen.value = false))
     transform: translateX(-100%);
   }
 
+  /* Down to the bottom of the screen, where a page's action bar sits. */
   .content {
+    flex: 1;
     padding: 12px 14px 24px;
   }
 }

@@ -3,21 +3,31 @@
  * Page frame: the title with an optional subtitle on desktop (the top bar
  * shows the title on phones), actions on the right and an aside — a notice
  * that sits next to the title on desktop and above the content on phones.
+ *
+ * Pages that edit settings add a banner above the title, tabs under it and a
+ * bar of buttons that phones pin to the bottom of the screen in place of the
+ * actions. With fixed, the banner, the title and the tabs stay on screen on
+ * desktop while the content scrolls; on phones the tabs stay under the top bar.
  */
-defineProps<{ title: string }>()
+defineProps<{ title: string; fixed?: boolean }>()
 </script>
 
 <template>
-  <div class="page">
-    <header class="page__head">
-      <div class="page__heading">
-        <h1 class="page__title">{{ title }}</h1>
-        <p v-if="$slots.subtitle" class="page__subtitle"><slot name="subtitle" /></p>
-      </div>
-      <div v-if="$slots.actions" class="page__actions"><slot name="actions" /></div>
-      <div v-if="$slots.aside" class="page__aside"><slot name="aside" /></div>
-    </header>
+  <div :class="['page', { 'page--fixed': fixed, 'page--bar': $slots.bar }]">
+    <div class="page__top">
+      <div v-if="$slots.banner" class="page__banner"><slot name="banner" /></div>
+      <header class="page__head">
+        <div class="page__heading">
+          <h1 class="page__title">{{ title }}</h1>
+          <p v-if="$slots.subtitle" class="page__subtitle"><slot name="subtitle" /></p>
+        </div>
+        <div v-if="$slots.actions" class="page__actions"><slot name="actions" /></div>
+        <div v-if="$slots.aside" class="page__aside"><slot name="aside" /></div>
+      </header>
+      <div v-if="$slots.tabs" class="page__tabs"><slot name="tabs" /></div>
+    </div>
     <slot />
+    <div v-if="$slots.bar" class="page__bar"><slot name="bar" /></div>
   </div>
 </template>
 
@@ -29,6 +39,22 @@ defineProps<{ title: string }>()
   gap: 16px;
 }
 
+.page__top {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Over the content while it scrolls: reaches the edges of the content area. */
+.page--fixed .page__top {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  margin: -20px -24px 0;
+  padding: 20px 24px 0;
+  background: var(--bg);
+}
+
 .page__head {
   display: flex;
   flex-wrap: wrap;
@@ -38,8 +64,9 @@ defineProps<{ title: string }>()
 }
 
 .page__heading {
-  flex: 1;
-  min-width: 0;
+  /* Keeps its text whole: the actions move to a line of their own instead. */
+  flex: 1 0 auto;
+  max-width: 100%;
 }
 
 .page__title {
@@ -50,15 +77,18 @@ defineProps<{ title: string }>()
 
 .page__subtitle {
   margin: 4px 0 0;
+  overflow: hidden;
   color: var(--dim);
   font-size: var(--fs-12);
   white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .page__actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  align-items: center;
+  gap: 14px;
 }
 
 .page__aside {
@@ -66,7 +96,20 @@ defineProps<{ title: string }>()
   min-width: 0;
 }
 
+/* The tabs sit 14px under the title: the column gap less the 6px they borrow back. */
+.page__tabs {
+  margin-top: -6px;
+}
+
+.page__bar {
+  display: none;
+}
+
 @media (max-width: 767px) {
+  .page--fixed {
+    gap: 12px;
+  }
+
   .page__head {
     min-height: 0;
   }
@@ -87,6 +130,44 @@ defineProps<{ title: string }>()
 
   .page__aside {
     flex-basis: 100%;
+  }
+
+  /* The parts of the top become items of the page, so the banner can follow the tabs. */
+  .page__top,
+  .page--fixed .page__top {
+    display: contents;
+  }
+
+  /* Phones: the bar carries the actions. */
+  .page--bar .page__actions {
+    display: none;
+  }
+
+  .page--bar .page__head:has(.page__actions):not(:has(.page__aside)) {
+    display: contents;
+  }
+
+  /* A strip under the top bar, from edge to edge. */
+  .page__tabs {
+    order: -1;
+    margin: -12px -14px 0;
+    background: var(--side);
+    border-bottom: 1px solid var(--div);
+  }
+
+  .page--fixed .page__tabs {
+    position: sticky;
+    top: var(--topbar-h);
+    z-index: 10;
+  }
+
+  /* Pinned to the bottom of the screen, from edge to edge, over the content's bottom padding. */
+  .page__bar {
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+    display: block;
+    margin: auto -14px -24px;
   }
 }
 </style>

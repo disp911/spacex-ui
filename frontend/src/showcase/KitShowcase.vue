@@ -3,7 +3,7 @@ import { computed, ref, watch } from 'vue'
 import { useTheme } from '../stores/theme'
 import {
   XActionBar, XActionList, XActionRow, XBadge, XBusyOverlay, XButton, XCard, XCheckbox, XChip, XCodeArea, XConfirm, XCounter, XDataTable, XEmpty, XErrorBox, XField, XInfoRow, XInput, XMenu, XModal, XMultiSelect, XNavItem, XNest, XNotice, XNumber,
-  XPager, XPickList, XRecordCard, XRowLink, XSection, XSegmented, XSelect, XSettingDivider, XSettingRow, XSettingsSection, XStatusDot, XStatusText, XSwitch, XTabs, XTagInput, XTextarea, XTooltip, XUsagePill,
+  XPager, XPickList, XRecordCard, XRowLink, XSection, XSegmented, XSelect, XSettingDivider, XSettingRow, XSettingsSection, XSettingsSkeleton, XStatusDot, XStatusText, XSwitch, XTabs, XTagInput, XTextarea, XTooltip, XUsagePill,
   type MenuItem,
 } from '../kit'
 
@@ -92,6 +92,7 @@ const setOpen = ref(true)
 const setVals = ref({ port: 2054, session: 30, json: true, path: '/panel-x7/', rules: 'geosite:category-ads-all,geosite:ru,geoip:private,geoip:ru', tags: ['inbound-443'], frag: true })
 const setInbounds = ['inbound-443', 'inbound-8443', 'vless-reality', 'trojan-ws'].map((v) => ({ value: v, label: v }))
 const busyOpen = ref(false)
+const restartAsk = ref(false)
 watch(busyOpen, (on) => on && setTimeout(() => (busyOpen.value = false), 3000))
 const typeChecks = ref({ direct: true, blocked: true, proxy: false })
 const tableColumns = [
@@ -538,6 +539,7 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
           <XStatusText tone="mod">Не сохранено: 2</XStatusText>
           <XStatusText tone="err">Исправьте ошибки: 1 · не сохранено: 2</XStatusText>
           <XButton @click="busyOpen = true">Перезапуск: оверлей на 3 с</XButton>
+          <XButton icon="refresh" @click="restartAsk = true">Подтверждение перезапуска</XButton>
         </div>
         <XSettingsSection v-model:open="setOpen" title="Основное" :count="6" :modified="2" :errors="1" note="IP по умолчанию">
           <XSettingRow title="Порт панели" description="Порт, на котором работает панель" narrow modified>
@@ -575,8 +577,15 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
           <XButton variant="primary">Сохранить</XButton>
           <XButton icon="refresh" disabled>Перезапуск</XButton>
         </XActionBar>
+        <XSettingsSkeleton :rows="[2]" />
+        <XCard>
+          <XEmpty tone="err" icon="alert" title="Произошла ошибка при получении параметров." />
+        </XCard>
       </div>
     </XCard>
+    <XConfirm v-model:open="restartAsk" icon="refresh" title="Перезапуск панели" cta="Да" @confirm="restartAsk = false">
+      Вы уверены, что хотите перезапустить панель? Если панель будет недоступна, проверьте лог сервера
+    </XConfirm>
     <XBusyOverlay :open="busyOpen" title="Перезапуск панели" text="Ожидание ответа панели…" />
 
     <div class="kit__live">
