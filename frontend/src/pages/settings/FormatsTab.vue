@@ -10,7 +10,8 @@ import { checkValue, muxCheck, type AllSetting, type SettingKey } from './model'
 /**
  * What JSON and Clash subscriptions add to a client's config. Fragmentation,
  * noises, mux and direct rules are kept as JSON in their settings, an empty
- * one meaning off; the defaults and the shape follow the old settings page.
+ * one meaning off; the defaults and the shape follow the old settings page,
+ * except that direct connection starts with Russia instead of Iran.
  */
 const { t } = useI18n()
 const f = useSettingsForm()
@@ -89,8 +90,8 @@ function muxError(v: unknown) {
 interface Rule { type: string; outboundTag: string; domain?: string[]; ip?: string[] }
 const rules = json<Rule[]>('subJsonRules')
 const defaultRules = (): Rule[] => [
-  { type: 'field', outboundTag: 'direct', domain: ['geosite:category-ir'] },
-  { type: 'field', outboundTag: 'direct', ip: ['geoip:private', 'geoip:ir'] },
+  { type: 'field', outboundTag: 'direct', domain: ['geosite:category-ru'] },
+  { type: 'field', outboundTag: 'direct', ip: ['geoip:private', 'geoip:ru'] },
 ]
 const ipPresets = [
   { value: 'geoip:private', label: 'Private IP' },
