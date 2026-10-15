@@ -69,6 +69,8 @@ const skeleton = [34, 30, 38, 28, 32, 36, 30, 26]
   max-height: 360px;
   padding: 0 2px 0 4px;
   overflow-y: auto;
+  /* Longer lists scroll here; the room for the scrollbar is kept, so rows do not move when it appears. */
+  scrollbar-gutter: stable;
 }
 
 .x-pick__list {
