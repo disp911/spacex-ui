@@ -180,9 +180,8 @@ async function restart() {
 
     <template #bar>
       <XActionBar>
-        <template #state>
-          <XStatusText v-if="status" :tone="status.tone">{{ status.text }}</XStatusText>
-          <span v-else>{{ t('settings.subtitle') }}</span>
+        <template v-if="status" #state>
+          <XStatusText :tone="status.tone">{{ status.text }}</XStatusText>
         </template>
         <XButton variant="primary" :disabled="!canSave && !saving" :loading="saving" @click="save">
           {{ saving ? t('settings.saving') : t('settings.save') }}
