@@ -89,6 +89,8 @@ function onKeydown(e: KeyboardEvent, items: TabItem<K>[]) {
 }
 
 .x-tabs__tab {
+  position: relative;
+  isolation: isolate;
   display: flex;
   flex: none;
   align-items: center;
@@ -120,9 +122,25 @@ function onKeydown(e: KeyboardEvent, items: TabItem<K>[]) {
   font-weight: 600;
 }
 
+/* Keyboard focus: the label turns accent on a soft tint, no ring. */
+.x-tabs__tab::before {
+  content: '';
+  position: absolute;
+  inset: 6px -8px;
+  z-index: -1;
+  border-radius: var(--r-8);
+  background: var(--acc-soft);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--t-fast);
+}
+
 .x-tabs__tab:focus-visible {
-  border-radius: var(--r-6);
-  box-shadow: 0 0 0 2px var(--acc-line);
+  color: var(--acc);
+}
+
+.x-tabs__tab:focus-visible::before {
+  opacity: 1;
 }
 
 .x-tabs__label {
@@ -195,10 +213,6 @@ function onKeydown(e: KeyboardEvent, items: TabItem<K>[]) {
 
   .x-tabs__tab {
     margin-bottom: 0;
-  }
-
-  .x-tabs__tab:focus-visible {
-    box-shadow: inset 0 0 0 2px var(--acc-line);
   }
 
   .x-tabs__ink {
