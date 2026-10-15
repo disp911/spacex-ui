@@ -165,8 +165,11 @@
   --mod-bg: rgba(122, 167, 255, .06);
   --mod-line: rgba(122, 167, 255, .5);
 
-  /* Outgoing traffic; incoming uses the accent */
+  /* Outgoing traffic; incoming uses the accent. Also proxied connections in the Xray log. */
   --upload: #4AA8E0;
+  --upload-t: #6FC0F0;
+  --upload-bg: rgba(74, 168, 224, .12);
+  --upload-line: rgba(74, 168, 224, .4);
 
   /* Usage bars, search highlight */
   --bar-track: rgba(255, 255, 255, .08);
@@ -264,6 +267,9 @@
   --mod-line: rgba(47, 107, 216, .5);
 
   --upload: #1E7FC0;
+  --upload-t: #1A6FA8;
+  --upload-bg: rgba(30, 127, 192, .08);
+  --upload-line: rgba(30, 127, 192, .3);
 
   --bar-track: rgba(16, 20, 28, .08);
   --bar-unl: #C3C8D1;

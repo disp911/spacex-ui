@@ -204,6 +204,14 @@
   --ctl-fs: var(--fs-14);
 }
 
+/* On phones, controls sharing a tight row, e.g. three filters across: 12px text, 10px sides, same height. */
+@media (max-width: 767px) {
+  .x-ctl-tight {
+    --ctl-fs: var(--fs-12);
+    --btn-px: 10px;
+  }
+}
+
 @media (max-width: 767px) {
   .x-ctl-lg {
     --ctl-h: 38px;

@@ -35,6 +35,8 @@ const props = withDefaults(
     sheet?: boolean
     /** Blurs the page behind the open menu: the language menu. */
     scrim?: boolean
+    /** Several items can be checked: choosing one toggles it and the menu stays open. */
+    multiple?: boolean
   }>(),
   { placement: 'bottom-end' },
 )
@@ -97,7 +99,7 @@ function onMenuKeydown(e: KeyboardEvent) {
 
 function choose(item: MenuItem) {
   if (item.disabled) return
-  close(true)
+  if (!props.multiple) close(true)
   emit('select', item.key)
 }
 </script>
@@ -133,7 +135,7 @@ function choose(item: MenuItem) {
           <div v-if="item.divided" class="x-menu__divider" role="separator" />
           <button
             type="button"
-            :role="item.checked === undefined ? 'menuitem' : 'menuitemradio'"
+            :role="item.checked === undefined ? 'menuitem' : multiple ? 'menuitemcheckbox' : 'menuitemradio'"
             tabindex="-1"
             :aria-checked="item.checked"
             :aria-disabled="item.disabled || undefined"
@@ -147,6 +149,7 @@ function choose(item: MenuItem) {
             <XIcon v-if="item.checked !== undefined" name="check" :size="13" :stroke="1.8" :class="['x-menu__check', { 'is-on': item.checked }]" />
           </button>
         </template>
+        <div v-if="$slots.footer" class="x-menu__foot"><slot name="footer" :close="() => close(true)" /></div>
       </div>
     </Transition>
   </Teleport>
@@ -250,6 +253,12 @@ function choose(item: MenuItem) {
 
 .x-menu__check.is-on {
   visibility: visible;
+}
+
+.x-menu__foot {
+  display: flex;
+  flex-direction: column;
+  margin-top: 10px;
 }
 
 .x-menu__divider {

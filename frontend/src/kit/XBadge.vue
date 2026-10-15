@@ -3,11 +3,16 @@
  * Small static label. fill — protocol, outline — transport,
  * accent — security or a highlighted property.
  */
-withDefaults(defineProps<{ kind?: 'fill' | 'outline' | 'accent'; mono?: boolean }>(), { kind: 'fill' })
+withDefaults(defineProps<{
+  kind?: 'fill' | 'outline' | 'accent'
+  mono?: boolean
+  /** outline only: a coloured frame and text, e.g. an outbound in the connection log. */
+  tone?: 'err' | 'upload'
+}>(), { kind: 'fill' })
 </script>
 
 <template>
-  <span :class="['x-badge', `x-badge--${kind}`, { 'x-badge--mono': mono }]"><slot /></span>
+  <span :class="['x-badge', `x-badge--${kind}`, { 'x-badge--mono': mono }, kind === 'outline' && tone && `x-badge--${tone}`]"><slot /></span>
 </template>
 
 <style scoped>
@@ -37,6 +42,16 @@ withDefaults(defineProps<{ kind?: 'fill' | 'outline' | 'accent'; mono?: boolean 
 .x-badge--outline {
   border-color: var(--field-line);
   color: var(--mut);
+}
+
+.x-badge--err {
+  border-color: var(--err-line);
+  color: var(--err-t);
+}
+
+.x-badge--upload {
+  border-color: var(--upload-line);
+  color: var(--upload-t);
 }
 
 .x-badge--accent {

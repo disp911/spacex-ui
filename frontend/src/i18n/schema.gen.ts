@@ -134,6 +134,28 @@ export interface MessageSchema {
     "panelUpdated": string
     "panelUpdateRun": string
     "panelUpdating": string
+    "xlogTitle": string
+    "xlogSubtitle": string
+    "xlogSubtitleShort": string
+    "xlogDate": string
+    "xlogClient": string
+    "xlogAllClients": string
+    "xlogSearch": string
+    "xlogTypes": string
+    "xlogAllTypes": string
+    "xlogNoTypes": string
+    "xlogSomeTypes": string
+    "xlogShow": string
+    "xlogTime": string
+    "xlogFrom": string
+    "xlogTo": string
+    "xlogInbound": string
+    "xlogOutbound": string
+    "xlogEmail": string
+    "xlogRange": string
+    "xlogRangeEmpty": string
+    "xlogNothing": string
+    "xlogNothingHint": string
   }
   "units": {
     "value": string

@@ -15,7 +15,8 @@ const exporting = ref(false)
 async function exportDb() {
   exporting.value = true
   try {
-    saveFile(await api.file('panel/api/server/getDb'), 'x-ui.db')
+    const { data, name } = await api.file('panel/api/server/getDb')
+    saveFile(data, name ?? 'x-ui.db')
   } catch (e) {
     failed(e)
   } finally {

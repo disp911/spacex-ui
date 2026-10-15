@@ -12,7 +12,8 @@ import { lockScroll } from './scrollLock'
 const props = withDefaults(
   defineProps<{
     title: string
-    size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
+    /** wide: up to 1368, for tables such as the connection log. */
+    size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'wide'
     /** Close on Escape and on a click outside. Off while a form is saving. */
     dismissible?: boolean
     /** The body draws its own sections edge to edge: no padding, no gap. */
@@ -143,6 +144,7 @@ onBeforeUnmount(() => {
 .x-modal__dialog--md { max-width: 560px; }
 .x-modal__dialog--lg { max-width: 720px; }
 .x-modal__dialog--xl { max-width: 800px; }
+.x-modal__dialog--wide { max-width: 1368px; }
 
 .x-modal__head {
   display: flex;

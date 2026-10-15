@@ -53,14 +53,18 @@ async function request<T>(method: 'GET' | 'POST', path: string, body?: unknown):
   return reply.obj
 }
 
-/** A file the server sends; a JSON answer instead of it carries the error. */
-async function file(path: string): Promise<Blob> {
-  const res = await send('GET', path, undefined, '*/*')
+/**
+ * A file the server sends, fetched with GET or, given a form, with POST; a JSON
+ * answer instead of it carries the error. name is the one the server suggests.
+ */
+async function file(path: string, body?: FormData): Promise<{ data: Blob; name?: string }> {
+  const res = await send(body ? 'POST' : 'GET', path, body, '*/*')
   if (res.headers.get('Content-Type')?.includes('application/json')) {
     const reply = (await res.json()) as ApiReply<unknown>
     throw new ApiError(reply.msg, res.status)
   }
-  return res.blob()
+  const name = /filename="?([^";]+)"?/.exec(res.headers.get('Content-Disposition') ?? '')?.[1]
+  return { data: await res.blob(), name }
 }
 
 export const api = {

@@ -2,8 +2,8 @@
 import { computed, ref } from 'vue'
 import { useTheme } from '../stores/theme'
 import {
-  XActionList, XActionRow, XBadge, XButton, XCard, XCheckbox, XChip, XConfirm, XCounter, XEmpty, XErrorBox, XField, XInfoRow, XInput, XMenu, XModal, XNavItem, XNotice, XNumber,
-  XPager, XPickList, XRowLink, XSection, XSegmented, XSelect, XStatusDot, XSwitch, XTagInput, XTextarea, XTooltip, XUsagePill,
+  XActionList, XActionRow, XBadge, XButton, XCard, XCheckbox, XChip, XConfirm, XCounter, XDataTable, XEmpty, XErrorBox, XField, XInfoRow, XInput, XMenu, XModal, XNavItem, XNotice, XNumber,
+  XPager, XPickList, XRecordCard, XRowLink, XSection, XSegmented, XSelect, XStatusDot, XSwitch, XTagInput, XTextarea, XTooltip, XUsagePill,
   type MenuItem,
 } from '../kit'
 
@@ -78,6 +78,18 @@ const levelItems = computed<MenuItem[]>(() =>
   ].map((i) => ({ ...i, checked: i.key === level.value })),
 )
 const lastAction = ref('—')
+const typeChecks = ref({ direct: true, blocked: true, proxy: false })
+const tableColumns = [
+  { key: 'time', label: 'Дата', width: 110, dim: true },
+  { key: 'to', label: 'Куда' },
+  { key: 'out', label: 'Исходящий', width: 120 },
+  { key: 'email', label: 'Email', width: 100, strong: true },
+]
+const tableRows = [
+  { time: '20.09 23:58:58', to: 'wa.me:443', out: 'direct', email: 'alice', tone: undefined },
+  { time: '20.09 23:58:56', to: 'cdn.jsdelivr.net:443', out: 'proxy-de', email: 'bob', tone: 'upload' as const },
+  { time: '20.09 23:58:50', to: 'ads.doubleclick.net:443', out: 'blocked', email: 'carol', tone: 'err' as const },
+]
 const pickItems = ['v26.4.25', 'v26.3.27', 'v25.12.8', 'v25.11.11'].map((v, i) => ({ key: v, label: v, current: i === 0 }))
 const sectionOpen = ref(true)
 const sw = ref({ a: false, b: true, loading: false })
@@ -430,6 +442,9 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
             <XButton caret><span class="x-caps">Строк</span> 100</XButton>
             <XButton size="sm" mono caret>за 2 мин</XButton>
             <XCheckbox v-model="boxedCheck" boxed>SysLog</XCheckbox>
+            <XCheckbox v-model="typeChecks.direct" boxed tone="ok">Direct</XCheckbox>
+            <XCheckbox v-model="typeChecks.blocked" boxed tone="err">Blocked</XCheckbox>
+            <XCheckbox v-model="typeChecks.proxy" boxed tone="upload">Proxy</XCheckbox>
             <XButton icon="download" phone-icon-only>Скачать</XButton>
             <XButton variant="soft" size="sm" phone-block>Обновить панель</XButton>
             <XButton variant="primary" :success="successDemo" @click="successDemo = !successDemo">Успех</XButton>
@@ -462,6 +477,14 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
           <h3 class="kit__h3">Пусто · ошибка</h3>
           <XEmpty title="Нет записей" hint="Для выбранного уровня и глубины журнал пуст" />
           <XErrorBox text="failed to listen on 0.0.0.0:443&#10;bind: address already in use" />
+        </div>
+        <div class="kit__variant">
+          <h3 class="kit__h3">Таблица журнала · карточки на телефоне</h3>
+          <XDataTable :columns="tableColumns" :rows="tableRows" :row-key="(r) => r.to" :row-tone="(r) => r.tone" :height="140" />
+          <div class="kit__stack" style="max-width: 360px">
+            <XRecordCard v-for="r in tableRows" :key="r.to" :title="r.to" time="23:58:58" name="alice" detail="inbound-443" :badge="r.out" :tone="r.tone" />
+            <XRecordCard loading />
+          </div>
         </div>
         <div class="kit__variant">
           <h3 class="kit__h3">Строка значения</h3>

@@ -7,13 +7,15 @@ defineProps<{
   boxed?: boolean
   indeterminate?: boolean
   invalid?: boolean
+  /** Boxed only: when checked, the frame, box and label take this colour, e.g. connection types. */
+  tone?: 'ok' | 'err' | 'upload'
 }>()
 
 const model = defineModel<boolean>({ default: false })
 </script>
 
 <template>
-  <label :class="['x-check', { 'x-check--boxed': boxed, 'is-disabled': disabled }]">
+  <label :class="['x-check', { 'x-check--boxed': boxed, 'is-disabled': disabled }, boxed && tone && `x-check--${tone}`, { 'is-checked': model }]">
     <input
       v-model="model"
       class="x-check__input sr-only"
@@ -108,6 +110,21 @@ const model = defineModel<boolean>({ default: false })
 
 .x-check--boxed .x-check__input:focus-visible + .x-check__box {
   box-shadow: none;
+}
+
+.x-check--ok { --tone: var(--ok); --tone-t: var(--ok-t); --tone-bg: var(--ok-bg); --tone-line: var(--ok-line); }
+.x-check--err { --tone: var(--err); --tone-t: var(--err-t); --tone-bg: var(--err-bg); --tone-line: var(--err-line); }
+.x-check--upload { --tone: var(--upload); --tone-t: var(--upload-t); --tone-bg: var(--upload-bg); --tone-line: var(--upload-line); }
+
+:is(.x-check--ok, .x-check--err, .x-check--upload).is-checked {
+  border-color: var(--tone-line);
+  background: var(--tone-bg);
+  color: var(--tone-t);
+}
+
+:is(.x-check--ok, .x-check--err, .x-check--upload).is-checked .x-check__box {
+  border-color: var(--tone);
+  background: var(--tone);
 }
 
 .x-check.is-disabled {
