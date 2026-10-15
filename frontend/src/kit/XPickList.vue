@@ -20,8 +20,8 @@ function pick(item: PickItem) {
   if (!item.current) emit('pick', item.key)
 }
 
-// Bar widths vary like real entries.
-const skeleton = [34, 30, 38, 28, 32, 36, 30, 26]
+// Ten rows, the height of ten entries, so the window does not change size when they arrive; bar widths vary like real entries.
+const skeleton = [34, 30, 38, 28, 32, 36, 30, 26, 34, 30]
 </script>
 
 <template>
