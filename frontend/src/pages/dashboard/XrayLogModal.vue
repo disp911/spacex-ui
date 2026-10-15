@@ -198,7 +198,7 @@ async function download() {
     </template>
 
     <div class="xlog-bar">
-      <XButton icon="refresh" :label="t('dashboard.logRefresh')" :loading="loading" class="xlog-wide" @click="load" />
+      <XButton icon="refresh" :label="t('dashboard.logRefresh')" :loading="loading" class="xlog-refresh" @click="load" />
 
       <XMenu v-slot="{ props }" :items="dayItems" :title="t('dashboard.xlogDate')" placement="bottom-start" sheet @select="date = $event">
         <XButton v-bind="props" :label="`${t('dashboard.xlogDate')}: ${day}`" caret class="xlog-filter">
@@ -355,13 +355,17 @@ async function download() {
     display: none;
   }
 
-  /* Search with the download square on the first line, then date, client and types side by side. */
+  /* Refresh, search and the download square on the first line, then date, client and types side by side. */
   .xlog-bar {
     padding: 10px 14px;
   }
 
+  .xlog-refresh {
+    order: -3;
+  }
+
   .xlog-search {
-    flex-basis: calc(100% - var(--btn-sq) - 8px);
+    flex-basis: calc(100% - 2 * var(--btn-sq) - 16px);
     order: -2;
   }
 
