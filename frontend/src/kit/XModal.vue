@@ -132,6 +132,8 @@ onBeforeUnmount(() => {
   flex: none;
   flex-direction: column;
   width: 100%;
+  /* In the middle of the screen; a window taller than it starts at the top and scrolls. */
+  margin: auto 0;
   border: 1px solid var(--line);
   border-radius: var(--r-16);
   background: var(--card);
@@ -240,6 +242,7 @@ onBeforeUnmount(() => {
   .x-modal__dialog {
     max-width: none;
     max-height: 100%;
+    margin: 0;
     border-bottom: 0;
     border-radius: var(--r-22) var(--r-22) 0 0;
     box-shadow: var(--shadow-sheet);
