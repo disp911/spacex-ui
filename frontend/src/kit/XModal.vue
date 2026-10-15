@@ -121,6 +121,8 @@ onBeforeUnmount(() => {
   justify-content: center;
   padding: 48px 16px;
   overflow-y: auto;
+  /* Room for a scrollbar on both sides: a window taller than the screen does not move when it appears. */
+  scrollbar-gutter: stable both-edges;
   background: var(--scrim);
   overscroll-behavior: contain;
 }

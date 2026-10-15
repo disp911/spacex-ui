@@ -91,15 +91,19 @@ const skeleton = [72, 58, 80, 64, 50, 76, 60, 68, 54, 74, 62, 70, 56, 66]
   white-space: nowrap;
 }
 
+/* Body and head keep room for the scrollbar, so rows do not move when it appears and stay under their column names. */
 .x-table__head {
   flex: none;
   height: 34px;
+  overflow: hidden;
+  scrollbar-gutter: stable;
   border-bottom: 1px solid var(--line);
   background: var(--field);
 }
 
 .x-table__body {
   overflow: auto;
+  scrollbar-gutter: stable;
   outline: none;
 }
 
