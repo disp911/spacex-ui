@@ -194,11 +194,13 @@ async function restart() {
     <XCard v-else-if="failed">
       <XEmpty tone="err" icon="alert" :title="t('settings.loadFailed')" />
     </XCard>
-    <PanelTab v-else-if="tab === 'panel'" />
-    <UiTab v-else-if="tab === 'ui'" />
-    <XCard v-else>
-      <XEmpty :title="t('common.screenDraft')" />
-    </XCard>
+    <div v-else :key="tab" class="x-tab-panel">
+      <PanelTab v-if="tab === 'panel'" />
+      <UiTab v-else-if="tab === 'ui'" />
+      <XCard v-else>
+        <XEmpty :title="t('common.screenDraft')" />
+      </XCard>
+    </div>
 
     <template #bar>
       <XActionBar>

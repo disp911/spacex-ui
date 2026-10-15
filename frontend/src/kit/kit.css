@@ -235,6 +235,24 @@
   font-size: var(--fs-11);
 }
 
+/* The content of a tab, keyed by the tab: rises into place as it appears. */
+.x-tab-panel {
+  animation: x-tab-in var(--t-med) var(--ease);
+}
+
+@keyframes x-tab-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .x-tab-panel {
+    animation: none;
+  }
+}
+
 /* Loading placeholder: grey bars that fade slowly, as in the mockups. */
 .x-skeleton {
   animation: x-blink 1.4s ease-in-out infinite;
