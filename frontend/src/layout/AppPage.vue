@@ -147,12 +147,11 @@ defineProps<{ title: string; fixed?: boolean }>()
     display: contents;
   }
 
-  /* A strip under the top bar, from edge to edge. */
+  /* A strip under the top bar, from edge to edge; the tabs draw their own line. */
   .page__tabs {
     order: -1;
     margin: -12px -14px 0;
-    background: var(--side);
-    border-bottom: 1px solid var(--div);
+    background: var(--bg);
   }
 
   .page--fixed .page__tabs {

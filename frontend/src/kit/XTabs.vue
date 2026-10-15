@@ -156,49 +156,42 @@ function onKeydown(e: KeyboardEvent, items: TabItem<K>[]) {
   transition: left var(--t-med) var(--ease), width var(--t-med) var(--ease);
 }
 
-/* Phones: pills in a strip that scrolls sideways, fading out at the right edge. */
+/*
+ * Phones: the same labels and ink in a strip that scrolls sideways, fading out
+ * at the right edge. A scrolling box clips its border, so the line is drawn
+ * inside it and the ink sits on it.
+ */
 @media (max-width: 767px) {
   .x-tabs::after {
     content: '';
     position: absolute;
     top: 0;
     right: 0;
-    bottom: 0;
+    bottom: 1px;
     width: 28px;
-    background: linear-gradient(90deg, transparent, var(--side));
+    background: linear-gradient(90deg, transparent, var(--bg));
     pointer-events: none;
   }
 
   .x-tabs__strip {
-    gap: 6px;
-    padding: 8px 14px;
+    padding: 0 14px;
     overflow-x: auto;
+    /* The current tab scrolls into view clear of the fade. */
+    scroll-padding-inline: 28px;
     border-bottom: 0;
-  }
-
-  .x-tabs__strip::after {
-    content: '';
-    flex: none;
-    width: 8px;
+    box-shadow: inset 0 -1px var(--div);
   }
 
   .x-tabs__tab {
-    height: 34px;
-    margin: 0;
-    padding: 0 12px;
-    border: 1px solid var(--line);
-    border-radius: var(--r-10);
-    transition: background-color var(--t-fast), color var(--t-fast), border-color var(--t-fast);
+    margin-bottom: 0;
   }
 
-  .x-tabs__tab.is-current {
-    border-color: var(--acc-line);
-    background: var(--acc-soft);
-    color: var(--acc);
+  .x-tabs__tab:focus-visible {
+    box-shadow: inset 0 0 0 2px var(--acc-line);
   }
 
   .x-tabs__ink {
-    display: none;
+    bottom: 0;
   }
 }
 </style>
