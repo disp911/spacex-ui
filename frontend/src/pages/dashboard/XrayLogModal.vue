@@ -288,9 +288,11 @@ async function download() {
 </template>
 
 <style scoped>
+/* What does not fit in a narrow window moves to a second line; nothing shrinks. */
 .xlog-bar {
   display: flex;
   flex: none;
+  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
   padding: 10px 16px;
@@ -360,7 +362,6 @@ async function download() {
 
   /* As in the mockup: search on its own line, then date, client and types side by side. */
   .xlog-bar {
-    flex-wrap: wrap;
     padding: 10px 14px;
   }
 

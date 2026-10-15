@@ -101,7 +101,9 @@ const linkAttrs = computed(() => (props.to ? { to: props.to } : props.href ? { h
   font-size: var(--ctl-sm-fs);
 }
 
+/* A square never gives way in a crowded row. */
 .x-btn--icon {
+  flex-shrink: 0;
   width: var(--btn-sq);
   height: var(--btn-sq);
   padding: 0;
@@ -140,6 +142,7 @@ const linkAttrs = computed(() => (props.to ? { to: props.to } : props.href ? { h
 @media (max-width: 767px) {
   .x-btn--phone-icon {
     position: relative;
+    flex-shrink: 0;
     width: var(--btn-sq);
     height: var(--btn-sq);
     padding: 0;
