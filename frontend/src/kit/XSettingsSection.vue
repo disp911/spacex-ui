@@ -78,7 +78,6 @@ const { t } = useI18n()
 
 /* Keyboard focus marks the chevron, not the whole header. */
 .x-settings__head:focus-visible .x-settings__chevron {
-  border-radius: 2px;
   background: var(--acc-soft);
   color: var(--acc);
   box-shadow: 0 0 0 4px var(--acc-soft), 0 0 0 5px var(--acc-line);
@@ -90,8 +89,11 @@ const { t } = useI18n()
 
 .x-settings__chevron {
   flex: none;
+  border-radius: 2px;
   color: var(--dim);
-  transition: transform var(--t-fast), color var(--t-fast), box-shadow var(--t-fast);
+  /* The focus box is always full size and only fades in, so it never grows out of a square. */
+  box-shadow: 0 0 0 4px transparent, 0 0 0 5px transparent;
+  transition: transform var(--t-fast), color var(--t-fast), background-color var(--t-fast), box-shadow var(--t-fast);
 }
 
 .is-open .x-settings__body--padded {

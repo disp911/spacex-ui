@@ -78,15 +78,17 @@ const id = useId()
 /* Keyboard focus marks the chevron, not the whole header. */
 .x-section__head:focus-visible .x-section__chevron,
 .x-section__head.is-focus .x-section__chevron {
-  border-radius: 2px;
   background: var(--acc-soft);
   color: var(--acc);
   box-shadow: 0 0 0 4px var(--acc-soft), 0 0 0 5px var(--acc-line);
 }
 
 .x-section__chevron {
+  border-radius: 2px;
   color: var(--dim);
-  transition: transform var(--t-fast) var(--ease), color var(--t-fast), box-shadow var(--t-fast);
+  /* The focus box is always full size and only fades in, so it never grows out of a square. */
+  box-shadow: 0 0 0 4px transparent, 0 0 0 5px transparent;
+  transition: transform var(--t-fast) var(--ease), color var(--t-fast), background-color var(--t-fast), box-shadow var(--t-fast);
 }
 
 .is-open > .x-section__bar .x-section__chevron {
