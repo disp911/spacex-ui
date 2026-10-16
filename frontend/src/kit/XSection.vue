@@ -8,7 +8,13 @@ import XIcon from './XIcon.vue'
  * of a window.
  */
 defineOptions({ inheritAttrs: false })
-defineProps<{ title: string; description?: string; card?: boolean }>()
+defineProps<{
+  title: string
+  description?: string
+  card?: boolean
+  /** The title is a value, e.g. a protocol: monospace. */
+  mono?: boolean
+}>()
 
 const open = defineModel<boolean>('open', { default: true })
 const id = useId()
@@ -26,12 +32,12 @@ const id = useId()
         @click="open = !open"
       >
         <XIcon name="chevron" :size="card ? 14 : 12" :stroke="card ? 1.5 : 1.7" class="x-section__chevron" />
-        <span class="x-section__title">{{ title }}</span>
+        <span :class="['x-section__title', { 'x-section__title--mono': mono }]">{{ title }}</span>
       </button>
       <div v-if="$slots.meta" class="x-section__meta"><slot name="meta" /></div>
     </div>
     <p v-if="description && open" class="x-section__description">{{ description }}</p>
-    <div v-show="open" :id="`${id}-body`" class="x-section__body">
+    <div v-if="$slots.default" v-show="open" :id="`${id}-body`" class="x-section__body">
       <slot />
     </div>
   </div>
@@ -102,6 +108,10 @@ const id = useId()
 .x-section__title {
   flex: 1;
   min-width: 0;
+}
+
+.x-section__title--mono {
+  font-family: var(--font-mono);
 }
 
 .x-section__meta {

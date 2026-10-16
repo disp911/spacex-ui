@@ -4,11 +4,16 @@
  * fields, one step below the card. With columns, fields fill a grid of at
  * least that many px each.
  */
-defineProps<{ title?: string; columns?: number }>()
+defineProps<{
+  title?: string
+  columns?: number
+  /** Only a step in, no frame: fields that a switch opens among other fields, e.g. XMUX. */
+  bare?: boolean
+}>()
 </script>
 
 <template>
-  <div class="x-nest">
+  <div :class="['x-nest', { 'x-nest--bare': bare }]">
     <div v-if="title" class="x-caps x-caps--lg x-nest__title">{{ title }}</div>
     <div :class="{ 'x-nest__grid': columns }" :style="columns ? { '--nest-col': `${columns}px` } : undefined"><slot /></div>
   </div>
@@ -21,6 +26,13 @@ defineProps<{ title?: string; columns?: number }>()
   border: 1px solid var(--div);
   border-radius: var(--r-12);
   background: var(--nest);
+}
+
+.x-nest--bare {
+  padding: 0 0 0 var(--sp-20);
+  border: 0;
+  border-radius: 0;
+  background: none;
 }
 
 .x-nest__title {

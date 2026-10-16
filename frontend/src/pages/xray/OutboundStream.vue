@@ -1,0 +1,413 @@
+<script setup lang="ts">
+import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+import {
+  XDivider, XField, XInlineButton, XInput, XListHead, XNest, XNestCard, XNumber, XSection, XSelect, XSwitch, XTagInput, type Option,
+} from '../../kit'
+import type { Outbound } from './model'
+import { canFlow, defaultNetwork, defaultQuic, defaultXmux, items, networks, user, xhttpModes } from './outbound'
+import OutboundPackets from './OutboundPackets.vue'
+
+/** The transport of the outbound window: the network in the card's head, its settings, and the masks over it. */
+const props = defineProps<{ o: Outbound }>()
+const { t } = useI18n()
+const open = ref(true)
+
+const st = computed(() => (props.o.streamSettings ??= { network: 'tcp', security: 'none' }))
+const net = computed({
+  get: () => st.value.network ?? 'tcp',
+  set: (n: string) => {
+    st.value.network = n
+    st.value[`${n}Settings`] ??= defaultNetwork(n)
+    // A VLESS flow lives only over raw TCP: off another network it goes, as on the old panel.
+    if (props.o.protocol === 'vless' && !canFlow(props.o)) user(props.o).flow = ''
+  },
+})
+/** The settings of the network in use, made when missing. */
+const ns = computed(() => (st.value[`${net.value}Settings`] ??= defaultNetwork(net.value)))
+
+const netOptions = computed<Option[]>(() => [
+  ...networks,
+  ...(props.o.protocol === 'hysteria' ? [{ value: 'hysteria', label: 'Hysteria2' }] : []),
+])
+const list = (values: readonly string[]): Option[] => values.map((v) => ({ value: v, label: v }))
+
+// --- TCP: HTTP camouflage -------------------------------------------------------------
+
+const httpOn = computed({
+  get: () => ns.value.header?.type === 'http',
+  set: (on: boolean) => (ns.value.header = on ? { type: 'http', request: { headers: { Host: [] }, path: ['/'] } } : { type: 'none' }),
+})
+const headerList = (get: () => string[] | undefined, put: (v: string[]) => void) =>
+  computed({ get: () => (get() ?? []).join(','), set: (v: string) => put(v.split(',').map((x) => x.trim()).filter(Boolean)) })
+const tcpHost = headerList(
+  () => ns.value.header?.request?.headers?.Host,
+  (v) => (((ns.value.header.request ??= {}).headers ??= {}).Host = v),
+)
+const tcpPath = headerList(
+  () => ns.value.header?.request?.path,
+  (v) => ((ns.value.header.request ??= {}).path = v.length ? v : ['/']),
+)
+
+// --- XHTTP: XMUX ------------------------------------------------------------------------
+
+const xmuxOn = computed({
+  get: () => !!ns.value.xmux,
+  set: (on: boolean) => (ns.value.xmux = on ? defaultXmux() : undefined),
+})
+
+// --- Hysteria: UDP hop ------------------------------------------------------------------
+
+const hopPort = computed({
+  get: () => ns.value.udphop?.port ?? '',
+  set: (v: string) => (ns.value.udphop = v ? { intervalMin: 30, intervalMax: 30, ...(ns.value.udphop ?? {}), port: v } : undefined),
+})
+
+// --- Masks ------------------------------------------------------------------------------
+
+const fm = computed(() => (st.value.finalmask ??= {}))
+const tcpMasks = computed(() => ['tcp', 'raw', 'httpupgrade', 'ws', 'grpc', 'xhttp'].includes(net.value))
+const udpMasks = computed(() => net.value === 'kcp' || props.o.protocol === 'hysteria')
+const quic = computed(() => net.value === 'xhttp' || props.o.protocol === 'hysteria')
+
+const packetItem = () => ({ delay: 0, rand: 0, randRange: '0-255', type: 'array', packet: [] })
+
+function tcpMaskSettings(type: string) {
+  if (type === 'fragment') return { packets: 'tlshello', length: '', delay: '', maxSplit: '' }
+  if (type === 'sudoku') return { password: '', ascii: '', customTable: '', customTables: [], paddingMin: 0, paddingMax: 0 }
+  return { clients: [], servers: [] }
+}
+
+function udpMaskSettings(type: string) {
+  switch (type) {
+    case 'salamander':
+      return { password: '' }
+    case 'mkcp-legacy':
+      return { header: '', value: '' }
+    case 'xdns':
+      return { resolvers: [] }
+    case 'xicmp':
+      return { dgram: false, ips: [] }
+    case 'header-custom':
+      return { client: [], server: [] }
+    case 'noise':
+      return { reset: 0, noise: [] }
+    default:
+      return {}
+  }
+}
+
+function setTcpType(m: Record<string, any>, type: string) {
+  m.type = type
+  m.settings = tcpMaskSettings(type)
+}
+
+function setUdpType(m: Record<string, any>, type: string) {
+  m.type = type
+  m.settings = udpMaskSettings(type)
+  // xDNS rides in small packets: mKCP's MTU follows it, as on the old panel.
+  if (net.value === 'kcp') ns.value.mtu = type === 'xdns' ? 900 : 1350
+}
+
+function addUdpMask() {
+  const type = props.o.protocol === 'hysteria' ? 'salamander' : 'mkcp-legacy'
+  ;(fm.value.udp ??= []).push({ type, settings: udpMaskSettings(type) })
+}
+
+const tcpTypes: Option[] = [
+  { value: 'fragment', label: 'Fragment' },
+  { value: 'header-custom', label: 'Header Custom' },
+  { value: 'sudoku', label: 'Sudoku' },
+]
+const udpTypes = computed<Option[]>(() =>
+  props.o.protocol === 'hysteria'
+    ? [{ value: 'salamander', label: 'Salamander (Hysteria2)' }]
+    : [
+        { value: 'mkcp-legacy', label: 'mKCP' },
+        { value: 'xdns', label: 'xDNS' },
+        { value: 'xicmp', label: 'xICMP' },
+        { value: 'header-custom', label: 'Header Custom' },
+        { value: 'noise', label: 'Noise' },
+      ],
+)
+const kcpHeaders: Option[] = [
+  { value: '', label: 'None' },
+  { value: 'dns', label: 'DNS' },
+  { value: 'dtls', label: 'DTLS 1.2' },
+  { value: 'srtp', label: 'SRTP' },
+  { value: 'utp', label: 'uTP' },
+  { value: 'wechat', label: 'WeChat Video' },
+  { value: 'wireguard', label: 'WireGuard' },
+]
+const congestions: Option[] = [
+  { value: 'reno', label: 'Reno' },
+  { value: 'bbr', label: 'BBR' },
+  { value: 'brutal', label: 'Brutal' },
+  { value: 'force-brutal', label: 'Force Brutal' },
+]
+
+// QUIC parameters: present or not, the card's switch says.
+const quicOn = computed({
+  get: () => !!fm.value.quicParams,
+  set: (on: boolean) => (fm.value.quicParams = on ? defaultQuic() : undefined),
+})
+const qp = computed(() => fm.value.quicParams ?? {})
+const quicOpen = ref(true)
+const hopOn = computed({
+  get: () => !!qp.value.udpHop,
+  set: (on: boolean) => (qp.value.udpHop = on ? { ports: '20000-50000', interval: '5-10' } : undefined),
+})
+
+/** Sudoku's custom tables are one text in the field, a list in the JSON. */
+const tablesText = (m: Record<string, any>) => (Array.isArray(m.settings.customTables) ? m.settings.customTables.join(',') : '')
+const setTables = (m: Record<string, any>, v: string) => (m.settings.customTables = v.split(',').map((x) => x.trim()).filter(Boolean))
+
+const remove = (list: unknown[], i: number) => list.splice(i, 1)
+
+// In the script: vue-tsc misreads the // of a URL inside the template.
+const resolverHint = 'e.g., xxx+udp://8.8.8.8:53'
+</script>
+
+<template>
+  <XSection v-model:open="open" :title="t('xray.transport')" card>
+    <template #meta>
+      <div class="of-head-control">
+        <XSelect v-model="net" :options="netOptions" mono :aria-label="t('xray.transport')" />
+      </div>
+    </template>
+
+    <!-- TCP -->
+    <template v-if="net === 'tcp'">
+      <div class="of-grid of-grid--2">
+        <XSwitch v-model="httpOn" boxed :label="t('xray.httpCamouflage')" />
+      </div>
+      <div v-if="httpOn" class="of-grid of-grid--2">
+        <XField v-slot="a" :label="t('xray.host')">
+          <XInput v-bind="a" v-model="tcpHost" mono />
+        </XField>
+        <XField v-slot="a" :label="t('xray.path')">
+          <XInput v-bind="a" v-model="tcpPath" mono />
+        </XField>
+      </div>
+    </template>
+
+    <!-- mKCP -->
+    <div v-if="net === 'kcp'" class="of-grid of-grid--3">
+      <XField v-slot="a" label="MTU"><XNumber v-bind="a" v-model="ns.mtu" :min="0" /></XField>
+      <XField v-slot="a" label="TTI (ms)"><XNumber v-bind="a" v-model="ns.tti" :min="0" /></XField>
+      <XField v-slot="a" label="Uplink (MB/s)"><XNumber v-bind="a" v-model="ns.uplinkCapacity" :min="0" /></XField>
+      <XField v-slot="a" label="Downlink (MB/s)"><XNumber v-bind="a" v-model="ns.downlinkCapacity" :min="0" /></XField>
+      <XField v-slot="a" label="CWND Multiplier"><XNumber v-bind="a" v-model="ns.cwndMultiplier" :min="1" /></XField>
+      <XField v-slot="a" label="Max Sending Window"><XNumber v-bind="a" v-model="ns.maxSendingWindow" :min="0" /></XField>
+    </div>
+
+    <!-- WebSocket, HTTPUpgrade, XHTTP -->
+    <div v-if="net === 'ws' || net === 'httpupgrade' || net === 'xhttp'" class="of-grid of-grid--2">
+      <XField v-slot="a" :label="t('xray.host')">
+        <XInput v-bind="a" v-model="ns.host" mono />
+      </XField>
+      <XField v-slot="a" :label="t('xray.path')">
+        <XInput v-bind="a" v-model="ns.path" mono />
+      </XField>
+    </div>
+    <div v-if="net === 'ws'" class="of-grid of-grid--3">
+      <XField v-slot="a" label="Heartbeat Period"><XNumber v-bind="a" v-model="ns.heartbeatPeriod" :min="0" /></XField>
+    </div>
+
+    <!-- gRPC -->
+    <template v-if="net === 'grpc'">
+      <div class="of-grid of-grid--2">
+        <XField v-slot="a" label="Service Name"><XInput v-bind="a" v-model="ns.serviceName" mono /></XField>
+        <XField v-slot="a" label="Authority"><XInput v-bind="a" v-model="ns.authority" mono /></XField>
+        <XSwitch v-model="ns.multiMode" boxed label="Multi Mode" />
+      </div>
+    </template>
+
+    <!-- XHTTP -->
+    <template v-if="net === 'xhttp'">
+      <div class="of-grid of-grid--2">
+        <XField v-slot="a" label="Mode">
+          <XSelect v-bind="a" v-model="ns.mode" :options="list(xhttpModes)" mono />
+        </XField>
+        <XSwitch v-if="ns.mode === 'stream-up' || ns.mode === 'stream-one'" v-model="ns.noGRPCHeader" boxed label="No gRPC Header" />
+        <XField v-if="ns.mode === 'packet-up'" v-slot="a" label="Min Upload Interval (Ms)">
+          <XInput v-bind="a" v-model="ns.scMinPostsIntervalMs" mono />
+        </XField>
+      </div>
+      <XSwitch v-model="xmuxOn" boxed label="XMUX" />
+      <XNest v-if="xmuxOn" bare>
+        <div class="of-grid of-grid--3">
+          <XField v-if="!ns.xmux.maxConnections" v-slot="a" label="Max Concurrency"><XInput v-bind="a" v-model="ns.xmux.maxConcurrency" mono /></XField>
+          <XField v-if="!ns.xmux.maxConcurrency" v-slot="a" label="Max Connections"><XInput v-bind="a" v-model="ns.xmux.maxConnections" mono /></XField>
+          <XField v-slot="a" label="Max Reuse Times"><XInput v-bind="a" v-model="ns.xmux.cMaxReuseTimes" mono /></XField>
+          <XField v-slot="a" label="Max Request Times"><XInput v-bind="a" v-model="ns.xmux.hMaxRequestTimes" mono /></XField>
+          <XField v-slot="a" label="Max Reusable Secs"><XInput v-bind="a" v-model="ns.xmux.hMaxReusableSecs" mono /></XField>
+          <XField v-slot="a" label="Keep Alive Period"><XNumber v-bind="a" v-model="ns.xmux.hKeepAlivePeriod" /></XField>
+        </div>
+      </XNest>
+    </template>
+
+    <!-- Hysteria -->
+    <template v-if="net === 'hysteria'">
+      <div class="of-grid of-grid--2">
+        <XField v-slot="a" label="Auth Password"><XInput v-bind="a" v-model="ns.auth" mono /></XField>
+        <XField v-slot="a" label="Congestion">
+          <XSelect v-bind="a" v-model="ns.congestion" :options="[{ value: '', label: 'BBR (Auto)' }, { value: 'brutal', label: 'Brutal' }]" />
+        </XField>
+        <XField v-slot="a" label="Upload Speed"><XInput v-bind="a" v-model="ns.up" mono placeholder="0 (BBR mode), e.g., 100 mbps" /></XField>
+        <XField v-slot="a" label="Download Speed"><XInput v-bind="a" v-model="ns.down" mono placeholder="0 (BBR mode), e.g., 100 mbps" /></XField>
+      </div>
+      <div class="of-grid of-grid--3">
+        <XField v-slot="a" label="UDP Hop Port"><XInput v-bind="a" v-model="hopPort" mono placeholder="e.g., 1145-1919 or 11,13,15-17" /></XField>
+        <template v-if="ns.udphop">
+          <XField v-slot="a" label="UDP Hop Interval Min (s)"><XNumber v-bind="a" v-model="ns.udphop.intervalMin" :min="5" /></XField>
+          <XField v-slot="a" label="UDP Hop Interval Max (s)"><XNumber v-bind="a" v-model="ns.udphop.intervalMax" :min="5" /></XField>
+        </template>
+      </div>
+      <div class="of-grid of-grid--2">
+        <XField v-slot="a" label="Init Stream Receive"><XNumber v-bind="a" v-model="ns.initStreamReceiveWindow" :min="16384" /></XField>
+        <XField v-slot="a" label="Max Stream Receive"><XNumber v-bind="a" v-model="ns.maxStreamReceiveWindow" :min="16384" /></XField>
+        <XField v-slot="a" label="Init Connection Receive"><XNumber v-bind="a" v-model="ns.initConnectionReceiveWindow" :min="16384" /></XField>
+        <XField v-slot="a" label="Max Connection Receive"><XNumber v-bind="a" v-model="ns.maxConnectionReceiveWindow" :min="16384" /></XField>
+        <XField v-slot="a" label="Max Idle Timeout (s)"><XNumber v-bind="a" v-model="ns.maxIdleTimeout" :min="4" :max="120" /></XField>
+        <XField v-slot="a" label="Keep Alive Period (s)"><XNumber v-bind="a" v-model="ns.keepAlivePeriod" :min="2" :max="60" /></XField>
+        <XSwitch v-model="ns.disablePathMTUDiscovery" boxed label="Disable Path MTU Dis" />
+      </div>
+    </template>
+
+    <XDivider v-if="tcpMasks || udpMasks || quic" />
+
+    <!-- TCP masks -->
+    <template v-if="tcpMasks">
+      <XListHead title="TCP Masks" add @add="(fm.tcp ??= []).push({ type: 'fragment', settings: tcpMaskSettings('fragment') })" />
+      <XNestCard v-for="(m, i) in items(fm.tcp)" :key="i" :title="String(i + 1)">
+        <template #actions>
+          <XInlineButton icon="delete" danger :label="t('xray.removeItem', { n: i + 1 })" @click="remove(fm.tcp, i)" />
+        </template>
+        <div class="of-stack">
+          <div class="of-grid of-grid--2">
+            <XField v-slot="a" label="Type">
+              <XSelect v-bind="a" :model-value="m.type" :options="tcpTypes" @update:model-value="setTcpType(m, String($event))" />
+            </XField>
+          </div>
+          <div v-if="m.type === 'fragment'" class="of-grid of-grid--4">
+            <XField v-slot="a" label="Packets"><XSelect v-bind="a" v-model="m.settings.packets" :options="list(['tlshello', '1-3', '1-5'])" mono /></XField>
+            <XField v-slot="a" label="Length"><XInput v-bind="a" v-model="m.settings.length" mono placeholder="e.g. 100-200" /></XField>
+            <XField v-slot="a" label="Delay"><XInput v-bind="a" v-model="m.settings.delay" mono placeholder="e.g. 10-20" /></XField>
+            <XField v-slot="a" label="Max Split"><XInput v-bind="a" v-model="m.settings.maxSplit" mono placeholder="e.g. 3-6" /></XField>
+          </div>
+          <div v-if="m.type === 'sudoku'" class="of-grid of-grid--3">
+            <XField v-slot="a" label="Password"><XInput v-bind="a" v-model="m.settings.password" mono placeholder="Obfuscation password" /></XField>
+            <XField v-slot="a" label="ASCII"><XInput v-bind="a" v-model="m.settings.ascii" mono /></XField>
+            <XField v-slot="a" label="Custom Table"><XInput v-bind="a" v-model="m.settings.customTable" mono /></XField>
+            <XField v-slot="a" label="Custom Tables">
+              <XInput v-bind="a" :model-value="tablesText(m)" mono @update:model-value="setTables(m, $event)" />
+            </XField>
+            <XField v-slot="a" label="Padding Min"><XNumber v-bind="a" v-model="m.settings.paddingMin" :min="0" /></XField>
+            <XField v-slot="a" label="Padding Max"><XNumber v-bind="a" v-model="m.settings.paddingMax" :min="0" /></XField>
+          </div>
+          <template v-if="m.type === 'header-custom'">
+            <template v-for="side in (['clients', 'servers'] as const)" :key="side">
+              <XListHead :title="side === 'clients' ? 'Clients' : 'Servers'" add @add="(m.settings[side] ??= []).push([packetItem()])" />
+              <XNestCard v-for="(group, gi) in items(m.settings[side])" :key="gi" :title="`${side === 'clients' ? 'Clients' : 'Servers'} Group ${gi + 1}`">
+                <template #actions>
+                  <XInlineButton icon="delete" danger :label="t('xray.removeItem', { n: gi + 1 })" @click="remove(m.settings[side], gi)" />
+                </template>
+                <OutboundPackets :items="items(group)" with-delay />
+              </XNestCard>
+            </template>
+          </template>
+        </div>
+      </XNestCard>
+    </template>
+
+    <!-- UDP masks -->
+    <template v-if="udpMasks">
+      <XListHead title="UDP Masks" add @add="addUdpMask" />
+      <XNestCard v-for="(m, i) in items(fm.udp)" :key="i" :title="String(i + 1)">
+        <template #actions>
+          <XInlineButton icon="delete" danger :label="t('xray.removeItem', { n: i + 1 })" @click="remove(fm.udp, i)" />
+        </template>
+        <div class="of-stack">
+          <div class="of-grid of-grid--2">
+            <XField v-slot="a" label="Type">
+              <XSelect v-bind="a" :model-value="m.type" :options="udpTypes" @update:model-value="setUdpType(m, String($event))" />
+            </XField>
+            <XField v-if="m.type === 'salamander'" v-slot="a" label="Password">
+              <XInput v-bind="a" v-model="m.settings.password" mono placeholder="Obfuscation password" />
+            </XField>
+            <template v-if="m.type === 'mkcp-legacy'">
+              <XField v-slot="a" label="Header"><XSelect v-bind="a" v-model="m.settings.header" :options="kcpHeaders" /></XField>
+              <XField v-if="!m.settings.header" v-slot="a" label="Password">
+                <XInput v-bind="a" v-model="m.settings.value" mono placeholder="Empty: mKCP original, set: AES-128-GCM" />
+              </XField>
+              <XField v-if="m.settings.header === 'dns'" v-slot="a" label="Domain">
+                <XInput v-bind="a" v-model="m.settings.value" mono placeholder="e.g., www.example.com" />
+              </XField>
+            </template>
+            <XField v-if="m.type === 'xdns'" v-slot="a" label="Resolvers" class="of-wide">
+              <XTagInput v-bind="a" v-model="m.settings.resolvers" mono :placeholder="resolverHint" />
+            </XField>
+            <template v-if="m.type === 'xicmp'">
+              <XField v-slot="a" label="IPs"><XTagInput v-bind="a" v-model="m.settings.ips" mono placeholder="e.g., 1.2.3.4" /></XField>
+              <XSwitch v-model="m.settings.dgram" boxed label="DGRAM" />
+            </template>
+            <XField v-if="m.type === 'noise'" v-slot="a" label="Reset"><XNumber v-bind="a" v-model="m.settings.reset" :min="0" /></XField>
+          </div>
+          <template v-if="m.type === 'noise'">
+            <XListHead title="Noise" add @add="m.settings.noise.push({ ...packetItem(), delay: '' })" />
+            <OutboundPackets :items="m.settings.noise" with-delay removable />
+          </template>
+          <template v-if="m.type === 'header-custom'">
+            <XListHead title="Client" add @add="m.settings.client.push(packetItem())" />
+            <OutboundPackets :items="m.settings.client" removable />
+            <XListHead title="Server" add @add="m.settings.server.push(packetItem())" />
+            <OutboundPackets :items="m.settings.server" removable />
+          </template>
+        </div>
+      </XNestCard>
+    </template>
+
+    <!-- QUIC parameters -->
+    <XSection v-if="quic" v-model:open="quicOpen" title="QUIC Params" card mono>
+      <template #meta><XSwitch v-model="quicOn" label="QUIC Params" /></template>
+      <template v-if="quicOn" #default>
+        <div class="of-grid of-grid--2">
+          <XField v-slot="a" label="Congestion"><XSelect v-bind="a" v-model="qp.congestion" :options="congestions" /></XField>
+          <XSwitch v-model="qp.debug" boxed label="Debug" />
+          <template v-if="qp.congestion === 'brutal' || qp.congestion === 'force-brutal'">
+            <XField v-slot="a" label="Brutal Up"><XInput v-bind="a" v-model="qp.brutalUp" mono placeholder="65537" /></XField>
+            <XField v-slot="a" label="Brutal Down"><XInput v-bind="a" v-model="qp.brutalDown" mono placeholder="65537" /></XField>
+          </template>
+          <XSwitch v-model="hopOn" boxed label="UDP Hop" />
+        </div>
+        <div v-if="qp.udpHop" class="of-grid of-grid--2">
+          <XField v-slot="a" label="Hop Ports"><XInput v-bind="a" v-model="qp.udpHop.ports" mono placeholder="e.g. 20000-50000" /></XField>
+          <XField v-slot="a" label="Hop Interval (s)"><XInput v-bind="a" v-model="qp.udpHop.interval" mono /></XField>
+        </div>
+        <div class="of-grid of-grid--2">
+          <XField v-slot="a" label="Max Idle Timeout (s)"><XNumber v-bind="a" v-model="qp.maxIdleTimeout" :min="4" :max="120" /></XField>
+          <XField v-slot="a" label="Keep Alive Period (s)"><XNumber v-bind="a" v-model="qp.keepAlivePeriod" :min="0" :max="60" /></XField>
+          <XSwitch v-model="qp.disablePathMTUDiscovery" boxed label="Disable Path MTU Dis" />
+          <XField v-slot="a" label="Max Incoming Streams"><XNumber v-bind="a" v-model="qp.maxIncomingStreams" :min="8" placeholder="8 = default" /></XField>
+          <XField v-slot="a" label="Init Stream Window"><XNumber v-bind="a" v-model="qp.initStreamReceiveWindow" :min="16384" placeholder="8388608 = default" /></XField>
+          <XField v-slot="a" label="Max Stream Window"><XNumber v-bind="a" v-model="qp.maxStreamReceiveWindow" :min="16384" placeholder="8388608 = default" /></XField>
+          <XField v-slot="a" label="Init Conn Window"><XNumber v-bind="a" v-model="qp.initConnectionReceiveWindow" :min="16384" placeholder="20971520 = default" /></XField>
+          <XField v-slot="a" label="Max Conn Window"><XNumber v-bind="a" v-model="qp.maxConnectionReceiveWindow" :min="16384" placeholder="20971520 = default" /></XField>
+        </div>
+      </template>
+    </XSection>
+  </XSection>
+</template>
+
+<style scoped>
+.of-head-control {
+  width: 220px;
+}
+
+@media (max-width: 767px) {
+  .of-head-control {
+    width: 150px;
+  }
+}
+</style>

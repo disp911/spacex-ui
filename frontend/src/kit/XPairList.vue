@@ -2,13 +2,14 @@
 import { useI18n } from 'vue-i18n'
 import XIcon from './XIcon.vue'
 import XInput from './XInput.vue'
+import XListHead from './XListHead.vue'
 
 /**
  * Name and value pairs, e.g. the attributes of a routing rule: a title with a
  * dashed + at its right, then numbered rows of two fields and a − to drop the
  * row, under a line of column names.
  */
-const props = defineProps<{ title: string; nameLabel: string; valueLabel: string; mono?: boolean }>()
+defineProps<{ title: string; nameLabel: string; valueLabel: string; mono?: boolean }>()
 const pairs = defineModel<[string, string][]>({ default: () => [] })
 const { t } = useI18n()
 
@@ -27,12 +28,7 @@ function set(i: number, k: 0 | 1, v: string) {
 
 <template>
   <div class="x-pairs">
-    <div class="x-pairs__head">
-      <span class="x-pairs__title">{{ title }}</span>
-      <button type="button" class="x-pairs__add" :aria-label="t('kit.addRow', { list: props.title })" @click="add">
-        <XIcon name="plus" :size="12" :stroke="1.8" />
-      </button>
-    </div>
+    <XListHead :title="title" add @add="add" />
     <template v-if="pairs.length">
       <div class="x-pairs__names" aria-hidden="true">
         <span>{{ nameLabel }}</span>
@@ -56,43 +52,6 @@ function set(i: number, k: 0 | 1, v: string) {
   flex-direction: column;
   gap: 8px;
   min-width: 0;
-}
-
-.x-pairs__head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  min-height: 24px;
-}
-
-.x-pairs__title {
-  color: var(--fg2);
-  font: 600 var(--fs-13) / var(--lh-tight) var(--font-sans);
-}
-
-.x-pairs__add {
-  display: flex;
-  flex: none;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  padding: 0;
-  border: 1px dashed var(--acc);
-  border-radius: var(--r-6);
-  background: transparent;
-  color: var(--acc);
-  outline: none;
-  transition: background-color var(--t-fast);
-}
-
-.x-pairs__add:hover {
-  background: var(--acc-soft);
-}
-
-.x-pairs__add:focus-visible {
-  box-shadow: 0 0 0 3px var(--acc-ring);
 }
 
 .x-pairs__names {

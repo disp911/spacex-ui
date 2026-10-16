@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, useAttrs } from 'vue'
+import { computed, useAttrs, useId } from 'vue'
 import XSpinner from './XSpinner.vue'
 
 defineOptions({ inheritAttrs: false })
@@ -17,10 +17,16 @@ const props = defineProps<{
    * accent when on, dim when off, amber while the change is applied.
    */
   text?: string
+  /**
+   * The label shown beside the switch in a frame of a field's height, e.g.
+   * Mux among the fields of a window; the actions slot sits before the switch.
+   */
+  boxed?: boolean
 }>()
 
 const model = defineModel<boolean>({ default: false })
 const attrs = useAttrs()
+const id = useId()
 
 function toggle() {
   model.value = !model.value
@@ -28,6 +34,7 @@ function toggle() {
 
 const button = computed(() => ({
   ...attrs,
+  id: props.boxed ? id : (attrs.id as string | undefined),
   type: 'button' as const,
   role: 'switch',
   'aria-checked': model.value,
@@ -40,7 +47,14 @@ const button = computed(() => ({
 </script>
 
 <template>
-  <span v-if="text" class="x-switch-line">
+  <div v-if="boxed" :class="['x-switch-box', { 'is-disabled': disabled }]">
+    <label class="x-switch-box__label" :for="id">{{ label }}</label>
+    <slot name="actions" />
+    <button v-bind="button" @click="loading || toggle()">
+      <span class="x-switch__knob"><XSpinner v-if="loading" :size="10" /></span>
+    </button>
+  </div>
+  <span v-else-if="text" class="x-switch-line">
     <span :class="['x-switch-line__text', { 'is-on': model, 'is-loading': loading }]" aria-hidden="true">{{ text }}</span>
     <button v-bind="button" @click="loading || toggle()">
       <span class="x-switch__knob"><XSpinner v-if="loading" :size="10" /></span>
@@ -52,6 +66,41 @@ const button = computed(() => ({
 </template>
 
 <style scoped>
+.x-switch-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  height: var(--ctl-h);
+  padding: 0 10px 0 12px;
+  border: 1px solid var(--field-line);
+  border-radius: var(--ctl-r);
+  transition: border-color var(--t-fast);
+}
+
+.x-switch-box:hover {
+  border-color: var(--field-hover);
+}
+
+.x-switch-box.is-disabled {
+  cursor: default;
+  opacity: .5;
+}
+
+.x-switch-box__label {
+  flex: 1;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  cursor: pointer;
+  overflow: hidden;
+  color: var(--fg2);
+  font: 400 var(--fs-13) / var(--lh-tight) var(--font-sans);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
 .x-switch-line {
   display: inline-flex;
   align-items: center;

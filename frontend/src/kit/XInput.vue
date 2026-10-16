@@ -70,6 +70,8 @@ defineExpose({ focus: () => input.value?.focus() })
       class="x-input__action"
       @click="clear"
     />
+    <!-- Buttons of the value, e.g. make a new key. -->
+    <slot name="actions" />
     <XInlineButton
       v-if="type === 'password'"
       :icon="revealed ? 'eyeOff' : 'eye'"
@@ -115,7 +117,8 @@ defineExpose({ focus: () => input.value?.focus() })
 }
 
 /* Closer to the field's edge than the text is. */
-.x-input__action {
+.x-input__action,
+.x-input :slotted(.x-inline-btn) {
   margin-right: -6px;
 }
 </style>

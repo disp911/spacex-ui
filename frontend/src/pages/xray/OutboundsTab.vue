@@ -9,6 +9,7 @@ import {
 import { cause } from '../settings/form'
 import { useXrayForm } from './form'
 import NordModal from './NordModal.vue'
+import OutboundModal from './OutboundModal.vue'
 import WarpModal from './WarpModal.vue'
 import { outboundAddresses, outboundChips, untestable, type Outbound, type OutboundTest, type OutboundTraffic } from './model'
 
@@ -88,6 +89,22 @@ const result = (o: Outbound): TestState | { state: 'idle' } => tests.get(String(
 const warpOpen = ref(false)
 const nordOpen = ref(false)
 
+// The outbound window: a new outbound, or the one at editing.
+const formOpen = ref(false)
+const editing = ref(-1)
+const otherTags = computed(() => outbounds.value.filter((_, i) => i !== editing.value).map((o) => String(o.tag ?? '')).filter(Boolean))
+
+function create() {
+  editing.value = -1
+  formOpen.value = true
+}
+
+function saveOutbound(o: Outbound) {
+  const list = (f.draft.config.outbounds ??= []) as Outbound[]
+  if (editing.value >= 0) list[editing.value] = o
+  else list.push(o)
+}
+
 // --- Rows -----------------------------------------------------------------------
 
 const menu = (_o: Outbound, i: number): MenuItem[] => [
@@ -102,14 +119,17 @@ function select(key: string, o: Outbound, i: number) {
   if (key === 'first') list.unshift(list.splice(i, 1)[0]!)
   else if (key === 'delete') list.splice(i, 1)
   else if (key === 'traffic') resetTraffic(String(o.tag ?? ''))
-  // edit: the outbound window comes with the next stage.
+  else if (key === 'edit') {
+    editing.value = i
+    formOpen.value = true
+  }
 }
 </script>
 
 <template>
   <div class="xray-tab">
     <div class="outbounds__tools">
-      <XButton variant="primary" icon="plus" phone-icon-only>{{ t('xray.outAdd') }}</XButton>
+      <XButton variant="primary" icon="plus" phone-icon-only @click="create">{{ t('xray.outAdd') }}</XButton>
       <XButton @click="warpOpen = true">WARP</XButton>
       <XButton @click="nordOpen = true">NordVPN</XButton>
       <XButtonGroup :label="t('xray.outTrafficTools')" class="outbounds__end">
@@ -173,6 +193,7 @@ function select(key: string, o: Outbound, i: number) {
 
     <WarpModal v-model:open="warpOpen" />
     <NordModal v-model:open="nordOpen" />
+    <OutboundModal v-model:open="formOpen" :outbound="editing >= 0 ? outbounds[editing] ?? null : null" :index="editing" :tags="otherTags" @save="saveOutbound" />
   </div>
 </template>
 

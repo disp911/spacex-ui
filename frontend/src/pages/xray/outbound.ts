@@ -1,0 +1,426 @@
+// An outbound as the outbound window edits it: Xray's own JSON, with the
+// rules of the old panel's Outbound class for what goes with what, the
+// defaults it filled in, the cleanup it did on save and the links it read.
+
+import type { Outbound } from './model'
+
+type Json = Record<string, any>
+
+export const protocols = ['freedom', 'blackhole', 'dns', 'vmess', 'vless', 'trojan', 'shadowsocks', 'wireguard', 'hysteria', 'socks', 'http'] as const
+export type Protocol = (typeof protocols)[number]
+
+export const ssMethods = [
+  'aes-256-gcm',
+  'aes-128-gcm',
+  'chacha20-poly1305',
+  'chacha20-ietf-poly1305',
+  'xchacha20-poly1305',
+  'xchacha20-ietf-poly1305',
+  '2022-blake3-aes-128-gcm',
+  '2022-blake3-aes-256-gcm',
+  '2022-blake3-chacha20-poly1305',
+]
+export const flows = ['xtls-rprx-vision', 'xtls-rprx-vision-udp443']
+export const fingerprints = ['chrome', 'firefox', 'safari', 'ios', 'android', 'edge', '360', 'qq', 'random', 'randomized', 'randomizednoalpn', 'unsafe']
+export const alpns = ['h3', 'h2', 'http/1.1']
+export const domainStrategies = ['AsIs', 'UseIP', 'UseIPv4', 'UseIPv6', 'UseIPv6v4', 'UseIPv4v6', 'ForceIP', 'ForceIPv6v4', 'ForceIPv6', 'ForceIPv4v6', 'ForceIPv4']
+export const wireguardStrategies = ['ForceIP', 'ForceIPv4', 'ForceIPv4v6', 'ForceIPv6', 'ForceIPv6v4']
+export const vmessSecurities = ['aes-128-gcm', 'chacha20-poly1305', 'auto', 'none', 'zero']
+export const xhttpModes = ['auto', 'packet-up', 'stream-up', 'stream-one']
+export const addressPortStrategies = ['none', 'srvportonly', 'srvaddressonly', 'srvportandaddress', 'txtportonly', 'txtaddressonly', 'txtportandaddress']
+export const forwardedForHeaders = ['CF-Connecting-IP', 'X-Real-IP', 'True-Client-IP', 'X-Client-IP']
+export const networks = [
+  { value: 'tcp', label: 'TCP (RAW)' },
+  { value: 'kcp', label: 'mKCP' },
+  { value: 'ws', label: 'WebSocket' },
+  { value: 'grpc', label: 'gRPC' },
+  { value: 'httpupgrade', label: 'HTTPUpgrade' },
+  { value: 'xhttp', label: 'XHTTP' },
+]
+
+/** A random UUID v4, also over HTTP where crypto.randomUUID is missing. */
+export function uuid() {
+  const b = crypto.getRandomValues(new Uint8Array(16))
+  b[6] = (b[6]! & 0x0f) | 0x40
+  b[8] = (b[8]! & 0x3f) | 0x80
+  const h = [...b].map((x) => x.toString(16).padStart(2, '0')).join('')
+  return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`
+}
+
+/** A list from the JSON for v-for, empty when the key holds none. */
+export const items = (v: unknown): Json[] => (Array.isArray(v) ? v : [])
+
+// --- What goes with what -----------------------------------------------------------
+
+const proxies = ['vmess', 'vless', 'trojan', 'shadowsocks']
+
+export const canStream = (o: Outbound) => [...proxies, 'hysteria'].includes(o.protocol)
+export const hasAddressPort = (o: Outbound) => ['dns', 'vmess', 'vless', 'trojan', 'shadowsocks', 'socks', 'http', 'hysteria'].includes(o.protocol)
+export const hasUser = (o: Outbound) => ['socks', 'http'].includes(o.protocol)
+
+export function canTls(o: Outbound) {
+  if (o.protocol === 'hysteria') return true
+  return proxies.includes(o.protocol) && ['tcp', 'ws', 'http', 'grpc', 'httpupgrade', 'xhttp'].includes(network(o))
+}
+
+export const canReality = (o: Outbound) => ['vless', 'trojan'].includes(o.protocol) && ['tcp', 'http', 'grpc', 'xhttp'].includes(network(o))
+
+/** xtls-rprx-vision: VLESS over raw TCP with TLS or Reality. */
+export const canFlow = (o: Outbound) => o.protocol === 'vless' && security(o) !== 'none' && network(o) === 'tcp'
+
+export const canVisionSeed = (o: Outbound) => canFlow(o) && flows.includes(flowOf(o))
+
+/** Not with a flow or over XHTTP, and only for the proxies that take it. */
+export const canMux = (o: Outbound) => !flowOf(o) && network(o) !== 'xhttp' && [...proxies, 'http', 'socks'].includes(o.protocol)
+
+export const network = (o: Outbound): string => o.streamSettings?.network ?? 'tcp'
+export const security = (o: Outbound): string => o.streamSettings?.security ?? 'none'
+
+// --- Where the fields live ---------------------------------------------------------
+
+/**
+ * The object that holds address and port: the first of vnext or servers, or
+ * settings itself (VLESS in its flat form, DNS, Hysteria).
+ */
+export function server(o: Outbound): Json {
+  const s = (o.settings ??= {})
+  if (Array.isArray(s.vnext)) return (s.vnext[0] ??= {})
+  if (Array.isArray(s.servers)) return (s.servers[0] ??= {})
+  return s
+}
+
+/** The user of a vnext entry, or the server entry itself where there is none. */
+export function user(o: Outbound): Json {
+  const s = server(o)
+  if (o.protocol === 'vmess' || (o.protocol === 'vless' && Array.isArray(o.settings?.vnext))) return ((s.users ??= [])[0] ??= {})
+  return s
+}
+
+const flowOf = (o: Outbound): string => (o.protocol === 'vless' ? (user(o).flow ?? '') : '')
+
+// --- Defaults ----------------------------------------------------------------------
+
+export function defaultSettings(protocol: string): Json {
+  switch (protocol) {
+    case 'dns':
+      return { network: 'udp', address: '', port: 53 }
+    case 'vmess':
+      return { vnext: [{ address: '', port: 443, users: [{ id: uuid(), security: 'auto' }] }] }
+    case 'vless':
+      return { address: '', port: 443, id: uuid(), flow: '', encryption: 'none' }
+    case 'trojan':
+      return { servers: [{ address: '', port: 443, password: '' }] }
+    case 'shadowsocks':
+      return { servers: [{ address: '', port: 443, password: '', method: ssMethods[0] }] }
+    case 'socks':
+    case 'http':
+      return { servers: [{ address: '', port: 1080, users: [] }] }
+    case 'wireguard':
+      return { mtu: 1420, secretKey: '', address: [], workers: 2, peers: [defaultPeer()], noKernelTun: false }
+    case 'hysteria':
+      return { address: '', port: 443, version: 2 }
+    default:
+      return {}
+  }
+}
+
+export const defaultPeer = () => ({ publicKey: '', allowedIPs: ['0.0.0.0/0', '::/0'], endpoint: '', keepAlive: 0 })
+
+export function defaultNetwork(net: string): Json {
+  switch (net) {
+    case 'tcp':
+      return { header: { type: 'none' } }
+    case 'kcp':
+      return { mtu: 1350, tti: 20, uplinkCapacity: 5, downlinkCapacity: 20, cwndMultiplier: 1, maxSendingWindow: 1350 }
+    case 'ws':
+      return { path: '/', host: '', heartbeatPeriod: 0 }
+    case 'grpc':
+      return { serviceName: '', authority: '', multiMode: false }
+    case 'httpupgrade':
+      return { path: '/', host: '' }
+    case 'xhttp':
+      return { path: '/', host: '', mode: 'auto', noGRPCHeader: false, scMinPostsIntervalMs: '30' }
+    case 'hysteria':
+      return {
+        version: 2,
+        auth: '',
+        congestion: '',
+        up: '0',
+        down: '0',
+        initStreamReceiveWindow: 8388608,
+        maxStreamReceiveWindow: 8388608,
+        initConnectionReceiveWindow: 20971520,
+        maxConnectionReceiveWindow: 20971520,
+        maxIdleTimeout: 30,
+        keepAlivePeriod: 2,
+        disablePathMTUDiscovery: false,
+      }
+    default:
+      return {}
+  }
+}
+
+export const defaultXmux = () => ({
+  maxConcurrency: '16-32',
+  maxConnections: 0,
+  cMaxReuseTimes: 0,
+  hMaxRequestTimes: '600-900',
+  hMaxReusableSecs: '1800-3000',
+  hKeepAlivePeriod: 0,
+})
+
+export const defaultTls = () => ({ serverName: '', alpn: [], fingerprint: '', echConfigList: '', verifyPeerCertByName: '', pinnedPeerCertSha256: '' })
+export const defaultReality = () => ({ publicKey: '', fingerprint: 'chrome', serverName: '', shortId: '', spiderX: '', mldsa65Verify: '' })
+export const defaultSockopt = () => ({
+  dialerProxy: '',
+  tcpFastOpen: false,
+  tcpKeepAliveInterval: 0,
+  tcpMptcp: false,
+  penetrate: false,
+  addressPortStrategy: 'none',
+})
+export const defaultMux = () => ({ enabled: true, concurrency: 8, xudpConcurrency: 16, xudpProxyUDP443: 'reject' })
+export const defaultFragment = () => ({ packets: '1-3', length: '', interval: '', maxSplit: '' })
+export const defaultNoise = () => ({ type: 'rand', packet: '10-20', delay: '10-16', applyTo: 'ip' })
+export const defaultFinalRule = () => ({ action: 'block', network: '', port: '', ip: [], blockDelay: '' })
+export const defaultDnsRule = () => ({ action: 'direct', qType: '', domain: '' })
+export const defaultQuic = () => ({
+  congestion: 'bbr',
+  initStreamReceiveWindow: 8388608,
+  maxStreamReceiveWindow: 8388608,
+  initConnectionReceiveWindow: 20971520,
+  maxConnectionReceiveWindow: 20971520,
+  maxIdleTimeout: 30,
+  keepAlivePeriod: 5,
+  maxIncomingStreams: 1024,
+})
+
+/** A new outbound: VLESS over raw TCP, as the old panel began. */
+export function newOutbound(protocol = 'vless'): Outbound {
+  const o: Outbound = { tag: '', protocol, settings: defaultSettings(protocol) }
+  setProtocolStream(o)
+  return o
+}
+
+/** A protocol with a transport starts on raw TCP without security; Hysteria on its own transport. */
+export function setProtocolStream(o: Outbound) {
+  const sockopt = o.streamSettings?.sockopt
+  if (o.protocol === 'hysteria') o.streamSettings = { network: 'hysteria', security: 'none', hysteriaSettings: defaultNetwork('hysteria') }
+  else if (canStream(o)) o.streamSettings = { network: 'tcp', security: 'none', tcpSettings: defaultNetwork('tcp') }
+  else delete o.streamSettings
+  if (sockopt) (o.streamSettings ??= {}).sockopt = sockopt
+}
+
+// --- Saving ------------------------------------------------------------------------
+
+const empty = (v: unknown) =>
+  v === undefined || v === null || v === '' || (Array.isArray(v) && !v.length) || (typeof v === 'object' && !Array.isArray(v) && !Object.keys(v as object).length)
+
+const netKeys = ['tcpSettings', 'kcpSettings', 'wsSettings', 'grpcSettings', 'httpupgradeSettings', 'xhttpSettings', 'hysteriaSettings', 'httpSettings', 'quicSettings', 'splithttpSettings']
+
+/**
+ * The outbound as it goes into the template: the settings of the transport and
+ * the security in use only, no empty optional fields, Mux only when on.
+ */
+export function finalize(input: Outbound): Outbound {
+  const o: Outbound = JSON.parse(JSON.stringify(input))
+  o.tag = String(o.tag ?? '').trim()
+  if (empty(o.tag)) delete o.tag
+  if (empty(o.sendThrough)) delete o.sendThrough
+  if (!o.mux?.enabled || !canMux(o)) delete o.mux
+
+  const st = o.streamSettings
+  if (st) {
+    if (!canStream(o)) {
+      o.streamSettings = st.sockopt ? { sockopt: st.sockopt } : undefined
+    } else {
+      const keep = `${st.network}Settings`
+      for (const k of netKeys) if (k !== keep) delete st[k]
+      if (st.security !== 'tls') delete st.tlsSettings
+      if (st.security !== 'reality') delete st.realitySettings
+      if (st.finalmask && empty(st.finalmask.tcp) && empty(st.finalmask.udp) && !st.finalmask.quicParams) delete st.finalmask
+      if (st.sockopt && empty(st.sockopt.trustedXForwardedFor)) delete st.sockopt.trustedXForwardedFor
+    }
+    if (empty(o.streamSettings)) delete o.streamSettings
+  }
+
+  const s = o.settings ?? {}
+  if (o.protocol === 'vless') {
+    const u = user(o)
+    if (empty(u.flow)) {
+      delete u.testpre
+      delete u.testseed
+    }
+    if (empty(s.reverse?.tag)) delete s.reverse
+  }
+  if (o.protocol === 'freedom') for (const k of ['domainStrategy', 'redirect', 'fragment', 'noises', 'finalRules']) if (empty(s[k])) delete s[k]
+  if (o.protocol === 'wireguard') {
+    if (!wireguardStrategies.includes(s.domainStrategy)) delete s.domainStrategy
+    if (empty(s.reserved)) delete s.reserved
+    for (const p of s.peers ?? []) if (empty(p.preSharedKey)) delete p.preSharedKey
+  }
+  if (o.protocol === 'blackhole' && empty(s.response?.type)) delete s.response
+  return o
+}
+
+// --- Links -------------------------------------------------------------------------
+
+/** An outbound from a share link: vmess://, vless://, trojan://, ss://, hysteria2://; null when it is none of them. */
+export function fromLink(link: string): Outbound | null {
+  const at = link.indexOf('://')
+  if (at < 0) return null
+  try {
+    switch (link.slice(0, at).toLowerCase()) {
+      case 'vmess':
+        return fromVmess(JSON.parse(decodeBase64(link.slice(at + 3))))
+      case 'vless':
+      case 'trojan':
+      case 'ss':
+        return fromParamLink(link)
+      case 'hysteria':
+      case 'hysteria2':
+        return fromHysteria(link)
+      default:
+        return null
+    }
+  } catch {
+    return null
+  }
+}
+
+function decodeBase64(text: string) {
+  const bin = atob(text.replace(/-/g, '+').replace(/_/g, '/'))
+  return new TextDecoder().decode(Uint8Array.from(bin, (c) => c.charCodeAt(0)))
+}
+
+function streamFrom(net: string, get: (k: string) => string | undefined): Json {
+  const st: Json = { network: net === 'none' ? 'tcp' : net, security: 'none' }
+  const host = get('host') ?? ''
+  const path = get('path') ?? ''
+  switch (st.network) {
+    case 'tcp':
+      st.tcpSettings = get('headerType') === 'http'
+        ? { header: { type: 'http', request: { headers: { Host: host ? host.split(',') : [] }, path: path ? path.split(',') : ['/'] } } }
+        : { header: { type: 'none' } }
+      break
+    case 'kcp': {
+      const kcp = defaultNetwork('kcp')
+      const mtu = Number(get('mtu'))
+      const tti = Number(get('tti'))
+      if (mtu > 0) kcp.mtu = mtu
+      if (tti > 0) kcp.tti = tti
+      st.kcpSettings = kcp
+      break
+    }
+    case 'ws':
+      st.wsSettings = { path: path || '/', host }
+      break
+    case 'grpc':
+      st.grpcSettings = { serviceName: get('serviceName') ?? path, authority: get('authority') ?? '', multiMode: get('mode') === 'multi' }
+      break
+    case 'httpupgrade':
+      st.httpupgradeSettings = { path: path || '/', host }
+      break
+    case 'xhttp': {
+      const xh: Json = { path: path || '/', host }
+      if (get('mode')) xh.mode = get('mode')
+      st.xhttpSettings = xh
+      break
+    }
+  }
+  return st
+}
+
+function fromVmess(j: Json): Outbound {
+  const st = streamFrom(j.net ?? 'tcp', (k) => (k === 'headerType' ? j.type : k === 'mode' && j.net === 'grpc' ? (j.type === 'multi' ? 'multi' : '') : j[k]))
+  if (j.tls === 'tls') {
+    st.security = 'tls'
+    st.tlsSettings = { ...defaultTls(), serverName: j.sni ?? '', alpn: j.alpn ? String(j.alpn).split(',') : [], fingerprint: j.fp ?? '' }
+  }
+  return {
+    tag: j.ps ?? '',
+    protocol: 'vmess',
+    settings: { vnext: [{ address: j.add ?? '', port: Number(j.port) || 443, users: [{ id: j.id ?? '', security: j.scy || 'auto' }] }] },
+    streamSettings: st,
+  }
+}
+
+function fromParamLink(link: string): Outbound | null {
+  const url = new URL(link)
+  const q = (k: string) => url.searchParams.get(k) ?? undefined
+  const st = streamFrom(q('type') ?? 'tcp', q)
+  const sec = q('security') ?? 'none'
+  if (sec === 'tls') {
+    st.security = 'tls'
+    st.tlsSettings = { ...defaultTls(), serverName: q('sni') ?? '', alpn: q('alpn') ? q('alpn')!.split(',') : [], fingerprint: q('fp') ?? '', echConfigList: q('ech') ?? '' }
+  } else if (sec === 'reality') {
+    st.security = 'reality'
+    st.realitySettings = {
+      publicKey: q('pbk') ?? '',
+      fingerprint: q('fp') ?? '',
+      serverName: q('sni') ?? '',
+      shortId: q('sid') ?? '',
+      spiderX: q('spx') ?? '',
+      mldsa65Verify: q('pqv') ?? '',
+    }
+  }
+  const m = link.match(/^([^@]+):\/\/([^@]+)@(.+):(\d+)(.*)$/)
+  if (!m) return null
+  const [, scheme, userData, address, portText] = m
+  const port = Number(portText)
+  const tag = decodeURIComponent(url.hash.slice(1)) || `out-${scheme === 'ss' ? 'shadowsocks' : scheme}-${port}`
+  switch (scheme) {
+    case 'vless':
+      return {
+        tag,
+        protocol: 'vless',
+        settings: { address, port, id: decodeURIComponent(userData!), flow: q('flow') ?? '', encryption: q('encryption') ?? 'none' },
+        streamSettings: st,
+      }
+    case 'trojan':
+      return { tag, protocol: 'trojan', settings: { servers: [{ address, port, password: decodeURIComponent(userData!) }] }, streamSettings: st }
+    case 'ss': {
+      const [method, ...pass] = decodeBase64(decodeURIComponent(userData!)).split(':')
+      return {
+        tag,
+        protocol: 'shadowsocks',
+        settings: { servers: [{ address, port, password: pass.join(':'), method, uot: true }] },
+        streamSettings: st,
+      }
+    }
+    default:
+      return null
+  }
+}
+
+function fromHysteria(link: string): Outbound | null {
+  const m = link.match(/^hysteria2?:\/\/([^@]+)@([^:?#]+):(\d+)([^#]*)(#.*)?$/)
+  if (!m) return null
+  const [, password, address, portText, params, hash] = m
+  const p = new URLSearchParams(params)
+  const hy = defaultNetwork('hysteria')
+  hy.auth = decodeURIComponent(password!)
+  hy.congestion = p.get('congestion') ?? ''
+  hy.up = p.get('up') ?? '0'
+  hy.down = p.get('down') ?? '0'
+  const hop = p.get('udphopPort')
+  if (hop) {
+    const one = p.get('udphopInterval')
+    hy.udphop = {
+      port: hop,
+      intervalMin: Number(one ?? p.get('udphopIntervalMin') ?? 30),
+      intervalMax: Number(one ?? p.get('udphopIntervalMax') ?? 30),
+    }
+  }
+  for (const k of ['initStreamReceiveWindow', 'maxStreamReceiveWindow', 'initConnectionReceiveWindow', 'maxConnectionReceiveWindow', 'maxIdleTimeout', 'keepAlivePeriod']) {
+    if (p.has(k)) hy[k] = Number(p.get(k))
+  }
+  if (p.has('disablePathMTUDiscovery')) hy.disablePathMTUDiscovery = p.get('disablePathMTUDiscovery') === 'true'
+  const port = Number(portText)
+  return {
+    tag: hash ? decodeURIComponent(hash.slice(1)) : `out-hysteria-${port}`,
+    protocol: 'hysteria',
+    settings: { address, port, version: 2 },
+    streamSettings: { network: 'hysteria', security: 'none', hysteriaSettings: hy },
+  }
+}

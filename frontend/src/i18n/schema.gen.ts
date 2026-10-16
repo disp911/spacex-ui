@@ -499,6 +499,32 @@ export interface MessageSchema {
     "nordAdded": string
     "nordUpdated": string
     "loginBy": string
+    "outEdit": string
+    "protocol": string
+    "sendThrough": string
+    "port": string
+    "reverseTag": string
+    "reverseTagDesc": string
+    "password": string
+    "username": string
+    "ssMethod": string
+    "privateKey": string
+    "publicKey": string
+    "newKey": string
+    "domainStrategy": string
+    "endpoint": string
+    "psk": string
+    "peer": string
+    "transport": string
+    "security": string
+    "host": string
+    "path": string
+    "link": string
+    "linkImport": string
+    "linkImported": string
+    "linkWrong": string
+    "removeItem": string
+    "httpCamouflage": string
   }
   "units": {
     "value": string
