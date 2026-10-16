@@ -93,7 +93,7 @@ const describedBy = computed(() => (props.error || props.hint ? `${id}-note` : u
 .x-field--stack .x-field__head:has(.x-field__help) {
   flex-direction: row;
   align-items: center;
-  gap: 5px;
+  gap: var(--sp-6);
 }
 
 .x-field__help {
@@ -106,7 +106,7 @@ const describedBy = computed(() => (props.error || props.hint ? `${id}-note` : u
   border: 1.2px solid;
   border-radius: 50%;
   color: var(--dim);
-  font: 600 9px / 1 var(--font-sans);
+  font: 600 var(--fs-10) / 1 var(--font-sans);
   cursor: help;
   outline: none;
 }

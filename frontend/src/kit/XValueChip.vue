@@ -83,7 +83,7 @@ onBeforeUnmount(() => clearTimeout(timer))
   max-width: 100%;
   min-width: 0;
   height: var(--chip-h);
-  padding: 0 4px 0 7px;
+  padding: 0 var(--sp-4) 0 var(--sp-8);
   border: 1px solid var(--chip-line);
   border-radius: var(--r-6);
   background: var(--chip);

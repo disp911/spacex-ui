@@ -62,7 +62,7 @@ defineProps<{
 }
 
 .x-card__description {
-  margin: 3px 0 0;
+  margin: var(--sp-4) 0 0;
   color: var(--mut);
   font: 400 var(--fs-12) / var(--lh-text) var(--font-sans);
 }

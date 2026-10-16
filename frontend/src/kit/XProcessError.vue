@@ -56,7 +56,7 @@ watch(() => props.text, (text) => !text && (open.value = false))
   width: min(560px, calc(100vw - 16px));
   padding: 12px;
   border: 1px solid var(--line);
-  border-radius: 14px;
+  border-radius: var(--r-12);
   background: var(--dlg);
   box-shadow: var(--shadow-pop);
 }
@@ -64,7 +64,7 @@ watch(() => props.text, (text) => !text && (open.value = false))
 .x-process-error__head {
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: var(--sp-8);
   margin-left: 2px;
 }
 

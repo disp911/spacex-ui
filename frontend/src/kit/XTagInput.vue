@@ -326,11 +326,11 @@ function onBlur() {
 /* The catalog. */
 .x-tags__catalog {
   max-height: 540px;
-  padding: 5px;
+  padding: var(--sp-4);
 }
 
 .x-tags__group {
-  padding: 8px 8px 3px;
+  padding: var(--sp-8) var(--sp-8) var(--sp-4);
   color: var(--dim);
   font: 600 var(--fs-10) / var(--lh-tight) var(--font-sans);
   letter-spacing: .06em;
@@ -354,7 +354,7 @@ function onBlur() {
   min-width: 0;
   height: 30px;
   padding: 0 8px;
-  border-radius: 7px;
+  border-radius: var(--r-8);
   color: var(--fg);
   font: 400 var(--fs-12) / 1 var(--font-sans);
   cursor: pointer;

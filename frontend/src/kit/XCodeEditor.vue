@@ -326,7 +326,7 @@ const reason = computed(() => (issue.value ? reasons.value[issue.value.kind] : '
   margin: 0 4px;
   padding: 0 6px;
   border: 1px solid var(--field-line);
-  border-radius: 5px;
+  border-radius: var(--r-4);
   background: var(--chip);
   color: var(--mut);
   font: 500 var(--fs-10) / 1 var(--font-mono);
@@ -349,7 +349,7 @@ const reason = computed(() => (issue.value ? reasons.value[issue.value.kind] : '
   flex-wrap: wrap;
   align-items: center;
   gap: 6px 10px;
-  padding: 9px 12px;
+  padding: var(--sp-8) var(--sp-12);
   border-top: 1px solid var(--err-line);
   background: var(--err-bg);
   color: var(--err-t);

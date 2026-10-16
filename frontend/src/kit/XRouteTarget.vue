@@ -16,7 +16,7 @@ defineProps<{ tag: string; balancer?: boolean }>()
 .x-route-target {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
+  gap: var(--sp-6);
   min-width: 0;
   min-height: 22px;
 }

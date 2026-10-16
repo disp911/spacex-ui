@@ -80,7 +80,7 @@ function set(i: number, k: 0 | 1, v: string) {
   height: 22px;
   padding: 0;
   border: 1px dashed var(--acc);
-  border-radius: 7px;
+  border-radius: var(--r-6);
   background: transparent;
   color: var(--acc);
   outline: none;
