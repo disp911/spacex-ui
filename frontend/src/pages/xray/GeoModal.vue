@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { api } from '../../api'
 import { formatTimestamp } from '../../i18n/format'
 import {
-  toast, usePhone, XButton, XChip, XConfirm, XFieldNote, XInlineButton, XModal, XPlainTable, XSection, XSpinner, type PlainColumn,
+  toast, usePhone, XButton, XChip, XConfirm, XFieldNote, XInlineButton, XModal, XPlainTable, XSection, type PlainColumn,
 } from '../../kit'
 import { cause } from '../settings/form'
 import GeoSourceModal from './GeoSourceModal.vue'
@@ -28,9 +28,8 @@ const openCustom = ref(true)
 
 /** The file waiting for a yes, '' for all of them. */
 const asking = ref<string | null>(null)
-/** The files being updated, '' for all of them; each row goes on by itself, as in the mockup. */
+/** The files being updated, '' for all of them (only its button spins); each row goes on by itself, as in the mockup. */
 const updating = reactive(new Set<string>())
-const updatingFile = (file: string) => updating.has(file) || updating.has('')
 
 async function update() {
   const file = asking.value
@@ -50,16 +49,12 @@ async function update() {
 // --- The user's sources ---------------------------------------------------------
 
 const sources = ref<GeoSource[]>([])
-const loading = ref(false)
 
 async function load() {
-  loading.value = true
   try {
     sources.value = (await api.get<GeoSource[] | null>('panel/api/custom-geo/list')) ?? []
   } catch (e) {
     toast('err', cause(e))
-  } finally {
-    loading.value = false
   }
 }
 watch(open, (on) => on && load())
@@ -78,9 +73,8 @@ function edit(s: GeoSource | null) {
   formOpen.value = true
 }
 
-/** The sources being downloaded again, 'all' for all of them. */
+/** The sources being downloaded again, 'all' for all of them (only its button spins). */
 const pulling = reactive(new Set<number | 'all'>())
-const pullingSource = (s: GeoSource) => pulling.has(s.id) || pulling.has('all')
 
 async function pull(id: number | 'all') {
   pulling.add(id)
@@ -116,12 +110,12 @@ async function remove() {
     <div class="geo">
       <XSection v-model:open="openStandard" :title="t('xray.geoStandard')" card>
         <div class="geo__block">
-          <XPlainTable :columns="fileColumns" :rows="standard" :row-key="(r) => r.file" :active="(r) => updatingFile(r.file)">
+          <XPlainTable :columns="fileColumns" :rows="standard" :row-key="(r) => r.file" :active="(r) => updating.has(r.file)">
             <template #cell-file="{ row }">
               <XChip :tone="row.file.startsWith('geoip') ? 'ok' : 'unl'" mono>{{ row.file }}</XChip>
             </template>
             <template #cell-update="{ row }">
-              <XInlineButton icon="refresh" :label="t('xray.geoDownload')" :loading="updatingFile(row.file)" @click="asking = row.file" />
+              <XInlineButton icon="refresh" :label="t('xray.geoDownload')" :loading="updating.has(row.file)" @click="asking = row.file" />
             </template>
           </XPlainTable>
           <div class="geo__end">
@@ -137,11 +131,11 @@ async function remove() {
           <XFieldNote tone="info">{{ t('xray.geoHint') }}</XFieldNote>
           <div class="geo__tools">
             <XButton variant="primary" size="sm" icon="plus" @click="edit(null)">{{ t('xray.geoAdd') }}</XButton>
-            <XButton size="sm" icon="refresh" :loading="pulling.has('all')" :disabled="!sources.length" @click="pull('all')">
+            <XButton size="sm" icon="refresh" :loading="pulling.has('all')" @click="pull('all')">
               {{ t('xray.geoUpdateAll') }}
             </XButton>
           </div>
-          <XPlainTable :columns="columns" :rows="sources" :row-key="(s) => s.id" :active="pullingSource">
+          <XPlainTable :columns="columns" :rows="sources" :row-key="(s) => s.id" :active="(s) => pulling.has(s.id)">
             <template #cell-ext="{ row }">
               <span v-if="phone" class="geo__name">{{ ext(row) }}</span>
               <code v-else class="geo__ext">{{ ext(row) }}</code>
@@ -151,10 +145,9 @@ async function remove() {
             </template>
             <template #cell-actions="{ row }">
               <XInlineButton icon="edit" :label="t('xray.geoEdit')" @click="edit(row)" />
-              <XInlineButton icon="refresh" :label="t('xray.geoDownload')" :loading="pullingSource(row)" @click="pull(row.id)" />
+              <XInlineButton icon="refresh" :label="t('xray.geoDownload')" :loading="pulling.has(row.id)" @click="pull(row.id)" />
               <XInlineButton icon="delete" :label="t('xray.delete')" danger @click="deleting = row" />
             </template>
-            <template v-if="loading" #empty><XSpinner :size="16" /></template>
           </XPlainTable>
         </div>
       </XSection>
