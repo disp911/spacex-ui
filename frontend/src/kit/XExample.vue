@@ -16,10 +16,11 @@ defineProps<{ label: string; value: string }>()
   align-items: center;
   gap: 8px;
   min-width: 0;
-  min-height: 30px;
-  padding: 5px 10px;
+  /* The height and corners of a field: it sits among them. */
+  min-height: var(--ctl-h);
+  padding: var(--sp-4) 10px;
   border: 1px dashed var(--field-line);
-  border-radius: var(--r-8);
+  border-radius: var(--ctl-r);
   background: var(--nest);
 }
 
