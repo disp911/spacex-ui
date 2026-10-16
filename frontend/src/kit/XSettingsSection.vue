@@ -96,11 +96,7 @@ const { t } = useI18n()
   transition: transform var(--t-fast), color var(--t-fast), background-color var(--t-fast), box-shadow var(--t-fast);
 }
 
-.is-open .x-settings__body--padded {
-  padding: 4px 20px 18px;
-}
-
-.x-settings__chevron {
+.is-open .x-settings__chevron {
   transform: rotate(90deg);
 }
 

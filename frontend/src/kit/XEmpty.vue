@@ -6,11 +6,11 @@ import type { IconName } from './icons'
  * Nothing to show yet: an icon in a dashed frame, a title and a hint. Fills and
  * centres in its box. tone err is a failed load: a red icon and a plain title.
  */
-withDefaults(defineProps<{ title?: string; hint?: string; icon?: IconName; tone?: 'err'; /** A short box, e.g. inside a table. */ compact?: boolean }>(), { icon: 'doc' })
+withDefaults(defineProps<{ title?: string; hint?: string; icon?: IconName; tone?: 'err' }>(), { icon: 'doc' })
 </script>
 
 <template>
-  <div :class="['x-empty', { 'x-empty--err': tone === 'err', 'x-empty--compact': compact }]" :role="tone === 'err' ? 'alert' : undefined">
+  <div :class="['x-empty', { 'x-empty--err': tone === 'err' }]" :role="tone === 'err' ? 'alert' : undefined">
     <span class="x-empty__icon"><XIcon :name="icon" :size="tone === 'err' ? 18 : 16" :stroke="tone === 'err' ? 1.4 : 1.3" /></span>
     <span v-if="title" class="x-empty__title">{{ title }}</span>
     <span v-if="hint" class="x-empty__hint">{{ hint }}</span>
@@ -29,10 +29,6 @@ withDefaults(defineProps<{ title?: string; hint?: string; icon?: IconName; tone?
   min-height: 200px;
   padding: 0 16px;
   text-align: center;
-}
-
-.x-empty--compact {
-  min-height: 96px;
 }
 
 .x-empty__icon {
@@ -57,11 +53,7 @@ withDefaults(defineProps<{ title?: string; hint?: string; icon?: IconName; tone?
   text-wrap: pretty;
 }
 
-.x-empty--err .x-empty--compact {
-  min-height: 96px;
-}
-
-.x-empty__icon {
+.x-empty--err .x-empty__icon {
   border: 1px solid var(--err-line);
   background: var(--err-bg);
   color: var(--err-t);
