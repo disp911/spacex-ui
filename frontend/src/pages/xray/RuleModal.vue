@@ -185,7 +185,7 @@ const title = computed(() => (props.rule ? t('xray.ruleEdit', { n: props.index +
     </div>
 
     <template #footer>
-      <XButton variant="primary" :disabled="!filled" @click="save">{{ rule ? t('xray.yes') : t('xray.ruleAdd') }}</XButton>
+      <XButton variant="primary" :disabled="!filled" @click="save">{{ t('xray.save') }}</XButton>
     </template>
   </XModal>
 </template>

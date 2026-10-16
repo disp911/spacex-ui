@@ -436,7 +436,6 @@ export interface MessageSchema {
     "catalogThreats": string
     "catalogServices": string
     "catalogCustom": string
-    "yes": string
     "geoStandard": string
     "geoUpdateAll": string
     "geoUpdateTitle": string
@@ -455,7 +454,7 @@ export interface MessageSchema {
     "geoDownload": string
     "geoSourceAdd": string
     "geoSourceEdit": string
-    "geoSave": string
+    "save": string
     "geoDeleteText": string
     "geoHint": string
     "geoAliasInvalid": string

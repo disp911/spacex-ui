@@ -71,7 +71,7 @@ const title = computed(() => (props.source ? t('xray.geoSourceEdit') : t('xray.g
       </XField>
     </div>
     <template #footer>
-      <XButton variant="primary" :loading="saving" @click="save">{{ t('xray.geoSave') }}</XButton>
+      <XButton variant="primary" :loading="saving" @click="save">{{ t('xray.save') }}</XButton>
     </template>
   </XModal>
 </template>
