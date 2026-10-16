@@ -437,7 +437,6 @@ export interface MessageSchema {
     "catalogServices": string
     "catalogCustom": string
     "yes": string
-    "close": string
     "geoStandard": string
     "geoUpdateAll": string
     "geoUpdateTitle": string

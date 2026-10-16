@@ -112,7 +112,7 @@ async function remove() {
 </script>
 
 <template>
-  <XModal v-model:open="open" :title="t('xray.geoFiles')" size="xl" :cancel-text="t('xray.close')">
+  <XModal v-model:open="open" :title="t('xray.geoFiles')" size="xl">
     <div class="geo">
       <XSection v-model:open="openStandard" :title="t('xray.geoStandard')" card>
         <div class="geo__block">

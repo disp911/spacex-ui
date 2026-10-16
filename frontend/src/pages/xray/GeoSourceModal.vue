@@ -58,7 +58,7 @@ const title = computed(() => (props.source ? t('xray.geoSourceEdit') : t('xray.g
 </script>
 
 <template>
-  <XModal v-model:open="open" :title="title" size="sm" cancel :cancel-text="t('xray.close')" :dismissible="!saving">
+  <XModal v-model:open="open" :title="title" size="sm" cancel :dismissible="!saving">
     <div class="geo-source">
       <XField v-slot="a" :label="t('xray.geoType')">
         <XSelect v-bind="a" v-model="form.type" :options="types" mono :disabled="!!source" />

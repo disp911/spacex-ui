@@ -126,7 +126,7 @@ const title = computed(() => (props.rule ? t('xray.ruleEdit', { n: props.index +
 </script>
 
 <template>
-  <XModal v-model:open="open" :title="title" size="lg" cancel :cancel-text="t('xray.close')">
+  <XModal v-model:open="open" :title="title" size="lg" cancel>
     <div class="rule">
       <XField v-slot="a" label="Source IPs" :help="t('xray.useComma')">
         <XTagInput v-bind="a" v-model="form.sourceIP" :groups="ipGroups" mono placeholder="e.g. 0.0.0.0/8, fc00::/7, geoip:ir" />

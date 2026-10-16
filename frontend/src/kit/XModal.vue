@@ -24,8 +24,6 @@ const props = withDefaults(
     headless?: boolean
     /** Cancel in the footer on desktop too, before the window's buttons. */
     cancel?: boolean
-    /** Another word for Cancel, e.g. Close where nothing is lost by it. */
-    cancelText?: string
   }>(),
   { size: 'md', dismissible: true },
 )
@@ -103,7 +101,7 @@ onBeforeUnmount(() => {
           <div :class="['x-modal__body', { 'x-modal__body--flush': flush }]"><slot /></div>
           <footer v-if="$slots.footer || cancel || !full" :class="['x-modal__foot', { 'x-modal__foot--phone': !$slots.footer && !cancel }]">
             <XButton v-if="cancel || !full" :disabled="!dismissible" :class="{ 'x-modal__cancel--phone': !cancel }" @click="close">
-              {{ cancelText ?? t('kit.cancel') }}
+              {{ t('kit.cancel') }}
             </XButton>
             <slot name="footer" />
           </footer>
