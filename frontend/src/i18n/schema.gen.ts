@@ -478,6 +478,27 @@ export interface MessageSchema {
     "outN": string
     "outUp": string
     "outDown": string
+    "create": string
+    "settings": string
+    "update": string
+    "accountInfo": string
+    "info": string
+    "outStatus": string
+    "enabled": string
+    "disabled": string
+    "nordToken": string
+    "nordKey": string
+    "nordLogin": string
+    "nordLogout": string
+    "nordCountry": string
+    "nordCity": string
+    "nordAllCities": string
+    "nordServer": string
+    "nordLoad": string
+    "nordNoServers": string
+    "nordAdded": string
+    "nordUpdated": string
+    "loginBy": string
   }
   "units": {
     "value": string

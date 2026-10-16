@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { useTheme } from '../stores/theme'
 import {
-  XActionBar, XActionList, XActionRow, XBackToTop, XBadge, XBusyOverlay, XButton, XButtonGroup, XCard, XCheckbox, XChip, XCodeArea, XCodeEditor, XCodeInput, XConfirm, XCounter, XDataTable, XEmpty, XErrorBox, XExample, XField, XFieldNote, XGridTable, XInfoRow, XInlineButton, XInput, XMenu, XModal, XMultiSelect, XNavItem, XNest, XNestCard, XNotice, XPlainTable,
+  XActionBar, XActionList, XActionRow, XBackToTop, XBadge, XBusyOverlay, XButton, XButtonGroup, XCard, XCheckbox, XChip, XCodeArea, XCodeEditor, XCodeInput, XConfirm, XCounter, XDataTable, XDivider, XEmpty, XErrorBox, XExample, XField, XFieldNote, XGridTable, XInfoRow, XInlineButton, XInput, XKeyValue, XMenu, XModal, XMultiSelect, XNavItem, XNest, XNestCard, XNotice, XPlainTable,
   XNumber, XOrderToggles, XPager, XPairList, XPickList, XPopConfirm, XProcessError, XProgressLine, XQrCode, XRecordCard, XRouteTarget, XRowLink, XSection, XSegmented, XSelect, XSettingBlock, XSettingDivider, XSettingRow, XSettingsSection, XSettingsSkeleton, XStatusDot, XStatusText, XStepArrow, XSwitch, XTabs, XTagInput, XTestResult, XTextarea,
   XTooltip, XUsagePill, XValueChip,
   type MenuItem,
@@ -107,6 +107,7 @@ const demoColumns = [
   { key: 'dest', label: 'Пункт назначения' },
   { key: 'to', label: 'Исходящее подключение', size: '.85fr', phone: 'head' as const },
 ]
+const demoCountry = ref(2)
 const plainColumns = [{ key: 'ext', label: 'Маршрутизация (ext:…)' }, { key: 'at', label: 'Обновлено' }, { key: 'act', label: 'Действия', fit: true }]
 const plainRows = [
   { ext: 'ext:geosite_ads.dat:tag', at: '2026-10-09 14:32:05', busy: false },
@@ -536,6 +537,9 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
             <XChip mono outline>xhttp</XChip>
             <XChip tone="ok" mono outline>reality</XChip>
           </div>
+          <XKeyValue :rows="[{ label: 'Access Token', value: 'fb4d5e78-31cd-44c5-ad60-0084c5af7c2a' }, { label: 'Device ID', value: 't.73479747-81ad-4783-ac51-9638e62ddb34' }]" />
+          <XDivider label="Статус исходящего подключения" />
+          <XSelect v-model="demoCountry" :options="[{ value: 1, label: 'Georgia (GE)' }, { value: 2, label: 'Germany (DE)' }, { value: 3, label: 'Netherlands (NL)' }]" search placeholder="Страна" />
           <div class="kit__row kit__row--wrap">
             <XTestResult state="idle" />
             <XTestResult state="testing" />

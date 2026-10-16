@@ -8,6 +8,8 @@ import {
 } from '../../kit'
 import { cause } from '../settings/form'
 import { useXrayForm } from './form'
+import NordModal from './NordModal.vue'
+import WarpModal from './WarpModal.vue'
 import { outboundAddresses, outboundChips, untestable, type Outbound, type OutboundTest, type OutboundTraffic } from './model'
 
 /**
@@ -83,6 +85,9 @@ async function test(o: Outbound) {
 
 const result = (o: Outbound): TestState | { state: 'idle' } => tests.get(String(o.tag ?? '')) ?? { state: 'idle' }
 
+const warpOpen = ref(false)
+const nordOpen = ref(false)
+
 // --- Rows -----------------------------------------------------------------------
 
 const menu = (_o: Outbound, i: number): MenuItem[] => [
@@ -105,8 +110,8 @@ function select(key: string, o: Outbound, i: number) {
   <div class="xray-tab">
     <div class="outbounds__tools">
       <XButton variant="primary" icon="plus" phone-icon-only>{{ t('xray.outAdd') }}</XButton>
-      <XButton>WARP</XButton>
-      <XButton>NordVPN</XButton>
+      <XButton @click="warpOpen = true">WARP</XButton>
+      <XButton @click="nordOpen = true">NordVPN</XButton>
       <XButtonGroup :label="t('xray.outTrafficTools')" class="outbounds__end">
         <XButton icon="refresh" :label="t('xray.outRefresh')" :loading="refreshing" @click="loadTraffic" />
         <XPopConfirm v-slot="{ props }" :text="t('xray.outResetAllText')" :cta="t('xray.outReset')" @confirm="resetTraffic('-alltags-')">
@@ -165,6 +170,9 @@ function select(key: string, o: Outbound, i: number) {
     <XCard v-else>
       <XEmpty icon="arrowRight" />
     </XCard>
+
+    <WarpModal v-model:open="warpOpen" />
+    <NordModal v-model:open="nordOpen" />
   </div>
 </template>
 
