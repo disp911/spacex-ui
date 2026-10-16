@@ -148,4 +148,11 @@ const sample = computed(() => '#' + order.value.map((p) => parts.find((x) => x.v
   flex: none;
   width: 98px;
 }
+
+/* Phones: the parts take the whole line, the separator goes under them. */
+@media (max-width: 767px) {
+  .remark__line {
+    flex-direction: column;
+  }
+}
 </style>
