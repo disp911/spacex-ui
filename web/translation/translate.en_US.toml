@@ -1170,7 +1170,6 @@
 "catalogCustom" = "Custom geo files"
 "yes" = "Sure"
 "close" = "Close"
-"geoAppliedAtOnce" = "Changes in this window take effect immediately and do not need Save."
 "geoStandard" = "Standard geo files"
 "geoUpdateAll" = "Update all"
 "geoUpdateTitle" = "Do you really want to update the geofile?"

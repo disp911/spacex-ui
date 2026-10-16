@@ -438,7 +438,6 @@ export interface MessageSchema {
     "catalogCustom": string
     "yes": string
     "close": string
-    "geoAppliedAtOnce": string
     "geoStandard": string
     "geoUpdateAll": string
     "geoUpdateTitle": string

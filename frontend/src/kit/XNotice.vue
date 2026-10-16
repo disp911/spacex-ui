@@ -16,10 +16,6 @@ const props = withDefaults(
     items?: string[]
     /** A cross at the top right that emits close. */
     closable?: boolean
-    /** In place of the tone's own icon. */
-    icon?: IconName
-    /** The icon on a solid square of the tone and heavier text, e.g. how a window behaves. */
-    badge?: boolean
   }>(),
   { tone: 'info' },
 )
@@ -27,13 +23,12 @@ const props = withDefaults(
 defineEmits<{ close: [] }>()
 const { t } = useI18n()
 
-const glyph = computed<IconName>(() => props.icon ?? (props.tone === 'ok' ? 'check' : props.tone === 'info' ? 'info' : 'alert'))
+const icon = computed<IconName>(() => (props.tone === 'ok' ? 'check' : props.tone === 'info' ? 'info' : 'alert'))
 </script>
 
 <template>
-  <div :class="['x-notice', `x-notice--${tone}`, { 'x-notice--compact': compact, 'x-notice--plain': !title, 'x-notice--badge': badge }]" :role="tone === 'err' ? 'alert' : 'status'">
-    <span v-if="badge" class="x-notice__badge"><XIcon :name="glyph" :size="14" :stroke="1.6" /></span>
-    <XIcon v-else :name="glyph" :size="16" :stroke="1.5" class="x-notice__icon" />
+  <div :class="['x-notice', `x-notice--${tone}`, { 'x-notice--compact': compact, 'x-notice--plain': !title }]" :role="tone === 'err' ? 'alert' : 'status'">
+    <XIcon :name="icon" :size="16" :stroke="1.5" class="x-notice__icon" />
     <div class="x-notice__body">
       <p v-if="title" class="x-notice__title">{{ title }}</p>
       <div class="x-notice__text"><slot /></div>
@@ -124,23 +119,6 @@ const glyph = computed<IconName>(() => props.icon ?? (props.tone === 'ok' ? 'che
   margin-top: 0;
 }
 
-.x-notice__badge {
-  display: flex;
-  flex: none;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  border-radius: var(--r-6);
-  background: var(--tone);
-  color: var(--tone-ink, var(--card));
-}
-
-.x-notice--badge .x-notice__body {
-  color: var(--fg);
-  font-weight: 500;
-}
-
 .x-notice__close {
   margin: -4px -4px 0 0;
   color: var(--tone-text, var(--fg2));
@@ -172,7 +150,6 @@ const glyph = computed<IconName>(() => props.icon ?? (props.tone === 'ok' ? 'che
 }
 .x-notice--ok {
   --tone: var(--ok);
-  --tone-ink: var(--acc-ink);
   --tone-t: var(--ok-t);
   --tone-bg: var(--ok-bg);
   --tone-line: var(--ok-line);

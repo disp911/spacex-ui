@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { api } from '../../api'
 import { formatTimestamp } from '../../i18n/format'
 import {
-  toast, usePhone, XButton, XChip, XConfirm, XFieldNote, XInlineButton, XModal, XNotice, XPlainTable, XSection, XSpinner, type PlainColumn,
+  toast, usePhone, XButton, XChip, XConfirm, XFieldNote, XInlineButton, XModal, XPlainTable, XSection, XSpinner, type PlainColumn,
 } from '../../kit'
 import { cause } from '../settings/form'
 import GeoSourceModal from './GeoSourceModal.vue'
@@ -114,8 +114,6 @@ async function remove() {
 <template>
   <XModal v-model:open="open" :title="t('xray.geoFiles')" size="xl" :cancel-text="t('xray.close')">
     <div class="geo">
-      <XNotice tone="ok" icon="bolt" badge>{{ t('xray.geoAppliedAtOnce') }}</XNotice>
-
       <XSection v-model:open="openStandard" :title="t('xray.geoStandard')" card>
         <div class="geo__block">
           <XPlainTable :columns="fileColumns" :rows="standard" :row-key="(r) => r.file" :active="(r) => updatingFile(r.file)">

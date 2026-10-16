@@ -498,7 +498,6 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
             <XNotice tone="warn" title="Сертификат истекает">Осталось 6 дней. Продлите его до 18 октября.</XNotice>
             <XNotice tone="err" title="Ошибка при запуске Xray">failed to listen on 0.0.0.0:443: address already in use</XNotice>
             <XNotice tone="ok">Настройки сохранены.</XNotice>
-            <XNotice tone="ok" icon="bolt" badge>Изменения в этом окне применяются сразу — нажимать «Сохранить» для них не нужно.</XNotice>
             <XFieldNote tone="info">В правилах маршрутизации используйте значение как ext:файл.dat:тег (замените тег).</XFieldNote>
             <XNotice tone="warn" title="Соединение не защищено (HTTP)" compact>Не вводите конфиденциальные данные</XNotice>
           </div>
