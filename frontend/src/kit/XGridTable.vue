@@ -21,8 +21,7 @@ export interface GridColumn {
  * Escape to drop), its number and a menu of actions. On phones every row
  * becomes a card: the handle, the number, the head columns and the menu on
  * top, the other columns with their labels under it, empty ones left out.
- * A cell shows the `cell-<key>` slot; a blank one shows a dash. With no rows
- * the empty slot shows under the header.
+ * A cell shows the `cell-<key>` slot; a blank one shows a dash.
  */
 const props = defineProps<{
   columns: GridColumn[]
@@ -187,8 +186,6 @@ function rowStyle(k: number) {
       <span v-for="c in columns" :key="c.key" role="columnheader">{{ c.label }}</span>
     </div>
 
-    <div v-if="!rows.length && $slots.empty" class="x-grid__empty"><slot name="empty" /></div>
-
     <div
       v-for="(row, i) in rows"
       :key="rowKey(row, i)"
@@ -267,7 +264,7 @@ function rowStyle(k: number) {
 }
 
 .x-grid__head {
-  border-radius: 15px 15px 0 0;
+  border-radius: calc(var(--r-16) - 1px) calc(var(--r-16) - 1px) 0 0;
   background: var(--field);
 }
 
@@ -283,7 +280,7 @@ function rowStyle(k: number) {
 }
 
 .x-grid:not(.x-grid--phone) .x-grid__row:last-child {
-  border-radius: 0 0 15px 15px;
+  border-radius: 0 0 calc(var(--r-16) - 1px) calc(var(--r-16) - 1px);
 }
 
 .x-grid:not(.is-dragging) .x-grid__row:hover {
@@ -327,7 +324,7 @@ function rowStyle(k: number) {
 .x-grid__grip {
   width: 22px;
   height: 28px;
-  border-radius: 7px;
+  border-radius: var(--r-8);
   color: var(--faint);
   cursor: grab;
   touch-action: none;
@@ -380,17 +377,7 @@ function rowStyle(k: number) {
 .x-grid__row.is-lifted {
   z-index: 2;
   background: var(--dlg);
-  box-shadow: var(--shadow-lift), 0 0 0 1px var(--acc-line);
-}
-
-.x-grid__empty {
-  border-top: 1px solid var(--div);
-}
-
-.x-grid--phone .x-grid__empty {
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  background: var(--card);
+  box-shadow: var(--lift), 0 0 0 1px var(--acc-line);
 }
 
 /* Phones: a card per row. */
@@ -405,7 +392,7 @@ function rowStyle(k: number) {
 .x-grid--phone .x-grid__row {
   position: relative;
   border: 1px solid var(--line);
-  border-radius: 14px;
+  border-radius: var(--r-16);
   background: var(--card);
 }
 
@@ -443,7 +430,7 @@ function rowStyle(k: number) {
 .x-grid__card-body {
   display: flex;
   flex-direction: column;
-  gap: 9px;
+  gap: 8px;
   padding: 10px 14px 12px;
 }
 
@@ -452,7 +439,7 @@ function rowStyle(k: number) {
 }
 
 .x-grid__field-label {
-  margin-bottom: 5px;
+  margin-bottom: 4px;
   color: var(--dim);
   font: 500 var(--fs-11) / var(--lh-tight) var(--font-sans);
 }
@@ -460,7 +447,7 @@ function rowStyle(k: number) {
 .x-grid__field-value {
   display: flex;
   flex-wrap: wrap;
-  gap: 5px;
+  gap: 4px;
   min-width: 0;
 }
 </style>

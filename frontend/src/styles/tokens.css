@@ -90,12 +90,6 @@
   --side: #0E1218;
   --card: #13171F;
   --nest: #0F131A;
-  /* The code editor: its gutter a step darker than a field, and the colours of JSON. */
-  --gut: #0D1118;
-  --syn-key: oklch(80% .1 250);
-  --syn-str: oklch(80% .1 150);
-  --syn-num: oklch(80% .1 300);
-  --syn-lit: oklch(80% .1 30);
   --dlg: #151A23;
   --foot: rgba(11, 14, 19, .4);
   --gut: #0D1118;
@@ -118,6 +112,8 @@
   --field-line: rgba(255, 255, 255, .1);
   --field-hover: rgba(255, 255, 255, .22);
   --ctrl: #161B24;
+  /* A faint wash: a folding card's ground, a row at work */
+  --tint: rgba(255, 255, 255, .022);
   --hov: rgba(255, 255, 255, .05);
   --press: rgba(255, 255, 255, .09);
   --seg: #232A38;
@@ -193,8 +189,6 @@
 
   /* Elevation */
   --shadow-pop: 0 18px 48px rgba(0, 0, 0, .5);
-  /* A row lifted to be dragged: closer than a popup, so a tighter shadow. */
-  --shadow-lift: 0 14px 34px rgba(0, 0, 0, .55);
   --shadow-modal: 0 24px 60px rgba(0, 0, 0, .5);
   --shadow-sheet: 0 -24px 70px rgba(0, 0, 0, .5);
   --shadow-knob: 0 1px 3px rgba(0, 0, 0, .28);
@@ -209,11 +203,6 @@
   --side: #FFFFFF;
   --card: #FFFFFF;
   --nest: #F7F8FA;
-  --gut: #F1F3F6;
-  --syn-key: oklch(48% .13 250);
-  --syn-str: oklch(48% .13 150);
-  --syn-num: oklch(48% .13 300);
-  --syn-lit: oklch(50% .14 30);
   --dlg: #FFFFFF;
   --foot: #F8F9FA;
   --gut: #F1F3F6;
@@ -232,6 +221,7 @@
   --field-line: rgba(16, 20, 28, .13);
   --field-hover: rgba(16, 20, 28, .28);
   --ctrl: #F5F6F8;
+  --tint: rgba(16, 20, 28, .022);
   --hov: rgba(16, 20, 28, .045);
   --press: rgba(16, 20, 28, .08);
   --seg: #FFFFFF;
@@ -297,7 +287,6 @@
   --syn-pun: #8A919D;
 
   --shadow-pop: 0 18px 48px rgba(16, 20, 28, .16);
-  --shadow-lift: 0 14px 34px rgba(16, 20, 28, .18);
   --shadow-modal: 0 24px 60px rgba(16, 20, 28, .18);
   --shadow-sheet: 0 -24px 70px rgba(16, 20, 28, .18);
   --shadow-knob: 0 1px 3px rgba(16, 20, 28, .25);

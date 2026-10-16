@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import XIcon from './XIcon.vue'
+import XSpinner from './XSpinner.vue'
 import type { IconName } from './icons'
 
 /**
@@ -7,12 +8,31 @@ import type { IconName } from './icons'
  * tile: show a password, clear a value, reveal an address. Square buttons on
  * their own are XButton.
  */
-withDefaults(defineProps<{ icon: IconName; label: string; iconSize?: number; stroke?: number; /** Removes something: red. */ danger?: boolean }>(), { iconSize: 15, stroke: 1.35 })
+withDefaults(
+  defineProps<{
+    icon: IconName
+    label: string
+    iconSize?: number
+    stroke?: number
+    /** Removes something: red. */
+    danger?: boolean
+    /** At work: an accent spinner in place of the icon, and no clicks. */
+    loading?: boolean
+  }>(),
+  { iconSize: 15, stroke: 1.35 },
+)
 </script>
 
 <template>
-  <button type="button" :class="['x-inline-btn', { 'x-inline-btn--danger': danger }]" :aria-label="label" :title="label">
-    <XIcon :name="icon" :size="iconSize" :stroke="stroke" />
+  <button
+    type="button"
+    :class="['x-inline-btn', { 'x-inline-btn--danger': danger, 'is-loading': loading }]"
+    :aria-label="label"
+    :aria-busy="loading || undefined"
+    :title="label"
+  >
+    <XSpinner v-if="loading" :size="12" />
+    <XIcon v-else :name="icon" :size="iconSize" :stroke="stroke" />
   </button>
 </template>
 
@@ -57,5 +77,12 @@ withDefaults(defineProps<{ icon: IconName; label: string; iconSize?: number; str
 .x-inline-btn:disabled {
   cursor: not-allowed;
   opacity: .5;
+}
+
+/* At work it stays bright, even while its neighbours are held back. */
+.x-inline-btn.is-loading {
+  color: var(--acc);
+  opacity: 1;
+  pointer-events: none;
 }
 </style>

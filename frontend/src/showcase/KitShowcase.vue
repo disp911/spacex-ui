@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { useTheme } from '../stores/theme'
 import {
-  XActionBar, XActionList, XActionRow, XBackToTop, XBadge, XBusyOverlay, XButton, XCard, XCheckbox, XChip, XCodeArea, XCodeEditor, XCodeInput, XConfirm, XCounter, XDataTable, XEmpty, XErrorBox, XExample, XField, XFieldNote, XGridTable, XInfoRow, XInput, XMenu, XModal, XMultiSelect, XNavItem, XNest, XNestCard, XNotice,
+  XActionBar, XActionList, XActionRow, XBackToTop, XBadge, XBusyOverlay, XButton, XCard, XCheckbox, XChip, XCodeArea, XCodeEditor, XCodeInput, XConfirm, XCounter, XDataTable, XEmpty, XErrorBox, XExample, XField, XFieldNote, XGridTable, XInfoRow, XInlineButton, XInput, XMenu, XModal, XMultiSelect, XNavItem, XNest, XNestCard, XNotice, XPlainTable,
   XNumber, XOrderToggles, XPager, XPairList, XPickList, XProcessError, XProgressLine, XQrCode, XRecordCard, XRouteTarget, XRowLink, XSection, XSegmented, XSelect, XSettingBlock, XSettingDivider, XSettingRow, XSettingsSection, XSettingsSkeleton, XStatusDot, XStatusText, XStepArrow, XSwitch, XTabs, XTagInput, XTextarea,
   XTooltip, XUsagePill, XValueChip,
   type MenuItem,
@@ -107,6 +107,12 @@ const demoColumns = [
   { key: 'dest', label: 'Пункт назначения' },
   { key: 'to', label: 'Исходящее подключение', size: '.85fr', phone: 'head' as const },
 ]
+const plainColumns = [{ key: 'ext', label: 'Маршрутизация (ext:…)' }, { key: 'at', label: 'Обновлено' }, { key: 'act', label: 'Действия', fit: true }]
+const plainRows = [
+  { ext: 'ext:geosite_ads.dat:tag', at: '2026-10-09 14:32:05', busy: false },
+  { ext: 'ext:geosite_corp.dat:tag', at: '—', busy: true },
+]
+const noPlainRows: typeof plainRows = []
 function moveDemo(from: number, to: number) {
   demoRules.value.splice(to, 0, demoRules.value.splice(from, 1)[0]!)
 }
@@ -492,6 +498,8 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
             <XNotice tone="warn" title="Сертификат истекает">Осталось 6 дней. Продлите его до 18 октября.</XNotice>
             <XNotice tone="err" title="Ошибка при запуске Xray">failed to listen on 0.0.0.0:443: address already in use</XNotice>
             <XNotice tone="ok">Настройки сохранены.</XNotice>
+            <XNotice tone="ok" icon="bolt" badge>Изменения в этом окне применяются сразу — нажимать «Сохранить» для них не нужно.</XNotice>
+            <XFieldNote tone="info">В правилах маршрутизации используйте значение как ext:файл.dat:тег (замените тег).</XFieldNote>
             <XNotice tone="warn" title="Соединение не защищено (HTTP)" compact>Не вводите конфиденциальные данные</XNotice>
           </div>
         </div>
@@ -717,6 +725,18 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
           <template #cell-dest="{ row }"><XValueChip label="Domain" :values="row.dest" /></template>
           <template #cell-to="{ row }"><XRouteTarget :tag="row.to" :balancer="row.bal" /></template>
         </XGridTable>
+        <XSection title="Пользовательские GeoSite / GeoIP" card>
+          <XPlainTable :columns="plainColumns" :rows="plainRows" :row-key="(r) => r.ext" :active="(r) => !!r.busy">
+            <template #cell-ext="{ row }"><code>{{ row.ext }}</code></template>
+            <template #cell-at="{ row }">{{ row.at }}</template>
+            <template #cell-act="{ row }">
+              <XInlineButton icon="edit" label="Изменить" />
+              <XInlineButton icon="refresh" label="Обновить сейчас" :loading="row.busy" />
+              <XInlineButton icon="delete" label="Удалить" danger />
+            </template>
+          </XPlainTable>
+          <XPlainTable :columns="plainColumns" :rows="noPlainRows" :row-key="(r) => r.ext" />
+        </XSection>
         <XCard title="Шаблон конфигурации Xray" description="Карточка без линии под заголовком; переключатель прокручивается, если не помещается." seamless>
           <template #actions>
             <XSegmented v-model="editorPart" :options="[{ value: 'all', label: 'Все' }, { value: 'in', label: 'Входящие подключения' }, { value: 'out', label: 'Исходящие подключения' }, { value: 'rules', label: 'Маршрутизация' }]" scroll />
