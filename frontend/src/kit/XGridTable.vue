@@ -10,8 +10,11 @@ export interface GridColumn {
   label: string
   /** Grid track, e.g. '.85fr' or '120px'; 1fr when left out. */
   size?: string
-  /** On phones: in the card's head beside the number, or under it with its label (body, the default). */
-  phone?: 'head' | 'body'
+  /**
+   * On phones: in the card's head beside the number, or under it with its
+   * label (body, the default), or so in half the width beside another half.
+   */
+  phone?: 'head' | 'body' | 'half'
 }
 
 /**
@@ -35,6 +38,8 @@ const props = defineProps<{
   menu?: (row: T, index: number) => MenuItem[]
   /** The accessible name of a row's handle and menu, e.g. «Rule 3». */
   rowLabel?: (index: number) => string
+  /** Cells sit in the middle of the row rather than at its top, e.g. one-line values beside a two-line tag. */
+  center?: boolean
 }>()
 const emit = defineEmits<{ move: [from: number, to: number]; select: [key: string, row: T, index: number] }>()
 const { t } = useI18n()
@@ -42,7 +47,8 @@ const phone = usePhone()
 const hintId = useId()
 
 const lead = computed(() => props.sortable || props.numbered || !!props.menu)
-const template = computed(() => [lead.value ? '108px' : '', ...props.columns.map((c) => `minmax(0, ${c.size ?? '1fr'})`)].filter(Boolean).join(' '))
+// The lead holds the handle, the number and the menu; without a handle it is narrower.
+const template = computed(() => [lead.value ? (props.sortable ? '108px' : '76px') : '', ...props.columns.map((c) => `minmax(0, ${c.size ?? '1fr'})`)].filter(Boolean).join(' '))
 const headColumns = computed(() => props.columns.filter((c) => c.phone === 'head'))
 const bodyColumns = computed(() => props.columns.filter((c) => c.phone !== 'head'))
 const isBlank = (row: T, key: string) => props.blank?.(row, key) ?? false
@@ -178,7 +184,7 @@ function rowStyle(k: number) {
 </script>
 
 <template>
-  <div :class="['x-grid', { 'x-grid--phone': phone, 'is-dragging': lifted >= 0 }]" role="table">
+  <div :class="['x-grid', { 'x-grid--phone': phone, 'x-grid--center': center, 'is-dragging': lifted >= 0 }]" role="table">
     <span :id="hintId" hidden>{{ t('kit.moveHint') }}</span>
 
     <div v-if="!phone" class="x-grid__head x-caps" role="row">
@@ -233,7 +239,7 @@ function rowStyle(k: number) {
         </div>
       </template>
       <div v-else-if="bodyColumns.some((c) => !isBlank(row, c.key))" class="x-grid__card-body">
-        <div v-for="c in bodyColumns.filter((c) => !isBlank(row, c.key))" :key="c.key" class="x-grid__field">
+        <div v-for="c in bodyColumns.filter((c) => !isBlank(row, c.key))" :key="c.key" :class="['x-grid__field', { 'x-grid__field--half': c.phone === 'half' }]">
           <div class="x-grid__field-label">{{ c.label }}</div>
           <div class="x-grid__field-value"><slot :name="`cell-${c.key}`" :row="row" :index="i" /></div>
         </div>
@@ -285,6 +291,10 @@ function rowStyle(k: number) {
 
 .x-grid:not(.is-dragging) .x-grid__row:hover {
   background: var(--hov);
+}
+
+.x-grid--center:not(.x-grid--phone) .x-grid__row {
+  align-items: center;
 }
 
 .x-grid__lead {
@@ -418,6 +428,11 @@ function rowStyle(k: number) {
   width: auto;
 }
 
+/* Without a handle the number opens the card: kept off its edge. */
+.x-grid--phone .x-grid__number:first-child {
+  margin-left: var(--sp-10);
+}
+
 .x-grid__card-title {
   display: flex;
   flex: 1;
@@ -425,17 +440,24 @@ function rowStyle(k: number) {
   justify-content: flex-end;
   gap: 6px;
   min-width: 0;
+  /* A title of two lines keeps off the card's top and bottom; one line stays within the buttons' height. */
+  padding: var(--sp-8) 0;
 }
 
 .x-grid__card-body {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 12px;
   padding: 10px 14px 12px;
 }
 
 .x-grid__field {
+  grid-column: 1 / -1;
   min-width: 0;
+}
+
+.x-grid__field--half {
+  grid-column: auto;
 }
 
 .x-grid__field-label {

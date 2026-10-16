@@ -33,6 +33,8 @@ const props = withDefaults(
     success?: boolean
     /** Waits for an earlier step, e.g. Restart for Save: disabled, in a dashed outline. */
     pending?: boolean
+    /** An icon button in a circle, e.g. a row's test; at work it turns accent around the spinner. */
+    round?: boolean
   }>(),
   { variant: 'secondary', size: 'md', type: 'button' },
 )
@@ -56,7 +58,7 @@ const linkAttrs = computed(() => (props.to ? { to: props.to } : props.href ? { h
       'x-btn',
       `x-btn--${variant}`,
       `x-btn--${sizeClass}`,
-      { 'x-btn--icon': iconOnly, 'x-btn--block': block, 'x-btn--mono': mono, 'x-btn--phone-icon': phoneIconOnly && !iconOnly, 'x-btn--phone-block': phoneBlock, 'is-loading': loading, 'is-success': success, 'is-pending': pending },
+      { 'x-btn--icon': iconOnly, 'x-btn--block': block, 'x-btn--mono': mono, 'x-btn--phone-icon': phoneIconOnly && !iconOnly, 'x-btn--phone-block': phoneBlock, 'is-loading': loading, 'is-success': success, 'is-pending': pending, 'x-btn--round': round && iconOnly },
     ]"
     :disabled="isLink ? undefined : disabled || pending"
     :aria-disabled="loading || (isLink && disabled) || undefined"
@@ -195,6 +197,17 @@ const linkAttrs = computed(() => (props.to ? { to: props.to } : props.href ? { h
 .x-btn.is-loading {
   pointer-events: none;
   opacity: .8;
+}
+
+.x-btn--round {
+  border-radius: 50%;
+}
+
+.x-btn--round.is-loading {
+  border-color: var(--acc-line);
+  background: var(--acc-soft);
+  color: var(--acc);
+  opacity: 1;
 }
 
 .x-btn:focus-visible,

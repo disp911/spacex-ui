@@ -1195,6 +1195,21 @@
 "geoAliasTaken" = "This alias is already used for this type"
 "geoUpdatedAll" = "All custom geo sources updated"
 "confirm" = "Confirm"
+"outAdd" = "Add outbound"
+"outTag" = "Tag"
+"outAddress" = "Address"
+"outTraffic" = "Traffic"
+"outResult" = "Test result"
+"outTest" = "Test"
+"outFirst" = "First"
+"outResetTraffic" = "Reset traffic"
+"outResetAllText" = "Are you sure you want to reset traffic?"
+"outReset" = "Reset"
+"outRefresh" = "Refresh traffic"
+"outTrafficTools" = "Traffic of all outbounds"
+"outN" = "Outbound {n}"
+"outUp" = "Sent"
+"outDown" = "Received"
 
 [kit]
 "addValue" = "Add “{value}”"
@@ -1226,6 +1241,9 @@
 "rowActions" = "Actions for {row}"
 "addRow" = "Add to {list}"
 "removeRow" = "Remove row {n}"
+"testing" = "Testing"
+"delayMs" = "{n} ms"
+"testFailed" = "Test failed"
 
 [units]
 "value" = "{n} {unit}"

@@ -1195,6 +1195,21 @@
 "geoAliasTaken" = "Такой псевдоним уже используется для этого типа"
 "geoUpdatedAll" = "Все пользовательские источники обновлены"
 "confirm" = "Подтвердить"
+"outAdd" = "Создать исходящее подключение"
+"outTag" = "Тег"
+"outAddress" = "Адрес"
+"outTraffic" = "Трафик"
+"outResult" = "Результат теста"
+"outTest" = "Тест"
+"outFirst" = "Первый"
+"outResetTraffic" = "Сброс трафика"
+"outResetAllText" = "Вы уверены, что хотите сбросить трафик?"
+"outReset" = "Сбросить"
+"outRefresh" = "Обновить трафик"
+"outTrafficTools" = "Трафик всех подключений"
+"outN" = "Подключение {n}"
+"outUp" = "Отправлено"
+"outDown" = "Получено"
 
 [kit]
 "addValue" = "Добавить «{value}»"
@@ -1226,6 +1241,9 @@
 "rowActions" = "Действия: {row}"
 "addRow" = "Добавить: {list}"
 "removeRow" = "Удалить строку {n}"
+"testing" = "Идёт тест"
+"delayMs" = "{n} мс"
+"testFailed" = "Тест не пройден"
 
 [units]
 "value" = "{n} {unit}"

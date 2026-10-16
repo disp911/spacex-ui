@@ -463,6 +463,21 @@ export interface MessageSchema {
     "geoAliasTaken": string
     "geoUpdatedAll": string
     "confirm": string
+    "outAdd": string
+    "outTag": string
+    "outAddress": string
+    "outTraffic": string
+    "outResult": string
+    "outTest": string
+    "outFirst": string
+    "outResetTraffic": string
+    "outResetAllText": string
+    "outReset": string
+    "outRefresh": string
+    "outTrafficTools": string
+    "outN": string
+    "outUp": string
+    "outDown": string
   }
   "units": {
     "value": string
@@ -510,5 +525,8 @@ export interface MessageSchema {
     "rowActions": string
     "addRow": string
     "removeRow": string
+    "testing": string
+    "delayMs": string
+    "testFailed": string
   }
 }

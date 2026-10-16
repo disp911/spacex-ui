@@ -2,8 +2,8 @@
 import { ref, useId } from 'vue'
 import { useFloating } from './floating'
 
-/** Short hint shown on hover and keyboard focus. */
-const props = withDefaults(defineProps<{ text?: string; delay?: number }>(), { delay: 300 })
+/** Short hint shown on hover and keyboard focus; error is what a failure said: a red frame and mono text. */
+const props = withDefaults(defineProps<{ text?: string; delay?: number; error?: boolean }>(), { delay: 300 })
 
 const id = useId()
 const anchor = ref<HTMLElement | null>(null)
@@ -37,7 +37,7 @@ function hide() {
   </span>
   <Teleport to="body">
     <Transition name="x-tooltip">
-      <div v-if="open" :id="id" ref="tip" role="tooltip" class="x-tooltip" :style="style">
+      <div v-if="open" :id="id" ref="tip" role="tooltip" :class="['x-tooltip', { 'x-tooltip--error': error }]" :style="style">
         <slot name="content">{{ text }}</slot>
       </div>
     </Transition>
@@ -61,6 +61,14 @@ function hide() {
   box-shadow: var(--shadow-pop);
   font: 400 var(--fs-12) / var(--lh-text) var(--font-sans);
   pointer-events: none;
+}
+
+.x-tooltip--error {
+  max-width: 300px;
+  padding: var(--sp-10) var(--sp-12);
+  border-color: var(--err-line);
+  font-family: var(--font-mono);
+  word-break: break-word;
 }
 
 .x-tooltip-enter-active,

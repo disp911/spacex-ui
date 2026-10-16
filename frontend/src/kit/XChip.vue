@@ -13,6 +13,8 @@ const props = withDefaults(
     mono?: boolean
     /** Renders a button: opens a popover or a tooltip. */
     interactive?: boolean
+    /** Only the frame and the text, e.g. a transport beside a filled protocol. */
+    outline?: boolean
   }>(),
   { tone: 'neutral' },
 )
@@ -22,7 +24,7 @@ const props = withDefaults(
   <component
     :is="props.interactive ? 'button' : 'span'"
     :type="props.interactive ? 'button' : undefined"
-    :class="['x-chip', `x-chip--${tone}`, { 'x-chip--mono': mono, 'x-chip--interactive': interactive }]"
+    :class="['x-chip', `x-chip--${tone}`, { 'x-chip--mono': mono, 'x-chip--interactive': interactive, 'x-chip--outline': outline }]"
   >
     <span v-if="dot" class="x-chip__dot" />
     <XIcon v-if="icon" :name="icon" :size="12" :stroke="1.6" />
@@ -45,6 +47,10 @@ const props = withDefaults(
   font: 500 var(--fs-11) / 1 var(--font-sans);
   white-space: nowrap;
   outline: none;
+}
+
+.x-chip--outline {
+  background: transparent;
 }
 
 .x-chip--mono {
@@ -119,5 +125,14 @@ const props = withDefaults(
   --tone-t: var(--off-t);
   --tone-bg: var(--off-bg);
   --tone-line: var(--off-line);
+}
+.x-chip--neutral.x-chip--outline {
+  --tone-t: var(--mut);
+  --tone-line: var(--field-line);
+}
+
+.x-chip--ok.x-chip--outline {
+  --tone-t: var(--acc);
+  --tone-line: var(--acc-line);
 }
 </style>

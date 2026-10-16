@@ -2,8 +2,8 @@
 import { computed, ref, watch } from 'vue'
 import { useTheme } from '../stores/theme'
 import {
-  XActionBar, XActionList, XActionRow, XBackToTop, XBadge, XBusyOverlay, XButton, XCard, XCheckbox, XChip, XCodeArea, XCodeEditor, XCodeInput, XConfirm, XCounter, XDataTable, XEmpty, XErrorBox, XExample, XField, XFieldNote, XGridTable, XInfoRow, XInlineButton, XInput, XMenu, XModal, XMultiSelect, XNavItem, XNest, XNestCard, XNotice, XPlainTable,
-  XNumber, XOrderToggles, XPager, XPairList, XPickList, XProcessError, XProgressLine, XQrCode, XRecordCard, XRouteTarget, XRowLink, XSection, XSegmented, XSelect, XSettingBlock, XSettingDivider, XSettingRow, XSettingsSection, XSettingsSkeleton, XStatusDot, XStatusText, XStepArrow, XSwitch, XTabs, XTagInput, XTextarea,
+  XActionBar, XActionList, XActionRow, XBackToTop, XBadge, XBusyOverlay, XButton, XButtonGroup, XCard, XCheckbox, XChip, XCodeArea, XCodeEditor, XCodeInput, XConfirm, XCounter, XDataTable, XEmpty, XErrorBox, XExample, XField, XFieldNote, XGridTable, XInfoRow, XInlineButton, XInput, XMenu, XModal, XMultiSelect, XNavItem, XNest, XNestCard, XNotice, XPlainTable,
+  XNumber, XOrderToggles, XPager, XPairList, XPickList, XPopConfirm, XProcessError, XProgressLine, XQrCode, XRecordCard, XRouteTarget, XRowLink, XSection, XSegmented, XSelect, XSettingBlock, XSettingDivider, XSettingRow, XSettingsSection, XSettingsSkeleton, XStatusDot, XStatusText, XStepArrow, XSwitch, XTabs, XTagInput, XTestResult, XTextarea,
   XTooltip, XUsagePill, XValueChip,
   type MenuItem,
 } from '../kit'
@@ -518,6 +518,29 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
           <div class="kit__row kit__row--wrap">
             <span class="x-caps">Подпись 10</span>
             <span class="x-caps x-caps--lg">Подпись 11</span>
+          </div>
+        </div>
+        <div class="kit__variant">
+          <h3 class="kit__h3">Группа кнопок · круглая кнопка · подтверждение · результат теста</h3>
+          <div class="kit__row kit__row--wrap">
+            <XButtonGroup label="Трафик">
+              <XButton icon="refresh" label="Обновить" />
+              <XPopConfirm v-slot="{ props }" text="Вы уверены, что хотите сбросить трафик?" cta="Сбросить">
+                <XButton v-bind="props" icon="reset" label="Сбросить трафик" />
+              </XPopConfirm>
+            </XButtonGroup>
+            <XButton icon="bolt" round label="Тест" />
+            <XButton icon="bolt" round label="Тест" loading />
+            <XButton icon="bolt" round label="Тест" disabled />
+            <XChip mono>vless</XChip>
+            <XChip mono outline>xhttp</XChip>
+            <XChip tone="ok" mono outline>reality</XChip>
+          </div>
+          <div class="kit__row kit__row--wrap">
+            <XTestResult state="idle" />
+            <XTestResult state="testing" />
+            <XTestResult state="ok" :delay="124" :status="204" />
+            <XTestResult state="fail" error="dial udp 185.130.184.31:51820: i/o timeout" />
           </div>
         </div>
         <div class="kit__variant">

@@ -224,3 +224,48 @@ export interface GeoSource {
   url: string
   lastUpdatedAt?: number
 }
+
+// --- Outbounds ------------------------------------------------------------------
+
+export type Outbound = Json
+
+/** Where an outbound connects: host:port for each server it knows, none for freedom and blackhole. */
+export function outboundAddresses(o: Outbound): string[] {
+  const s = o.settings ?? {}
+  const hostPort = (x: Json) => (x?.address ? `${x.address}${x.port != null ? `:${x.port}` : ''}` : '')
+  let list: string[] = []
+  if (Array.isArray(s.vnext)) list = s.vnext.map(hostPort)
+  else if (Array.isArray(s.servers)) list = s.servers.map(hostPort)
+  else if (Array.isArray(s.peers)) list = s.peers.map((p: Json) => String(p?.endpoint ?? ''))
+  else if (o.protocol !== 'freedom' && o.protocol !== 'blackhole') list = [hostPort(s)]
+  return list.filter(Boolean)
+}
+
+/** Protocols whose transport and security the table shows beside the protocol. */
+const streamed = ['vmess', 'vless', 'trojan', 'shadowsocks']
+
+/** The protocol, and for proxies the transport and, when there is one, tls or reality. */
+export function outboundChips(o: Outbound): { protocol: string; network?: string; security?: string } {
+  const st = o.streamSettings ?? {}
+  if (!streamed.includes(o.protocol)) return { protocol: String(o.protocol ?? '') }
+  const security = st.security === 'tls' || st.security === 'reality' ? st.security : undefined
+  return { protocol: o.protocol, network: st.network ?? 'tcp', security }
+}
+
+/** A blackhole drops everything: nothing to test. */
+export const untestable = (o: Outbound) => o.protocol === 'blackhole' || o.tag === 'blocked'
+
+/** What GET panel/xray/getOutboundsTraffic lists. */
+export interface OutboundTraffic {
+  tag: string
+  up: number
+  down: number
+}
+
+/** What POST panel/xray/testOutbound answers. */
+export interface OutboundTest {
+  success: boolean
+  delay: number
+  error?: string
+  statusCode?: number
+}

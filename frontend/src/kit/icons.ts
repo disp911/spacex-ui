@@ -47,6 +47,7 @@ export const icons = {
   code: path('M6 3.4 2.8 8 6 12.6M10 3.4 13.2 8 10 12.6'),
   database: '<ellipse cx="8" cy="4" rx="5" ry="2"/>' + path('M3 4v8c0 1.1 2.2 2 5 2s5-.9 5-2V4M3 8c0 1.1 2.2 2 5 2s5-.9 5-2'),
   stop: '<rect x="3.2" y="3.2" width="9.6" height="9.6" rx="2"/>',
+  top: path('M3.5 2.8h9M8 13.2V6M5 9l3-3 3 3'),
   arrowUp: path('M8 13.4V3M8 2.6l4.2 4.2M8 2.6 3.8 6.8'),
   arrowDown: path('M8 2.6V13M8 13.4l4.2-4.2M8 13.4 3.8 9.2'),
   alert: circle(8, 8, 6.9) + path('M8 4.6v4.1') + dot(8, 11.2, 0.95),
