@@ -236,7 +236,7 @@ const resolverHint = 'e.g., xxx+udp://8.8.8.8:53'
       </div>
       <XSwitch v-model="xmuxOn" boxed label="XMUX" />
       <XNest v-if="xmuxOn" bare>
-        <div class="of-grid of-grid--3">
+        <div class="of-grid of-grid--3 of-grid--phone-2">
           <XField v-if="!ns.xmux.maxConnections" v-slot="a" label="Max Concurrency"><XInput v-bind="a" v-model="ns.xmux.maxConcurrency" mono /></XField>
           <XField v-if="!ns.xmux.maxConcurrency" v-slot="a" label="Max Connections"><XInput v-bind="a" v-model="ns.xmux.maxConnections" mono /></XField>
           <XField v-slot="a" label="Max Reuse Times"><XInput v-bind="a" v-model="ns.xmux.cMaxReuseTimes" mono /></XField>

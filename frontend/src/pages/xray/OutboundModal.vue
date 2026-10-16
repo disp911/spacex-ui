@@ -72,11 +72,14 @@ function onJson(text: string) {
   }
 }
 
+/** The link stays in its field after an import; one that cannot be read is marked until it is edited. */
 const link = ref('')
+const linkWrong = ref(false)
+watch(link, () => (linkWrong.value = false))
 function importLink() {
   const read = fromLink(link.value.trim())
-  link.value = ''
   if (!read) {
+    linkWrong.value = true
     toast('err', t('xray.linkWrong'))
     return
   }
@@ -131,8 +134,8 @@ const linkHint = 'vmess:// vless:// trojan:// ss:// hysteria2://'
       <template v-else>
         <XField v-slot="a" :label="t('xray.link')">
           <div class="outbound__link">
-            <XInput v-bind="a" v-model="link" mono :placeholder="linkHint" @keydown.enter="importLink" />
-            <XButton :disabled="!link.trim()" @click="importLink">{{ t('xray.linkImport') }}</XButton>
+            <XInput v-bind="a" v-model="link" mono :invalid="linkWrong" :placeholder="linkHint" @keydown.enter="importLink" />
+            <XButton variant="primary" icon="download" :label="t('xray.linkImport')" :disabled="!link.trim()" @click="importLink" />
           </div>
         </XField>
         <XCodeEditor :model-value="json" :height="420" :phone-height="360" label="JSON" @update:model-value="onJson" />
@@ -185,6 +188,10 @@ const linkHint = 'vmess:// vless:// trojan:// ss:// hysteria2://'
 }
 
 @media (max-width: 767px) {
+  .outbound__mode {
+    width: 100%;
+  }
+
   .outbound__grid--3 {
     grid-template-columns: minmax(0, 1fr);
   }

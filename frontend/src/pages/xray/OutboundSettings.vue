@@ -214,7 +214,7 @@ const remove = (list: unknown[], i: number) => list.splice(i, 1)
         <template #actions>
           <XInlineButton icon="delete" danger :label="t('xray.removeItem', { n: i + 1 })" @click="remove(s.finalRules, i)" />
         </template>
-        <div class="of-grid of-grid--3">
+        <div class="of-grid of-grid--3 of-grid--phone-2">
           <XField v-slot="a" label="Action">
             <XSelect v-bind="a" v-model="r.action" :options="list(['allow', 'block'])" mono />
           </XField>
