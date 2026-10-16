@@ -269,3 +269,55 @@ export interface OutboundTest {
   error?: string
   statusCode?: number
 }
+
+// --- Balancers ------------------------------------------------------------------
+
+export type Balancer = Json
+
+/** The strategies a balancer picks an outbound by; random when the template names none. */
+export const strategies = [
+  { value: 'random', label: 'Random' },
+  { value: 'roundRobin', label: 'Round Robin' },
+  { value: 'leastLoad', label: 'Least Load' },
+  { value: 'leastPing', label: 'Least Ping' },
+]
+
+export const strategyOf = (b: Balancer): string => b.strategy?.type ?? 'random'
+
+const defaultObservatory = (): Json => ({
+  subjectSelector: [],
+  probeURL: 'https://www.google.com/generate_204',
+  probeInterval: '1m',
+  enableConcurrency: true,
+})
+
+const defaultBurstObservatory = (): Json => ({
+  subjectSelector: [],
+  pingConfig: {
+    destination: 'https://www.google.com/generate_204',
+    interval: '1m',
+    connectivity: 'http://connectivitycheck.platform.hicloud.com/generate_204',
+    timeout: '5s',
+    sampling: 2,
+  },
+})
+
+/**
+ * Keeps the observers in step with the balancers, as the old panel did: Least
+ * Ping balancers have the Observatory watch their selectors, Least Load, Round
+ * Robin and Random ones the Burst Observatory; an observer no balancer needs goes away. Settings made
+ * by hand stay, the selectors are counted anew.
+ */
+export function syncObservatories(c: XrayConfig) {
+  const balancers = (c.routing?.balancers ?? []) as Balancer[]
+  const watch = (key: 'observatory' | 'burstObservatory', list: Balancer[], made: () => Json) => {
+    if (!list.length) {
+      delete c[key]
+      return
+    }
+    c[key] ??= made()
+    c[key].subjectSelector = [...new Set(list.flatMap((b) => listOf(b.selector)))]
+  }
+  watch('observatory', balancers.filter((b) => strategyOf(b) === 'leastPing'), defaultObservatory)
+  watch('burstObservatory', balancers.filter((b) => ['leastLoad', 'roundRobin', 'random'].includes(strategyOf(b))), defaultBurstObservatory)
+}

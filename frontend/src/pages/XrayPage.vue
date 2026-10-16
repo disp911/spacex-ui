@@ -15,6 +15,7 @@ import GeneralTab from './xray/GeneralTab.vue'
 import AdvancedTab from './xray/AdvancedTab.vue'
 import RoutingTab from './xray/RoutingTab.vue'
 import OutboundsTab from './xray/OutboundsTab.vue'
+import BalancersTab from './xray/BalancersTab.vue'
 
 const { t } = useI18n()
 
@@ -194,6 +195,7 @@ async function restart() {
       <GeneralTab v-if="tab === 'general'" />
       <RoutingTab v-else-if="tab === 'routing'" />
       <OutboundsTab v-else-if="tab === 'outbounds'" />
+      <BalancersTab v-else-if="tab === 'balancer'" />
       <AdvancedTab v-else-if="tab === 'advanced'" />
       <XNotice v-else tone="info">{{ t('common.screenDraft') }}</XNotice>
     </div>

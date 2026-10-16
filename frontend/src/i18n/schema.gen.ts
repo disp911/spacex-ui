@@ -525,6 +525,14 @@ export interface MessageSchema {
     "linkWrong": string
     "removeItem": string
     "httpCamouflage": string
+    "balAdd": string
+    "balEdit": string
+    "balEmpty": string
+    "balStrategy": string
+    "balSelectors": string
+    "balTagHint": string
+    "balN": string
+    "balObservers": string
   }
   "units": {
     "value": string

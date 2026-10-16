@@ -25,9 +25,10 @@ export interface PresetGroup {
  * ticked; typed text that is no preset is offered at the bottom as «Add …».
  *
  * As a catalog (groups): titled groups in two columns on desktop, each preset
- * with a box to tick and its value beside the name; typed text is offered at
- * the top. Chosen presets stand out as accent chips among typed values, and a
- * field with many values scrolls instead of growing.
+ * with a box to tick and, when it has a name of its own, its value beside the
+ * name; typed text is offered at the top. Chosen named presets stand out as
+ * accent chips among typed values, and a field with many values scrolls
+ * instead of growing.
  */
 const props = defineProps<{
   presets?: Preset[]
@@ -64,6 +65,8 @@ const all = computed(() =>
 )
 const preset = (v: string) => all.value.find((p) => p.value === v)
 const label = (v: string) => preset(v)?.label ?? v
+/** A preset named otherwise than its value, e.g. Russia for geoip:ru; one named by its value reads as typed. */
+const named = (p?: { value: string; label: string }) => !!p && p.label !== p.value
 
 const query = computed(() => text.value.trim())
 const matches = (p: { value: string; label: string }) => {
@@ -147,7 +150,7 @@ function onBlur() {
     :class="['x-field-box', 'x-tags', { 'x-tags--catalog': catalog, 'x-field-box--mono': mono, 'is-open': open, 'is-disabled': disabled, 'is-invalid': invalid, 'is-modified': modified }]"
     @click="input?.focus()"
   >
-    <span v-for="(tag, i) in model" :key="tag" :class="['x-tag-chip', { 'x-tag-chip--preset': catalog && preset(tag) }]">
+    <span v-for="(tag, i) in model" :key="tag" :class="['x-tag-chip', { 'x-tag-chip--preset': catalog && named(preset(tag)) }]">
       <span class="x-tag-chip__text">{{ label(tag) }}</span>
       <button v-if="!disabled" type="button" class="x-tag-chip__remove" :aria-label="t('kit.remove', { value: label(tag) })" @click.stop="remove(i)">
         <XIcon name="close" :size="10" :stroke="1.8" />
@@ -237,7 +240,7 @@ function onBlur() {
             >
               <span class="x-tags__tick"><XIcon v-if="model.includes(p.value)" name="check" :size="11" :stroke="2" /></span>
               <span class="x-tags__name">{{ p.label }}</span>
-              <span class="x-tags__value">{{ p.value }}</span>
+              <span v-if="named(p)" class="x-tags__value">{{ p.value }}</span>
             </div>
           </div>
         </template>

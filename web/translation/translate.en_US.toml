@@ -1257,6 +1257,14 @@
 "linkWrong" = "The link is not recognised"
 "removeItem" = "Remove {n}"
 "httpCamouflage" = "HTTP camouflage"
+"balAdd" = "Add Balancer"
+"balEdit" = "Edit Balancer"
+"balEmpty" = "No added balancers."
+"balStrategy" = "Strategy"
+"balSelectors" = "Selectors"
+"balTagHint" = "Unique Tag"
+"balN" = "Balancer {n}"
+"balObservers" = "Balancer observers"
 
 [kit]
 "addValue" = "Add “{value}”"

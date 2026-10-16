@@ -14,8 +14,10 @@ defineProps<{
 
 <template>
   <section :class="['x-card', { 'x-card--nested': nested, 'x-card--seamless': seamless }]">
-    <header v-if="title || $slots.title || $slots.actions" class="x-card__head">
-      <div v-if="description" class="x-card__heading">
+    <header v-if="title || $slots.title || $slots.heading || $slots.actions" class="x-card__head">
+      <!-- A control in the title's place, e.g. a switch between two views of the card. -->
+      <div v-if="$slots.heading" class="x-card__heading"><slot name="heading" /></div>
+      <div v-else-if="description" class="x-card__heading">
         <h2 class="x-card__title"><slot name="title">{{ title }}</slot></h2>
         <p class="x-card__description">{{ description }}</p>
       </div>

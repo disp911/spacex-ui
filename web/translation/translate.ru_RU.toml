@@ -1257,6 +1257,14 @@
 "linkWrong" = "Ссылка не распознана"
 "removeItem" = "Удалить {n}"
 "httpCamouflage" = "HTTP-маскировка"
+"balAdd" = "Создать балансировщик"
+"balEdit" = "Редактировать балансировщик"
+"balEmpty" = "Нет добавленных балансировщиков."
+"balStrategy" = "Стратегия"
+"balSelectors" = "Селекторы"
+"balTagHint" = "Уникальный тег"
+"balN" = "Балансировщик {n}"
+"balObservers" = "Наблюдатели балансировщиков"
 
 [kit]
 "addValue" = "Добавить «{value}»"

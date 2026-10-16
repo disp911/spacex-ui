@@ -19,9 +19,10 @@ import { checkJson, type JsonIssue } from './jsonCheck'
  * numbers, blocks that fold from the chevron beside their first line (a
  * folded block shows how many lines it hides) and the first mistake marked on
  * its line and told under the text. The model is the text as typed, wrong or
- * not; the page decides what to do with it. Its height in px, phoneHeight on phones.
+ * not; the page decides what to do with it. Its height in px, phoneHeight on
+ * phones; with fit the editor is as tall as its text, up to that height.
  */
-const props = withDefaults(defineProps<{ height?: number; phoneHeight?: number; label?: string }>(), { height: 560, phoneHeight: 480 })
+const props = withDefaults(defineProps<{ height?: number; phoneHeight?: number; label?: string; fit?: boolean }>(), { height: 560, phoneHeight: 480 })
 const text = defineModel<string>({ default: '' })
 const { t } = useI18n()
 
@@ -198,7 +199,7 @@ const reason = computed(() => (issue.value ? reasons.value[issue.value.kind] : '
 </script>
 
 <template>
-  <div class="x-code-editor" :style="{ '--editor-h': `${height}px`, '--editor-phone-h': `${phoneHeight}px` }">
+  <div :class="['x-code-editor', { 'x-code-editor--fit': fit }]" :style="{ '--editor-h': `${height}px`, '--editor-phone-h': `${phoneHeight}px` }">
     <div ref="host" class="x-code-editor__host" />
     <div v-if="issue" class="x-code-editor__issue" role="status">
       <XIcon name="alert" :size="14" :stroke="1.5" />
@@ -225,6 +226,11 @@ const reason = computed(() => (issue.value ? reasons.value[issue.value.kind] : '
   /* The height is for the text; 8px of room above and below it come on top. */
   height: calc(var(--editor-h) + 16px);
   outline: none;
+}
+
+.x-code-editor--fit .x-code-editor__host :deep(.cm-editor) {
+  height: auto;
+  max-height: calc(var(--editor-h) + 16px);
 }
 
 .x-code-editor__host :deep(.cm-scroller) {
@@ -369,6 +375,11 @@ const reason = computed(() => (issue.value ? reasons.value[issue.value.kind] : '
 @media (max-width: 767px) {
   .x-code-editor__host :deep(.cm-editor) {
     height: calc(var(--editor-phone-h) + 16px);
+  }
+
+  .x-code-editor--fit .x-code-editor__host :deep(.cm-editor) {
+    height: auto;
+    max-height: calc(var(--editor-phone-h) + 16px);
   }
 
   .x-code-editor__host :deep(.cm-lineNumbers .cm-gutterElement) {
