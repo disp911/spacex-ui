@@ -644,11 +644,11 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
             <template #actions><XButton variant="soft" icon="lock">Подтвердить</XButton></template>
           </XSettingBlock>
           <XSettingRow title="Модель примечания" description="Части по порядку, разделитель — сеткой символов" tall>
-            <div style="display: flex; flex-direction: column; gap: 8px">
+            <div class="kit__remark">
               <XExample label="Пример примечания:" :value="'#' + demoParts.join(demoSep)" />
-              <div style="display: flex; gap: 8px">
+              <div class="kit__remark-line">
                 <XOrderToggles v-model="demoParts" :options="[{ value: 'Inbound', label: 'Inbound' }, { value: 'Email', label: 'Email' }, { value: 'Other', label: 'Other' }]" mono />
-                <div style="flex: none; width: 98px">
+                <div class="kit__remark-separator">
                   <XSelect v-model="demoSep" :options="[' ', '-', '_', '@', ':', '~', '|', ',', '.', '/'].map((v) => ({ value: v, label: v === ' ' ? 'пробел' : v, glyph: v === ' ' ? '␣' : undefined }))" :columns="5" mono />
                 </div>
               </div>
@@ -1088,9 +1088,30 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
   }
 }
 
+.kit__remark {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.kit__remark-line {
+  display: flex;
+  gap: 8px;
+}
+
+.kit__remark-separator {
+  flex: none;
+  width: 98px;
+}
+
 @media (max-width: 767px) {
   .kit {
     padding: 20px 16px 40px;
+  }
+
+  /* As on the settings tab: the parts take the whole line, the separator goes under them. */
+  .kit__remark-line {
+    flex-direction: column;
   }
 
   .kit__grid {
