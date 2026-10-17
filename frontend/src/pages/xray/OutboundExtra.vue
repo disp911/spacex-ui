@@ -37,7 +37,7 @@ const headers = [{ options: forwardedForHeaders.map((h) => ({ value: h, label: h
       <div class="of-grid of-grid--3">
         <XField v-slot="a" label="Dialer Proxy"><XSelect v-bind="a" :model-value="so.dialerProxy ?? ''" @update:model-value="so.dialerProxy = String($event)" :options="dialers" mono /></XField>
         <XField v-slot="a" label="Address Port Strategy"><XSelect v-bind="a" v-model="so.addressPortStrategy" :options="list(addressPortStrategies)" mono /></XField>
-        <XField v-slot="a" label="Keep Alive Interval"><XNumber v-bind="a" v-model="so.tcpKeepAliveInterval" :min="0" /></XField>
+        <XField v-slot="a" label="Keep Alive Interval"><XNumber v-bind="a" block v-model="so.tcpKeepAliveInterval" :min="0" /></XField>
         <XSwitch v-model="so.tcpFastOpen" boxed label="TCP Fast Open" />
         <XSwitch v-model="so.tcpMptcp" boxed label="Multipath TCP" />
         <XSwitch v-model="so.penetrate" boxed label="Penetrate" />
@@ -50,8 +50,8 @@ const headers = [{ options: forwardedForHeaders.map((h) => ({ value: h, label: h
 
   <XNest v-if="muxOn && canMux(o)" bare>
     <div class="of-grid of-grid--3">
-      <XField v-slot="a" label="Concurrency"><XNumber v-bind="a" v-model="o.mux.concurrency" :min="-1" :max="1024" /></XField>
-      <XField v-slot="a" label="xudp Concurrency"><XNumber v-bind="a" v-model="o.mux.xudpConcurrency" :min="-1" :max="1024" /></XField>
+      <XField v-slot="a" label="Concurrency"><XNumber v-bind="a" block v-model="o.mux.concurrency" :min="-1" :max="1024" /></XField>
+      <XField v-slot="a" label="xudp Concurrency"><XNumber v-bind="a" block v-model="o.mux.xudpConcurrency" :min="-1" :max="1024" /></XField>
       <XField v-slot="a" label="xudp UDP 443"><XSelect v-bind="a" v-model="o.mux.xudpProxyUDP443" :options="list(['reject', 'allow', 'skip'])" mono /></XField>
     </div>
   </XNest>

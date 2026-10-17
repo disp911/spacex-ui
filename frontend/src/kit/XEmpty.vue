@@ -5,16 +5,18 @@ import type { IconName } from './icons'
 /**
  * Nothing to show yet: an icon in a dashed frame, a title and a hint. Fills and
  * centres in its box. tone err is a failed load: a red icon and a plain title.
+ * framed is an empty list among other content: the dashed frame goes round the
+ * whole, without an icon, as tall as what it holds.
  */
-withDefaults(defineProps<{ title?: string; hint?: string; icon?: IconName; tone?: 'err' }>(), { icon: 'doc' })
+withDefaults(defineProps<{ title?: string; hint?: string; icon?: IconName; tone?: 'err'; framed?: boolean }>(), { icon: 'doc' })
 </script>
 
 <template>
-  <div :class="['x-empty', { 'x-empty--err': tone === 'err' }]" :role="tone === 'err' ? 'alert' : undefined">
-    <span class="x-empty__icon"><XIcon :name="icon" :size="tone === 'err' ? 18 : 16" :stroke="tone === 'err' ? 1.4 : 1.3" /></span>
+  <div :class="['x-empty', { 'x-empty--err': tone === 'err', 'x-empty--framed': framed }]" :role="tone === 'err' ? 'alert' : undefined">
+    <span v-if="!framed" class="x-empty__icon"><XIcon :name="icon" :size="tone === 'err' ? 18 : 16" :stroke="tone === 'err' ? 1.4 : 1.3" /></span>
     <span v-if="title" class="x-empty__title">{{ title }}</span>
     <span v-if="hint" class="x-empty__hint">{{ hint }}</span>
-    <slot />
+    <div v-if="$slots.default" class="x-empty__actions"><slot /></div>
   </div>
 </template>
 
@@ -29,6 +31,23 @@ withDefaults(defineProps<{ title?: string; hint?: string; icon?: IconName; tone?
   min-height: 200px;
   padding: 0 16px;
   text-align: center;
+}
+
+.x-empty--framed {
+  gap: 12px;
+  height: auto;
+  min-height: 0;
+  padding: 28px 16px;
+  border: 1px dashed var(--field-line);
+  border-radius: var(--r-12);
+}
+
+/* Buttons under the title, side by side. */
+.x-empty__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
 }
 
 .x-empty__icon {

@@ -121,7 +121,7 @@ const linkHint = 'vmess:// vless:// trojan:// ss:// hysteria2://'
             <XInput v-bind="a" v-model="address" mono />
           </XField>
           <XField v-slot="a" :label="t('xray.port')">
-            <XNumber v-bind="a" v-model="port" :min="1" :max="65535" />
+            <XNumber v-bind="a" block v-model="port" :min="1" :max="65535" />
           </XField>
         </div>
 

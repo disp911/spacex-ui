@@ -193,12 +193,12 @@ const resolverHint = 'e.g., xxx+udp://8.8.8.8:53'
 
     <!-- mKCP -->
     <div v-if="net === 'kcp'" class="of-grid of-grid--3">
-      <XField v-slot="a" label="MTU"><XNumber v-bind="a" v-model="ns.mtu" :min="0" /></XField>
-      <XField v-slot="a" label="TTI (ms)"><XNumber v-bind="a" v-model="ns.tti" :min="0" /></XField>
-      <XField v-slot="a" label="Uplink (MB/s)"><XNumber v-bind="a" v-model="ns.uplinkCapacity" :min="0" /></XField>
-      <XField v-slot="a" label="Downlink (MB/s)"><XNumber v-bind="a" v-model="ns.downlinkCapacity" :min="0" /></XField>
-      <XField v-slot="a" label="CWND Multiplier"><XNumber v-bind="a" v-model="ns.cwndMultiplier" :min="1" /></XField>
-      <XField v-slot="a" label="Max Sending Window"><XNumber v-bind="a" v-model="ns.maxSendingWindow" :min="0" /></XField>
+      <XField v-slot="a" label="MTU"><XNumber v-bind="a" block v-model="ns.mtu" :min="0" /></XField>
+      <XField v-slot="a" label="TTI (ms)"><XNumber v-bind="a" block v-model="ns.tti" :min="0" /></XField>
+      <XField v-slot="a" label="Uplink (MB/s)"><XNumber v-bind="a" block v-model="ns.uplinkCapacity" :min="0" /></XField>
+      <XField v-slot="a" label="Downlink (MB/s)"><XNumber v-bind="a" block v-model="ns.downlinkCapacity" :min="0" /></XField>
+      <XField v-slot="a" label="CWND Multiplier"><XNumber v-bind="a" block v-model="ns.cwndMultiplier" :min="1" /></XField>
+      <XField v-slot="a" label="Max Sending Window"><XNumber v-bind="a" block v-model="ns.maxSendingWindow" :min="0" /></XField>
     </div>
 
     <!-- WebSocket, HTTPUpgrade, XHTTP -->
@@ -211,7 +211,7 @@ const resolverHint = 'e.g., xxx+udp://8.8.8.8:53'
       </XField>
     </div>
     <div v-if="net === 'ws'" class="of-grid of-grid--3">
-      <XField v-slot="a" label="Heartbeat Period"><XNumber v-bind="a" v-model="ns.heartbeatPeriod" :min="0" /></XField>
+      <XField v-slot="a" label="Heartbeat Period"><XNumber v-bind="a" block v-model="ns.heartbeatPeriod" :min="0" /></XField>
     </div>
 
     <!-- gRPC -->
@@ -242,7 +242,7 @@ const resolverHint = 'e.g., xxx+udp://8.8.8.8:53'
           <XField v-slot="a" label="Max Reuse Times"><XInput v-bind="a" v-model="ns.xmux.cMaxReuseTimes" mono /></XField>
           <XField v-slot="a" label="Max Request Times"><XInput v-bind="a" v-model="ns.xmux.hMaxRequestTimes" mono /></XField>
           <XField v-slot="a" label="Max Reusable Secs"><XInput v-bind="a" v-model="ns.xmux.hMaxReusableSecs" mono /></XField>
-          <XField v-slot="a" label="Keep Alive Period"><XNumber v-bind="a" v-model="ns.xmux.hKeepAlivePeriod" /></XField>
+          <XField v-slot="a" label="Keep Alive Period"><XNumber v-bind="a" block v-model="ns.xmux.hKeepAlivePeriod" /></XField>
         </div>
       </XNest>
     </template>
@@ -260,17 +260,17 @@ const resolverHint = 'e.g., xxx+udp://8.8.8.8:53'
       <div class="of-grid of-grid--3">
         <XField v-slot="a" label="UDP Hop Port"><XInput v-bind="a" v-model="hopPort" mono placeholder="e.g., 1145-1919 or 11,13,15-17" /></XField>
         <template v-if="ns.udphop">
-          <XField v-slot="a" label="UDP Hop Interval Min (s)"><XNumber v-bind="a" v-model="ns.udphop.intervalMin" :min="5" /></XField>
-          <XField v-slot="a" label="UDP Hop Interval Max (s)"><XNumber v-bind="a" v-model="ns.udphop.intervalMax" :min="5" /></XField>
+          <XField v-slot="a" label="UDP Hop Interval Min (s)"><XNumber v-bind="a" block v-model="ns.udphop.intervalMin" :min="5" /></XField>
+          <XField v-slot="a" label="UDP Hop Interval Max (s)"><XNumber v-bind="a" block v-model="ns.udphop.intervalMax" :min="5" /></XField>
         </template>
       </div>
       <div class="of-grid of-grid--2">
-        <XField v-slot="a" label="Init Stream Receive"><XNumber v-bind="a" v-model="ns.initStreamReceiveWindow" :min="16384" /></XField>
-        <XField v-slot="a" label="Max Stream Receive"><XNumber v-bind="a" v-model="ns.maxStreamReceiveWindow" :min="16384" /></XField>
-        <XField v-slot="a" label="Init Connection Receive"><XNumber v-bind="a" v-model="ns.initConnectionReceiveWindow" :min="16384" /></XField>
-        <XField v-slot="a" label="Max Connection Receive"><XNumber v-bind="a" v-model="ns.maxConnectionReceiveWindow" :min="16384" /></XField>
-        <XField v-slot="a" label="Max Idle Timeout (s)"><XNumber v-bind="a" v-model="ns.maxIdleTimeout" :min="4" :max="120" /></XField>
-        <XField v-slot="a" label="Keep Alive Period (s)"><XNumber v-bind="a" v-model="ns.keepAlivePeriod" :min="2" :max="60" /></XField>
+        <XField v-slot="a" label="Init Stream Receive"><XNumber v-bind="a" block v-model="ns.initStreamReceiveWindow" :min="16384" /></XField>
+        <XField v-slot="a" label="Max Stream Receive"><XNumber v-bind="a" block v-model="ns.maxStreamReceiveWindow" :min="16384" /></XField>
+        <XField v-slot="a" label="Init Connection Receive"><XNumber v-bind="a" block v-model="ns.initConnectionReceiveWindow" :min="16384" /></XField>
+        <XField v-slot="a" label="Max Connection Receive"><XNumber v-bind="a" block v-model="ns.maxConnectionReceiveWindow" :min="16384" /></XField>
+        <XField v-slot="a" label="Max Idle Timeout (s)"><XNumber v-bind="a" block v-model="ns.maxIdleTimeout" :min="4" :max="120" /></XField>
+        <XField v-slot="a" label="Keep Alive Period (s)"><XNumber v-bind="a" block v-model="ns.keepAlivePeriod" :min="2" :max="60" /></XField>
         <XSwitch v-model="ns.disablePathMTUDiscovery" boxed label="Disable Path MTU Dis" />
       </div>
     </template>
@@ -303,8 +303,8 @@ const resolverHint = 'e.g., xxx+udp://8.8.8.8:53'
             <XField v-slot="a" label="Custom Tables">
               <XInput v-bind="a" :model-value="tablesText(m)" mono @update:model-value="setTables(m, $event)" />
             </XField>
-            <XField v-slot="a" label="Padding Min"><XNumber v-bind="a" v-model="m.settings.paddingMin" :min="0" /></XField>
-            <XField v-slot="a" label="Padding Max"><XNumber v-bind="a" v-model="m.settings.paddingMax" :min="0" /></XField>
+            <XField v-slot="a" label="Padding Min"><XNumber v-bind="a" block v-model="m.settings.paddingMin" :min="0" /></XField>
+            <XField v-slot="a" label="Padding Max"><XNumber v-bind="a" block v-model="m.settings.paddingMax" :min="0" /></XField>
           </div>
           <template v-if="m.type === 'header-custom'">
             <template v-for="side in (['clients', 'servers'] as const)" :key="side">
@@ -352,7 +352,7 @@ const resolverHint = 'e.g., xxx+udp://8.8.8.8:53'
               <XField v-slot="a" label="IPs"><XTagInput v-bind="a" v-model="m.settings.ips" mono placeholder="e.g., 1.2.3.4" /></XField>
               <XSwitch v-model="m.settings.dgram" boxed label="DGRAM" />
             </template>
-            <XField v-if="m.type === 'noise'" v-slot="a" label="Reset"><XNumber v-bind="a" v-model="m.settings.reset" :min="0" /></XField>
+            <XField v-if="m.type === 'noise'" v-slot="a" label="Reset"><XNumber v-bind="a" block v-model="m.settings.reset" :min="0" /></XField>
           </div>
           <template v-if="m.type === 'noise'">
             <XListHead title="Noise" add @add="m.settings.noise.push({ ...packetItem(), delay: '' })" />
@@ -386,14 +386,14 @@ const resolverHint = 'e.g., xxx+udp://8.8.8.8:53'
           <XField v-slot="a" label="Hop Interval (s)"><XInput v-bind="a" v-model="qp.udpHop.interval" mono /></XField>
         </div>
         <div class="of-grid of-grid--2">
-          <XField v-slot="a" label="Max Idle Timeout (s)"><XNumber v-bind="a" v-model="qp.maxIdleTimeout" :min="4" :max="120" /></XField>
-          <XField v-slot="a" label="Keep Alive Period (s)"><XNumber v-bind="a" v-model="qp.keepAlivePeriod" :min="0" :max="60" /></XField>
+          <XField v-slot="a" label="Max Idle Timeout (s)"><XNumber v-bind="a" block v-model="qp.maxIdleTimeout" :min="4" :max="120" /></XField>
+          <XField v-slot="a" label="Keep Alive Period (s)"><XNumber v-bind="a" block v-model="qp.keepAlivePeriod" :min="0" :max="60" /></XField>
           <XSwitch v-model="qp.disablePathMTUDiscovery" boxed label="Disable Path MTU Dis" />
-          <XField v-slot="a" label="Max Incoming Streams"><XNumber v-bind="a" v-model="qp.maxIncomingStreams" :min="8" placeholder="8 = default" /></XField>
-          <XField v-slot="a" label="Init Stream Window"><XNumber v-bind="a" v-model="qp.initStreamReceiveWindow" :min="16384" placeholder="8388608 = default" /></XField>
-          <XField v-slot="a" label="Max Stream Window"><XNumber v-bind="a" v-model="qp.maxStreamReceiveWindow" :min="16384" placeholder="8388608 = default" /></XField>
-          <XField v-slot="a" label="Init Conn Window"><XNumber v-bind="a" v-model="qp.initConnectionReceiveWindow" :min="16384" placeholder="20971520 = default" /></XField>
-          <XField v-slot="a" label="Max Conn Window"><XNumber v-bind="a" v-model="qp.maxConnectionReceiveWindow" :min="16384" placeholder="20971520 = default" /></XField>
+          <XField v-slot="a" label="Max Incoming Streams"><XNumber v-bind="a" block v-model="qp.maxIncomingStreams" :min="8" placeholder="8 = default" /></XField>
+          <XField v-slot="a" label="Init Stream Window"><XNumber v-bind="a" block v-model="qp.initStreamReceiveWindow" :min="16384" placeholder="8388608 = default" /></XField>
+          <XField v-slot="a" label="Max Stream Window"><XNumber v-bind="a" block v-model="qp.maxStreamReceiveWindow" :min="16384" placeholder="8388608 = default" /></XField>
+          <XField v-slot="a" label="Init Conn Window"><XNumber v-bind="a" block v-model="qp.initConnectionReceiveWindow" :min="16384" placeholder="20971520 = default" /></XField>
+          <XField v-slot="a" label="Max Conn Window"><XNumber v-bind="a" block v-model="qp.maxConnectionReceiveWindow" :min="16384" placeholder="20971520 = default" /></XField>
         </div>
       </template>
     </XSection>

@@ -54,6 +54,7 @@ export const icons = {
   exclaim: path('M8 3.4v5.8') + dot(8, 12.3, 1.05),
   inbox: path('M2.5 9.3 4.4 3.5h7.2l1.9 5.8V13h-11z') + path('M2.5 9.3h3.3l.8 1.6h2.8l.8-1.6h3.3'),
   rules: path('M2.5 4h4M2.5 8h7M2.5 12h4') + path('M10.5 10.5 13.5 12l-3 1.5'),
+  templates: '<rect x="2.4" y="2.4" width="11.2" height="4" rx="1.2"/><rect x="2.4" y="9" width="4.6" height="4.6" rx="1.2"/>' + path('M9.6 9.8h4M9.6 12.8h4'),
   copy: '<rect x="5.3" y="5.3" width="8" height="8" rx="1.8"/>' + path('M10.7 3.6V3.5a1.3 1.3 0 0 0-1.3-1.3H4a1.8 1.8 0 0 0-1.8 1.8v5.4c0 .7.6 1.3 1.3 1.3'),
   swap: path('M2.6 5.4h10.4M10.4 2.8 13 5.4 10.4 8M13.4 10.6H3M5.6 8 3 10.6l2.6 2.6'),
 } as const

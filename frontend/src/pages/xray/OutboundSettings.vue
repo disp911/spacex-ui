@@ -120,13 +120,13 @@ const remove = (list: unknown[], i: number) => list.splice(i, 1)
         <div class="of-stack">
           <div class="of-grid of-grid--3">
             <XField v-slot="a" label="Vision Pre-Connect">
-              <XNumber v-bind="a" v-model="usr.testpre" :min="0" :max="10" placeholder="0" />
+              <XNumber v-bind="a" block v-model="usr.testpre" :min="0" :max="10" placeholder="0" />
             </XField>
           </div>
           <XListHead title="Vision Seed" />
           <div class="of-grid of-grid--seed">
             <XField v-for="(_, i) in 4" :key="i" v-slot="a" :label="`[${i}]`">
-              <XNumber v-bind="a" v-model="seeds[i]" :min="0" :max="9999" />
+              <XNumber v-bind="a" block v-model="seeds[i]" :min="0" :max="9999" />
             </XField>
           </div>
         </div>
@@ -145,7 +145,7 @@ const remove = (list: unknown[], i: number) => list.splice(i, 1)
     <div v-if="o.protocol === 'shadowsocks'" class="of-grid of-grid--2">
       <XSwitch v-model="srv.uot" boxed label="UDP over TCP" />
       <XField v-slot="a" label="UoTVersion">
-        <XNumber v-bind="a" v-model="srv.UoTVersion" :min="1" :max="2" />
+        <XNumber v-bind="a" block v-model="srv.UoTVersion" :min="1" :max="2" />
       </XField>
     </div>
 
@@ -162,7 +162,7 @@ const remove = (list: unknown[], i: number) => list.splice(i, 1)
     <!-- Hysteria -->
     <div v-if="o.protocol === 'hysteria'" class="of-grid of-grid--3">
       <XField v-slot="a" label="Version">
-        <XNumber v-bind="a" v-model="s.version" disabled />
+        <XNumber v-bind="a" block v-model="s.version" disabled />
       </XField>
     </div>
 
@@ -298,10 +298,10 @@ const remove = (list: unknown[], i: number) => list.splice(i, 1)
           <XSelect v-bind="a" :model-value="s.domainStrategy ?? ''" :options="list(wireguardStrategies, true)" @update:model-value="s.domainStrategy = String($event)" mono />
         </XField>
         <XField v-slot="a" label="MTU">
-          <XNumber v-bind="a" v-model="s.mtu" :min="0" />
+          <XNumber v-bind="a" block v-model="s.mtu" :min="0" />
         </XField>
         <XField v-slot="a" label="Workers">
-          <XNumber v-bind="a" v-model="s.workers" :min="0" />
+          <XNumber v-bind="a" block v-model="s.workers" :min="0" />
         </XField>
       </div>
       <div class="of-grid of-grid--2">
@@ -333,7 +333,7 @@ const remove = (list: unknown[], i: number) => list.splice(i, 1)
           <XInputList v-model="p.allowedIPs" title="Allowed IPs" mono />
           <div class="of-grid of-grid--3">
             <XField v-slot="a" label="Keep Alive">
-              <XNumber v-bind="a" v-model="p.keepAlive" :min="0" />
+              <XNumber v-bind="a" block v-model="p.keepAlive" :min="0" />
             </XField>
           </div>
         </div>

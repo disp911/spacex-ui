@@ -533,6 +533,40 @@ export interface MessageSchema {
     "balTagHint": string
     "balN": string
     "balObservers": string
+    "dnsEnable": string
+    "dnsEnableDesc": string
+    "dnsTag": string
+    "dnsTagDesc": string
+    "dnsClientIp": string
+    "dnsClientIpDesc": string
+    "dnsDisableCache": string
+    "dnsDisableCacheDesc": string
+    "dnsDisableFallback": string
+    "dnsDisableFallbackDesc": string
+    "dnsNoFallbackMatch": string
+    "dnsNoFallbackMatchDesc": string
+    "dnsParallel": string
+    "dnsParallelDesc": string
+    "dnsStrategy": string
+    "dnsStrategyDesc": string
+    "dnsAdd": string
+    "dnsDomains": string
+    "dnsExpectIPs": string
+    "dnsUnexpectIPs": string
+    "dnsSystemHosts": string
+    "dnsSystemHostsDesc": string
+    "dnsPresets": string
+    "dnsFamily": string
+    "fakeAdd": string
+    "fakePool": string
+    "fakePoolSize": string
+    "dnsEmpty": string
+    "fakeEmpty": string
+    "dnsInstall": string
+    "dnsEditN": string
+    "fakeEditN": string
+    "dnsN": string
+    "fakeN": string
   }
   "units": {
     "value": string

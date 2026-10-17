@@ -36,11 +36,11 @@ function setType(item: Record<string, any>, type: string) {
       </XField>
       <!-- Header Custom delays are numbers, Noise delays ranges such as 10-20. -->
       <XField v-if="withDelay" v-slot="a" label="Delay (ms)">
-        <XNumber v-if="typeof item.delay === 'number'" v-bind="a" v-model="item.delay" :min="0" />
+        <XNumber v-if="typeof item.delay === 'number'" v-bind="a" block v-model="item.delay" :min="0" />
         <XInput v-else v-bind="a" v-model="item.delay" mono placeholder="10-20" />
       </XField>
       <template v-if="item.type === 'array'">
-        <XField v-slot="a" label="Rand"><XNumber v-bind="a" v-model="item.rand" :min="0" /></XField>
+        <XField v-slot="a" label="Rand"><XNumber v-bind="a" block v-model="item.rand" :min="0" /></XField>
         <XField v-slot="a" label="Rand Range"><XInput v-bind="a" v-model="item.randRange" mono placeholder="0-255" /></XField>
       </template>
       <XField v-else v-slot="a" label="Packet">

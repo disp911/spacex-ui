@@ -40,6 +40,8 @@ const props = defineProps<{
   rowLabel?: (index: number) => string
   /** Cells sit in the middle of the row rather than at its top, e.g. one-line values beside a two-line tag. */
   center?: boolean
+  /** Inside a card, e.g. a settings section: a smaller radius, no surface of its own; on phones darker cards. */
+  nested?: boolean
 }>()
 const emit = defineEmits<{ move: [from: number, to: number]; select: [key: string, row: T, index: number] }>()
 const { t } = useI18n()
@@ -184,7 +186,7 @@ function rowStyle(k: number) {
 </script>
 
 <template>
-  <div :class="['x-grid', { 'x-grid--phone': phone, 'x-grid--center': center, 'is-dragging': lifted >= 0 }]" role="table">
+  <div :class="['x-grid', { 'x-grid--phone': phone, 'x-grid--center': center, 'x-grid--nested': nested, 'is-dragging': lifted >= 0 }]" role="table">
     <span :id="hintId" hidden>{{ t('kit.moveHint') }}</span>
 
     <div v-if="!phone" class="x-grid__head x-caps" role="row">
@@ -390,6 +392,20 @@ function rowStyle(k: number) {
   box-shadow: var(--lift), 0 0 0 1px var(--acc-line);
 }
 
+/* Inside a card. */
+.x-grid--nested {
+  border-radius: var(--r-12);
+  background: none;
+}
+
+.x-grid--nested .x-grid__head {
+  border-radius: calc(var(--r-12) - 1px) calc(var(--r-12) - 1px) 0 0;
+}
+
+.x-grid--nested:not(.x-grid--phone) .x-grid__row:last-child {
+  border-radius: 0 0 calc(var(--r-12) - 1px) calc(var(--r-12) - 1px);
+}
+
 /* Phones: a card per row. */
 .x-grid--phone {
   display: flex;
@@ -404,6 +420,11 @@ function rowStyle(k: number) {
   border: 1px solid var(--line);
   border-radius: var(--r-16);
   background: var(--card);
+}
+
+.x-grid--phone.x-grid--nested .x-grid__row {
+  border-radius: var(--r-12);
+  background: var(--nest);
 }
 
 .x-grid__card-head {

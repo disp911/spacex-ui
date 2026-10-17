@@ -17,6 +17,8 @@ const props = defineProps<{
   readonly?: boolean
   invalid?: boolean
   modified?: boolean
+  /** Fills its field, e.g. in a window's form; 140px wide otherwise, as at the right of a settings row. */
+  block?: boolean
 }>()
 
 const model = defineModel<number | null>({ default: null })
@@ -68,7 +70,7 @@ function nudge(e: KeyboardEvent, by: number) {
 <template>
   <div
     v-bind="wrapper"
-    :class="['x-field-box', 'x-field-box--mono', 'x-number', { 'is-disabled': disabled, 'is-invalid': invalid, 'is-modified': modified }]"
+    :class="['x-field-box', 'x-field-box--mono', 'x-number', { 'x-number--block': block, 'is-disabled': disabled, 'is-invalid': invalid, 'is-modified': modified }]"
   >
     <input
       v-bind="control"
@@ -96,6 +98,10 @@ function nudge(e: KeyboardEvent, by: number) {
 .x-number {
   gap: 8px;
   width: 140px;
+}
+
+.x-number--block {
+  width: 100%;
 }
 
 .x-number__control {
