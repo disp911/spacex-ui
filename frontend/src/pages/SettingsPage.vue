@@ -3,7 +3,7 @@ import { computed, nextTick, onMounted, provide, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { api } from '../api'
 import {
-  toast, XActionBar, XBusyOverlay, XButton, XCard, XConfirm, XEmpty, XNotice, XSettingsSkeleton, XStatusText, XTabs, type TabItem,
+  toast, XActionBar, XBusyOverlay, XButton, XCard, XConfirm, XEmpty, XNotice, XSettingsSkeleton, XStatusText, XStepArrow, XTabs, type TabItem,
 } from '../kit'
 import AppPage from '../layout/AppPage.vue'
 import { cause, formKey } from './settings/form'
@@ -211,14 +211,15 @@ async function restart() {
     </div>
 
     <template #bar>
-      <XActionBar>
+      <XActionBar fit>
         <template v-if="status" #state>
           <XStatusText :tone="status.tone">{{ status.text }}</XStatusText>
         </template>
         <XButton variant="primary" :disabled="!canSave && !saving" :loading="saving" @click="save">
           {{ saving ? t('settings.saving') : t('settings.save') }}
         </XButton>
-        <XButton variant="primary" icon="refresh" :disabled="!canRestart" @click="confirming = true">{{ t('settings.restartShort') }}</XButton>
+        <XStepArrow :done="ready && !total.dirty" />
+        <XButton variant="primary" icon="refresh" :disabled="!canRestart" :pending="ready && !!total.dirty" @click="confirming = true">{{ t('settings.restartShort') }}</XButton>
       </XActionBar>
     </template>
   </AppPage>
