@@ -61,6 +61,7 @@ defineExpose({ focus: () => input.value?.focus() })
       :spellcheck="mono ? false : undefined"
     />
     <span v-if="suffix" class="x-input__suffix">{{ suffix }}</span>
+    <XIcon v-if="invalid" name="warning" :size="14" class="x-field-alert" aria-hidden="true" />
     <XInlineButton
       v-if="clearable && model && !disabled && !readonly"
       icon="close"

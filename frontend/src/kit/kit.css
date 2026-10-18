@@ -42,6 +42,12 @@
   box-shadow: 0 0 0 3px var(--err-ring);
 }
 
+/* The warning triangle at the right of a field with a mistake: the colour is not the only sign. */
+.x-field-alert {
+  flex: none;
+  color: var(--err);
+}
+
 .x-field-box.is-disabled {
   border-color: var(--line);
   background: var(--ctrl);

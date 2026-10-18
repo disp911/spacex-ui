@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import XIcon from './XIcon.vue'
 import { useFieldAttrs } from './useFieldAttrs'
 
 defineOptions({ inheritAttrs: false })
@@ -91,6 +92,7 @@ function nudge(e: KeyboardEvent, by: number) {
       @keydown.down="nudge($event, -1)"
     />
     <span v-if="unit" class="x-number__unit">{{ unit }}</span>
+    <XIcon v-if="invalid" name="warning" :size="14" class="x-field-alert" aria-hidden="true" />
   </div>
 </template>
 
