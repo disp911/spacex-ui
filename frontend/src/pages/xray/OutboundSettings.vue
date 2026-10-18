@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
-  XField, XInlineButton, XInput, XInputList, XListHead, XNest, XNestCard, XNumber, XSection, XSelect, XSwitch, XTagInput, type Option,
+  XAddButton, XField, XInlineButton, XInput, XInputList, XListHead, XNest, XNestCard, XNumber, XSection, XSelect, XSwitch, XTagInput, type Option,
 } from '../../kit'
 import { wireguardKeys } from '../../wireguard'
 import type { Outbound } from './model'
@@ -253,7 +253,7 @@ const remove = (list: unknown[], i: number) => list.splice(i, 1)
 
       <XSwitch v-model="noisesOn" boxed label="Noises">
         <template v-if="noisesOn" #actions>
-          <XListHead title="" add @add="s.noises.push(defaultNoise())" />
+          <XAddButton :label="t('kit.addRow', { list: 'Noises' })" @click="s.noises.push(defaultNoise())" />
         </template>
       </XSwitch>
       <XNest v-if="noisesOn" bare>
