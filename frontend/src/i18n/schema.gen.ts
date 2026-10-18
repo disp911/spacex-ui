@@ -567,6 +567,19 @@ export interface MessageSchema {
     "dnsN": string
     "fakeN": string
     "ruleEmpty": string
+    "hintExample": string
+    "hintDefault": string
+    "hintPortHop": string
+    "hintBrutal": string
+    "hintObfs": string
+    "hintMkcp": string
+    "hintBinary": string
+    "hintSha": string
+    "hintQtype": string
+    "hintDomainRules": string
+    "hintNetwork": string
+    "hintPortRule": string
+    "hintIpRule": string
   }
   "units": {
     "value": string

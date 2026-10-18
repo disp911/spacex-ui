@@ -44,7 +44,7 @@ function setType(item: Record<string, any>, type: string) {
         <XField v-slot="a" label="Rand Range"><XInput v-bind="a" v-model="item.randRange" mono placeholder="0-255" /></XField>
       </template>
       <XField v-else v-slot="a" label="Packet">
-        <XInput v-bind="a" v-model="item.packet" mono placeholder="binary data" />
+        <XInput v-bind="a" v-model="item.packet" mono :placeholder="t('xray.hintBinary')" />
       </XField>
     </XFieldGrid>
   </XNestCard>

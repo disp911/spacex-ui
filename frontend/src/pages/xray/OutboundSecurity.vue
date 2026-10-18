@@ -52,7 +52,7 @@ const alpnOptions = alpns.map((a) => ({ value: a, label: a }))
       <XFieldGrid :cols="2">
         <XField v-slot="a" label="verify Peer Cert By Name"><XInput v-bind="a" v-model="tls.verifyPeerCertByName" mono placeholder="cloudflare-dns.com" /></XField>
         <XField v-slot="a" label="pinned Peer Cert Sha256">
-          <XInput v-bind="a" v-model="tls.pinnedPeerCertSha256" mono placeholder="Enter SHA256 fingerprints (base64)" />
+          <XInput v-bind="a" v-model="tls.pinnedPeerCertSha256" mono :placeholder="t('xray.hintSha')" />
         </XField>
       </XFieldGrid>
     </template>

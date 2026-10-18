@@ -165,7 +165,7 @@ const setTables = (m: Record<string, any>, v: string) => (m.settings.customTable
 const remove = (list: unknown[], i: number) => list.splice(i, 1)
 
 // In the script: vue-tsc misreads the // of a URL inside the template.
-const resolverHint = 'e.g., xxx+udp://8.8.8.8:53'
+const resolverHint = computed(() => t('xray.hintExample', { v: 'xxx+udp://8.8.8.8:53' }))
 </script>
 
 <template>
@@ -254,11 +254,11 @@ const resolverHint = 'e.g., xxx+udp://8.8.8.8:53'
         <XField v-slot="a" label="Congestion">
           <XSelect v-bind="a" v-model="ns.congestion" :options="[{ value: '', label: 'BBR (Auto)' }, { value: 'brutal', label: 'Brutal' }]" />
         </XField>
-        <XField v-slot="a" label="Upload Speed"><XInput v-bind="a" v-model="ns.up" mono placeholder="0 (BBR mode), e.g., 100 mbps" /></XField>
-        <XField v-slot="a" label="Download Speed"><XInput v-bind="a" v-model="ns.down" mono placeholder="0 (BBR mode), e.g., 100 mbps" /></XField>
+        <XField v-slot="a" label="Upload Speed"><XInput v-bind="a" v-model="ns.up" mono :placeholder="t('xray.hintBrutal')" /></XField>
+        <XField v-slot="a" label="Download Speed"><XInput v-bind="a" v-model="ns.down" mono :placeholder="t('xray.hintBrutal')" /></XField>
       </XFieldGrid>
       <XFieldGrid :cols="3">
-        <XField v-slot="a" label="UDP Hop Port"><XInput v-bind="a" v-model="hopPort" mono placeholder="e.g., 1145-1919 or 11,13,15-17" /></XField>
+        <XField v-slot="a" label="UDP Hop Port"><XInput v-bind="a" v-model="hopPort" mono :placeholder="t('xray.hintPortHop')" /></XField>
         <template v-if="ns.udphop">
           <XField v-slot="a" label="UDP Hop Interval Min (s)"><XNumber v-bind="a" block v-model="ns.udphop.intervalMin" :min="5" /></XField>
           <XField v-slot="a" label="UDP Hop Interval Max (s)"><XNumber v-bind="a" block v-model="ns.udphop.intervalMax" :min="5" /></XField>
@@ -292,12 +292,12 @@ const resolverHint = 'e.g., xxx+udp://8.8.8.8:53'
           </XFieldGrid>
           <XFieldGrid :cols="4" v-if="m.type === 'fragment'">
             <XField v-slot="a" label="Packets"><XSelect v-bind="a" v-model="m.settings.packets" :options="list(['tlshello', '1-3', '1-5'])" mono /></XField>
-            <XField v-slot="a" label="Length"><XInput v-bind="a" v-model="m.settings.length" mono placeholder="e.g. 100-200" /></XField>
-            <XField v-slot="a" label="Delay"><XInput v-bind="a" v-model="m.settings.delay" mono placeholder="e.g. 10-20" /></XField>
-            <XField v-slot="a" label="Max Split"><XInput v-bind="a" v-model="m.settings.maxSplit" mono placeholder="e.g. 3-6" /></XField>
+            <XField v-slot="a" label="Length"><XInput v-bind="a" v-model="m.settings.length" mono :placeholder="t('xray.hintExample', { v: '100-200' })" /></XField>
+            <XField v-slot="a" label="Delay"><XInput v-bind="a" v-model="m.settings.delay" mono :placeholder="t('xray.hintExample', { v: '10-20' })" /></XField>
+            <XField v-slot="a" label="Max Split"><XInput v-bind="a" v-model="m.settings.maxSplit" mono :placeholder="t('xray.hintExample', { v: '3-6' })" /></XField>
           </XFieldGrid>
           <XFieldGrid :cols="3" v-if="m.type === 'sudoku'">
-            <XField v-slot="a" label="Password"><XInput v-bind="a" v-model="m.settings.password" mono placeholder="Obfuscation password" /></XField>
+            <XField v-slot="a" label="Password"><XInput v-bind="a" v-model="m.settings.password" mono :placeholder="t('xray.hintObfs')" /></XField>
             <XField v-slot="a" label="ASCII"><XInput v-bind="a" v-model="m.settings.ascii" mono /></XField>
             <XField v-slot="a" label="Custom Table"><XInput v-bind="a" v-model="m.settings.customTable" mono /></XField>
             <XField v-slot="a" label="Custom Tables">
@@ -334,22 +334,22 @@ const resolverHint = 'e.g., xxx+udp://8.8.8.8:53'
               <XSelect v-bind="a" :model-value="m.type" :options="udpTypes" @update:model-value="setUdpType(m, String($event))" />
             </XField>
             <XField v-if="m.type === 'salamander'" v-slot="a" label="Password">
-              <XInput v-bind="a" v-model="m.settings.password" mono placeholder="Obfuscation password" />
+              <XInput v-bind="a" v-model="m.settings.password" mono :placeholder="t('xray.hintObfs')" />
             </XField>
             <template v-if="m.type === 'mkcp-legacy'">
               <XField v-slot="a" label="Header"><XSelect v-bind="a" v-model="m.settings.header" :options="kcpHeaders" /></XField>
               <XField v-if="!m.settings.header" v-slot="a" label="Password">
-                <XInput v-bind="a" v-model="m.settings.value" mono placeholder="Empty: mKCP original, set: AES-128-GCM" />
+                <XInput v-bind="a" v-model="m.settings.value" mono :placeholder="t('xray.hintMkcp')" />
               </XField>
               <XField v-if="m.settings.header === 'dns'" v-slot="a" label="Domain">
-                <XInput v-bind="a" v-model="m.settings.value" mono placeholder="e.g., www.example.com" />
+                <XInput v-bind="a" v-model="m.settings.value" mono :placeholder="t('xray.hintExample', { v: 'www.example.com' })" />
               </XField>
             </template>
             <XField v-if="m.type === 'xdns'" v-slot="a" label="Resolvers" class="x-wide">
               <XTagInput v-bind="a" v-model="m.settings.resolvers" mono :placeholder="resolverHint" />
             </XField>
             <template v-if="m.type === 'xicmp'">
-              <XField v-slot="a" label="IPs"><XTagInput v-bind="a" v-model="m.settings.ips" mono placeholder="e.g., 1.2.3.4" /></XField>
+              <XField v-slot="a" label="IPs"><XTagInput v-bind="a" v-model="m.settings.ips" mono :placeholder="t('xray.hintExample', { v: '1.2.3.4' })" /></XField>
               <XSwitch v-model="m.settings.dgram" boxed label="DGRAM" />
             </template>
             <XField v-if="m.type === 'noise'" v-slot="a" label="Reset"><XNumber v-bind="a" block v-model="m.settings.reset" :min="0" /></XField>
@@ -382,18 +382,18 @@ const resolverHint = 'e.g., xxx+udp://8.8.8.8:53'
           <XSwitch v-model="hopOn" boxed label="UDP Hop" />
         </XFieldGrid>
         <XFieldGrid :cols="2" v-if="qp.udpHop">
-          <XField v-slot="a" label="Hop Ports"><XInput v-bind="a" v-model="qp.udpHop.ports" mono placeholder="e.g. 20000-50000" /></XField>
+          <XField v-slot="a" label="Hop Ports"><XInput v-bind="a" v-model="qp.udpHop.ports" mono :placeholder="t('xray.hintExample', { v: '20000-50000' })" /></XField>
           <XField v-slot="a" label="Hop Interval (s)"><XInput v-bind="a" v-model="qp.udpHop.interval" mono /></XField>
         </XFieldGrid>
         <XFieldGrid :cols="2">
           <XField v-slot="a" label="Max Idle Timeout (s)"><XNumber v-bind="a" block v-model="qp.maxIdleTimeout" :min="4" :max="120" /></XField>
           <XField v-slot="a" label="Keep Alive Period (s)"><XNumber v-bind="a" block v-model="qp.keepAlivePeriod" :min="0" :max="60" /></XField>
           <XSwitch v-model="qp.disablePathMTUDiscovery" boxed label="Disable Path MTU Dis" />
-          <XField v-slot="a" label="Max Incoming Streams"><XNumber v-bind="a" block v-model="qp.maxIncomingStreams" :min="8" placeholder="8 = default" /></XField>
-          <XField v-slot="a" label="Init Stream Window"><XNumber v-bind="a" block v-model="qp.initStreamReceiveWindow" :min="16384" placeholder="8388608 = default" /></XField>
-          <XField v-slot="a" label="Max Stream Window"><XNumber v-bind="a" block v-model="qp.maxStreamReceiveWindow" :min="16384" placeholder="8388608 = default" /></XField>
-          <XField v-slot="a" label="Init Conn Window"><XNumber v-bind="a" block v-model="qp.initConnectionReceiveWindow" :min="16384" placeholder="20971520 = default" /></XField>
-          <XField v-slot="a" label="Max Conn Window"><XNumber v-bind="a" block v-model="qp.maxConnectionReceiveWindow" :min="16384" placeholder="20971520 = default" /></XField>
+          <XField v-slot="a" label="Max Incoming Streams"><XNumber v-bind="a" block v-model="qp.maxIncomingStreams" :min="8" :placeholder="t('xray.hintDefault', { v: '8' })" /></XField>
+          <XField v-slot="a" label="Init Stream Window"><XNumber v-bind="a" block v-model="qp.initStreamReceiveWindow" :min="16384" :placeholder="t('xray.hintDefault', { v: '8388608' })" /></XField>
+          <XField v-slot="a" label="Max Stream Window"><XNumber v-bind="a" block v-model="qp.maxStreamReceiveWindow" :min="16384" :placeholder="t('xray.hintDefault', { v: '8388608' })" /></XField>
+          <XField v-slot="a" label="Init Conn Window"><XNumber v-bind="a" block v-model="qp.initConnectionReceiveWindow" :min="16384" :placeholder="t('xray.hintDefault', { v: '20971520' })" /></XField>
+          <XField v-slot="a" label="Max Conn Window"><XNumber v-bind="a" block v-model="qp.maxConnectionReceiveWindow" :min="16384" :placeholder="t('xray.hintDefault', { v: '20971520' })" /></XField>
         </XFieldGrid>
       </template>
     </XSection>

@@ -182,10 +182,10 @@ const remove = (list: unknown[], i: number) => list.splice(i, 1)
           <XField v-slot="a" label="Action">
             <XSelect v-bind="a" v-model="r.action" :options="list(['direct', 'drop', 'return', 'hijack'])" mono />
           </XField>
-          <XField v-slot="a" label="QType" help="Single qType (e.g. 28) or list/range (e.g. 1,3,23-24)">
+          <XField v-slot="a" label="QType" :help="t('xray.hintQtype')">
             <XInput v-bind="a" v-model="r.qType" mono placeholder="1,3,23-24" />
           </XField>
-          <XField v-slot="a" label="Domain" help="Comma-separated domain rules, e.g. domain:example.com,full:example.com">
+          <XField v-slot="a" label="Domain" :help="t('xray.hintDomainRules')">
             <XInput v-bind="a" v-model="r.domain" mono placeholder="domain:example.com" />
           </XField>
         </XFieldGrid>
@@ -218,13 +218,13 @@ const remove = (list: unknown[], i: number) => list.splice(i, 1)
           <XField v-slot="a" label="Action">
             <XSelect v-bind="a" v-model="r.action" :options="list(['allow', 'block'])" mono />
           </XField>
-          <XField v-slot="a" label="Network" help="Optional: tcp, udp, tcp,udp">
+          <XField v-slot="a" label="Network" :help="t('xray.hintNetwork')">
             <XInput v-bind="a" :model-value="networkText(r)" mono placeholder="tcp,udp" @update:model-value="r.network = $event" />
           </XField>
-          <XField v-slot="a" label="Port" help="Optional: same format as routing port, e.g. 53,443,1000-2000">
+          <XField v-slot="a" label="Port" :help="t('xray.hintPortRule')">
             <XInput v-bind="a" v-model="r.port" mono placeholder="53,443" />
           </XField>
-          <XField v-slot="a" label="IP" help="Optional IP/CIDR/geoip list, e.g. geoip:cn, 10.0.0.0/8">
+          <XField v-slot="a" label="IP" :help="t('xray.hintIpRule')">
             <XTagInput v-bind="a" v-model="r.ip" mono placeholder="geoip:cn,10.0.0.0/8" />
           </XField>
           <XField v-if="r.action === 'block'" v-slot="a" label="Block Delay">
