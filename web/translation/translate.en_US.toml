@@ -1113,7 +1113,6 @@
 "restart" = "Restart Xray"
 "restartFailed" = "Could not restart Xray: {error}"
 "startError" = "An error occurred while running Xray"
-"toTop" = "Back to top"
 "secGeneral" = "General"
 "freedom" = "Freedom Protocol Strategy"
 "freedomDesc" = "Set the output strategy for the network in the Freedom Protocol."

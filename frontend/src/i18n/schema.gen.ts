@@ -381,7 +381,6 @@ export interface MessageSchema {
     "restart": string
     "restartFailed": string
     "startError": string
-    "toTop": string
     "secGeneral": string
     "freedom": string
     "freedomDesc": string

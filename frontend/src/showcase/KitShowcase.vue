@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { useTheme } from '../stores/theme'
 import {
-  XActionBar, XActionList, XActionRow, XAddButton, XBackToTop, XBadge, XBusyOverlay, XButton, XButtonGroup, XCard, XCheckbox, XChip, XCodeArea, XCodeEditor, XCodeInput, XConfirm, XCounter, XDataTable, XDivider, XEmpty, XErrorBox, XExample, XField, XFieldGrid, XFieldNote, XGridTable, XInfoRow, XInlineButton, XInput, XInputList, XKeyValue, XListHead, XMenu, XModal, XMultiSelect, XNavItem, XNest, XNestCard, XNotice, XPlainTable,
+  XActionBar, XActionList, XActionRow, XAddButton, XBadge, XBusyOverlay, XButton, XButtonGroup, XCard, XCheckbox, XChip, XCodeArea, XCodeEditor, XCodeInput, XConfirm, XCounter, XDataTable, XDivider, XEmpty, XErrorBox, XExample, XField, XFieldGrid, XFieldNote, XGridTable, XInfoRow, XInlineButton, XInput, XInputList, XKeyValue, XListHead, XMenu, XModal, XMultiSelect, XNavItem, XNest, XNestCard, XNotice, XPlainTable,
   XNumber, XOrderToggles, XPager, XPairList, XPickList, XPopConfirm, XProcessError, XProgressLine, XQrCode, XRecordCard, XRouteTarget, XRowLink, XSection, XSegmented, XSelect, XSettingBlock, XSettingDivider, XSettingRow, XSettingsSection, XSettingsSkeleton, XStatusDot, XStatusText, XStepArrow, XSwitch, XTabs, XTagInput, XTestResult, XTextarea,
   XTooltip, XUsagePill, XValueChip,
   type MenuItem,
@@ -753,7 +753,6 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
           <XStepArrow done />
           <XButton variant="primary" icon="refresh">Перезапуск Xray</XButton>
         </XActionBar>
-        <span>Кнопка «Наверх» появляется справа снизу, когда страница прокручена дальше 200px.</span>
         <XField v-slot="a" label="Domain" help="Элементы, разделённые запятыми">
           <XTagInput v-bind="a" v-model="demoDomains" :groups="demoCatalog" mono placeholder="e.g. google.com, geosite:cn" />
         </XField>
@@ -843,7 +842,6 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
         </div>
       </div>
     </XCard>
-    <XBackToTop label="Наверх" />
     <XConfirm v-model:open="restartAsk" icon="refresh" title="Перезапуск панели" cta="Да" @confirm="restartAsk = false">
       Вы уверены, что хотите перезапустить панель? Если панель будет недоступна, проверьте лог сервера
     </XConfirm>

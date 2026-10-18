@@ -3,7 +3,7 @@ import { computed, nextTick, onMounted, provide, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { api } from '../api'
 import {
-  toast, XActionBar, XBackToTop, XButton, XCard, XEmpty, XNotice, XProcessError, XSettingsSkeleton, XStatusText, XStepArrow, XTabs, type TabItem,
+  toast, XActionBar, XButton, XCard, XEmpty, XNotice, XProcessError, XSettingsSkeleton, XStatusText, XStepArrow, XTabs, type TabItem,
 } from '../kit'
 import AppPage from '../layout/AppPage.vue'
 import { cause } from './settings/form'
@@ -219,5 +219,4 @@ async function restart() {
     </template>
   </AppPage>
 
-  <XBackToTop :label="t('xray.toTop')" />
 </template>

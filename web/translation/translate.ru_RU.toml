@@ -1113,7 +1113,6 @@
 "restart" = "Перезапуск Xray"
 "restartFailed" = "Не удалось перезапустить Xray: {error}"
 "startError" = "Ошибка при запуске Xray"
-"toTop" = "Наверх"
 "secGeneral" = "Основные настройки"
 "freedom" = "Настройка стратегии протокола Freedom"
 "freedomDesc" = "Установка стратегии вывода сети в протоколе Freedom"
