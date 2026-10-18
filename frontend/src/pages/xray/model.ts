@@ -346,12 +346,12 @@ export const defaultDnsServer = (): Json => ({
 
 export const defaultFakeDns = (): Json => ({ ipPool: '198.18.0.0/16', poolSize: 65535 })
 
-/** The DNS server lists of the old panel's templates; installing one replaces the servers. */
+/** The DNS server lists of the old panel's templates (Adguard Family with AdGuard's family addresses); installing one replaces the servers. */
 export const dnsPresets: { name: string; family: boolean; servers: string[] }[] = [
   { name: 'Google DNS', family: false, servers: ['8.8.8.8', '8.8.4.4', '2001:4860:4860::8888', '2001:4860:4860::8844'] },
   { name: 'Cloudflare DNS', family: false, servers: ['1.1.1.1', '1.0.0.1', '2606:4700:4700::1111', '2606:4700:4700::1001'] },
   { name: 'Adguard DNS', family: false, servers: ['94.140.14.14', '94.140.15.15', '2a10:50c0::ad1:ff', '2a10:50c0::ad2:ff'] },
-  { name: 'Adguard Family DNS', family: true, servers: ['94.140.14.14', '94.140.15.15', '2a10:50c0::ad1:ff', '2a10:50c0::ad2:ff'] },
+  { name: 'Adguard Family DNS', family: true, servers: ['94.140.14.15', '94.140.15.16', '2a10:50c0::bad1:ff', '2a10:50c0::bad2:ff'] },
   { name: 'Cloudflare Family DNS', family: true, servers: ['1.1.1.3', '1.0.0.3', '2606:4700:4700::1113', '2606:4700:4700::1003'] },
 ]
 
