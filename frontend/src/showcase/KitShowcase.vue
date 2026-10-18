@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { useTheme } from '../stores/theme'
 import {
-  XActionBar, XActionList, XActionRow, XAddButton, XBadge, XBusyOverlay, XButton, XButtonGroup, XCard, XCheckbox, XChip, XCodeArea, XCodeEditor, XCodeInput, XConfirm, XCounter, XDataTable, XDivider, XEmpty, XErrorBox, XExample, XField, XFieldGrid, XFieldNote, XGridTable, XInfoRow, XInlineButton, XInput, XInputList, XKeyValue, XListHead, XMenu, XModal, XMultiSelect, XNavItem, XNest, XNestCard, XNotice, XPlainTable,
+  XActionBar, XActionList, XActionRow, XAddButton, XBadge, XCountList, XExpandTable, XSummaryStat, XBusyOverlay, XButton, XButtonGroup, XCard, XCheckbox, XChip, XCodeArea, XCodeEditor, XCodeInput, XConfirm, XCounter, XDataTable, XDivider, XEmpty, XErrorBox, XExample, XField, XFieldGrid, XFieldNote, XGridTable, XInfoRow, XInlineButton, XInput, XInputList, XKeyValue, XListHead, XMenu, XModal, XMultiSelect, XNavItem, XNest, XNestCard, XNotice, XPlainTable,
   XNumber, XOrderToggles, XPager, XPairList, XPickList, XPopConfirm, XProcessError, XProgressLine, XQrCode, XRecordCard, XRouteTarget, XRowLink, XSection, XSegmented, XSelect, XSettingBlock, XSettingDivider, XSettingRow, XSettingsSection, XSettingsSkeleton, XStatusDot, XStatusText, XStepArrow, XSwitch, XTabs, XTagInput, XTestResult, XTextarea,
   XTooltip, XUsagePill, XValueChip,
   type MenuItem,
@@ -161,6 +161,28 @@ const sectionOpen = ref(true)
 // The parts the Outbounds, Balancer and DNS tabs added.
 const demoIps = ref(['0.0.0.0/0', '::/0'])
 const demoDoh = 'https://1.1.1.1/dns-query'
+// The parts the Inbounds list added.
+const demoInbPage = ref(1)
+const demoInbSize = ref(25)
+const demoInbOpen = ref<(string | number)[]>([1])
+const demoInbOn = ref(true)
+const demoInbRows = [
+  { id: 1, remark: 'Нидерланды · Reality', port: 443, on: true },
+  { id: 2, remark: 'vmess-grpc-legacy', port: 2053, on: false },
+]
+const demoInbColumns = [
+  { key: 'remark', label: 'Примечание', muted: 'soft' as const },
+  { key: 'port', label: 'Порт', size: '56px' },
+]
+const demoInbPhone = [
+  { key: 'remark', label: 'Примечание' },
+  { key: 'port', label: 'Порт', size: '76px', align: 'end' as const },
+]
+const demoEmails = [{ email: 'alice@family', comment: 'Мама, iPhone' }, { email: 'boris' }, { email: 'dasha.m', comment: 'Дача' }]
+const demoInbMenu = computed<MenuItem[]>(() => [
+  { key: 'edit', label: 'Изменить', icon: 'edit' },
+  { key: 'enable', label: 'Включить', switch: true, checked: demoInbOn.value, divided: true },
+])
 const demoFragment = ref(true)
 const demoMux = ref(false)
 const demoMtu = ref<number | null>(1420)
@@ -840,6 +862,41 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
             </XSettingsSection>
           </div>
         </div>
+      </div>
+    </XCard>
+
+    <XCard title="Подключения">
+      <div class="kit__stack">
+        <div class="kit__row kit__row--wrap">
+          <XSummaryStat icon="updown" label="Отправлено/получено" value="67,7 ГБ / 409,0 ГБ" />
+          <XSummaryStat icon="user" label="Клиенты">
+            <div class="kit__row kit__row--wrap">
+              <XCountList tone="off" label="Отключено" :items="demoEmails.slice(1, 2)" labelled />
+              <XCountList tone="err" label="Исчерпано" :items="demoEmails" labelled />
+              <XCountList tone="on" label="Онлайн" :items="demoEmails.slice(0, 1)" dot labelled />
+            </div>
+          </XSummaryStat>
+        </div>
+        <div class="kit__row kit__row--wrap">
+          <XCountList tone="warn" label="Почти исчерпано" :items="demoEmails" />
+          <XMenu v-slot="{ props }" :items="demoInbMenu" @select="$event === 'enable' && (demoInbOn = !demoInbOn)">
+            <XButton v-bind="props" caret>Меню с переключателем</XButton>
+          </XMenu>
+          <XButton icon="info" round label="Информация" />
+          <XButton icon="info" round mark="pause" label="Информация, отключено" />
+          <XButton icon="caret" label="Автообновление" dot />
+        </div>
+        <XKeyValue plain :rows="[{ label: 'Порт', value: '443' }, { key: 'proto', label: 'Протокол' }]" style="max-width: 320px">
+          <template #value-proto><XChip mono>vless</XChip><XChip mono outline>tcp</XChip></template>
+        </XKeyValue>
+        <XExpandTable v-model:open="demoInbOpen" :columns="demoInbColumns" :phone-columns="demoInbPhone" :rows="demoInbRows" :row-key="(r) => r.id" :expandable="(r) => r.id === 1" :muted="(r) => !r.on">
+          <template #cell-remark="{ row }">{{ row.remark }}</template>
+          <template #cell-port="{ row }"><span class="kit__mono">{{ row.port }}</span></template>
+          <template #phone-remark="{ row, toggle }"><button type="button" class="kit__p" @click="toggle">{{ row.remark }}</button></template>
+          <template #phone-port="{ row }"><span class="kit__mono">{{ row.port }}</span></template>
+          <template #expanded><XEmpty framed title="Здесь раскрытое содержимое строки" /></template>
+          <template #foot><XPager v-model="demoInbPage" v-model:size="demoInbSize" :pages="3" :sizes="[25, 50, 70]" summary /></template>
+        </XExpandTable>
       </div>
     </XCard>
     <XConfirm v-model:open="restartAsk" icon="refresh" title="Перезапуск панели" cta="Да" @confirm="restartAsk = false">
