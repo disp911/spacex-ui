@@ -1,9 +1,14 @@
 <script setup lang="ts">
-import { ref, useId } from 'vue'
+import { ref, useId, watch } from 'vue'
 import { useFloating } from './floating'
 
-/** Short hint shown on hover and keyboard focus; error is what a failure said: a red frame and mono text. */
-const props = withDefaults(defineProps<{ text?: string; delay?: number; error?: boolean }>(), { delay: 300 })
+/**
+ * Short hint shown on hover and keyboard focus; error is what a failure said:
+ * a red frame and mono text. block lets what it hangs on fill its place, e.g.
+ * a usage pill across a cell. silent keeps it away, e.g. while the button it
+ * names has a popover open.
+ */
+const props = withDefaults(defineProps<{ text?: string; delay?: number; error?: boolean; block?: boolean; silent?: boolean }>(), { delay: 300 })
 
 const id = useId()
 const anchor = ref<HTMLElement | null>(null)
@@ -14,6 +19,7 @@ let timer = 0
 
 function show() {
   clearTimeout(timer)
+  if (props.silent) return
   timer = window.setTimeout(() => (open.value = true), props.delay)
 }
 
@@ -21,12 +27,17 @@ function hide() {
   clearTimeout(timer)
   open.value = false
 }
+
+watch(
+  () => props.silent,
+  (h) => h && hide(),
+)
 </script>
 
 <template>
   <span
     ref="anchor"
-    class="x-tooltip-anchor"
+    :class="['x-tooltip-anchor', { 'x-tooltip-anchor--block': block }]"
     :aria-describedby="open ? id : undefined"
     @mouseenter="show"
     @mouseleave="hide"
@@ -48,6 +59,11 @@ function hide() {
 .x-tooltip-anchor {
   display: inline-flex;
   min-width: 0;
+}
+
+.x-tooltip-anchor--block {
+  display: flex;
+  width: 100%;
 }
 
 .x-tooltip {

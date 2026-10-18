@@ -1369,6 +1369,17 @@
 "mode" = "Режим"
 "refresh" = "Обновить"
 "toggleFailed" = "Не удалось изменить состояние подключения"
+"colOnline" = "Онлайн"
+"colClient" = "Клиент"
+"online" = "Онлайн"
+"offline" = "Офлайн"
+"lastOnline" = "Был(а) в сети: {date}"
+"editClient" = "Редактировать клиента"
+"reset" = "Сбросить"
+"resetConfirm" = "Вы уверены, что хотите сбросить трафик?"
+"deleteConfirm" = "Вы уверены, что хотите удалить клиента?"
+"delayedStart" = "Начало использования"
+"periodDays" = "{n} д"
 
 [kit]
 "addValue" = "Добавить «{value}»"

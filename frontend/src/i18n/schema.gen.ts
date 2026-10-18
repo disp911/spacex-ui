@@ -637,6 +637,17 @@ export interface MessageSchema {
     "mode": string
     "refresh": string
     "toggleFailed": string
+    "colOnline": string
+    "colClient": string
+    "online": string
+    "offline": string
+    "lastOnline": string
+    "editClient": string
+    "reset": string
+    "resetConfirm": string
+    "deleteConfirm": string
+    "delayedStart": string
+    "periodDays": string
   }
   "units": {
     "value": string

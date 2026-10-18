@@ -259,3 +259,54 @@ export function filterEmails(c: ClientCounts, f: Exclude<Filter, 'none'>): strin
       return c.online
   }
 }
+
+// --- An inbound's clients ------------------------------------------------------------
+
+const rank: Record<State, number> = { unl: 0, ok: 1, warn: 2, err: 3 }
+const worse = (a: State, b: State) => (rank[a] >= rank[b] ? a : b)
+
+/** What the list shows of a client: its traffic and date against their limits, the worse of them, and whether it is online. */
+export interface ClientView {
+  used: number
+  total: number
+  /** The end date; below 0 a delayed start, 0 none. */
+  at: number
+  /** Days of the period that renews itself, 0 when it does not. */
+  renew: number
+  traffic: State
+  expiry: State
+  /** The worse of traffic and date. */
+  worst: State
+  depleted: boolean
+  online: boolean
+}
+
+export function clientView(c: Client, s: ClientStat | undefined, online: Set<string>, d: Pick<InboundDefaults, 'expireDiff' | 'trafficDiff'>, now = Date.now()): ClientView {
+  const used = usedOf(s)
+  const total = s?.total ?? c.totalGB ?? 0
+  const at = s?.expiryTime ?? c.expiryTime ?? 0
+  const traffic = trafficState(used, total, d)
+  const expiry = at < 0 ? 'ok' : expiryState(at, d, now)
+  const worst = worse(traffic, expiry)
+  return { used, total, at, renew: s?.reset ?? c.reset ?? 0, traffic, expiry, worst, depleted: worst === 'err', online: c.enable && online.has(c.email) }
+}
+
+/** How far the period that renews itself has gone, 0..1. */
+export const renewShare = (at: number, days: number, now = Date.now()) => Math.max(0, Math.min(1, 1 - (at - now) / (days * DAY)))
+
+/**
+ * The clients an open inbound lists: while searching those that match, or all
+ * when only the inbound did; with a filter those in that state.
+ */
+export function shownClients(ib: DbInbound, query: string, filter: Filter, counts: ClientCounts | undefined): Client[] {
+  const all = clientsOf(ib)
+  if (query) {
+    const hit = all.filter((c) => deepSearch(c, query))
+    return hit.length ? hit : all
+  }
+  if (filter !== 'none' && counts) {
+    const emails = new Set(filterEmails(counts, filter))
+    return all.filter((c) => emails.has(c.email))
+  }
+  return all
+}

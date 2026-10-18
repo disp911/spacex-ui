@@ -3,7 +3,8 @@ import { computed, onBeforeUnmount, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { api } from '../api'
 import {
-  toast, XButton, XCard, XChip, XEmpty, XExpandTable, XInlineButton, XKeyValue, XMenu, XNotice, XPager, XPopover, XSpinner, XSummaryStat, XSwitch, XTooltip,
+  toast, XButton, XCard, XChip, XEmpty, XExpandTable, XInlineButton, XKeyValue, XMark, XMenu, XNotice, XPager, XPopover, XRowToggle, XSpinner, XSummaryStat, XSwitch,
+  XTooltip,
   type ExpandColumn, type MenuItem,
 } from '../kit'
 import { formatBytes, formatDate, formatRelative } from '../i18n/format'
@@ -11,6 +12,7 @@ import AppPage from '../layout/AppPage.vue'
 import { useInbounds } from '../stores/inbounds'
 import { insecure } from './xray/model'
 import ClientCounts from './inbounds/ClientCounts.vue'
+import InboundClients from './inbounds/InboundClients.vue'
 import InboundsTools from './inbounds/InboundsTools.vue'
 import {
   deepSearch, expiryState, filterEmails, hasClients, pageSizes, protocolChips, trafficState, type ClientCounts as Counts, type DbInbound, type Filter, type State,
@@ -185,7 +187,25 @@ async function setEnable(ib: DbInbound, on: boolean) {
 const bannerClosed = ref(false)
 const showBanner = computed(() => store.loaded && !bannerClosed.value && insecure())
 const subscription = computed(() => !!store.defaults?.subEnable)
-const open = ref<(string | number)[]>([])
+
+// --- Open rows -----------------------------------------------------------------------
+// While searching or filtering, the inbounds found stand open on their clients
+// and the closed ones are remembered instead, as in the mockup.
+
+const narrowed = computed(() => (mode.value === 'search' ? !!query.value : filter.value !== 'none'))
+const opened = ref<number[]>([])
+const shut = ref<number[]>([])
+watch([query, filter, mode], () => (shut.value = []))
+
+const open = computed<(string | number)[]>({
+  get: () => (narrowed.value ? rows.value.filter((ib) => hasClients(ib) && !shut.value.includes(ib.id)).map((ib) => ib.id) : opened.value),
+  set: (keys) => {
+    if (narrowed.value) shut.value = rows.value.filter((ib) => hasClients(ib) && !keys.includes(ib.id)).map((ib) => ib.id)
+    else opened.value = keys as number[]
+  },
+})
+const clientQuery = computed(() => (mode.value === 'search' ? query.value : ''))
+const clientFilter = computed<Filter>(() => (mode.value === 'filter' ? filter.value : 'none'))
 </script>
 
 <template>
@@ -218,6 +238,7 @@ const open = ref<(string | number)[]>([])
         :phone-columns="phoneColumns"
         :rows="rows"
         :row-key="(ib) => ib.id"
+        :expandable="(ib) => hasClients(ib)"
         :muted="(ib) => !ib.enable"
         :toggle-label="t('inbounds.clients')"
       >
@@ -240,10 +261,10 @@ const open = ref<(string | number)[]>([])
           />
         </template>
         <template #cell-remark="{ row }">
-          <div class="inbounds__remark" :title="row.remark">{{ row.remark }}</div>
+          <div class="inbounds__remark" :title="row.remark"><XMark :text="row.remark" :query="clientQuery" /></div>
         </template>
         <template #cell-port="{ row }">
-          <span class="inbounds__port">{{ row.port }}</span>
+          <span class="inbounds__port"><XMark :text="row.port" :query="clientQuery" /></span>
         </template>
         <template #cell-protocol="{ row }">
           <div class="inbounds__chips">
@@ -281,8 +302,10 @@ const open = ref<(string | number)[]>([])
             <XButton v-bind="trigger" variant="ghost" icon="dots" :label="t('inbounds.colMenu')" />
           </XMenu>
         </template>
-        <template #phone-remark="{ row }">
-          <div :class="['inbounds__remark', 'inbounds__remark--phone', { 'is-off': !row.enable }]">{{ row.remark }}</div>
+        <template #phone-remark="{ row, open: isOpen, expandable, toggle }">
+          <XRowToggle :open="isOpen" :expandable="expandable" @toggle="toggle">
+            <span :class="['inbounds__remark', 'inbounds__remark--phone', { 'is-off': !row.enable }]"><XMark :text="row.remark" :query="clientQuery" /></span>
+          </XRowToggle>
         </template>
         <template #phone-info="{ row }">
           <XPopover :label="t('inbounds.colInfo')">
@@ -330,6 +353,10 @@ const open = ref<(string | number)[]>([])
           </XPopover>
         </template>
 
+        <template #expanded="{ row }">
+          <InboundClients :inbound="row" :query="clientQuery" :filter="clientFilter" />
+        </template>
+
         <template #empty>
           <XEmpty icon="inbox" :title="t('inbounds.noData')" tab />
         </template>
@@ -367,7 +394,6 @@ const open = ref<(string | number)[]>([])
 }
 
 .inbounds__remark--phone {
-  padding: 8px 8px 8px 28px;
   font-size: var(--fs-14);
 }
 

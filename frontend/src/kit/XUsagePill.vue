@@ -15,6 +15,12 @@ const props = withDefaults(
     disabled?: boolean
     /** Used value in sans instead of mono, e.g. «через 9 дней». */
     textual?: boolean
+    /** As wide as its place, e.g. a table cell. */
+    block?: boolean
+    /** Taller with a thicker bar, e.g. alone in a popover. */
+    large?: boolean
+    /** Renders a button: opens a tooltip. */
+    interactive?: boolean
   }>(),
   { tone: 'ok' },
 )
@@ -24,13 +30,17 @@ const fill = computed(() => (props.disabled ? 'off' : props.ratio == null ? 'neu
 </script>
 
 <template>
-  <span :class="['x-usage', { 'is-exhausted': exhausted, 'is-disabled': disabled, 'x-usage--textual': textual }]">
+  <component
+    :is="interactive ? 'button' : 'span'"
+    :type="interactive ? 'button' : undefined"
+    :class="['x-usage', { 'is-exhausted': exhausted, 'is-disabled': disabled, 'x-usage--textual': textual, 'x-usage--block': block, 'x-usage--large': large, 'x-usage--interactive': interactive }]"
+  >
     <span :class="['x-usage__used', `x-usage__used--${tone}`]">{{ used }}</span>
     <span class="x-usage__track" role="presentation">
       <span :class="['x-usage__bar', `x-usage__bar--${fill}`]" :style="{ width }" />
     </span>
     <span class="x-usage__limit">{{ limit }}</span>
-  </span>
+  </component>
 </template>
 
 <style scoped>
@@ -39,13 +49,33 @@ const fill = computed(() => (props.disabled ? 'off' : props.ratio == null ? 'neu
   align-items: center;
   gap: 8px;
   width: 200px;
-  height: 24px;
+  height: calc(var(--chip-h) + 2px);
   padding: 0 10px;
   border: 1px solid var(--field-line);
   border-radius: var(--r-pill);
   background: var(--field);
   font: 500 var(--fs-11) / 1 var(--font-mono);
   white-space: nowrap;
+  outline: none;
+}
+
+.x-usage--block {
+  width: 100%;
+}
+
+.x-usage--large {
+  height: 32px;
+  padding: 0 12px;
+}
+
+.x-usage--interactive {
+  cursor: default;
+  transition: box-shadow var(--t-fast);
+}
+
+.x-usage--interactive:focus-visible,
+.x-usage--interactive.is-focus {
+  box-shadow: 0 0 0 2px var(--nest), 0 0 0 4px var(--acc-line);
 }
 
 .x-usage__used {
@@ -68,10 +98,15 @@ const fill = computed(() => (props.disabled ? 'off' : props.ratio == null ? 'neu
 .x-usage__track {
   display: flex;
   flex: 1;
+  min-width: 16px;
   height: 4px;
   overflow: hidden;
   border-radius: var(--r-pill);
   background: var(--bar-track);
+}
+
+.x-usage--large .x-usage__track {
+  height: 5px;
 }
 
 .x-usage__bar {
@@ -94,6 +129,10 @@ const fill = computed(() => (props.disabled ? 'off' : props.ratio == null ? 'neu
   color: var(--mut);
 }
 
+.x-usage--textual .x-usage__limit {
+  width: auto;
+}
+
 .x-usage.is-exhausted {
   border-color: var(--err-line);
   background: var(--err-bg);
@@ -105,5 +144,15 @@ const fill = computed(() => (props.disabled ? 'off' : props.ratio == null ? 'neu
 
 .x-usage.is-disabled .x-usage__used {
   color: var(--faint);
+}
+
+@media (max-width: 767px) {
+  .x-usage__used {
+    width: 66px;
+  }
+
+  .x-usage__limit {
+    width: 46px;
+  }
 }
 </style>
