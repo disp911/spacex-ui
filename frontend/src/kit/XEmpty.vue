@@ -13,7 +13,7 @@ withDefaults(defineProps<{ title?: string; hint?: string; icon?: IconName; tone?
 
 <template>
   <div :class="['x-empty', { 'x-empty--err': tone === 'err', 'x-empty--framed': framed }]" :role="tone === 'err' ? 'alert' : undefined">
-    <span v-if="!framed" class="x-empty__icon"><XIcon :name="icon" :size="tone === 'err' ? 18 : 16" :stroke="tone === 'err' ? 1.4 : 1.3" /></span>
+    <span v-if="!framed" class="x-empty__icon"><XIcon :name="icon" :size="16" :stroke="tone === 'err' ? 1.4 : 1.3" /></span>
     <span v-if="title" class="x-empty__title">{{ title }}</span>
     <span v-if="hint" class="x-empty__hint">{{ hint }}</span>
     <div v-if="$slots.default" class="x-empty__actions"><slot /></div>

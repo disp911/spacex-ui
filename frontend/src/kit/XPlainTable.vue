@@ -40,7 +40,7 @@ const fitted = computed(() => props.columns.slice(1).filter((c) => c.fit))
 <template>
   <div v-if="cards" class="x-ptable-cards">
     <div v-if="!rows.length" class="x-ptable-cards__empty">
-      <slot name="empty"><XIcon name="inbox" :size="24" :stroke="1.3" /></slot>
+      <slot name="empty"><XIcon name="inbox" :size="16" :stroke="1.3" /></slot>
     </div>
     <div v-for="(row, i) in rows" :key="rowKey(row, i)" :class="['x-ptable-card', { 'is-active': active?.(row) }]">
       <div class="x-ptable-card__title"><slot :name="`cell-${first.key}`" :row="row" /></div>
@@ -66,7 +66,7 @@ const fitted = computed(() => props.columns.slice(1).filter((c) => c.fit))
       <tbody>
         <tr v-if="!rows.length">
           <td :colspan="columns.length" class="x-ptable__empty">
-            <slot name="empty"><XIcon name="inbox" :size="24" :stroke="1.3" /></slot>
+            <slot name="empty"><XIcon name="inbox" :size="16" :stroke="1.3" /></slot>
           </td>
         </tr>
         <tr v-for="(row, i) in rows" :key="rowKey(row, i)" :class="{ 'is-active': active?.(row) }">

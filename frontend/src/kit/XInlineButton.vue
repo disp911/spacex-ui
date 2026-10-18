@@ -19,7 +19,7 @@ withDefaults(
     /** At work: an accent spinner in place of the icon, and no clicks. */
     loading?: boolean
   }>(),
-  { iconSize: 15, stroke: 1.35 },
+  { iconSize: 14, stroke: 1.35 },
 )
 </script>
 
