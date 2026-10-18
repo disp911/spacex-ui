@@ -34,6 +34,10 @@ const base = () => {
   return typeof s === 'string' ? { ...defaultDnsServer(), address: s } : s
 }
 
+type Form = typeof form
+/** The form as it opened, to tell what was changed. */
+let shown: Form | null = null
+
 watch(open, (on) => {
   if (!on) return
   const s = base()
@@ -48,15 +52,23 @@ watch(open, (on) => {
     disableCache: !!s.disableCache,
     finalQuery: !!s.finalQuery,
   })
+  shown = JSON.parse(JSON.stringify(form))
 })
 
 const list = (v: string[]) => v.map((x) => x.trim()).filter(Boolean)
 
 function save() {
-  const out = { ...base(), ...form, address: form.address.trim(), domains: list(form.domains), expectIPs: list(form.expectIPs), unexpectedIPs: list(form.unexpectedIPs) }
-  if (form.port == null) delete (out as Record<string, unknown>).port
-  emit('save', out)
+  const now: Form = { ...form, address: form.address.trim(), domains: list(form.domains), expectIPs: list(form.expectIPs), unexpectedIPs: list(form.unexpectedIPs) }
+  const changed = (Object.keys(now) as (keyof Form)[]).filter((k) => JSON.stringify(now[k]) !== JSON.stringify(shown?.[k]))
   open.value = false
+  if (props.server != null && !changed.length) return
+  const s = props.server
+  if (typeof s === 'string' && changed.every((k) => k === 'address')) return emit('save', now.address)
+  // A new server or a bare address with more settings: the whole form, as the old panel wrote it.
+  const out: Record<string, unknown> = s && typeof s === 'object' ? { ...s } : { ...base() }
+  for (const k of s && typeof s === 'object' ? changed : (Object.keys(now) as (keyof Form)[])) out[k] = now[k]
+  if (out.port == null) delete out.port
+  emit('save', out)
 }
 
 const strategies = dnsStrategies.map((v) => ({ value: v, label: v }))

@@ -12,9 +12,8 @@ import FakeDnsModal from './FakeDnsModal.vue'
 
 /**
  * Xray's own DNS: switched on, its settings, its servers and the Fake DNS
- * pools. Each setting writes the template as the old panel did: a switch
- * turned off leaves its key out, switching DNS off drops the servers and the
- * pools.
+ * pools. A switch turned off leaves its key out, an emptied pool list leaves
+ * the template, switching DNS off drops the servers and the pools.
  */
 const { t } = useI18n()
 const f = useXrayForm()
@@ -32,7 +31,7 @@ const enabled = computed({
   set: (on: boolean) => {
     if (on) {
       config.value.dns = newDns()
-      config.value.fakedns = null
+      delete config.value.fakedns
     } else {
       delete config.value.dns
       delete config.value.fakedns
@@ -151,8 +150,11 @@ function addPool() {
   poolOpen.value = true
 }
 
-/** As the old panel: an empty list is written as null. */
-const writePools = (list: Pool[]) => (config.value.fakedns = list.length ? list : null)
+/** An emptied list leaves the template. */
+function writePools(list: Pool[]) {
+  if (list.length) config.value.fakedns = list
+  else delete config.value.fakedns
+}
 
 function selectPool(key: string, _row: Pool, i: number) {
   if (key === 'delete') writePools(pools.value.filter((_, j) => j !== i))

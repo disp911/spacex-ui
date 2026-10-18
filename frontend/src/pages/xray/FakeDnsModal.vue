@@ -11,16 +11,21 @@ const emit = defineEmits<{ save: [pool: Record<string, any>] }>()
 const { t } = useI18n()
 
 const form = reactive({ ipPool: '', poolSize: 65535 as number | null })
+/** The form as it opened: confirmed unchanged, the pool stays as it was. */
+let shown = ''
 
 watch(open, (on) => {
   if (!on) return
   const p = props.pool ?? defaultFakeDns()
   Object.assign(form, { ipPool: String(p.ipPool ?? ''), poolSize: typeof p.poolSize === 'number' ? p.poolSize : null })
+  shown = JSON.stringify(form)
 })
 
 function save() {
-  emit('save', { ...(props.pool ?? {}), ipPool: form.ipPool.trim(), poolSize: form.poolSize })
+  const same = JSON.stringify({ ...form, ipPool: form.ipPool.trim() }) === shown
   open.value = false
+  if (props.pool && same) return
+  emit('save', { ...(props.pool ?? {}), ipPool: form.ipPool.trim(), poolSize: form.poolSize })
 }
 
 const title = computed(() => (props.pool ? t('xray.fakeEditN', { n: props.index + 1 }) : t('xray.fakeAdd')))
