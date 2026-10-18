@@ -1,14 +1,13 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { toast, XButton, XCodeEditor, XField, XInput, XModal, XNumber, XSegmented, XSelect } from '../../kit'
+import { toast, XButton, XCodeEditor, XField, XFieldGrid, XInput, XModal, XNumber, XSegmented, XSelect } from '../../kit'
 import type { Outbound } from './model'
 import { canStream, canTls, defaultSettings, finalize, fromLink, hasAddressPort, newOutbound, protocols, server, setProtocolStream } from './outbound'
 import OutboundSettings from './OutboundSettings.vue'
 import OutboundStream from './OutboundStream.vue'
 import OutboundSecurity from './OutboundSecurity.vue'
 import OutboundExtra from './OutboundExtra.vue'
-import './outbound-form.css'
 
 /**
  * An outbound to create, or the one at index to edit: a form of the parts
@@ -105,7 +104,7 @@ const linkHint = 'vmess:// vless:// trojan:// ss:// hysteria2://'
       </div>
 
       <template v-if="mode === 'form'">
-        <div class="outbound__grid outbound__grid--3">
+        <XFieldGrid :cols="3">
           <XField v-slot="a" :label="t('xray.protocol')">
             <XSelect v-bind="a" v-model="protocol" :options="protocolOptions" mono />
           </XField>
@@ -115,15 +114,15 @@ const linkHint = 'vmess:// vless:// trojan:// ss:// hysteria2://'
           <XField v-slot="a" :label="t('xray.sendThrough')">
             <XInput v-bind="a" v-model="o.sendThrough" mono />
           </XField>
-        </div>
-        <div v-if="hasAddressPort(o)" class="outbound__address">
+        </XFieldGrid>
+        <XFieldGrid v-if="hasAddressPort(o)" columns="minmax(0, 1fr) 150px" phone-columns="minmax(0, 1fr) 96px">
           <XField v-slot="a" :label="t('xray.outAddress')">
             <XInput v-bind="a" v-model="address" mono />
           </XField>
           <XField v-slot="a" :label="t('xray.port')">
             <XNumber v-bind="a" block v-model="port" :min="1" :max="65535" />
           </XField>
-        </div>
+        </XFieldGrid>
 
         <OutboundSettings :o="o" :tags="tags" />
         <OutboundStream v-if="canStream(o)" :o="o" />
@@ -160,21 +159,6 @@ const linkHint = 'vmess:// vless:// trojan:// ss:// hysteria2://'
   max-width: 100%;
 }
 
-.outbound__grid {
-  display: grid;
-  gap: 12px;
-}
-
-.outbound__grid--3 {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.outbound__address {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 150px;
-  gap: 12px;
-}
-
 .outbound__link {
   display: flex;
   flex: 1;
@@ -190,14 +174,6 @@ const linkHint = 'vmess:// vless:// trojan:// ss:// hysteria2://'
 @media (max-width: 767px) {
   .outbound__mode {
     width: 100%;
-  }
-
-  .outbound__grid--3 {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .outbound__address {
-    grid-template-columns: minmax(0, 1fr) 96px;
   }
 }
 </style>

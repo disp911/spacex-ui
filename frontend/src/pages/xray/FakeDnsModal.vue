@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, reactive, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { XButton, XField, XInput, XModal, XNumber } from '../../kit'
+import { XButton, XField, XFieldGrid, XInput, XModal, XNumber } from '../../kit'
 import { defaultFakeDns } from './model'
 
 /** A Fake DNS pool to create, or the one at index to edit: the subnet it hands addresses out of and how many. */
@@ -28,31 +28,17 @@ const title = computed(() => (props.pool ? t('xray.fakeEditN', { n: props.index 
 
 <template>
   <XModal v-model:open="open" :title="title" cancel>
-    <div class="fake">
+    <XFieldGrid>
       <XField v-slot="a" :label="t('xray.fakePool')">
         <XInput v-bind="a" v-model="form.ipPool" mono />
       </XField>
       <XField v-slot="a" :label="t('xray.fakePoolSize')">
         <XNumber v-bind="a" block v-model="form.poolSize" :min="1" />
       </XField>
-    </div>
+    </XFieldGrid>
 
     <template #footer>
       <XButton variant="primary" @click="save">{{ t('xray.confirm') }}</XButton>
     </template>
   </XModal>
 </template>
-
-<style scoped>
-.fake {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-
-@media (max-width: 767px) {
-  .fake {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-</style>

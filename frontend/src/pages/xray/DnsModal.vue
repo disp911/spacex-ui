@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, reactive, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { XButton, XField, XInput, XInputList, XModal, XNumber, XSelect, XSwitch } from '../../kit'
+import { XButton, XField, XFieldGrid, XInput, XInputList, XModal, XNumber, XSelect, XSwitch } from '../../kit'
 import { defaultDnsServer, dnsStrategies, listOf, type DnsServer } from './model'
 
 /**
@@ -66,8 +66,8 @@ const title = computed(() => (props.server != null ? t('xray.dnsEditN', { n: pro
 <template>
   <XModal v-model:open="open" :title="title" cancel>
     <div class="dns">
-      <div class="dns__where">
-        <XField v-slot="a" :label="t('xray.outAddress')" class="dns__address">
+      <XFieldGrid columns="minmax(0, 1fr) 96px 160px" :phone="2">
+        <XField v-slot="a" :label="t('xray.outAddress')" class="x-wide-phone">
           <XInput v-bind="a" v-model="form.address" mono />
         </XField>
         <XField v-slot="a" :label="t('xray.port')">
@@ -76,17 +76,17 @@ const title = computed(() => (props.server != null ? t('xray.dnsEditN', { n: pro
         <XField v-slot="a" :label="t('xray.dnsStrategy')">
           <XSelect v-bind="a" v-model="form.queryStrategy" :options="strategies" mono />
         </XField>
-      </div>
+      </XFieldGrid>
 
       <XInputList v-model="form.domains" :title="t('xray.dnsDomains')" mono />
       <XInputList v-model="form.expectIPs" :title="t('xray.dnsExpectIPs')" mono />
       <XInputList v-model="form.unexpectedIPs" :title="t('xray.dnsUnexpectIPs')" mono />
 
-      <div class="dns__switches">
+      <XFieldGrid :cols="3">
         <XSwitch v-model="form.skipFallback" boxed label="Skip Fallback" />
         <XSwitch v-model="form.disableCache" boxed label="Disable Cache" />
         <XSwitch v-model="form.finalQuery" boxed label="Final Query" />
-      </div>
+      </XFieldGrid>
     </div>
 
     <template #footer>
@@ -101,31 +101,5 @@ const title = computed(() => (props.server != null ? t('xray.dnsEditN', { n: pro
   flex-direction: column;
   gap: 12px;
   min-width: 0;
-}
-
-.dns__where {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 96px 160px;
-  gap: 12px;
-}
-
-.dns__switches {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-}
-
-@media (max-width: 767px) {
-  .dns__where {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .dns__address {
-    grid-column: 1 / -1;
-  }
-
-  .dns__switches {
-    grid-template-columns: minmax(0, 1fr);
-  }
 }
 </style>

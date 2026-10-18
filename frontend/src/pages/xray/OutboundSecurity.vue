@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { XField, XInput, XMultiSelect, XSection, XSegmented, XSelect, type Option } from '../../kit'
+import { XField, XFieldGrid, XInput, XMultiSelect, XSection, XSegmented, XSelect, type Option } from '../../kit'
 import type { Outbound } from './model'
 import { alpns, canReality, defaultReality, defaultTls, fingerprints } from './outbound'
 
@@ -43,27 +43,27 @@ const alpnOptions = alpns.map((a) => ({ value: a, label: a }))
     </template>
 
     <template v-if="sec === 'tls'" #default>
-      <div class="of-grid of-grid--2">
+      <XFieldGrid :cols="2">
         <XField v-slot="a" label="SNI"><XInput v-bind="a" v-model="tls.serverName" mono /></XField>
         <XField v-slot="a" label="uTLS"><XSelect v-bind="a" :model-value="tls.fingerprint ?? ''" @update:model-value="tls.fingerprint = String($event)" :options="fingerprintOptions(true)" mono /></XField>
-      </div>
+      </XFieldGrid>
       <XField v-slot="a" label="ALPN"><XMultiSelect v-bind="a" v-model="tls.alpn" :options="alpnOptions" mono /></XField>
       <XField v-slot="a" label="ECH Config List"><XInput v-bind="a" v-model="tls.echConfigList" mono /></XField>
-      <div class="of-grid of-grid--2">
+      <XFieldGrid :cols="2">
         <XField v-slot="a" label="verify Peer Cert By Name"><XInput v-bind="a" v-model="tls.verifyPeerCertByName" mono placeholder="cloudflare-dns.com" /></XField>
         <XField v-slot="a" label="pinned Peer Cert Sha256">
           <XInput v-bind="a" v-model="tls.pinnedPeerCertSha256" mono placeholder="Enter SHA256 fingerprints (base64)" />
         </XField>
-      </div>
+      </XFieldGrid>
     </template>
 
     <template v-else-if="sec === 'reality'" #default>
-      <div class="of-grid of-grid--2">
+      <XFieldGrid :cols="2">
         <XField v-slot="a" label="SNI"><XInput v-bind="a" v-model="reality.serverName" mono /></XField>
         <XField v-slot="a" label="uTLS"><XSelect v-bind="a" v-model="reality.fingerprint" :options="fingerprintOptions(false)" mono /></XField>
         <XField v-slot="a" label="Short ID"><XInput v-bind="a" v-model="reality.shortId" mono /></XField>
         <XField v-slot="a" label="SpiderX"><XInput v-bind="a" v-model="reality.spiderX" mono /></XField>
-      </div>
+      </XFieldGrid>
       <XField v-slot="a" label="Public Key"><XInput v-bind="a" v-model="reality.publicKey" mono /></XField>
       <XField v-slot="a" label="mldsa65 Verify"><XInput v-bind="a" v-model="reality.mldsa65Verify" mono /></XField>
     </template>

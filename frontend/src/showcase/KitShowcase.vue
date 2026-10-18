@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { useTheme } from '../stores/theme'
 import {
-  XActionBar, XActionList, XActionRow, XAddButton, XBackToTop, XBadge, XBusyOverlay, XButton, XButtonGroup, XCard, XCheckbox, XChip, XCodeArea, XCodeEditor, XCodeInput, XConfirm, XCounter, XDataTable, XDivider, XEmpty, XErrorBox, XExample, XField, XFieldNote, XGridTable, XInfoRow, XInlineButton, XInput, XInputList, XKeyValue, XListHead, XMenu, XModal, XMultiSelect, XNavItem, XNest, XNestCard, XNotice, XPlainTable,
+  XActionBar, XActionList, XActionRow, XAddButton, XBackToTop, XBadge, XBusyOverlay, XButton, XButtonGroup, XCard, XCheckbox, XChip, XCodeArea, XCodeEditor, XCodeInput, XConfirm, XCounter, XDataTable, XDivider, XEmpty, XErrorBox, XExample, XField, XFieldGrid, XFieldNote, XGridTable, XInfoRow, XInlineButton, XInput, XInputList, XKeyValue, XListHead, XMenu, XModal, XMultiSelect, XNavItem, XNest, XNestCard, XNotice, XPlainTable,
   XNumber, XOrderToggles, XPager, XPairList, XPickList, XPopConfirm, XProcessError, XProgressLine, XQrCode, XRecordCard, XRouteTarget, XRowLink, XSection, XSegmented, XSelect, XSettingBlock, XSettingDivider, XSettingRow, XSettingsSection, XSettingsSkeleton, XStatusDot, XStatusText, XStepArrow, XSwitch, XTabs, XTagInput, XTestResult, XTextarea,
   XTooltip, XUsagePill, XValueChip,
   type MenuItem,
@@ -160,6 +160,7 @@ const pickItems = ['v26.4.25', 'v26.3.27', 'v25.12.8', 'v25.11.11'].map((v, i) =
 const sectionOpen = ref(true)
 // The parts the Outbounds, Balancer and DNS tabs added.
 const demoIps = ref(['0.0.0.0/0', '::/0'])
+const demoDoh = 'https://1.1.1.1/dns-query'
 const demoFragment = ref(true)
 const demoMux = ref(false)
 const demoMtu = ref<number | null>(1420)
@@ -796,10 +797,12 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
             <XListHead title="Peers" add />
             <XSwitch v-model="demoFragment" boxed label="Fragment" />
             <XNest v-if="demoFragment" bare>
-              <div class="kit__grid">
+              <XFieldGrid :cols="3">
                 <XField v-slot="a" label="MTU"><XNumber v-bind="a" v-model="demoMtu" :min="0" block /></XField>
                 <XField v-slot="a" label="Length"><XInput v-bind="a" model-value="100-200" mono /></XField>
-              </div>
+                <XField v-slot="a" label="Interval"><XInput v-bind="a" model-value="10-20" mono /></XField>
+                <XField v-slot="a" label="Поле на всю строку (x-wide)" class="x-wide"><XInput v-bind="a" :model-value="demoDoh" mono /></XField>
+              </XFieldGrid>
             </XNest>
             <XSwitch v-model="demoMux" boxed label="Noises">
               <template #actions><XAddButton label="Добавить: Noises" /></template>

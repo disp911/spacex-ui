@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { XButton, XField, XInput, XModal, XMultiSelect, XPairList, XSelect, XTagInput, type Option, type PresetGroup } from '../../kit'
+import { XButton, XField, XFieldGrid, XInput, XModal, XMultiSelect, XPairList, XSelect, XTagInput, type Option, type PresetGroup } from '../../kit'
 import { customGeo, domainPresets, ipPresets } from './catalog'
 import { useXrayForm } from './form'
 import { listOf, type Rule } from './model'
@@ -131,25 +131,25 @@ const title = computed(() => (props.rule ? t('xray.ruleEdit', { n: props.index +
       <XField v-slot="a" label="Source IPs" :help="t('xray.useComma')">
         <XTagInput v-bind="a" v-model="form.sourceIP" :groups="ipGroups" mono placeholder="e.g. 0.0.0.0/8, fc00::/7, geoip:ir" />
       </XField>
-      <div class="rule__pair">
+      <XFieldGrid>
         <XField v-slot="a" label="Source Port" :help="t('xray.useComma')">
           <XInput v-bind="a" v-model="form.sourcePort" mono placeholder="53,443,1000-2000" />
         </XField>
         <XField v-slot="a" label="VLESS Route" :help="t('xray.useComma')">
           <XInput v-bind="a" v-model="form.vlessRoute" mono placeholder="53,443,1000-2000" />
         </XField>
-      </div>
+      </XFieldGrid>
 
       <hr class="rule__line" />
 
-      <div class="rule__pair">
+      <XFieldGrid>
         <XField v-slot="a" label="Network">
           <XSelect v-bind="a" v-model="form.network" :options="networks" mono />
         </XField>
         <XField v-slot="a" label="Protocol">
           <XMultiSelect v-bind="a" v-model="form.protocol" :options="protocols" mono />
         </XField>
-      </div>
+      </XFieldGrid>
       <XPairList v-model="form.attrs" title="Attributes" :name-label="t('xray.attrName')" :value-label="t('xray.attrValue')" mono />
 
       <hr class="rule__line" />
@@ -160,28 +160,28 @@ const title = computed(() => (props.rule ? t('xray.ruleEdit', { n: props.index +
       <XField v-slot="a" label="Domain" :help="t('xray.useComma')">
         <XTagInput v-bind="a" v-model="form.domain" :groups="domainGroups" mono placeholder="e.g. google.com, geosite:cn" />
       </XField>
-      <div class="rule__pair">
+      <XFieldGrid>
         <XField v-slot="a" label="User" :help="t('xray.useComma')">
           <XInput v-bind="a" v-model="form.user" placeholder="email address" />
         </XField>
         <XField v-slot="a" label="Port" :help="t('xray.useComma')">
           <XInput v-bind="a" v-model="form.port" mono placeholder="53,443,1000-2000" />
         </XField>
-      </div>
+      </XFieldGrid>
 
       <hr class="rule__line" />
 
       <XField v-slot="a" label="Inbound Tags">
         <XMultiSelect v-bind="a" v-model="form.inboundTag" :options="inbounds" mono />
       </XField>
-      <div class="rule__pair">
+      <XFieldGrid>
         <XField v-slot="a" label="Outbound Tag">
           <XSelect v-bind="a" v-model="form.outboundTag" :options="outbounds" mono />
         </XField>
         <XField v-slot="a" label="Balancer Tag" :help="t('xray.balancerDesc')">
           <XSelect v-bind="a" v-model="form.balancerTag" :options="balancers" mono />
         </XField>
-      </div>
+      </XFieldGrid>
     </div>
 
     <template #footer>
@@ -198,21 +198,9 @@ const title = computed(() => (props.rule ? t('xray.ruleEdit', { n: props.index +
   min-width: 0;
 }
 
-.rule__pair {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-
 .rule__line {
   margin: 4px 0;
   border: 0;
   border-top: 1px solid var(--div);
-}
-
-@media (max-width: 767px) {
-  .rule__pair {
-    grid-template-columns: minmax(0, 1fr);
-  }
 }
 </style>

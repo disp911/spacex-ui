@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
-  XAddButton, XField, XInlineButton, XInput, XInputList, XListHead, XNest, XNestCard, XNumber, XSection, XSelect, XSwitch, XTagInput, type Option,
+  XAddButton, XField, XFieldGrid, XInlineButton, XInput, XInputList, XListHead, XNest, XNestCard, XNumber, XSection, XSelect, XSwitch, XTagInput, type Option,
 } from '../../kit'
 import { wireguardKeys } from '../../wireguard'
 import type { Outbound } from './model'
@@ -97,7 +97,7 @@ const remove = (list: unknown[], i: number) => list.splice(i, 1)
   <XSection v-model:open="open" :title="o.protocol" card mono>
     <!-- VMess, VLESS -->
     <template v-if="o.protocol === 'vmess' || o.protocol === 'vless'">
-      <div class="of-grid of-grid--2">
+      <XFieldGrid :cols="2">
         <XField v-slot="a" label="ID">
           <XInput v-bind="a" v-model="usr.id" mono />
         </XField>
@@ -107,78 +107,78 @@ const remove = (list: unknown[], i: number) => list.splice(i, 1)
         <XField v-else v-slot="a" label="encryption">
           <XInput v-bind="a" v-model="usr.encryption" mono />
         </XField>
-      </div>
-      <div v-if="o.protocol === 'vless'" class="of-grid of-grid--2">
+      </XFieldGrid>
+      <XFieldGrid :cols="2" v-if="o.protocol === 'vless'">
         <XField v-slot="a" :label="t('xray.reverseTag')" :help="t('xray.reverseTagDesc')">
           <XInput v-bind="a" v-model="reverseTag" mono />
         </XField>
         <XField v-if="canFlow(o)" v-slot="a" label="Flow">
           <XSelect v-bind="a" :model-value="usr.flow ?? ''" :options="list(flows, true)" @update:model-value="usr.flow = String($event)" mono />
         </XField>
-      </div>
+      </XFieldGrid>
       <XNest v-if="canVisionSeed(o)" bare>
-        <div class="of-stack">
-          <div class="of-grid of-grid--3">
+        <XFieldGrid :cols="1">
+          <XFieldGrid :cols="3">
             <XField v-slot="a" label="Vision Pre-Connect">
               <XNumber v-bind="a" block v-model="usr.testpre" :min="0" :max="10" placeholder="0" />
             </XField>
-          </div>
+          </XFieldGrid>
           <XListHead title="Vision Seed" />
-          <div class="of-grid of-grid--seed">
+          <XFieldGrid :cols="4" :phone="4">
             <XField v-for="(_, i) in 4" :key="i" v-slot="a" :label="`[${i}]`">
               <XNumber v-bind="a" block v-model="seeds[i]" :min="0" :max="9999" />
             </XField>
-          </div>
-        </div>
+          </XFieldGrid>
+        </XFieldGrid>
       </XNest>
     </template>
 
     <!-- Trojan, Shadowsocks -->
-    <div v-if="o.protocol === 'trojan' || o.protocol === 'shadowsocks'" class="of-grid of-grid--2">
+    <XFieldGrid :cols="2" v-if="o.protocol === 'trojan' || o.protocol === 'shadowsocks'">
       <XField v-slot="a" :label="t('xray.password')">
         <XInput v-bind="a" v-model="srv.password" mono />
       </XField>
       <XField v-if="o.protocol === 'shadowsocks'" v-slot="a" :label="t('xray.ssMethod')">
         <XSelect v-bind="a" v-model="srv.method" :options="list(ssMethods)" mono />
       </XField>
-    </div>
-    <div v-if="o.protocol === 'shadowsocks'" class="of-grid of-grid--2">
+    </XFieldGrid>
+    <XFieldGrid :cols="2" v-if="o.protocol === 'shadowsocks'">
       <XSwitch v-model="srv.uot" boxed label="UDP over TCP" />
       <XField v-slot="a" label="UoTVersion">
         <XNumber v-bind="a" block v-model="srv.UoTVersion" :min="1" :max="2" />
       </XField>
-    </div>
+    </XFieldGrid>
 
     <!-- SOCKS, HTTP -->
-    <div v-if="hasUser(o)" class="of-grid of-grid--2">
+    <XFieldGrid :cols="2" v-if="hasUser(o)">
       <XField v-slot="a" :label="t('xray.username')">
         <XInput v-bind="a" v-model="socksUser" mono />
       </XField>
       <XField v-slot="a" :label="t('xray.password')">
         <XInput v-bind="a" v-model="socksPass" mono />
       </XField>
-    </div>
+    </XFieldGrid>
 
     <!-- Hysteria -->
-    <div v-if="o.protocol === 'hysteria'" class="of-grid of-grid--3">
+    <XFieldGrid :cols="3" v-if="o.protocol === 'hysteria'">
       <XField v-slot="a" label="Version">
         <XNumber v-bind="a" block v-model="s.version" disabled />
       </XField>
-    </div>
+    </XFieldGrid>
 
     <!-- DNS -->
     <template v-if="o.protocol === 'dns'">
-      <div class="of-grid of-grid--2">
+      <XFieldGrid :cols="2">
         <XField v-slot="a" :label="t('xray.ruleNetwork')">
           <XSelect v-bind="a" v-model="s.network" :options="list(['udp', 'tcp'])" mono />
         </XField>
-      </div>
+      </XFieldGrid>
       <XListHead title="Rules" add @add="(s.rules ??= []).push(defaultDnsRule())" />
       <XNestCard v-for="(r, i) in items(s.rules)" :key="i" :title="String(i + 1)">
         <template #actions>
           <XInlineButton icon="delete" danger :label="t('xray.removeItem', { n: i + 1 })" @click="remove(s.rules, i)" />
         </template>
-        <div class="of-grid of-grid--3">
+        <XFieldGrid :cols="3">
           <XField v-slot="a" label="Action">
             <XSelect v-bind="a" v-model="r.action" :options="list(['direct', 'drop', 'return', 'hijack'])" mono />
           </XField>
@@ -188,33 +188,33 @@ const remove = (list: unknown[], i: number) => list.splice(i, 1)
           <XField v-slot="a" label="Domain" help="Comma-separated domain rules, e.g. domain:example.com,full:example.com">
             <XInput v-bind="a" v-model="r.domain" mono placeholder="domain:example.com" />
           </XField>
-        </div>
+        </XFieldGrid>
       </XNestCard>
     </template>
 
     <!-- Blackhole -->
-    <div v-if="o.protocol === 'blackhole'" class="of-grid of-grid--2">
+    <XFieldGrid :cols="2" v-if="o.protocol === 'blackhole'">
       <XField v-slot="a" label="Response Type">
         <XSelect v-bind="a" v-model="responseType" :options="list(['none', 'http'], true)" mono />
       </XField>
-    </div>
+    </XFieldGrid>
 
     <!-- Freedom -->
     <template v-if="o.protocol === 'freedom'">
-      <div class="of-grid of-grid--2">
+      <XFieldGrid :cols="2">
         <XField v-slot="a" label="Strategy">
           <XSelect v-bind="a" :model-value="s.domainStrategy ?? ''" :options="list(domainStrategies, true)" @update:model-value="s.domainStrategy = String($event)" mono />
         </XField>
         <XField v-slot="a" label="Redirect">
           <XInput v-bind="a" v-model="s.redirect" mono />
         </XField>
-      </div>
+      </XFieldGrid>
       <XListHead title="Final Rules" add @add="(s.finalRules ??= []).push(defaultFinalRule())" />
       <XNestCard v-for="(r, i) in items(s.finalRules)" :key="i" :title="String(i + 1)">
         <template #actions>
           <XInlineButton icon="delete" danger :label="t('xray.removeItem', { n: i + 1 })" @click="remove(s.finalRules, i)" />
         </template>
-        <div class="of-grid of-grid--3 of-grid--phone-2">
+        <XFieldGrid :cols="3" :phone="2">
           <XField v-slot="a" label="Action">
             <XSelect v-bind="a" v-model="r.action" :options="list(['allow', 'block'])" mono />
           </XField>
@@ -230,12 +230,12 @@ const remove = (list: unknown[], i: number) => list.splice(i, 1)
           <XField v-if="r.action === 'block'" v-slot="a" label="Block Delay">
             <XInput v-bind="a" v-model="r.blockDelay" mono placeholder="30-90" />
           </XField>
-        </div>
+        </XFieldGrid>
       </XNestCard>
 
       <XSwitch v-model="fragmentOn" boxed label="Fragment" />
       <XNest v-if="fragmentOn" bare>
-        <div class="of-grid of-grid--4">
+        <XFieldGrid :cols="4">
           <XField v-slot="a" label="Packets">
             <XSelect v-bind="a" v-model="s.fragment.packets" :options="list(['1-3', 'tlshello'])" mono />
           </XField>
@@ -248,7 +248,7 @@ const remove = (list: unknown[], i: number) => list.splice(i, 1)
           <XField v-slot="a" label="Max Split">
             <XInput v-bind="a" v-model="s.fragment.maxSplit" mono />
           </XField>
-        </div>
+        </XFieldGrid>
       </XNest>
 
       <XSwitch v-model="noisesOn" boxed label="Noises">
@@ -257,12 +257,12 @@ const remove = (list: unknown[], i: number) => list.splice(i, 1)
         </template>
       </XSwitch>
       <XNest v-if="noisesOn" bare>
-        <div class="of-stack">
+        <XFieldGrid :cols="1">
           <XNestCard v-for="(n, i) in items(s.noises)" :key="i" :title="String(i + 1)">
             <template #actions>
               <XInlineButton v-if="s.noises.length > 1" icon="delete" danger :label="t('xray.removeItem', { n: i + 1 })" @click="remove(s.noises, i)" />
             </template>
-            <div class="of-grid of-grid--4">
+            <XFieldGrid :cols="4">
               <XField v-slot="a" label="Type">
                 <XSelect v-bind="a" v-model="n.type" :options="list(['rand', 'base64', 'str', 'hex'])" mono />
               </XField>
@@ -275,15 +275,15 @@ const remove = (list: unknown[], i: number) => list.splice(i, 1)
               <XField v-slot="a" label="Apply To">
                 <XSelect v-bind="a" v-model="n.applyTo" :options="list(['ip', 'ipv4', 'ipv6'])" mono />
               </XField>
-            </div>
+            </XFieldGrid>
           </XNestCard>
-        </div>
+        </XFieldGrid>
       </XNest>
     </template>
 
     <!-- WireGuard -->
     <template v-if="o.protocol === 'wireguard'">
-      <div class="of-grid of-grid--2">
+      <XFieldGrid :cols="2">
         <XField v-slot="a" :label="t('xray.privateKey')">
           <XInput v-bind="a" v-model="s.secretKey" mono>
             <template #actions><XInlineButton icon="refresh" :label="t('xray.newKey')" @click="newKey" /></template>
@@ -292,8 +292,8 @@ const remove = (list: unknown[], i: number) => list.splice(i, 1)
         <XField v-slot="a" :label="t('xray.publicKey')">
           <XInput v-bind="a" :model-value="publicKey" mono readonly />
         </XField>
-      </div>
-      <div class="of-grid of-grid--3">
+      </XFieldGrid>
+      <XFieldGrid :cols="3">
         <XField v-slot="a" :label="t('xray.domainStrategy')">
           <XSelect v-bind="a" :model-value="s.domainStrategy ?? ''" :options="list(wireguardStrategies, true)" @update:model-value="s.domainStrategy = String($event)" mono />
         </XField>
@@ -303,8 +303,8 @@ const remove = (list: unknown[], i: number) => list.splice(i, 1)
         <XField v-slot="a" label="Workers">
           <XNumber v-bind="a" block v-model="s.workers" :min="0" />
         </XField>
-      </div>
-      <div class="of-grid of-grid--2">
+      </XFieldGrid>
+      <XFieldGrid :cols="2">
         <XField v-slot="a" :label="t('xray.outAddress')" :help="t('xray.useComma')">
           <XInput v-bind="a" v-model="wgAddress" mono />
         </XField>
@@ -312,31 +312,31 @@ const remove = (list: unknown[], i: number) => list.splice(i, 1)
           <XInput v-bind="a" v-model="wgReserved" mono />
         </XField>
         <XSwitch v-model="s.noKernelTun" boxed label="No Kernel Tun" />
-      </div>
+      </XFieldGrid>
       <XListHead title="Peers" add @add="(s.peers ??= []).push(defaultPeer())" />
       <XNestCard v-for="(p, i) in items(s.peers)" :key="i" :title="t('xray.peer', { n: i + 1 })">
         <template #actions>
           <XInlineButton v-if="s.peers.length > 1" icon="delete" danger :label="t('xray.removeItem', { n: i + 1 })" @click="remove(s.peers, i)" />
         </template>
-        <div class="of-stack">
+        <XFieldGrid :cols="1">
           <XField v-slot="a" :label="t('xray.endpoint')">
             <XInput v-bind="a" v-model="p.endpoint" mono />
           </XField>
-          <div class="of-grid of-grid--2">
+          <XFieldGrid :cols="2">
             <XField v-slot="a" :label="t('xray.publicKey')">
               <XInput v-bind="a" v-model="p.publicKey" mono />
             </XField>
             <XField v-slot="a" :label="t('xray.psk')">
               <XInput v-bind="a" v-model="p.preSharedKey" mono />
             </XField>
-          </div>
+          </XFieldGrid>
           <XInputList v-model="p.allowedIPs" title="Allowed IPs" mono />
-          <div class="of-grid of-grid--3">
+          <XFieldGrid :cols="3">
             <XField v-slot="a" label="Keep Alive">
               <XNumber v-bind="a" block v-model="p.keepAlive" :min="0" />
             </XField>
-          </div>
-        </div>
+          </XFieldGrid>
+        </XFieldGrid>
       </XNestCard>
     </template>
   </XSection>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { XField, XInlineButton, XInput, XNestCard, XNumber, XSelect, type Option } from '../../kit'
+import { XField, XFieldGrid, XInlineButton, XInput, XNestCard, XNumber, XSelect, type Option } from '../../kit'
 
 /**
  * Packets of a mask, e.g. Header Custom or Noise: random bytes of a length
@@ -30,7 +30,7 @@ function setType(item: Record<string, any>, type: string) {
     <template v-if="removable" #actions>
       <XInlineButton icon="delete" danger :label="t('xray.removeItem', { n: i + 1 })" @click="props.items.splice(i, 1)" />
     </template>
-    <div class="of-grid of-grid--4">
+    <XFieldGrid :cols="4">
       <XField v-slot="a" label="Type">
         <XSelect v-bind="a" :model-value="item.type" :options="types" @update:model-value="setType(item, String($event))" />
       </XField>
@@ -46,6 +46,6 @@ function setType(item: Record<string, any>, type: string) {
       <XField v-else v-slot="a" label="Packet">
         <XInput v-bind="a" v-model="item.packet" mono placeholder="binary data" />
       </XField>
-    </div>
+    </XFieldGrid>
   </XNestCard>
 </template>
