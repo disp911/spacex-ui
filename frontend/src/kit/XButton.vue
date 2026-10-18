@@ -33,8 +33,12 @@ const props = withDefaults(
     success?: boolean
     /** Waits for an earlier step, e.g. Restart for Save: disabled, in a dashed outline. */
     pending?: boolean
-    /** An icon button in a circle, e.g. a row's test; at work it turns accent around the spinner. */
+    /** An icon button in a circle, e.g. a row's test; at work it turns accent around the spinner, and while what it opens is open. */
     round?: boolean
+    /** A small badge at the top right of a round button, e.g. pause on a disabled inbound. */
+    mark?: IconName
+    /** A small accent dot at the top right, e.g. auto refresh is on behind a menu button. */
+    dot?: boolean
   }>(),
   { variant: 'secondary', size: 'md', type: 'button' },
 )
@@ -71,6 +75,8 @@ const linkAttrs = computed(() => (props.to ? { to: props.to } : props.href ? { h
     <slot v-else name="icon"><XIcon v-if="icon" :name="icon" :size="iconSize" class="x-btn__icon" /></slot>
     <span v-if="$slots.default" class="x-btn__text"><slot /></span>
     <XIcon v-if="caret" name="caret" :size="12" :stroke="1.6" class="x-btn__caret" />
+    <span v-if="dot" class="x-btn__dot" aria-hidden="true" />
+    <span v-if="mark && round" class="x-btn__mark" aria-hidden="true"><XIcon :name="mark" :size="12" :stroke="2.4" /></span>
   </component>
 </template>
 
@@ -201,6 +207,46 @@ const linkAttrs = computed(() => (props.to ? { to: props.to } : props.href ? { h
 
 .x-btn--round {
   border-radius: 50%;
+}
+
+.x-btn--round {
+  position: relative;
+  overflow: visible;
+}
+
+.x-btn:has(.x-btn__dot) {
+  position: relative;
+}
+
+.x-btn__dot {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 6px;
+  height: 6px;
+  border-radius: var(--r-pill);
+  background: var(--acc);
+}
+
+.x-btn--round[aria-expanded='true'] {
+  border-color: var(--acc-line);
+  background: var(--acc-soft);
+  color: var(--acc);
+}
+
+.x-btn__mark {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--card);
+  border-radius: var(--r-pill);
+  background: var(--fg2);
+  color: var(--card);
 }
 
 .x-btn--round.is-loading {

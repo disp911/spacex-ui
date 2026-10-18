@@ -1,0 +1,67 @@
+<script setup lang="ts">
+import XIcon from './XIcon.vue'
+import type { IconName } from './icons'
+
+/** A figure of a summary card: an icon in a small frame, the label (two lines at most) and the value, or the slot in its place, e.g. counts. */
+defineProps<{ icon: IconName; label: string; value?: string }>()
+</script>
+
+<template>
+  <div class="x-sum">
+    <span class="x-sum__icon"><XIcon :name="icon" :size="16" /></span>
+    <div class="x-sum__body">
+      <div class="x-sum__label">{{ label }}</div>
+      <slot><div class="x-sum__value" :title="value">{{ value }}</div></slot>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.x-sum {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+}
+
+.x-sum__icon {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--div);
+  border-radius: var(--r-8);
+  background: var(--nest);
+  color: var(--mut);
+}
+
+.x-sum__body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.x-sum__label {
+  display: -webkit-box;
+  min-height: 32px;
+  overflow: hidden;
+  color: var(--dim);
+  font: 400 var(--fs-12) / 1.35 var(--font-sans);
+  text-wrap: pretty;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.x-sum__value {
+  overflow: hidden;
+  color: var(--fg);
+  font: 500 var(--fs-14) / 20px var(--font-mono);
+  letter-spacing: -.2px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+</style>

@@ -22,9 +22,6 @@ export const sections: { name: string; titleKey: TitleKey; icon: IconName }[] = 
   { name: 'settings', titleKey: 'nav.settings', icon: 'sliders' },
 ]
 
-// Screens that are not built yet.
-const DraftPage = () => import('./pages/DraftPage.vue')
-
 const routes: RouteRecordRaw[] = [
   { path: '/login', name: 'login', component: () => import('./pages/LoginPage.vue'), meta: { titleKey: 'auth.title', public: true } },
   {
@@ -32,7 +29,7 @@ const routes: RouteRecordRaw[] = [
     component: AppLayout,
     children: [
       { path: '', name: 'dashboard', component: () => import('./pages/DashboardPage.vue'), meta: { titleKey: 'nav.dashboard' } },
-      { path: 'inbounds', name: 'inbounds', component: DraftPage, meta: { titleKey: 'nav.inbounds' } },
+      { path: 'inbounds', name: 'inbounds', component: () => import('./pages/InboundsPage.vue'), meta: { titleKey: 'nav.inbounds' } },
       { path: 'xray', name: 'xray', component: () => import('./pages/XrayPage.vue'), meta: { titleKey: 'nav.xray' } },
       { path: 'settings', name: 'settings', component: () => import('./pages/SettingsPage.vue'), meta: { titleKey: 'nav.settings' } },
       { path: ':path(.*)*', name: 'not-found', component: () => import('./pages/NotFoundPage.vue'), meta: { titleKey: 'common.notFound' } },

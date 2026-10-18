@@ -1,0 +1,266 @@
+<script setup lang="ts" generic="T">
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+import XIcon from './XIcon.vue'
+import { usePhone } from './media'
+
+export interface ExpandColumn {
+  key: string
+  label: string
+  /** Grid track, e.g. '56px' or 'minmax(0, 1.6fr)'; minmax(0, 1fr) when left out. */
+  size?: string
+  /** How a muted row shows the cell: dimmed (the default), a little dimmed, or as it is, e.g. a menu or a switch. */
+  muted?: 'soft' | 'none'
+  /** Label and content at the end of the cell, e.g. a button at the row's right. */
+  align?: 'end'
+}
+
+/**
+ * A card with a list whose rows open onto what they hold, e.g. inbounds and
+ * their clients: tools on top, a caps header, rows of one line with a chevron
+ * that opens the `expanded` slot under the row, and room for a pager below.
+ * Phones get their own columns; there the page places the toggle itself, from
+ * the slot props, as the row's name usually opens it. A muted row, e.g. a
+ * disabled inbound, dims its cells. A cell shows the `cell-<key>` slot on
+ * desktop and `phone-<key>` on phones.
+ */
+const props = defineProps<{
+  columns: ExpandColumn[]
+  phoneColumns: ExpandColumn[]
+  rows: T[]
+  rowKey: (row: T, index: number) => string | number
+  /** Rows that open; the others get no chevron. */
+  expandable?: (row: T) => boolean
+  muted?: (row: T) => boolean
+  /** The accessible name of a row's chevron, e.g. «Clients». */
+  toggleLabel?: string
+}>()
+const open = defineModel<(string | number)[]>('open', { default: () => [] })
+const { t } = useI18n()
+const phone = usePhone()
+
+const columns = computed(() => (phone.value ? props.phoneColumns : props.columns))
+const template = computed(() =>
+  [...(phone.value ? [] : ['24px']), ...columns.value.map((c) => c.size ?? 'minmax(0, 1fr)')].join(' '),
+)
+
+const isOpen = (key: string | number) => open.value.includes(key)
+function toggle(key: string | number) {
+  open.value = isOpen(key) ? open.value.filter((k) => k !== key) : [...open.value, key]
+}
+const canOpen = (row: T) => props.expandable?.(row) ?? false
+</script>
+
+<template>
+  <section :class="['x-expand', { 'x-expand--phone': phone }]">
+    <div v-if="$slots.tools" class="x-expand__tools"><slot name="tools" /></div>
+
+    <div class="x-expand__head x-caps" role="row">
+      <span
+        v-for="(c, i) in columns"
+        :key="c.key"
+        :class="{ 'x-expand__lead-head': i === 0 && !phone, 'is-end': c.align === 'end' }"
+        role="columnheader"
+      >{{ c.label }}</span>
+    </div>
+
+    <div v-for="(row, i) in rows" :key="rowKey(row, i)" class="x-expand__item">
+      <div :class="['x-expand__row', { 'is-open': isOpen(rowKey(row, i)) }]" role="row">
+        <div v-if="!phone" class="x-expand__toggle-cell">
+          <button
+            v-if="canOpen(row)"
+            type="button"
+            class="x-expand__toggle"
+            :aria-expanded="isOpen(rowKey(row, i))"
+            :aria-label="toggleLabel ?? t('kit.expand')"
+            @click="toggle(rowKey(row, i))"
+          >
+            <XIcon name="chevron" :size="12" :stroke="1.8" :class="['x-expand__chevron', { 'is-open': isOpen(rowKey(row, i)) }]" />
+          </button>
+        </div>
+        <div
+          v-for="c in columns"
+          :key="c.key"
+          :class="['x-expand__cell', { 'is-muted': muted?.(row) && c.muted !== 'none', 'is-soft': c.muted === 'soft', 'is-end': c.align === 'end' }]"
+          role="cell"
+        >
+          <slot
+            :name="`${phone ? 'phone' : 'cell'}-${c.key}`"
+            :row="row"
+            :index="i"
+            :open="isOpen(rowKey(row, i))"
+            :expandable="canOpen(row)"
+            :toggle="() => toggle(rowKey(row, i))"
+          />
+        </div>
+      </div>
+      <div v-if="isOpen(rowKey(row, i)) && canOpen(row)" class="x-expand__inner">
+        <slot name="expanded" :row="row" :index="i" />
+      </div>
+    </div>
+
+    <div v-if="!rows.length && $slots.empty" class="x-expand__empty"><slot name="empty" /></div>
+    <div v-if="$slots.foot" class="x-expand__foot"><slot name="foot" /></div>
+  </section>
+</template>
+
+<style scoped>
+.x-expand {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--r-16);
+  background: var(--card);
+}
+
+.x-expand__tools {
+  padding: 14px 14px 12px;
+}
+
+.x-expand__head,
+.x-expand__row {
+  display: grid;
+  grid-template-columns: v-bind(template);
+  gap: 10px;
+  align-items: center;
+}
+
+.x-expand__head {
+  padding: 10px 14px;
+  border-top: 1px solid var(--div);
+  background: var(--field);
+  white-space: nowrap;
+}
+
+.x-expand__head:first-child {
+  border-top: 0;
+  border-radius: calc(var(--r-16) - 1px) calc(var(--r-16) - 1px) 0 0;
+}
+
+/* The first label stands over the chevron too, e.g. «Menu». */
+.x-expand__lead-head {
+  grid-column: 1 / 3;
+}
+
+.x-expand__item {
+  border-top: 1px solid var(--div);
+}
+
+.x-expand__row {
+  min-height: 46px;
+  padding: 9px 14px;
+  transition: background-color var(--t-fast);
+}
+
+.x-expand__row.is-open {
+  background: var(--hov);
+}
+
+.x-expand__toggle-cell {
+  display: flex;
+  justify-content: center;
+}
+
+.x-expand__toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--r-6);
+  background: transparent;
+  color: var(--dim);
+  outline: none;
+  transition: background-color var(--t-fast), color var(--t-fast), transform var(--t-fast);
+}
+
+.x-expand__toggle:hover,
+.x-expand__toggle.is-hover {
+  background: var(--press);
+  color: var(--fg);
+}
+
+.x-expand__toggle:focus-visible,
+.x-expand__toggle.is-focus {
+  box-shadow: 0 0 0 2px var(--acc-line);
+  color: var(--fg);
+}
+
+.x-expand__toggle:active,
+.x-expand__toggle.is-active {
+  transform: scale(.92);
+}
+
+.x-expand__chevron {
+  transition: transform var(--t-med) var(--ease);
+}
+
+.x-expand__chevron.is-open {
+  transform: rotate(90deg);
+}
+
+.x-expand__head .is-end {
+  text-align: end;
+}
+
+.x-expand__cell.is-end {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.x-expand__cell {
+  min-width: 0;
+  transition: opacity var(--t-med);
+}
+
+.x-expand__cell.is-muted {
+  opacity: .42;
+  filter: grayscale(.7);
+}
+
+.x-expand__cell.is-muted.is-soft {
+  opacity: .5;
+  filter: none;
+}
+
+.x-expand__inner {
+  margin: 2px 14px 12px;
+  border: 1px solid var(--div);
+  border-radius: var(--r-12);
+  background: var(--nest);
+}
+
+.x-expand__empty,
+.x-expand__foot {
+  border-top: 1px solid var(--div);
+}
+
+/* As a card's body around an empty state, e.g. XEmpty tab. */
+.x-expand__empty {
+  padding: 16px;
+}
+
+.x-expand__foot {
+  padding: 10px 14px;
+}
+
+.x-expand--phone .x-expand__tools {
+  padding: 12px;
+}
+
+.x-expand--phone .x-expand__head {
+  gap: 6px;
+  padding: 9px 10px 9px 12px;
+}
+
+.x-expand--phone .x-expand__row {
+  gap: 6px;
+  min-height: 56px;
+  padding: 2px 10px 2px 4px;
+}
+
+.x-expand--phone .x-expand__inner {
+  margin: 0 8px 10px;
+}
+</style>

@@ -208,3 +208,54 @@ export function deepSearch(value: unknown, text: string): boolean {
   if (typeof value === 'object') return Object.values(value).some((v) => deepSearch(v, text))
   return String(value).toLowerCase().includes(text.toLowerCase())
 }
+
+// --- How the list shows them -----------------------------------------------------
+
+export type State = 'ok' | 'warn' | 'err' | 'unl'
+
+/** Traffic against its limit: none, plenty, close by the panel's threshold, or used up. */
+export function trafficState(used: number, total: number, d: Pick<InboundDefaults, 'trafficDiff'>): State {
+  if (!total) return 'unl'
+  if (used >= total) return 'err'
+  return total - used <= d.trafficDiff * GB ? 'warn' : 'ok'
+}
+
+/** A date against now: none, far, close by the panel's threshold, or past. */
+export function expiryState(at: number, d: Pick<InboundDefaults, 'expireDiff'>, now = Date.now()): State {
+  if (!at) return 'unl'
+  if (at <= now) return 'err'
+  return at - now <= d.expireDiff * DAY ? 'warn' : 'ok'
+}
+
+/** Network and security beside the protocol, for the protocols that have them. */
+export function protocolChips(ib: DbInbound): { protocol: string; network?: string; security?: string } {
+  if (!['vmess', 'vless', 'trojan', 'shadowsocks'].includes(ib.protocol)) return { protocol: ib.protocol }
+  const st = streamOf(ib)
+  const security = st.security && st.security !== 'none' ? String(st.security) : undefined
+  return { protocol: ib.protocol, network: st.network ? String(st.network) : undefined, security }
+}
+
+/** Rows per page to choose from, as the old panel offered them: the panel's size and its multiples up to 1000, and all. */
+export function pageSizes(size: number, total: number): number[] {
+  const out = [size, ...[2, 5, 10, 20].map((m) => size * m).filter((v) => v < total && v <= 1000)]
+  return out.includes(total) ? out : [...out, total]
+}
+
+/** The client states the list can be narrowed to; none shows everything. */
+export type Filter = 'none' | 'active' | 'disabled' | 'depleted' | 'expiring' | 'online'
+
+/** The emails of an inbound's clients in a state, from its counts. */
+export function filterEmails(c: ClientCounts, f: Exclude<Filter, 'none'>): string[] {
+  switch (f) {
+    case 'active':
+      return c.active.filter((e) => !c.depleted.includes(e))
+    case 'disabled':
+      return c.deactive
+    case 'depleted':
+      return c.depleted
+    case 'expiring':
+      return c.expiring
+    case 'online':
+      return c.online
+  }
+}

@@ -2,10 +2,18 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import XIcon from './XIcon.vue'
+import XMenu, { type MenuItem } from './XMenu.vue'
 
-const props = defineProps<{ pages: number }>()
+/**
+ * Pages of a list. With sizes, a choice of rows per page at the end; with
+ * summary, phones show «Page 2 of 5» at the start in place of the compact count.
+ */
+const props = defineProps<{ pages: number; sizes?: number[]; summary?: boolean }>()
 const page = defineModel<number>({ default: 1 })
+const size = defineModel<number>('size', { default: 0 })
 const { t } = useI18n()
+
+const sizeItems = computed<MenuItem[]>(() => (props.sizes ?? []).map((n) => ({ key: String(n), label: t('kit.perPage', { n }), checked: n === size.value })))
 
 /** Page numbers with null for a gap: 1 … 4 5 6 … 12. */
 const items = computed(() => {
@@ -28,7 +36,8 @@ function go(to: number) {
 </script>
 
 <template>
-  <nav class="x-pager" :aria-label="t('kit.pages')">
+  <nav :class="['x-pager', { 'x-pager--summary': summary }]" :aria-label="t('kit.pages')">
+    <span v-if="summary" class="x-pager__summary">{{ t('kit.pageOf', { page, pages }) }}</span>
     <button type="button" class="x-pager__chip x-pager__step" :aria-label="t('kit.previousPage')" :disabled="page <= 1" @click="go(page - 1)">
       <XIcon name="chevronLeft" :size="12" :stroke="1.8" />
     </button>
@@ -48,6 +57,12 @@ function go(to: number) {
     <button type="button" class="x-pager__chip x-pager__step" :aria-label="t('kit.nextPage')" :disabled="page >= pages" @click="go(page + 1)">
       <XIcon name="chevron" :size="12" :stroke="1.8" />
     </button>
+    <XMenu v-if="sizes?.length" v-slot="{ props: trigger }" :items="sizeItems" placement="bottom-end" @select="(size = Number($event)), (page = 1)">
+      <button type="button" class="x-pager__chip x-pager__size" v-bind="trigger">
+        {{ t('kit.perPage', { n: size }) }}
+        <XIcon name="caret" :size="12" :stroke="1.7" />
+      </button>
+    </XMenu>
   </nav>
 </template>
 
@@ -109,6 +124,25 @@ function go(to: number) {
   text-align: center;
 }
 
+.x-pager__size {
+  gap: 6px;
+  margin-left: 4px;
+  padding: 0 9px 0 10px;
+  white-space: nowrap;
+}
+
+.x-pager__size :deep(.x-icon) {
+  color: var(--dim);
+}
+
+.x-pager__summary {
+  display: none;
+  flex: 1;
+  min-width: 0;
+  color: var(--mut);
+  font: 400 var(--fs-12) / var(--lh-tight) var(--font-sans);
+}
+
 .x-pager__compact {
   display: none;
   padding: 0 8px;
@@ -124,6 +158,19 @@ function go(to: number) {
 
   .x-pager__compact {
     display: inline;
+  }
+
+  .x-pager__summary {
+    display: block;
+  }
+
+  .x-pager--summary .x-pager__compact {
+    display: none;
+  }
+
+  .x-pager__size {
+    height: var(--ctl-h);
+    border-radius: var(--ctl-r);
   }
 
   .x-pager__step {

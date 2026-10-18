@@ -76,3 +76,18 @@ export function formatTimestamp(seconds: number) {
   const d = new Date(seconds * 1000)
   return `${d.getFullYear()}-${two(d.getMonth() + 1)}-${two(d.getDate())} ${two(d.getHours())}:${two(d.getMinutes())}:${two(d.getSeconds())}`
 }
+
+/** Milliseconds → «08.10.2026 14:30» in local time. */
+export function formatDate(ms: number) {
+  const d = new Date(ms)
+  return `${two(d.getDate())}.${two(d.getMonth() + 1)}.${d.getFullYear()} ${two(d.getHours())}:${two(d.getMinutes())}`
+}
+
+/** A moment from now in hours under a day, in days beyond: «через 41 день», «5 дней назад», "in 3 hours". */
+export function formatRelative(ms: number, now = Date.now()) {
+  const diff = ms - now
+  const rtf = new Intl.RelativeTimeFormat(locale(), { numeric: 'always' })
+  const hours = Math.abs(diff) / 3_600_000
+  if (hours < 24) return rtf.format(Math.sign(diff || 1) * Math.max(1, Math.round(hours)), 'hour')
+  return rtf.format(Math.sign(diff) * Math.round(hours / 24), 'day')
+}

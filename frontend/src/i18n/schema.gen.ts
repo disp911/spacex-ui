@@ -584,6 +584,60 @@ export interface MessageSchema {
     "outTestFailed": string
     "outTestError": string
   }
+  "inbounds": {
+    "title": string
+    "statSentReceived": string
+    "statTraffic": string
+    "statAllTime": string
+    "statInbounds": string
+    "clients": string
+    "stDisabled": string
+    "stDepleted": string
+    "stExpiring": string
+    "stOnline": string
+    "stActive": string
+    "stNone": string
+    "create": string
+    "general": string
+    "importInbound": string
+    "exportLinks": string
+    "resetAllInbounds": string
+    "resetAllClients": string
+    "delDepleted": string
+    "search": string
+    "filter": string
+    "autoRefresh": string
+    "interval": string
+    "colMenu": string
+    "colEnable": string
+    "colRemark": string
+    "colPort": string
+    "colProtocol": string
+    "colTraffic": string
+    "colAllTime": string
+    "colExpiry": string
+    "colInfo": string
+    "noData": string
+    "remain": string
+    "trafficReset": string
+    "edit": string
+    "qr": string
+    "info": string
+    "addClient": string
+    "addBulk": string
+    "copyClients": string
+    "resetClients": string
+    "exportInbound": string
+    "resetTraffic": string
+    "clone": string
+    "delete": string
+    "enable": string
+    "noExpiry": string
+    "exportSubs": string
+    "mode": string
+    "refresh": string
+    "toggleFailed": string
+  }
   "units": {
     "value": string
     "byte": string
@@ -633,5 +687,9 @@ export interface MessageSchema {
     "testing": string
     "delayMs": string
     "testFailed": string
+    "perPage": string
+    "pageOf": string
+    "expand": string
+    "comment": string
   }
 }

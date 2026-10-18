@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { nextTick, ref, useId } from 'vue'
 import XIcon from './XIcon.vue'
+import XSpinner from './XSpinner.vue'
 import { useFloating, type Placement } from './floating'
 import type { IconName } from './icons'
 
@@ -16,6 +17,10 @@ export interface MenuItem {
   hint?: string
   /** Makes the item a choice: a check marks the chosen one. */
   checked?: boolean
+  /** Makes the item a switch, on by checked, e.g. «Enable» in a phone row's menu; choosing it keeps the menu open. */
+  switch?: boolean
+  /** The switch's change is being applied: a spinner in its knob. */
+  busy?: boolean
   /** Colour of a small dot before the label, e.g. a log level. */
   dot?: string
 }
@@ -98,8 +103,8 @@ function onMenuKeydown(e: KeyboardEvent) {
 }
 
 function choose(item: MenuItem) {
-  if (item.disabled) return
-  if (!props.multiple) close(true)
+  if (item.disabled || item.busy) return
+  if (!props.multiple && !item.switch) close(true)
   emit('select', item.key)
 }
 </script>
@@ -135,18 +140,21 @@ function choose(item: MenuItem) {
           <div v-if="item.divided" class="x-menu__divider" role="separator" />
           <button
             type="button"
-            :role="item.checked === undefined ? 'menuitem' : multiple ? 'menuitemcheckbox' : 'menuitemradio'"
+            :role="item.switch || (item.checked !== undefined && multiple) ? 'menuitemcheckbox' : item.checked === undefined ? 'menuitem' : 'menuitemradio'"
             tabindex="-1"
             :aria-checked="item.checked"
             :aria-disabled="item.disabled || undefined"
             :class="['x-popup-item', { 'is-danger': item.danger, 'is-selected': item.checked }]"
             @click="choose(item)"
           >
-            <XIcon v-if="item.icon" :name="item.icon" :size="14" :stroke="1.4" />
+            <span v-if="item.switch" :class="['x-menu__switch', { 'is-on': item.checked, 'is-busy': item.busy }]" aria-hidden="true">
+              <span class="x-menu__knob"><XSpinner v-if="item.busy" :size="12" /></span>
+            </span>
+            <XIcon v-else-if="item.icon" :name="item.icon" :size="14" :stroke="1.4" />
             <span v-if="item.dot" class="x-menu__dot" :style="{ background: item.dot }" />
             <span class="x-menu__label">{{ item.label }}</span>
             <span v-if="item.hint" class="x-menu__hint">{{ item.hint }}</span>
-            <XIcon v-if="item.checked !== undefined" name="check" :size="12" :stroke="1.8" :class="['x-menu__check', { 'is-on': item.checked }]" />
+            <XIcon v-if="item.checked !== undefined && !item.switch" name="check" :size="12" :stroke="1.8" :class="['x-menu__check', { 'is-on': item.checked }]" />
           </button>
         </template>
         <div v-if="$slots.footer" class="x-menu__foot"><slot name="footer" :close="() => close(true)" /></div>
@@ -156,6 +164,47 @@ function choose(item: MenuItem) {
 </template>
 
 <style scoped>
+/* A switch in a menu item: smaller than XSwitch, drawn, as the whole item is the control. */
+.x-menu__switch {
+  position: relative;
+  flex: none;
+  width: 30px;
+  height: 18px;
+  border-radius: var(--r-pill);
+  background: var(--track);
+  transition: background-color var(--t-med);
+}
+
+.x-menu__switch.is-on {
+  background: var(--acc);
+}
+
+.x-menu__switch.is-busy {
+  opacity: .8;
+}
+
+.x-menu__knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 12px;
+  height: 12px;
+  border-radius: var(--r-pill);
+  background: var(--knob);
+  color: var(--dim);
+  box-shadow: var(--shadow-knob);
+  transition: left var(--t-med) var(--ease);
+}
+
+.x-menu__switch.is-on .x-menu__knob {
+  left: 15px;
+  background: var(--knob-on);
+  color: var(--acc);
+}
+
 .x-menu--sheet {
   position: fixed;
   right: 0;

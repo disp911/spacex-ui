@@ -103,6 +103,14 @@ export const useInbounds = defineStore('inbounds', () => {
     triggerRef(list)
   }
 
+  /** Changes an inbound in place, e.g. its switch applied before the server answers. */
+  function patch(id: number, fields: Partial<DbInbound>) {
+    const ib = list.value.find((x) => x.id === id)
+    if (!ib) return
+    Object.assign(ib, fields)
+    triggerRef(list)
+  }
+
   function applyTraffic(push: TrafficPush) {
     // Null is everyone gone offline, not "no news".
     if ('onlineClients' in push) online.value = new Set(push.onlineClients ?? [])
@@ -170,5 +178,5 @@ export const useInbounds = defineStore('inbounds', () => {
     schedule()
   }
 
-  return { list, online, lastOnline, defaults, counts, loaded, failed, refreshing, autoRefresh, interval, load, watch, setAutoRefresh, setRefreshInterval }
+  return { list, online, lastOnline, defaults, counts, loaded, failed, refreshing, autoRefresh, interval, load, patch, watch, setAutoRefresh, setRefreshInterval }
 })
