@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { useTheme } from '../stores/theme'
 import {
-  XActionBar, XActionList, XActionRow, XBackToTop, XBadge, XBusyOverlay, XButton, XButtonGroup, XCard, XCheckbox, XChip, XCodeArea, XCodeEditor, XCodeInput, XConfirm, XCounter, XDataTable, XDivider, XEmpty, XErrorBox, XExample, XField, XFieldNote, XGridTable, XInfoRow, XInlineButton, XInput, XKeyValue, XMenu, XModal, XMultiSelect, XNavItem, XNest, XNestCard, XNotice, XPlainTable,
+  XActionBar, XActionList, XActionRow, XBackToTop, XBadge, XBusyOverlay, XButton, XButtonGroup, XCard, XCheckbox, XChip, XCodeArea, XCodeEditor, XCodeInput, XConfirm, XCounter, XDataTable, XDivider, XEmpty, XErrorBox, XExample, XField, XFieldNote, XGridTable, XInfoRow, XInlineButton, XInput, XInputList, XKeyValue, XListHead, XMenu, XModal, XMultiSelect, XNavItem, XNest, XNestCard, XNotice, XPlainTable,
   XNumber, XOrderToggles, XPager, XPairList, XPickList, XPopConfirm, XProcessError, XProgressLine, XQrCode, XRecordCard, XRouteTarget, XRowLink, XSection, XSegmented, XSelect, XSettingBlock, XSettingDivider, XSettingRow, XSettingsSection, XSettingsSkeleton, XStatusDot, XStatusText, XStepArrow, XSwitch, XTabs, XTagInput, XTestResult, XTextarea,
   XTooltip, XUsagePill, XValueChip,
   type MenuItem,
@@ -158,6 +158,25 @@ const tableRows = [
 ]
 const pickItems = ['v26.4.25', 'v26.3.27', 'v25.12.8', 'v25.11.11'].map((v, i) => ({ key: v, label: v, current: i === 0 }))
 const sectionOpen = ref(true)
+// The parts the Outbounds, Balancer and DNS tabs added.
+const demoIps = ref(['0.0.0.0/0', '::/0'])
+const demoFragment = ref(true)
+const demoMux = ref(false)
+const demoMtu = ref<number | null>(1420)
+const demoObserver = ref<'observatory' | 'burstObservatory'>('observatory')
+const demoObserverText = ref(JSON.stringify({ observatory: { subjectSelector: ['vless-reality-fi', 'xhttp-nl'], probeUrl: 'https://www.google.com/generate_204', probeInterval: '10s' } }, null, 2))
+const demoSelectors = ref(['warp', 'hy2-*'])
+const demoOutboundTags = [{ options: ['direct', 'warp', 'nordvpn-de', 'xhttp-nl'].map((v) => ({ value: v, label: v })) }]
+const demoDnsOpen = ref(true)
+const demoDnsEmptyOpen = ref(true)
+const demoServers = [
+  { address: '1.1.1.1', domains: [] as string[] },
+  { address: 'https://dns.google/dns-query', domains: ['geosite:google', 'geosite:youtube', 'geosite:openai'] },
+]
+const demoServerColumns = [
+  { key: 'address', label: 'Адрес', size: '1.3fr', phone: 'head' as const },
+  { key: 'domains', label: 'Домены', phone: 'half' as const },
+]
 const sw = ref({ a: false, b: true, loading: false })
 
 const menuItems: MenuItem[] = [
@@ -769,6 +788,54 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
           </template>
           <XCodeEditor v-model="editorText" :height="240" :phone-height="240" label="JSON" />
         </XCard>
+
+        <h3 class="kit__h3">Окна исходящего подключения, балансировщика и DNS</h3>
+        <div class="kit__duo">
+          <div class="kit__stack">
+            <XInputList v-model="demoIps" title="Allowed IPs" mono />
+            <XListHead title="Peers" add />
+            <XSwitch v-model="demoFragment" boxed label="Fragment" />
+            <XNest v-if="demoFragment" bare>
+              <div class="kit__grid">
+                <XField v-slot="a" label="MTU"><XNumber v-bind="a" v-model="demoMtu" :min="0" block /></XField>
+                <XField v-slot="a" label="Length"><XInput v-bind="a" model-value="100-200" mono /></XField>
+              </div>
+            </XNest>
+            <XSwitch v-model="demoMux" boxed label="Mux" />
+            <XField v-slot="a" label="Число на всю ширину поля (block)"><XNumber v-bind="a" v-model="demoMtu" :min="0" block /></XField>
+            <XField v-slot="a" label="Селекторы: пресеты без своих названий не повторяют значение и не выделяются">
+              <XTagInput v-bind="a" v-model="demoSelectors" :groups="demoOutboundTags" mono />
+            </XField>
+          </div>
+          <div class="kit__stack">
+            <XCard seamless>
+              <template #heading>
+                <XSegmented v-model="demoObserver" :options="[{ value: 'observatory', label: 'Observatory' }, { value: 'burstObservatory', label: 'Burst Observatory' }]" label="Наблюдатели" />
+              </template>
+              <XCodeEditor v-model="demoObserverText" :height="200" :phone-height="200" fit label="JSON" />
+            </XCard>
+            <XSettingsSection v-model:open="demoDnsOpen" title="DNS" :count="demoServers.length" padded>
+              <XGridTable
+                :columns="demoServerColumns"
+                :rows="demoServers"
+                :row-key="(r) => r.address"
+                :blank="(r, key) => key === 'domains' && !r.domains.length"
+                :menu="() => [{ key: 'edit', label: 'Изменить', icon: 'edit' }, { key: 'delete', label: 'Удалить', icon: 'delete', danger: true }]"
+                numbered
+                nested
+              >
+                <template #cell-address="{ row }"><span class="kit__mono">{{ row.address }}</span></template>
+                <template #cell-domains="{ row }"><XValueChip :values="row.domains" /></template>
+              </XGridTable>
+            </XSettingsSection>
+            <XSettingsSection v-model:open="demoDnsEmptyOpen" title="Fake DNS" :count="0" padded>
+              <XEmpty framed title="Нет добавленных DNS-серверов.">
+                <XButton variant="primary" icon="plus">Создать DNS</XButton>
+                <XButton icon="templates" label="Шаблоны DNS" />
+              </XEmpty>
+            </XSettingsSection>
+          </div>
+        </div>
       </div>
     </XCard>
     <XBackToTop label="Наверх" />
@@ -1109,8 +1176,17 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
   gap: 12px;
 }
 
+/* Two columns of demos, one on narrow screens. */
+.kit__duo {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 24px;
+}
+
 @media (max-width: 960px) {
-  .kit__live {
+  .kit__live,
+  .kit__duo {
     grid-template-columns: minmax(0, 1fr);
   }
 }
