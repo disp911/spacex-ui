@@ -11,7 +11,7 @@ import { useXrayForm } from './form'
 import NordModal from './NordModal.vue'
 import OutboundModal from './OutboundModal.vue'
 import WarpModal from './WarpModal.vue'
-import { outboundAddresses, outboundChips, untestable, type Outbound, type OutboundTest, type OutboundTraffic } from './model'
+import { outboundAddresses, outboundChips, untestable, type Outbound, type OutboundTest, type OutboundTraffic, type Rule } from './model'
 
 /**
  * The outbounds of the template in their order, the first being where
@@ -120,8 +120,11 @@ const menu = (_o: Outbound, i: number): MenuItem[] => [
 function select(key: string, o: Outbound, i: number) {
   const list = f.draft.config.outbounds as Outbound[]
   if (key === 'first') list.unshift(list.splice(i, 1)[0]!)
-  else if (key === 'delete') list.splice(i, 1)
-  else if (key === 'traffic') resetTraffic(String(o.tag ?? ''))
+  else if (key === 'delete') {
+    list.splice(i, 1)
+    // Rules that sent traffic to it lose their target, as when a balancer goes.
+    for (const r of (f.draft.config.routing?.rules ?? []) as Rule[]) if (o.tag && r.outboundTag === o.tag) delete r.outboundTag
+  } else if (key === 'traffic') resetTraffic(String(o.tag ?? ''))
   else if (key === 'edit') {
     editing.value = i
     formOpen.value = true
