@@ -7,8 +7,9 @@ import { defaultDnsServer, dnsStrategies, listOf, type DnsServer } from './model
 /**
  * A DNS server to create, or the one at index to edit: where it is, how it
  * resolves and for which domains, and the IPs its answers must or must not
- * hold. A server given as a bare address is saved with the old panel's
- * defaults around it.
+ * hold. Only what is changed is written: confirmed as shown, the server stays
+ * as it was; a bare address stays one while only the address changes. A new
+ * server gets the old panel's defaults.
  */
 const props = defineProps<{ server: DnsServer | null; index: number }>()
 const open = defineModel<boolean>('open', { default: false })
