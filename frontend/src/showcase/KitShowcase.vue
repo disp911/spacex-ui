@@ -4,7 +4,7 @@ import { useTheme } from '../stores/theme'
 import {
   XActionBar, XActionList, XActionRow, XAddButton, XBadge, XCountList, XExpandTable, XSummaryStat, XBusyOverlay, XButton, XButtonGroup, XCard, XCheckbox, XChip, XCodeArea, XCodeEditor, XCodeInput, XConfirm, XCounter, XDataTable, XDivider, XEmpty, XErrorBox, XExample, XField, XFieldGrid, XFieldNote, XGridTable, XInfoRow, XInlineButton, XInput, XInputList, XKeyValue, XListHead, XMenu, XModal, XMultiSelect, XNavItem, XNest, XNestCard, XNotice, XPlainTable,
   XNumber, XOrderToggles, XPager, XPairList, XPickList, XPopConfirm, XProcessError, XProgressLine, XQrCode, XRecordCard, XRouteTarget, XRowLink, XSection, XSegmented, XSelect, XSettingBlock, XSettingDivider, XSettingRow, XSettingsSection, XSettingsSkeleton, XStatusDot, XStatusText, XStepArrow, XSwitch, XTabs, XTagInput, XTestResult, XTextarea,
-  XTooltip, XUsagePill, XValueChip,
+  XTooltip, XUsagePill, XValueChip, XInnerTable, XMark, XRowToggle,
   type MenuItem,
 } from '../kit'
 
@@ -179,6 +179,11 @@ const demoInbPhone = [
   { key: 'port', label: 'Порт', size: '76px', align: 'end' as const },
 ]
 const demoEmails = [{ email: 'alice@family', comment: 'Мама, iPhone' }, { email: 'boris' }, { email: 'dasha.m', comment: 'Дача' }]
+const demoInnerColumns = [
+  { key: 'acts', label: 'Меню', size: '64px' },
+  { key: 'email', label: 'Клиент' },
+]
+const demoInnerRows = [{ email: 'alice@family' }, { email: 'boris' }]
 const demoInbMenu = computed<MenuItem[]>(() => [
   { key: 'edit', label: 'Изменить', icon: 'edit' },
   { key: 'enable', label: 'Включить', switch: true, checked: demoInbOn.value, divided: true },
@@ -492,6 +497,8 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
             <XUsagePill used="0 Б" limit="30 ГБ" :ratio="0" disabled />
             <XUsagePill used="100,5 ГБ" limit="∞" :ratio="null" />
             <XUsagePill used="через 9 д" limit="30 д" :ratio="0.7" textual />
+            <div style="width: 210px"><XUsagePill used="14,2 ГБ" limit="100 ГБ" :ratio="0.14" block interactive /></div>
+            <div style="width: 268px"><XUsagePill used="14,2 ГБ" limit="100 ГБ" :ratio="0.14" block large /></div>
           </div>
         </div>
         <div class="kit__variant">
@@ -505,6 +512,8 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
             <XStatusDot tone="ok" pulse label="online" />
             <XStatusDot tone="err" blink label="blink" />
             <XStatusDot size="sm" blink label="sm" />
+            <XStatusDot tone="err" label="Исчерпано" tip />
+            <XStatusDot tone="ok" pulse label="Онлайн" tip />
           </div>
           <div class="kit__row kit__row--wrap">
             <XBadge mono>vless</XBadge>
@@ -892,9 +901,25 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
         <XExpandTable v-model:open="demoInbOpen" :columns="demoInbColumns" :phone-columns="demoInbPhone" :rows="demoInbRows" :row-key="(r) => r.id" :expandable="(r) => r.id === 1" :muted="(r) => !r.on">
           <template #cell-remark="{ row }">{{ row.remark }}</template>
           <template #cell-port="{ row }"><span class="kit__mono">{{ row.port }}</span></template>
-          <template #phone-remark="{ row, toggle }"><button type="button" class="kit__p" @click="toggle">{{ row.remark }}</button></template>
+          <template #phone-remark="{ row, open, expandable, toggle }">
+            <XRowToggle :open="open" :expandable="expandable" @toggle="toggle"><XMark :text="row.remark" query="ланд" /></XRowToggle>
+          </template>
           <template #phone-port="{ row }"><span class="kit__mono">{{ row.port }}</span></template>
-          <template #expanded><XEmpty framed title="Здесь раскрытое содержимое строки" /></template>
+          <template #expanded>
+            <XInnerTable :columns="demoInnerColumns" :phone-columns="demoInnerColumns.slice(0, 2)" :rows="demoInnerRows" :row-key="(r) => r.email">
+              <template #cell-acts>
+                <div class="kit__row">
+                  <XInlineButton icon="edit" label="Редактировать клиента" tip />
+                  <XPopConfirm v-slot="{ props: trigger }" text="Вы уверены, что хотите удалить клиента?" cta="Удалить">
+                    <XInlineButton v-bind="trigger" icon="delete" label="Удалить" danger tip />
+                  </XPopConfirm>
+                </div>
+              </template>
+              <template #cell-email="{ row }"><XMark :text="row.email" query="ali" /></template>
+              <template #phone-acts><XInlineButton icon="dots" label="Меню" /></template>
+              <template #phone-email="{ row }"><XMark :text="row.email" query="ali" /></template>
+            </XInnerTable>
+          </template>
           <template #foot><XPager v-model="demoInbPage" v-model:size="demoInbSize" :pages="3" :sizes="[25, 50, 70]" summary /></template>
         </XExpandTable>
       </div>
