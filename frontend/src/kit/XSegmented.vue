@@ -62,7 +62,7 @@ function onKeydown(e: KeyboardEvent) {
       :class="['x-seg__item', { 'is-selected': o.value === model, 'x-seg__item--icon': iconOnly }]"
       @click="model = o.value"
     >
-      <XIcon v-if="o.icon" :name="o.icon" :size="15" />
+      <XIcon v-if="o.icon" :name="o.icon" :size="14" />
       <!-- The bold copy keeps the width the same when the option is chosen. -->
       <span v-if="!iconOnly" class="x-seg__label" :data-label="o.label"><span>{{ o.label }}</span></span>
     </button>

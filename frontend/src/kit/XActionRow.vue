@@ -23,7 +23,7 @@ defineProps<{ title: string; icon: IconName; loading?: boolean; disabled?: boole
       <span v-if="$slots.default" class="x-action-row__text"><slot /></span>
     </span>
     <span class="x-action-row__icon" aria-hidden="true">
-      <XSpinner v-if="loading" :size="15" />
+      <XSpinner v-if="loading" :size="14" />
       <XIcon v-else :name="icon" :size="16" :stroke="1.6" class="x-action-row__glyph" />
     </span>
   </button>

@@ -83,7 +83,7 @@ function onKeydown(e: KeyboardEvent) {
     <span v-for="v in model" :key="v" class="x-tag-chip">
       <span class="x-tag-chip__text">{{ label(v) }}</span>
       <button v-if="!disabled" type="button" class="x-tag-chip__remove" :aria-label="t('kit.remove', { value: label(v) })" @click.stop="toggle(v)">
-        <XIcon name="close" :size="10" :stroke="1.8" />
+        <XIcon name="close" :size="12" :stroke="1.8" />
       </button>
     </span>
     <span v-if="!model.length" class="x-multi__placeholder">{{ placeholder }}</span>

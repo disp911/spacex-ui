@@ -22,7 +22,7 @@ function run() {
 <template>
   <XModal v-model:open="open" :title="title" size="xs" headless cancel :dismissible="!busy">
     <div class="x-confirm">
-      <span class="x-confirm__icon"><XIcon :name="icon" :size="17" :stroke="1.4" /></span>
+      <span class="x-confirm__icon"><XIcon :name="icon" :size="16" :stroke="1.4" /></span>
       <div class="x-confirm__body">
         <h2 class="x-confirm__title">{{ title }}</h2>
         <div class="x-confirm__text"><slot /></div>

@@ -146,7 +146,7 @@ function choose(item: MenuItem) {
             <span v-if="item.dot" class="x-menu__dot" :style="{ background: item.dot }" />
             <span class="x-menu__label">{{ item.label }}</span>
             <span v-if="item.hint" class="x-menu__hint">{{ item.hint }}</span>
-            <XIcon v-if="item.checked !== undefined" name="check" :size="13" :stroke="1.8" :class="['x-menu__check', { 'is-on': item.checked }]" />
+            <XIcon v-if="item.checked !== undefined" name="check" :size="12" :stroke="1.8" :class="['x-menu__check', { 'is-on': item.checked }]" />
           </button>
         </template>
         <div v-if="$slots.footer" class="x-menu__foot"><slot name="footer" :close="() => close(true)" /></div>

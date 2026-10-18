@@ -19,7 +19,7 @@ watch(() => props.open, (on, was) => on !== !!was && lockScroll(on), { immediate
       <div v-if="open" class="x-busy">
         <div class="x-busy__card" role="status" aria-live="polite">
           <div class="x-busy__head">
-            <XSpinner :size="20" />
+            <XSpinner :size="16" />
             <div class="x-busy__text">
               <div class="x-busy__title">{{ title }}</div>
               <div v-if="text" class="x-busy__line">{{ text }}</div>

@@ -78,7 +78,7 @@ class Mark extends GutterMarker {
     const el = document.createElement('span')
     el.className = `cm-x-mark cm-x-mark--${this.kind}`
     if (this.kind !== 'error') {
-      el.innerHTML = '<svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5 10.5 8 6 12.5"/></svg>'
+      el.innerHTML = '<svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5 10.5 8 6 12.5"/></svg>'
     }
     return el
   }

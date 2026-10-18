@@ -203,14 +203,14 @@ const dash = '—'
           <div class="tiles">
             <div class="tile tile--total">
               <div class="x-caps tile__label">
-                <XIcon name="arrowUp" :size="13" class="up" />
+                <XIcon name="arrowUp" :size="12" class="up" />
                 <span class="long">{{ t('dashboard.sent') }}</span><span class="short">{{ t('dashboard.sentShort') }}</span>
               </div>
               <div class="tile__total up">{{ status ? sent.n : dash }} <small v-if="status">{{ sent.unit }}</small></div>
             </div>
             <div class="tile tile--total">
               <div class="x-caps tile__label">
-                <XIcon name="arrowDown" :size="13" class="down" />
+                <XIcon name="arrowDown" :size="12" class="down" />
                 <span class="long">{{ t('dashboard.received') }}</span><span class="short">{{ t('dashboard.receivedShort') }}</span>
               </div>
               <div class="tile__total down">{{ status ? received.n : dash }} <small v-if="status">{{ received.unit }}</small></div>

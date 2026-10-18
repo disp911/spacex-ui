@@ -51,17 +51,17 @@ const button = computed(() => ({
     <label class="x-switch-box__label" :for="id">{{ label }}</label>
     <slot name="actions" />
     <button v-bind="button" @click="loading || toggle()">
-      <span class="x-switch__knob"><XSpinner v-if="loading" :size="10" /></span>
+      <span class="x-switch__knob"><XSpinner v-if="loading" :size="12" /></span>
     </button>
   </div>
   <span v-else-if="text" class="x-switch-line">
     <span :class="['x-switch-line__text', { 'is-on': model, 'is-loading': loading }]" aria-hidden="true">{{ text }}</span>
     <button v-bind="button" @click="loading || toggle()">
-      <span class="x-switch__knob"><XSpinner v-if="loading" :size="10" /></span>
+      <span class="x-switch__knob"><XSpinner v-if="loading" :size="12" /></span>
     </button>
   </span>
   <button v-else v-bind="button" @click="loading || toggle()">
-    <span class="x-switch__knob"><XSpinner v-if="loading" :size="10" /></span>
+    <span class="x-switch__knob"><XSpinner v-if="loading" :size="12" /></span>
   </button>
 </template>
 

@@ -66,11 +66,11 @@ const linkAttrs = computed(() => (props.to ? { to: props.to } : props.href ? { h
     :aria-label="label"
     :title="iconOnly ? label : undefined"
   >
-    <XSpinner v-if="loading" :size="iconSize - 1" />
+    <XSpinner v-if="loading" :size="iconSize" />
     <XIcon v-else-if="success" name="check" :size="iconSize" :stroke="2" class="x-btn__icon x-btn__check" />
     <slot v-else name="icon"><XIcon v-if="icon" :name="icon" :size="iconSize" class="x-btn__icon" /></slot>
     <span v-if="$slots.default" class="x-btn__text"><slot /></span>
-    <XIcon v-if="caret" name="caret" :size="10" :stroke="1.6" class="x-btn__caret" />
+    <XIcon v-if="caret" name="caret" :size="12" :stroke="1.6" class="x-btn__caret" />
   </component>
 </template>
 

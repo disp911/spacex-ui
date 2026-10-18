@@ -153,7 +153,7 @@ function onBlur() {
     <span v-for="(tag, i) in model" :key="tag" :class="['x-tag-chip', { 'x-tag-chip--preset': catalog && named(preset(tag)) }]">
       <span class="x-tag-chip__text">{{ label(tag) }}</span>
       <button v-if="!disabled" type="button" class="x-tag-chip__remove" :aria-label="t('kit.remove', { value: label(tag) })" @click.stop="remove(i)">
-        <XIcon name="close" :size="10" :stroke="1.8" />
+        <XIcon name="close" :size="12" :stroke="1.8" />
       </button>
     </span>
     <input
@@ -203,7 +203,7 @@ function onBlur() {
           @pointerdown.prevent
           @click="add(custom)"
         >
-          <XIcon name="plus" :size="13" :stroke="1.7" />
+          <XIcon name="plus" :size="12" :stroke="1.7" />
           <span class="x-tags__label">{{ t('kit.addValue', { value: custom }) }}</span>
           <span class="x-tags__key">Enter</span>
         </li>
@@ -220,7 +220,7 @@ function onBlur() {
           @pointerdown.prevent
           @click="add(custom)"
         >
-          <XIcon name="plus" :size="13" :stroke="1.7" />
+          <XIcon name="plus" :size="12" :stroke="1.7" />
           <span class="x-tags__label mono">{{ custom }}</span>
           <span class="x-tags__key">Enter</span>
         </div>
@@ -238,7 +238,7 @@ function onBlur() {
               @pointerdown.prevent
               @click="toggle(p.value)"
             >
-              <span class="x-tags__tick"><XIcon v-if="model.includes(p.value)" name="check" :size="11" :stroke="2" /></span>
+              <span class="x-tags__tick"><XIcon v-if="model.includes(p.value)" name="check" :size="12" :stroke="2" /></span>
               <span class="x-tags__name">{{ p.label }}</span>
               <span v-if="named(p)" class="x-tags__value">{{ p.value }}</span>
             </div>

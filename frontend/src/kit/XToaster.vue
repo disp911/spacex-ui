@@ -10,7 +10,7 @@ import { dismissToast, toasts } from './toast'
     <TransitionGroup name="x-toast">
       <div v-for="item in toasts" :key="item.id" class="x-toast" @click="dismissToast(item.id)">
         <span :class="['x-toast__icon', `x-toast__icon--${item.kind}`]">
-          <XIcon :name="item.kind === 'ok' ? 'check' : 'alert'" :size="13" :stroke="item.kind === 'ok' ? 2 : 1.6" />
+          <XIcon :name="item.kind === 'ok' ? 'check' : 'alert'" :size="12" :stroke="item.kind === 'ok' ? 2 : 1.6" />
         </span>
         <span class="x-toast__text">{{ item.text }}</span>
       </div>

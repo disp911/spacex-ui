@@ -47,7 +47,7 @@ defineExpose({ focus: () => input.value?.focus() })
     v-bind="wrapper"
     :class="['x-field-box', 'x-input', { 'x-field-box--mono': mono, 'is-disabled': disabled, 'is-invalid': invalid, 'is-modified': modified }]"
   >
-    <XIcon v-if="icon" :name="icon" :size="15" class="x-input__icon" />
+    <XIcon v-if="icon" :name="icon" :size="14" class="x-input__icon" />
     <input
       ref="input"
       v-model="model"
@@ -65,7 +65,7 @@ defineExpose({ focus: () => input.value?.focus() })
     <XInlineButton
       v-if="clearable && model && !disabled && !readonly"
       icon="close"
-      :icon-size="13"
+      :icon-size="12"
       :stroke="1.6"
       :label="t('kit.clear')"
       class="x-input__action"

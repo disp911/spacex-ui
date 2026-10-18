@@ -32,7 +32,7 @@ watch(() => props.text, (text) => !text && (open.value = false))
     <Transition name="x-popup">
       <div v-if="shown" :id="`${id}-panel`" ref="panel" role="dialog" :aria-label="title" class="x-process-error__panel" :style="style">
         <div class="x-process-error__head">
-          <span class="x-process-error__mark"><XIcon name="exclaim" :size="13" :stroke="1.8" /></span>
+          <span class="x-process-error__mark"><XIcon name="exclaim" :size="12" :stroke="1.8" /></span>
           <span class="x-process-error__title">{{ title }}</span>
           <XInlineButton icon="close" :label="t('kit.close')" :icon-size="12" :stroke="1.7" @click="open = false" />
         </div>

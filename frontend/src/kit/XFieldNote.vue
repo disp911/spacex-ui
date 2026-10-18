@@ -12,7 +12,7 @@ withDefaults(defineProps<{ tone?: 'warn' | 'err' | 'info' }>(), { tone: 'warn' }
 
 <template>
   <p :class="['x-field-note', `x-field-note--${tone}`]" :role="tone === 'err' ? 'alert' : undefined">
-    <XIcon :name="tone === 'warn' ? 'warning' : 'alert'" :size="13" :stroke="1.4" class="x-field-note__icon" />
+    <XIcon :name="tone === 'warn' ? 'warning' : 'alert'" :size="12" :stroke="1.4" class="x-field-note__icon" />
     <span class="x-field-note__text"><slot /></span>
   </p>
 </template>
