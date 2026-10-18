@@ -88,7 +88,7 @@ function saveRule(rule: Rule) {
       </template>
     </XGridTable>
     <XCard v-else>
-      <XEmpty icon="rules" tab />
+      <XEmpty icon="rules" :title="t('xray.ruleEmpty')" tab />
     </XCard>
 
     <GeoModal v-model:open="geoOpen" />

@@ -566,6 +566,7 @@ export interface MessageSchema {
     "fakeEditN": string
     "dnsN": string
     "fakeN": string
+    "ruleEmpty": string
   }
   "units": {
     "value": string

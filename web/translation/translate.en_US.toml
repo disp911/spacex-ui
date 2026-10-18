@@ -1298,6 +1298,7 @@
 "fakeEditN" = "Edit Fake DNS #{n}"
 "dnsN" = "DNS {n}"
 "fakeN" = "Fake DNS {n}"
+"ruleEmpty" = "No added rules."
 
 [kit]
 "addValue" = "Add “{value}”"
