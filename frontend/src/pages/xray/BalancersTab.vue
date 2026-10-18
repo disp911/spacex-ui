@@ -131,7 +131,7 @@ watch(
       </XGridTable>
     </template>
     <XCard v-else>
-      <XEmpty icon="balancer" :title="t('xray.balEmpty')">
+      <XEmpty icon="balancer" :title="t('xray.balEmpty')" tab>
         <XButton variant="primary" icon="plus" @click="create">{{ t('xray.balAdd') }}</XButton>
       </XEmpty>
     </XCard>

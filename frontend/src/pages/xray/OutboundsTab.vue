@@ -188,7 +188,7 @@ function select(key: string, o: Outbound, i: number) {
       </template>
     </XGridTable>
     <XCard v-else>
-      <XEmpty icon="arrowRight" />
+      <XEmpty icon="arrowRight" tab />
     </XCard>
 
     <WarpModal v-model:open="warpOpen" />
