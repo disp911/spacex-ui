@@ -79,8 +79,11 @@ async function test(o: Outbound) {
   try {
     const r = await api.post<OutboundTest>('panel/xray/testOutbound', form)
     tests.set(tag, r.success ? { state: 'ok', delay: r.delay, status: r.statusCode } : { state: 'fail', error: r.error ?? '' })
+    if (r.success) toast('ok', t('xray.outTestOk', { delay: r.delay, status: r.statusCode ?? '' }))
+    else toast('err', t('xray.outTestFailed', { error: r.error ?? '' }))
   } catch (e) {
     tests.set(tag, { state: 'fail', error: cause(e) })
+    toast('err', t('xray.outTestError', { error: cause(e) }))
   }
 }
 

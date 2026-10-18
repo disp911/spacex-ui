@@ -1312,6 +1312,9 @@
 "hintNetwork" = "Необязательно: tcp, udp или tcp,udp"
 "hintPortRule" = "Необязательно: в том же виде, что порт в маршрутизации, например 53,443,1000-2000"
 "hintIpRule" = "Необязательно: IP, CIDR или geoip, например geoip:cn, 10.0.0.0/8"
+"outTestOk" = "Тест успешен: {delay} мс ({status})"
+"outTestFailed" = "Тест не пройден: {error}"
+"outTestError" = "Не удалось протестировать исходящее подключение: {error}"
 
 [kit]
 "addValue" = "Добавить «{value}»"

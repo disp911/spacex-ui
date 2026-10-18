@@ -580,6 +580,9 @@ export interface MessageSchema {
     "hintNetwork": string
     "hintPortRule": string
     "hintIpRule": string
+    "outTestOk": string
+    "outTestFailed": string
+    "outTestError": string
   }
   "units": {
     "value": string

@@ -1312,6 +1312,9 @@
 "hintNetwork" = "Optional: tcp, udp, tcp,udp"
 "hintPortRule" = "Optional: same format as routing port, e.g. 53,443,1000-2000"
 "hintIpRule" = "Optional IP/CIDR/geoip list, e.g. geoip:cn, 10.0.0.0/8"
+"outTestOk" = "Test successful: {delay} ms ({status})"
+"outTestFailed" = "Test failed: {error}"
+"outTestError" = "Failed to test outbound: {error}"
 
 [kit]
 "addValue" = "Add “{value}”"
