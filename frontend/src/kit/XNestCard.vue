@@ -2,15 +2,14 @@
 /**
  * One item of a list inside an XNest, e.g. a noise: a title with a blue dot
  * when changed, actions at the right (a remove button) and its fields; with
- * columns, the fields fill a grid of at least that many px each. divided
- * is the card of a window's lists, e.g. an inbound's peers or certificates:
- * its head under a line, the fields below it.
+ * columns, the fields fill a grid of at least that many px each. The head
+ * sits under a line, as the window mockups draw a list's cards.
  */
-defineProps<{ title: string; modified?: boolean; columns?: number; divided?: boolean }>()
+defineProps<{ title: string; modified?: boolean; columns?: number }>()
 </script>
 
 <template>
-  <div :class="['x-nest-card', { 'x-nest-card--divided': divided }]">
+  <div class="x-nest-card">
     <div class="x-nest-card__head">
       <span class="x-nest-card__title">{{ title }}</span>
       <span v-if="modified" class="x-nest-card__dot" aria-hidden="true" />
@@ -23,7 +22,6 @@ defineProps<{ title: string; modified?: boolean; columns?: number; divided?: boo
 <style scoped>
 .x-nest-card {
   min-width: 0;
-  padding: 10px 12px 12px;
   border: 1px solid var(--div);
   border-radius: var(--r-12);
   background: var(--card);
@@ -33,39 +31,18 @@ defineProps<{ title: string; modified?: boolean; columns?: number; divided?: boo
   display: flex;
   align-items: center;
   gap: 8px;
-  min-height: 26px;
-  margin-bottom: 8px;
-}
-
-.x-nest-card--divided {
-  padding: 0;
-}
-
-.x-nest-card--divided .x-nest-card__head {
   min-height: 37px;
-  margin-bottom: 0;
   padding: 0 6px 0 12px;
   border-bottom: 1px solid var(--div);
 }
 
-.x-nest-card--divided .x-nest-card__body {
+.x-nest-card__body {
   padding: 12px;
 }
 
-/* Cards of one list sit 8px apart in a window's stack of fields 12px apart. */
-.x-nest-card--divided + .x-nest-card--divided {
+/* Cards of one list sit 8px apart in a stack of fields 12px apart. */
+.x-nest-card + .x-nest-card {
   margin-top: -4px;
-}
-
-@media (max-width: 767px) {
-  .x-nest-card--divided .x-nest-card__head {
-    min-height: 47px;
-    padding-left: 14px;
-  }
-
-  .x-nest-card--divided .x-nest-card__body {
-    padding: 14px;
-  }
 }
 
 .x-nest-card__title {
@@ -91,5 +68,16 @@ defineProps<{ title: string; modified?: boolean; columns?: number; divided?: boo
   display: flex;
   gap: 6px;
   margin-left: auto;
+}
+
+@media (max-width: 767px) {
+  .x-nest-card__head {
+    min-height: 47px;
+    padding-left: 14px;
+  }
+
+  .x-nest-card__body {
+    padding: 14px;
+  }
 }
 </style>

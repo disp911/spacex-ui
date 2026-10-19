@@ -274,6 +274,6 @@ const directDomains = directList('domain')
 .noises {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 </style>

@@ -844,14 +844,14 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
         <XCheckGroup v-model="demoSniff" :options="['http', 'tls', 'quic', 'fakedns'].map((v) => ({ value: v, label: v }))" mono label="Sniffing" />
         <XSwitch v-model="demoWeb" boxed label="WEB-прокси" help="Те же клиенты получают вторую ссылку — tg://webproxy." />
         <XFieldNote v-if="demoWeb" attached>WEB-прокси работает, только если сама панель открыта по HTTPS на порту 443.</XFieldNote>
-        <XNestCard title="Peer 1 (divided)" divided>
+        <XNestCard title="Peer 1">
           <template #actions><XInlineButton icon="delete" danger label="Удалить" /></template>
           <XFieldGrid>
             <XField v-slot="a" label="Секретный ключ"><XInput v-bind="a" model-value="qMdjWiazPPeHXa" mono /></XField>
             <XField v-slot="a" label="Публичный ключ"><XInput v-bind="a" model-value="rRjG2BaATgtBz7" mono /></XField>
           </XFieldGrid>
         </XNestCard>
-        <XNestCard title="Peer 2 (divided)" divided>
+        <XNestCard title="Peer 2">
           <XField v-slot="a" label="Keep Alive"><XInput v-bind="a" model-value="0" mono /></XField>
         </XNestCard>
         <XField v-slot="a" label="Email" help="Пожалуйста, укажите уникальный Email" action="Сбросить" @action="demoEmail = Math.random().toString(36).slice(2, 11)">

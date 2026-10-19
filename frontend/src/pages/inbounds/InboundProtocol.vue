@@ -188,7 +188,7 @@ const webFrontOk = location.protocol === 'https:' && (location.port === '' || lo
     <!-- Fallbacks -->
     <template v-if="fallbacks">
       <XListHead title="Fallbacks" add @add="(s.fallbacks ??= []).push(newFallback())" />
-      <XNestCard divided v-for="(fb, i) in fallbackList" :key="i" :title="`Fallback ${i + 1}`">
+      <XNestCard v-for="(fb, i) in fallbackList" :key="i" :title="`Fallback ${i + 1}`">
         <template #actions>
           <XInlineButton icon="delete" danger :label="t('xray.removeItem', { n: i + 1 })" @click="s.fallbacks.splice(i, 1)" />
         </template>
@@ -268,7 +268,7 @@ const webFrontOk = location.protocol === 'https:' && (location.port === '' || lo
         <XSwitch v-model="s.noKernelTun" boxed label="No Kernel Tun" />
       </XFieldGrid>
       <XListHead title="Peers" add @add="s.peers.push(newPeer(s.peers.length))" />
-      <XNestCard divided v-for="(peer, i) in peers" :key="i" :title="`Peer ${i + 1}`">
+      <XNestCard v-for="(peer, i) in peers" :key="i" :title="`Peer ${i + 1}`">
         <template #actions>
           <XInlineButton v-if="s.peers.length > 1" icon="delete" danger :label="t('xray.removeItem', { n: i + 1 })" @click="s.peers.splice(i, 1)" />
         </template>

@@ -39,7 +39,7 @@ const tlsOptions = computed<Option[]>(() => [
   <XNest v-if="on" bare>
     <XFieldGrid :cols="1">
       <template v-if="phone">
-        <XNestCard v-for="(r, i) in rows" :key="i" divided :title="r.remark || String(i + 1)">
+        <XNestCard v-for="(r, i) in rows" :key="i" :title="r.remark || String(i + 1)">
           <XFieldGrid :cols="1">
             <XField v-slot="a" label="Force TLS">
               <XFieldGrid :cols="2" :phone="2">
