@@ -19,6 +19,7 @@ import InboundsTools from './inbounds/InboundsTools.vue'
 import InboundModal from './inbounds/InboundModal.vue'
 import ClientModal from './inbounds/ClientModal.vue'
 import BulkClientModal from './inbounds/BulkClientModal.vue'
+import CopyClientsModal from './inbounds/CopyClientsModal.vue'
 import { cloneOf, toForm } from './inbounds/inbound'
 import {
   deepSearch, expiryState, filterEmails, hasClients, pageSizes, protocolChips, trafficState, type Client, type ClientCounts as Counts, type DbInbound, type Filter, type State,
@@ -171,6 +172,10 @@ function act(key: string, ib: DbInbound) {
       bulkInbound.value = ib
       bulkOpen.value = true
       return
+    case 'copyClients':
+      copyInbound.value = ib
+      copyOpen.value = true
+      return
     case 'clone':
       return ask({
         title: `${t('inbounds.cloneTitle')} "${ib.remark}"`,
@@ -239,6 +244,8 @@ function openClient(ib: DbInbound, c: Client | null) {
 
 const bulkOpen = ref(false)
 const bulkInbound = shallowRef<DbInbound | null>(null)
+const copyOpen = ref(false)
+const copyInbound = shallowRef<DbInbound | null>(null)
 
 function clientAction(key: 'qr' | 'edit' | 'info', ib: DbInbound, c: Client) {
   if (key === 'edit') openClient(ib, c)
@@ -488,6 +495,7 @@ const clientFilter = computed<Filter>(() => (mode.value === 'filter' ? filter.va
   <InboundModal v-model:open="inboundOpen" :inbound="editing" />
   <ClientModal v-model:open="clientOpen" :inbound="clientInbound" :client="clientEditing" />
   <BulkClientModal v-model:open="bulkOpen" :inbound="bulkInbound" />
+  <CopyClientsModal v-model:open="copyOpen" :inbound="copyInbound" />
 
   <XConfirm
     :open="!!asked"

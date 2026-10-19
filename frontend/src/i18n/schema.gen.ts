@@ -761,6 +761,19 @@ export interface MessageSchema {
     "last": string
     "prefix": string
     "postfix": string
+    "copyTo": string
+    "copySource": string
+    "copySelected": string
+    "copySelectSourceFirst": string
+    "copyResultSuccess": string
+    "copyResultNone": string
+    "copyResultErrors": string
+    "copyFlowLabel": string
+    "copyFlowHint": string
+    "copyEmailPreview": string
+    "selectAll": string
+    "clearAll": string
+    "unlimited": string
   }
   "units": {
     "value": string

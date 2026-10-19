@@ -2,7 +2,8 @@ import { reactive } from 'vue'
 
 export interface Toast {
   id: number
-  kind: 'ok' | 'err'
+  /** ok done, warn nothing happened, err failed. */
+  kind: 'ok' | 'warn' | 'err'
   text: string
 }
 
@@ -10,7 +11,7 @@ export interface Toast {
 export const toasts = reactive<Toast[]>([])
 let next = 0
 
-export function toast(kind: Toast['kind'], text: string, ms = kind === 'err' ? 6000 : 3000) {
+export function toast(kind: Toast['kind'], text: string, ms = kind === 'ok' ? 3000 : 6000) {
   const id = ++next
   toasts.push({ id, kind, text })
   setTimeout(() => dismissToast(id), ms)

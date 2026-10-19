@@ -15,7 +15,8 @@ export interface PlainColumn {
  * A framed table of a few rows, e.g. inside a window: a header in plain words
  * and rows split by thin lines; without labels a list of the same look. A row
  * at work, e.g. downloading, is marked by active. A cell shows the
- * `cell-<key>` slot; the cells of fitted columns line up their buttons. With
+ * `cell-<key>` slot and a header the `head-<key>` slot, e.g. a checkbox for
+ * every row; the cells of fitted columns line up their buttons. With
  * no rows the empty slot shows, an empty tray by default.
  *
  * On phones a table turns into a card per row: the first column on top, the
@@ -68,7 +69,7 @@ const fitted = computed(() => props.columns.slice(1).filter((c) => c.fit))
     <table>
       <thead v-if="head">
         <tr>
-          <th v-for="c in columns" :key="c.key">{{ c.label }}</th>
+          <th v-for="c in columns" :key="c.key"><slot :name="`head-${c.key}`">{{ c.label }}</slot></th>
         </tr>
       </thead>
       <tbody>

@@ -13,7 +13,7 @@ const props = withDefaults(
   defineProps<{
     title: string
     /** wide: up to 1368, for tables such as the connection log. */
-    size?: 'xs' | 'sm' | 'md' | 'form' | 'lg' | 'xl' | 'wide'
+    size?: 'xs' | 'sm' | 'md' | 'form' | 'lg' | 'xl' | 'table' | 'wide'
     /** Close on Escape and on a click outside. Off while a form is saving. */
     dismissible?: boolean
     /** The body draws its own sections edge to edge: no padding, no gap. */
@@ -155,6 +155,8 @@ onBeforeUnmount(() => {
 .x-modal__dialog--form { max-width: 600px; }
 .x-modal__dialog--lg { max-width: 720px; }
 .x-modal__dialog--xl { max-width: 800px; }
+/* A wide table to pick rows from, e.g. clients to copy. */
+.x-modal__dialog--table { max-width: 900px; }
 .x-modal__dialog--wide { max-width: 1368px; }
 
 .x-modal__head {
