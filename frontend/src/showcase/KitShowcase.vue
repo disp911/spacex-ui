@@ -4,7 +4,7 @@ import { useTheme } from '../stores/theme'
 import {
   XActionBar, XActionList, XActionRow, XAddButton, XBadge, XCountList, XExpandTable, XSummaryStat, XBusyOverlay, XButton, XButtonGroup, XCard, XCheckbox, XChip, XCodeArea, XCodeEditor, XCodeInput, XConfirm, XCounter, XDataTable, XDivider, XEmpty, XErrorBox, XExample, XField, XFieldGrid, XFieldNote, XGridTable, XInfoRow, XInlineButton, XInput, XInputList, XKeyValue, XListHead, XMenu, XModal, XMultiSelect, XNavItem, XNest, XNestCard, XNotice, XPlainTable,
   XNumber, XOrderToggles, XPager, XPairList, XPickList, XPopConfirm, XProcessError, XProgressLine, XQrCode, XRecordCard, XRouteTarget, XRowLink, XSection, XSegmented, XSelect, XSettingBlock, XSettingDivider, XSettingRow, XSettingsSection, XSettingsSkeleton, XStatusDot, XStatusText, XStepArrow, XSwitch, XTabs, XTagInput, XTestResult, XTextarea,
-  XTooltip, XUsagePill, XValueChip, XInnerTable, XMark, XRowToggle, XDateTime, XPartHead, XButtonRow,
+  XTooltip, XUsagePill, XValueChip, XInnerTable, XMark, XRowToggle, XDateTime, XPartHead, XButtonRow, XCheckGroup,
   type MenuItem,
 } from '../kit'
 
@@ -113,6 +113,7 @@ const demoEmail = ref('k3x9mf2q')
 const demoNet = ref('xhttp')
 const demoWeb = ref(true)
 const demoSec = ref('reality')
+const demoSniff = ref(['http', 'tls', 'quic'])
 const demoShortIds = ref('6ba85179e30d4fc2\n2f\n4b0c9e71\na1b2c3d4e5')
 const demoManyClients = Array.from({ length: 30 }, (_, i) => ({ email: `user-${String(i + 1).padStart(3, '0')}`, id: `0740d687-743b-4269-ad61-${String(i).padStart(12, '0')}` }))
 const demoDate = ref(0)
@@ -839,6 +840,8 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
           <XButton size="sm" variant="primary">Get New Cert</XButton>
           <XButton size="sm" variant="danger">Clear</XButton>
         </XButtonRow>
+        <XDivider spaced />
+        <XCheckGroup v-model="demoSniff" :options="['http', 'tls', 'quic', 'fakedns'].map((v) => ({ value: v, label: v }))" mono label="Sniffing" />
         <XSwitch v-model="demoWeb" boxed label="WEB-прокси" help="Те же клиенты получают вторую ссылку — tg://webproxy." />
         <XField v-slot="a" label="Email" help="Пожалуйста, укажите уникальный Email" action="Сбросить" @action="demoEmail = Math.random().toString(36).slice(2, 11)">
           <XInput v-bind="a" v-model="demoEmail" />
