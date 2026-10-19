@@ -728,6 +728,21 @@ export interface MessageSchema {
     "mtprotoWebIpAuto": string
     "mtprotoWebPath": string
     "mtprotoWebPathDesc": string
+    "transport": string
+    "host": string
+    "path": string
+    "camouflage": string
+    "request": string
+    "response": string
+    "headerName": string
+    "headerValue": string
+    "method": string
+    "status": string
+    "statusDescription": string
+    "requestHeader": string
+    "responseHeader": string
+    "same": string
+    "type": string
   }
   "units": {
     "value": string

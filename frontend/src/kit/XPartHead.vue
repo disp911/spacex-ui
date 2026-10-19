@@ -45,6 +45,14 @@ defineProps<{ title: string; mono?: boolean }>()
 }
 
 @media (max-width: 767px) {
+  .x-part-head__title {
+    font-size: var(--fs-16);
+  }
+
+  .x-part-head__title--mono {
+    font-size: var(--fs-14);
+  }
+
   .x-part-head__control {
     width: 180px;
   }

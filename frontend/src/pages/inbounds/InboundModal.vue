@@ -3,14 +3,16 @@ import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { api } from '../../api'
 import {
-  toast, XButton, XDateTime, XField, XFieldGrid, XInput, XModal, XNumber, XPlainTable, XSection, XSelect, XSwitch, type Option, type PlainColumn,
+  toast, XButton, XDateTime, XDivider, XField, XFieldGrid, XInput, XModal, XNumber, XPlainTable, XSection, XSelect, XSwitch, type Option, type PlainColumn,
 } from '../../kit'
 import { formatDate } from '../../i18n/format'
 import { useInbounds } from '../../stores/inbounds'
 import { cause } from '../settings/form'
-import { canFlow, clientsOf, fromDb, newInbound, setProtocol, toForm, trafficResets, withClients, type InboundForm } from './inbound'
+import { canFlow, canStream, clientsOf, fromDb, newInbound, setProtocol, toForm, trafficResets, withClients, type InboundForm } from './inbound'
 import ClientFields from './ClientFields.vue'
 import InboundProtocol from './InboundProtocol.vue'
+import InboundStream from './InboundStream.vue'
+import InboundExternal from './InboundExternal.vue'
 import { protocols, type DbInbound, type Protocol } from './model'
 
 /**
@@ -149,6 +151,11 @@ async function save() {
       </template>
 
       <InboundProtocol :f="f" />
+      <InboundStream v-if="canStream(f.protocol)" :f="f" />
+      <template v-if="canStream(f.protocol) || f.protocol === 'mtproto'">
+        <XDivider />
+        <InboundExternal :f="f" />
+      </template>
     </div>
 
     <template #footer>

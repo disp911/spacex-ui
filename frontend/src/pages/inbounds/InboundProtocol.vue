@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   toast, XAddButton, XButton, XField, XFieldGrid, XFieldNote, XInlineButton, XInput, XInputList, XListHead, XNest, XNestCard, XNumber, XPairList, XPartHead, XSelect,
@@ -7,6 +7,8 @@ import {
 } from '../../kit'
 import { wireguardKeys } from '../../wireguard'
 import { cause } from '../settings/form'
+import InboundSockopt from './InboundSockopt.vue'
+import { headerRows } from './rows'
 import {
   canVisionSeed, isSS2022, network, newFallback, newPeer, newVlessEnc, randomVisionSeed, setSSMethod, ssMethods, ssPassword, visionSeed, type InboundForm,
 } from './inbound'
@@ -120,18 +122,8 @@ const mixedPassword = computed({
 })
 const accountList = ref<{ add: () => void } | null>(null)
 
-/**
- * Port mapping is edited as rows, as the old panel did, so empty or repeated
- * ports stay rows of their own while typed; the inbound keeps the rows with
- * both a port and an address, a later one for the same port winning.
- */
-const portMap = ref<Pair[]>([])
-watch(
-  () => props.f.settings,
-  (st) => (portMap.value = Object.entries(st.portMap ?? {}).map(([k, v]) => [k, String(v)] as Pair)),
-  { immediate: true },
-)
-watch(portMap, (pairs) => (s.value.portMap = Object.fromEntries(pairs.filter(([port, to]) => port.trim() && to.trim()))), { deep: true })
+/** Port mapping is edited as rows, as the old panel did, so empty or repeated ports stay rows while typed. */
+const portMap = headerRows(() => (p.value === 'tunnel' ? props.f.settings : undefined), 'portMap')
 
 // --- TUN --------------------------------------------------------------------------------
 
@@ -148,7 +140,11 @@ const mtu6 = mtu(1)
 
 // --- MTProto ------------------------------------------------------------------------------
 
-const web = computed(() => (s.value.web ??= { enable: false, host: '', path: '', publicIp: '' }))
+const web = computed(() => {
+  s.value.web ??= { enable: false, host: '', path: '', publicIp: '' }
+  // Read back through the reactive object: ??= hands back the plain new value.
+  return s.value.web
+})
 
 /** Turning the WEB proxy on suggests the domain the panel is opened on, as the old panel did. */
 const webOn = computed({
@@ -346,6 +342,7 @@ const webFrontOk = location.protocol === 'https:' && (location.port === '' || lo
         </XField>
       </XFieldGrid>
       <XSwitch v-model="s.followRedirect" boxed label="Follow Redirect" />
+      <InboundSockopt :f="f" />
     </template>
 
     <!-- TUN -->
