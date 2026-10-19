@@ -1440,7 +1440,6 @@
 "portMap" = "Порт-маппинг"
 "username" = "Имя пользователя"
 "wgSecretKey" = "Секретный ключ"
-"wgPublicKey" = "Публичный ключ"
 "wgPsk" = "Общий ключ"
 "wgAllowedIPs" = "Разрешенные IP-адреса"
 "tunNameDesc" = "Имя интерфейса TUN. Значение по умолчанию - 'xray0'"
@@ -1475,6 +1474,12 @@
 "responseHeader" = "Заголовок ответа"
 "same" = "Тот же"
 "type" = "Тип"
+"certificate" = "SSL-сертификат"
+"certificatePath" = "Путь к сертификату"
+"certificateContent" = "Содержимое сертификата"
+"publicKey" = "Публичный ключ"
+"privateKey" = "Приватный ключ"
+"setDefaultCert" = "Установить сертификат панели"
 
 [kit]
 "pickDate" = "Выбрать дату"

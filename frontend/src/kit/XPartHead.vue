@@ -2,15 +2,16 @@
 /**
  * The start of a part of a long window, under a line: its title and, at the
  * right, the control that picks what the part holds, e.g. the protocol's own
- * settings or the transport with its select.
+ * settings or the transport with its select. wide makes room for three
+ * choices side by side, e.g. the security's none, Reality and TLS.
  */
-defineProps<{ title: string; mono?: boolean }>()
+defineProps<{ title: string; mono?: boolean; wide?: boolean }>()
 </script>
 
 <template>
   <div class="x-part-head">
     <h3 :class="['x-part-head__title', { 'x-part-head__title--mono': mono }]">{{ title }}</h3>
-    <div v-if="$slots.default" class="x-part-head__control"><slot /></div>
+    <div v-if="$slots.default" :class="['x-part-head__control', { 'x-part-head__control--wide': wide }]"><slot /></div>
   </div>
 </template>
 
@@ -44,6 +45,10 @@ defineProps<{ title: string; mono?: boolean }>()
   min-width: 0;
 }
 
+.x-part-head__control--wide {
+  width: 250px;
+}
+
 @media (max-width: 767px) {
   .x-part-head__title {
     font-size: var(--fs-16);
@@ -55,6 +60,10 @@ defineProps<{ title: string; mono?: boolean }>()
 
   .x-part-head__control {
     width: 180px;
+  }
+
+  .x-part-head__control--wide {
+    width: 210px;
   }
 }
 </style>

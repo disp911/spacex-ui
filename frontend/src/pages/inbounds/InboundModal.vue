@@ -13,6 +13,7 @@ import ClientFields from './ClientFields.vue'
 import InboundProtocol from './InboundProtocol.vue'
 import InboundStream from './InboundStream.vue'
 import InboundExternal from './InboundExternal.vue'
+import InboundSecurity from './InboundSecurity.vue'
 import { protocols, type DbInbound, type Protocol } from './model'
 
 /**
@@ -156,6 +157,7 @@ async function save() {
         <XDivider />
         <InboundExternal :f="f" />
       </template>
+      <InboundSecurity v-if="canStream(f.protocol)" :f="f" />
     </div>
 
     <template #footer>

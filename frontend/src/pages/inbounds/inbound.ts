@@ -191,7 +191,7 @@ export function defaultSettings(protocol: Protocol): Json {
     case 'vmess':
       return { clients: [newClient('vmess')] }
     case 'vless':
-      return { clients: [newClient('vless')], decryption: 'none', encryption: 'none', fallbacks: [] }
+      return { clients: [newClient('vless')], decryption: 'none', encryption: 'none', fallbacks: [], testseed: visionSeed() }
     case 'trojan':
       return { clients: [newClient('trojan')], fallbacks: [] }
     case 'shadowsocks': {
@@ -281,7 +281,49 @@ export function defaultNetwork(net: string): Json {
 
 export const defaultMasquerade = () => ({ type: 'proxy', dir: '', url: '', rewriteHost: false, insecure: false, content: '', headers: {}, statusCode: 0 })
 
-export const defaultCert = () => ({ certificateFile: '', keyFile: '', oneTimeLoading: false, usage: 'encipherment', buildChain: false })
+/**
+ * A TLS certificate as the window edits it: useFile picks between the paths
+ * and the content, which is kept as text; both are left as Xray takes them on
+ * save (certFromForm).
+ */
+export const defaultCert = () => ({
+  useFile: true,
+  certificateFile: '',
+  keyFile: '',
+  certificate: '',
+  key: '',
+  oneTimeLoading: false,
+  usage: 'encipherment',
+  buildChain: false,
+})
+
+/** A stored certificate for the window: paths when it has them, else its content as text. */
+function certToForm(c: Json): Json {
+  const lines = (v: unknown) => (Array.isArray(v) ? v.join('\n') : String(v ?? ''))
+  const useFile = 'useFile' in c ? !!c.useFile : 'certificateFile' in c || !('certificate' in c)
+  return { ...defaultCert(), ...c, useFile, certificate: lines(c.certificate), key: lines(c.key) }
+}
+
+/** A certificate as Xray takes it: the paths, or the content as lines. */
+function certFromForm(c: Json): Json {
+  const common = { oneTimeLoading: c.oneTimeLoading, usage: c.usage, buildChain: c.buildChain }
+  if (c.useFile) return { certificateFile: c.certificateFile, keyFile: c.keyFile, ...common }
+  return { certificate: String(c.certificate ?? '').split('\n'), key: String(c.key ?? '').split('\n'), ...common }
+}
+
+/** TLS settings for the window: the defaults under what is set, certificates to edit. */
+function tlsForm(t: Json = {}): Json {
+  const certs: Json[] = Array.isArray(t.certificates) ? t.certificates : []
+  return { ...defaultTls(), ...t, settings: { ...defaultTls().settings, ...t.settings }, certificates: certs.length ? certs.map(certToForm) : [defaultCert()] }
+}
+
+/** Reality settings for the window: the defaults under what is set. */
+function realityForm(r: Json = {}): Json {
+  return { ...defaultReality(), ...r, settings: { ...defaultReality().settings, ...r.settings } }
+}
+
+/** A list typed as text, as Xray takes it: trimmed, without empty entries. */
+const listOf = (v: unknown, sep: RegExp) => (Array.isArray(v) ? v : String(v ?? '').split(sep)).map((x) => String(x).trim()).filter(Boolean)
 
 export const defaultTls = () => ({
   serverName: '',
@@ -433,8 +475,8 @@ export function setNetwork(f: InboundForm, net: string) {
 export function setSecurity(f: InboundForm, sec: string) {
   const st = (f.streamSettings ??= {})
   st.security = sec
-  if (sec === 'tls') st.tlsSettings = { ...defaultTls(), ...st.tlsSettings }
-  if (sec === 'reality') st.realitySettings = { ...defaultReality(), ...st.realitySettings }
+  if (sec === 'tls') st.tlsSettings = tlsForm(st.tlsSettings)
+  if (sec === 'reality') st.realitySettings = realityForm(st.realitySettings)
   fitSecurity(f)
 }
 
@@ -487,8 +529,8 @@ export function fromDb(ib: DbInbound): InboundForm {
     st.network ??= f.protocol === 'hysteria' ? 'hysteria' : 'tcp'
     st.security ??= 'none'
     st[`${st.network}Settings`] = { ...defaultNetwork(st.network), ...st[`${st.network}Settings`] }
-    if (st.security === 'tls') st.tlsSettings = { ...defaultTls(), ...st.tlsSettings }
-    if (st.security === 'reality') st.realitySettings = { ...defaultReality(), ...st.realitySettings }
+    if (st.security === 'tls') st.tlsSettings = tlsForm(st.tlsSettings)
+    if (st.security === 'reality') st.realitySettings = realityForm(st.realitySettings)
   }
   if (canStream(f.protocol) || f.protocol === 'mtproto' || Object.keys(st).length) {
     st.externalProxy = Array.isArray(st.externalProxy) ? st.externalProxy : []
@@ -530,6 +572,12 @@ function finalStream(f: InboundForm, input: Json): Json | undefined {
   for (const k of netKeys) if (k !== keep) delete st[k]
   if (st.security !== 'tls') delete st.tlsSettings
   if (st.security !== 'reality') delete st.realitySettings
+  if (st.tlsSettings) st.tlsSettings.certificates = (st.tlsSettings.certificates ?? []).map(certFromForm)
+  if (st.realitySettings) {
+    const r = st.realitySettings
+    r.serverNames = listOf(r.serverNames, /,/)
+    r.shortIds = listOf(r.shortIds, /[\s,]+/)
+  }
 
   const net = st[keep] ?? {}
   if (st.network === 'tcp' && net.header?.type !== 'http') net.header = { type: net.header?.type ?? 'none' }

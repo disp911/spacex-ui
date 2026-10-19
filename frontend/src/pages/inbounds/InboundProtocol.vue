@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
-  toast, XAddButton, XButton, XField, XFieldGrid, XFieldNote, XInlineButton, XInput, XInputList, XListHead, XNest, XNestCard, XNumber, XPairList, XPartHead, XSelect,
+  toast, XAddButton, XButton, XButtonRow, XField, XFieldGrid, XFieldNote, XInlineButton, XInput, XInputList, XListHead, XNest, XNestCard, XNumber, XPairList, XPartHead, XSelect,
   XSwitch, XTagInput, type Option,
 } from '../../kit'
 import { wireguardKeys } from '../../wireguard'
@@ -179,10 +179,10 @@ const webFrontOk = location.protocol === 'https:' && (location.port === '' || lo
           <XInput v-bind="a" v-model.trim="s.encryption" mono />
         </XField>
       </XFieldGrid>
-      <div class="protocol__buttons">
+      <XButtonRow>
         <XButton size="sm" variant="primary" icon="download" :loading="fetching" @click="fetchVlessEnc">Get New keys</XButton>
-        <XButton size="sm" @click="clearVlessEnc">Clear</XButton>
-      </div>
+        <XButton size="sm" variant="danger" @click="clearVlessEnc">Clear</XButton>
+      </XButtonRow>
     </template>
 
     <!-- Fallbacks -->
@@ -220,10 +220,10 @@ const webFrontOk = location.protocol === 'https:' && (location.port === '' || lo
           <XNumber v-bind="a" v-model="v.value" block :min="0" :max="9999" />
         </XField>
       </XFieldGrid>
-      <div class="protocol__buttons">
+      <XButtonRow>
         <XButton size="sm" variant="primary" @click="s.testseed = randomVisionSeed()">Rand</XButton>
         <XButton size="sm" @click="s.testseed = visionSeed()">Reset</XButton>
-      </div>
+      </XButtonRow>
     </template>
 
     <!-- Shadowsocks -->
@@ -257,7 +257,7 @@ const webFrontOk = location.protocol === 'https:' && (location.port === '' || lo
         <XField v-slot="a" :label="t('inbounds.wgSecretKey')" :action="t('inbounds.reset')" @action="s.secretKey = wireguardKeys().privateKey">
           <XInput v-bind="a" v-model.trim="s.secretKey" mono />
         </XField>
-        <XField v-slot="a" :label="t('inbounds.wgPublicKey')">
+        <XField v-slot="a" :label="t('inbounds.publicKey')">
           <XInput v-bind="a" :model-value="wgPublic" mono readonly />
         </XField>
       </XFieldGrid>
@@ -277,7 +277,7 @@ const webFrontOk = location.protocol === 'https:' && (location.port === '' || lo
             <XField v-slot="a" :label="t('inbounds.wgSecretKey')" :action="t('inbounds.reset')" @action="newPeerKeys(peer)">
               <XInput v-bind="a" v-model.trim="peer.privateKey" mono />
             </XField>
-            <XField v-slot="a" :label="t('inbounds.wgPublicKey')">
+            <XField v-slot="a" :label="t('inbounds.publicKey')">
               <XInput v-bind="a" v-model.trim="peer.publicKey" mono />
             </XField>
             <XField v-slot="a" :label="t('inbounds.wgPsk')" :action="t('inbounds.reset')" @action="peer.preSharedKey = newPsk()">
@@ -402,11 +402,3 @@ const webFrontOk = location.protocol === 'https:' && (location.port === '' || lo
     </template>
   </template>
 </template>
-
-<style scoped>
-.protocol__buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-</style>

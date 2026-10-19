@@ -708,7 +708,6 @@ export interface MessageSchema {
     "portMap": string
     "username": string
     "wgSecretKey": string
-    "wgPublicKey": string
     "wgPsk": string
     "wgAllowedIPs": string
     "tunNameDesc": string
@@ -743,6 +742,12 @@ export interface MessageSchema {
     "responseHeader": string
     "same": string
     "type": string
+    "certificate": string
+    "certificatePath": string
+    "certificateContent": string
+    "publicKey": string
+    "privateKey": string
+    "setDefaultCert": string
   }
   "units": {
     "value": string

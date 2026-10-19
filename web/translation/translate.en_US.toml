@@ -1440,7 +1440,6 @@
 "portMap" = "Port Mapping"
 "username" = "Username"
 "wgSecretKey" = "Secret Key"
-"wgPublicKey" = "Public Key"
 "wgPsk" = "PreShared Key"
 "wgAllowedIPs" = "Allowed IPs"
 "tunNameDesc" = "The name of the TUN interface. Default is 'xray0'"
@@ -1475,6 +1474,12 @@
 "responseHeader" = "Response Header"
 "same" = "Same"
 "type" = "Type"
+"certificate" = "Digital Certificate"
+"certificatePath" = "File Path"
+"certificateContent" = "File Content"
+"publicKey" = "Public Key"
+"privateKey" = "Private Key"
+"setDefaultCert" = "Set Cert from Panel"
 
 [kit]
 "pickDate" = "Pick a date"
