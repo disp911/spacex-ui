@@ -2,9 +2,9 @@
 import { computed, ref, watch } from 'vue'
 import { useTheme } from '../stores/theme'
 import {
-  XActionBar, XActionList, XActionRow, XAddButton, XBadge, XCountList, XExpandTable, XSummaryStat, XBusyOverlay, XButton, XButtonGroup, XCard, XCheckbox, XChip, XCodeArea, XCodeEditor, XCodeInput, XConfirm, XCounter, XDataTable, XDivider, XEmpty, XErrorBox, XExample, XField, XFieldGrid, XFieldNote, XGridTable, XInfoRow, XInlineButton, XInput, XInputList, XKeyValue, XListHead, XMenu, XModal, XMultiSelect, XNavItem, XNest, XNestCard, XNotice, XPlainTable,
+  toast, XActionBar, XActionList, XActionRow, XAddButton, XBadge, XCountList, XExpandTable, XSummaryStat, XBusyOverlay, XButton, XButtonGroup, XCard, XCheckbox, XChip, XCodeArea, XCodeEditor, XCodeInput, XConfirm, XCounter, XDataTable, XDivider, XEmpty, XErrorBox, XExample, XField, XFieldGrid, XFieldNote, XGridTable, XInfoRow, XInlineButton, XInput, XInputList, XKeyValue, XListHead, XMenu, XModal, XMultiSelect, XNavItem, XNest, XNestCard, XNotice, XPlainTable,
   XNumber, XOrderToggles, XPager, XPairList, XPickList, XPopConfirm, XProcessError, XProgressLine, XQrCode, XRecordCard, XRouteTarget, XRowLink, XSection, XSegmented, XSelect, XSettingBlock, XSettingDivider, XSettingRow, XSettingsSection, XSettingsSkeleton, XStatusDot, XStatusText, XStepArrow, XSwitch, XTabs, XTagInput, XTestResult, XTextarea,
-  XTooltip, XUsagePill, XValueChip, XInnerTable, XMark, XRowToggle, XDateTime, XPartHead, XButtonRow, XCheckGroup, XStateBar,
+  XTooltip, XUsagePill, XValueChip, XInnerTable, XMark, XRowToggle, XDateTime, XPartHead, XButtonRow, XCheckGroup, XStateBar, XChipBox,
   type MenuItem,
 } from '../kit'
 
@@ -841,6 +841,14 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
           <XButton size="sm" variant="danger">Clear</XButton>
         </XButtonRow>
         <XStateBar>Account is Expired And Disabled</XStateBar>
+        <XChipBox label="Предпросмотр итоговых email">
+          <XChip v-for="e in ['alice_7', 'carol_7', 'dmitry_7', 'igor_7', 'nikita_7']" :key="e" mono>{{ e }}</XChip>
+        </XChipBox>
+        <XButtonRow>
+          <XButton size="sm" @click="toast('ok', 'Успешно скопировано: 5')">Тост ok</XButton>
+          <XButton size="sm" @click="toast('warn', 'Нечего копировать: ни одного клиента не выбрано или список источника пуст')">Тост warn</XButton>
+          <XButton size="sm" @click="toast('err', 'Ошибки при копировании: alice_7 — Email уже существует')">Тост err</XButton>
+        </XButtonRow>
         <XField label="Дата окончания" help="Оставьте пустым, чтобы не ограничивать">
           <template #badge><XChip tone="err">Expired</XChip></template>
           <template #default="a"><XInput v-bind="a" model-value="2026-09-30 00:00:00" mono /></template>
