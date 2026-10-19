@@ -6,8 +6,7 @@ import { sniffingTargets, type InboundForm } from './inbound'
 /**
  * Sniffing in window 11, as the old panel's form had it: on or off, then
  * what to sniff, Metadata Only, Route Only and the addresses left alone.
- * The card is open for a new inbound and closed for a stored one (mockups
- * 11a and 11b).
+ * The card starts closed, as on the old panel; Sniffing itself starts off.
  */
 const props = defineProps<{ f: InboundForm }>()
 const open = defineModel<boolean>('open', { default: false })

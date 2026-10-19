@@ -35,7 +35,7 @@ watch(open, (on) => {
   if (!on) return
   f.value = props.inbound ? fromDb(props.inbound) : newInbound()
   clientOpen.value = !props.inbound
-  sniffingOpen.value = !props.inbound
+  sniffingOpen.value = false
 })
 
 const editing = computed(() => !!props.inbound)
@@ -76,7 +76,7 @@ const totalGb = computed({
 // clients, closed, as the old panel did. Clients are changed in their own windows.
 
 const clientOpen = ref(true)
-const sniffingOpen = ref(true)
+const sniffingOpen = ref(false)
 const hasClients = computed(() => withClients(f.value.protocol, f.value.settings))
 const clients = computed(() => clientsOf(f.value))
 
