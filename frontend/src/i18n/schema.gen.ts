@@ -757,6 +757,10 @@ export interface MessageSchema {
     "ipLogDesc": string
     "ipLogMtprotoDesc": string
     "ipLogClear": string
+    "first": string
+    "last": string
+    "prefix": string
+    "postfix": string
   }
   "units": {
     "value": string

@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { XDateTime, XField, XFieldGrid, XInput, XNumber, XSelect, XSwitch, type Option } from '../../kit'
 import { useInbounds } from '../../stores/inbounds'
 import { uuid } from '../xray/outbound'
 import { flows, mtprotoSecret, randomLowerNum, randomSeq, ssPassword, vmessSecurities } from './inbound'
 import type { Protocol } from './model'
+import { useClientTerms } from './terms'
 
 /**
  * A client's fields as the old panel's client form had them, laid out as
@@ -25,8 +26,6 @@ const props = defineProps<{
 const { t } = useI18n()
 const store = useInbounds()
 
-const GB = 1024 ** 3
-const DAY = 86_400_000
 const c = computed(() => props.client)
 
 const subscription = computed(() => !!c.value.email && !!store.defaults?.subEnable && props.protocol !== 'mtproto')
@@ -59,33 +58,7 @@ const reverseTag = computed({
   set: (tag: string) => (c.value.reverse = { tag }),
 })
 
-const totalGb = computed({
-  get: () => Math.round(((c.value.totalGB ?? 0) / GB) * 100) / 100,
-  set: (gb: number | null) => (c.value.totalGB = Math.round((gb ?? 0) * GB)),
-})
-
-/**
- * A delayed start keeps the length in days as a negative end. Turning it
- * either way starts over without an end, as the old panel did.
- */
-const delayed = ref(false)
-watch(
-  () => props.client,
-  (cl) => (delayed.value = (cl.expiryTime ?? 0) < 0),
-  { immediate: true },
-)
-function setDelayed(on: boolean) {
-  delayed.value = on
-  c.value.expiryTime = 0
-}
-const days = computed({
-  get: () => Math.round(-(c.value.expiryTime ?? 0) / DAY),
-  set: (n: number | null) => (c.value.expiryTime = -(n ?? 0) * DAY),
-})
-const expiry = computed({
-  get: () => Math.max(0, c.value.expiryTime ?? 0),
-  set: (ms: number) => (c.value.expiryTime = ms),
-})
+const { totalGb, delayed, setDelayed, days, expiry } = useClientTerms(() => props.client)
 </script>
 
 <template>
