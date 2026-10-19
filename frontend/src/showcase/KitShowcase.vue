@@ -4,7 +4,7 @@ import { useTheme } from '../stores/theme'
 import {
   XActionBar, XActionList, XActionRow, XAddButton, XBadge, XCountList, XExpandTable, XSummaryStat, XBusyOverlay, XButton, XButtonGroup, XCard, XCheckbox, XChip, XCodeArea, XCodeEditor, XCodeInput, XConfirm, XCounter, XDataTable, XDivider, XEmpty, XErrorBox, XExample, XField, XFieldGrid, XFieldNote, XGridTable, XInfoRow, XInlineButton, XInput, XInputList, XKeyValue, XListHead, XMenu, XModal, XMultiSelect, XNavItem, XNest, XNestCard, XNotice, XPlainTable,
   XNumber, XOrderToggles, XPager, XPairList, XPickList, XPopConfirm, XProcessError, XProgressLine, XQrCode, XRecordCard, XRouteTarget, XRowLink, XSection, XSegmented, XSelect, XSettingBlock, XSettingDivider, XSettingRow, XSettingsSection, XSettingsSkeleton, XStatusDot, XStatusText, XStepArrow, XSwitch, XTabs, XTagInput, XTestResult, XTextarea,
-  XTooltip, XUsagePill, XValueChip, XInnerTable, XMark, XRowToggle, XDateTime, XPartHead,
+  XTooltip, XUsagePill, XValueChip, XInnerTable, XMark, XRowToggle, XDateTime, XPartHead, XButtonRow,
   type MenuItem,
 } from '../kit'
 
@@ -112,6 +112,8 @@ const demoProto = ref('vless')
 const demoEmail = ref('k3x9mf2q')
 const demoNet = ref('xhttp')
 const demoWeb = ref(true)
+const demoSec = ref('reality')
+const demoShortIds = ref('6ba85179e30d4fc2\n2f\n4b0c9e71\na1b2c3d4e5')
 const demoManyClients = Array.from({ length: 30 }, (_, i) => ({ email: `user-${String(i + 1).padStart(3, '0')}`, id: `0740d687-743b-4269-ad61-${String(i).padStart(12, '0')}` }))
 const demoDate = ref(0)
 const plainColumns = [{ key: 'ext', label: 'Маршрутизация (ext:…)' }, { key: 'at', label: 'Обновлено' }, { key: 'act', label: 'Действия', fit: true }]
@@ -826,6 +828,17 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
         <XPartHead title="Транспорт">
           <XSelect v-model="demoNet" :options="[{ value: 'tcp', label: 'TCP (RAW)' }, { value: 'xhttp', label: 'XHTTP' }]" />
         </XPartHead>
+        <XPartHead title="Безопасность" wide>
+          <XSegmented v-model="demoSec" :options="[{ value: 'none', label: 'Пусто' }, { value: 'reality', label: 'Reality' }, { value: 'tls', label: 'TLS' }]" label="Безопасность" block />
+        </XPartHead>
+        <XFieldGrid top>
+          <XField v-slot="a" label="Short IDs (сетка top)"><XTextarea v-bind="a" v-model="demoShortIds" mono :rows="4" /></XField>
+          <XField v-slot="a" label="SpiderX"><XInput v-bind="a" model-value="/" mono /></XField>
+        </XFieldGrid>
+        <XButtonRow>
+          <XButton size="sm" variant="primary">Get New Cert</XButton>
+          <XButton size="sm" variant="danger">Clear</XButton>
+        </XButtonRow>
         <XSwitch v-model="demoWeb" boxed label="WEB-прокси" help="Те же клиенты получают вторую ссылку — tg://webproxy." />
         <XField v-slot="a" label="Email" help="Пожалуйста, укажите уникальный Email" action="Сбросить" @action="demoEmail = Math.random().toString(36).slice(2, 11)">
           <XInput v-bind="a" v-model="demoEmail" />
