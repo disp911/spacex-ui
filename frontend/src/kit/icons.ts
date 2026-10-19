@@ -56,6 +56,7 @@ export const icons = {
   rules: path('M2.5 4h4M2.5 8h7M2.5 12h4') + path('M10.5 10.5 13.5 12l-3 1.5'),
   templates: '<rect x="2.4" y="2.4" width="11.2" height="4" rx="1.2"/><rect x="2.4" y="9" width="4.6" height="4.6" rx="1.2"/>' + path('M9.6 9.8h4M9.6 12.8h4'),
   updown: path('M5 13V3M2.6 5.4 5 3l2.4 2.4M11 3v10M8.6 10.6 11 13l2.4-2.4'),
+  calendar: path('M2.8 4.2h10.4v9H2.8zM2.8 7h10.4M5.5 2.5v3M10.5 2.5v3'),
   clock: circle(8, 8, 6.2) + path('M8 4.6V8l2.4 1.6'),
   userPlus: circle(6.4, 5.4, 2.5) + path('M1.8 13.4c.5-2.4 2.4-3.8 4.6-3.8s4.1 1.4 4.6 3.8M12.6 4.4v4M10.6 6.4h4'),
   users: circle(5.8, 5.6, 2.3) + path('M1.6 13.2c.4-2.2 2.1-3.5 4.2-3.5s3.8 1.3 4.2 3.5') + circle(11.2, 5, 1.9) + path('M11.6 9.2c1.6.1 2.8 1.2 3.1 3'),

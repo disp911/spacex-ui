@@ -8,6 +8,8 @@ export interface Option<T extends OptionValue = string> {
   glyph?: string
   /** A word among codes, e.g. Empty for no value: the regular face in italics. */
   plain?: boolean
+  /** A line under the label, e.g. why it cannot be chosen; a disabled option with one gets a lock. */
+  note?: string
 }
 
 export type Tone = 'ok' | 'warn' | 'err' | 'unl' | 'on' | 'off' | 'neutral'

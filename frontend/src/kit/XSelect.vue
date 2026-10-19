@@ -194,7 +194,7 @@ function onKeydown(e: KeyboardEvent) {
           role="option"
           :aria-selected="o.value === model"
           :aria-disabled="o.disabled || undefined"
-          :class="['x-popup-item', { 'is-active': i === active, 'is-selected': o.value === model, 'x-select__option--mono': mono && !o.plain, 'x-select__option--plain': o.plain }]"
+          :class="['x-popup-item', { 'is-active': i === active, 'is-selected': o.value === model, 'x-select__option--mono': mono && !o.plain, 'x-select__option--plain': o.plain, 'x-select__option--noted': o.note }]"
           @pointermove="!o.disabled && (active = i)"
           :title="columns ? o.label : undefined"
           @click="choose(i)"
@@ -204,6 +204,8 @@ function onKeydown(e: KeyboardEvent) {
             <span v-if="parts(o.label)" class="x-select__label">{{ parts(o.label)![0] }}<mark class="x-select__match">{{ parts(o.label)![1] }}</mark>{{ parts(o.label)![2] }}</span>
             <span v-else class="x-select__label">{{ o.label }}</span>
             <XIcon v-if="o.value === model" name="check" :size="14" :stroke="1.8" />
+            <XIcon v-else-if="o.disabled && o.note" name="lock" :size="12" :stroke="1.5" />
+            <span v-if="o.note" class="x-select__note">{{ o.note }}</span>
           </template>
         </li>
       </ul>
@@ -281,6 +283,22 @@ function onKeydown(e: KeyboardEvent) {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+}
+
+/* An option with a line under it: the label and its mark on top, the note below. */
+.x-select__option--noted {
+  flex: none;
+  flex-wrap: wrap;
+  row-gap: 2px;
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+.x-select__note {
+  flex: 1 0 100%;
+  color: var(--mut);
+  font: 400 var(--fs-12) / 1.35 var(--font-sans);
+  text-wrap: pretty;
 }
 
 /* A grid of symbols: square cells, no lines between them. */

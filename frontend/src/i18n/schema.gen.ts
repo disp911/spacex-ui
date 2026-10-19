@@ -657,6 +657,27 @@ export interface MessageSchema {
     "resetAllClientsText": string
     "delDepletedTitle": string
     "delDepletedText": string
+    "addTitle": string
+    "editTitle": string
+    "listen": string
+    "listenHelp": string
+    "totalFlow": string
+    "trafficResetHelp": string
+    "lastReset": string
+    "expiryHelp": string
+    "resetNever": string
+    "resetHourly": string
+    "resetDaily": string
+    "resetWeekly": string
+    "resetMonthly": string
+    "mtprotoSingle": string
+    "createShort": string
+    "update": string
+    "cloneTitle": string
+    "cloneText": string
+    "cloneOk": string
+    "totalHelp": string
+    "gb": string
   }
   "units": {
     "value": string
@@ -675,6 +696,7 @@ export interface MessageSchema {
     "milliseconds": string
   }
   "kit": {
+    "pickDate": string
     "addValue": string
     "clear": string
     "showPassword": string

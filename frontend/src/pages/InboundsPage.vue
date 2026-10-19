@@ -16,6 +16,8 @@ import { ask, asked, type Ask } from './inbounds/ask'
 import ClientCounts from './inbounds/ClientCounts.vue'
 import InboundClients from './inbounds/InboundClients.vue'
 import InboundsTools from './inbounds/InboundsTools.vue'
+import InboundModal from './inbounds/InboundModal.vue'
+import { cloneOf, toForm } from './inbounds/inbound'
 import {
   deepSearch, expiryState, filterEmails, hasClients, pageSizes, protocolChips, trafficState, type ClientCounts as Counts, type DbInbound, type Filter, type State,
 } from './inbounds/model'
@@ -159,6 +161,16 @@ function act(key: string, ib: DbInbound) {
   switch (key) {
     case 'enable':
       return setEnable(ib, !ib.enable)
+    case 'edit':
+      return openInbound(ib)
+    case 'clone':
+      return ask({
+        title: `${t('inbounds.cloneTitle')} "${ib.remark}"`,
+        text: t('inbounds.cloneText'),
+        cta: t('inbounds.cloneOk'),
+        icon: 'info',
+        run: () => api.post(`${base}/add`, toForm(cloneOf(ib))),
+      })
     case 'resetTraffic':
       return ask({ title: `${t('inbounds.resetTraffic')} #${ib.id}`, text: t('inbounds.resetConfirm'), cta: t('inbounds.reset'), danger: true, run: () => resetTraffic(ib) })
     case 'delete':
@@ -193,6 +205,16 @@ function resetTraffic(ib: DbInbound) {
   }
   for (const [k, v] of Object.entries(fields)) form.set(k, String(v))
   return api.post(`panel/api/inbounds/update/${ib.id}`, form)
+}
+
+// --- The inbound window ----------------------------------------------------------
+
+const inboundOpen = ref(false)
+const editing = shallowRef<DbInbound | null>(null)
+
+function openInbound(ib: DbInbound | null) {
+  editing.value = ib
+  inboundOpen.value = true
 }
 
 // --- Asking first ------------------------------------------------------------------
@@ -311,7 +333,7 @@ const clientFilter = computed<Filter>(() => (mode.value === 'filter' ? filter.va
         :toggle-label="t('inbounds.clients')"
       >
         <template #tools>
-          <InboundsTools v-model:mode="mode" v-model:search="search" v-model:filter="filter" :subscription="subscription" @action="actAll" />
+          <InboundsTools v-model:mode="mode" v-model:search="search" v-model:filter="filter" :subscription="subscription" @action="actAll" @create="openInbound(null)" />
         </template>
 
         <template #cell-menu="{ row }">
@@ -435,11 +457,14 @@ const clientFilter = computed<Filter>(() => (mode.value === 'filter' ? filter.va
     </template>
   </AppPage>
 
+  <InboundModal v-model:open="inboundOpen" :inbound="editing" />
+
   <XConfirm
     :open="!!asked"
     :title="question?.title ?? ''"
     :cta="question?.cta ?? ''"
     :danger="question?.danger"
+    :icon="question?.icon"
     :busy="answering"
     @update:open="!$event && dismiss()"
     @confirm="answer"

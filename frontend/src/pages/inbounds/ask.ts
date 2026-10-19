@@ -1,4 +1,5 @@
 import { shallowRef } from 'vue'
+import type { IconName } from '../../kit'
 
 /** A question window 19 of the mockup puts before an action: what it is about, what it asks and the action itself. */
 export interface Ask {
@@ -7,6 +8,8 @@ export interface Ask {
   cta: string
   /** Cannot be undone, e.g. deleting or resetting traffic: the window shows it in red. */
   danger?: boolean
+  /** What the action is, in place of the warning sign, e.g. info for a clone. */
+  icon?: IconName
   run: () => Promise<unknown>
 }
 
