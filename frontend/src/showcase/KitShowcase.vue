@@ -4,7 +4,7 @@ import { useTheme } from '../stores/theme'
 import {
   XActionBar, XActionList, XActionRow, XAddButton, XBadge, XCountList, XExpandTable, XSummaryStat, XBusyOverlay, XButton, XButtonGroup, XCard, XCheckbox, XChip, XCodeArea, XCodeEditor, XCodeInput, XConfirm, XCounter, XDataTable, XDivider, XEmpty, XErrorBox, XExample, XField, XFieldGrid, XFieldNote, XGridTable, XInfoRow, XInlineButton, XInput, XInputList, XKeyValue, XListHead, XMenu, XModal, XMultiSelect, XNavItem, XNest, XNestCard, XNotice, XPlainTable,
   XNumber, XOrderToggles, XPager, XPairList, XPickList, XPopConfirm, XProcessError, XProgressLine, XQrCode, XRecordCard, XRouteTarget, XRowLink, XSection, XSegmented, XSelect, XSettingBlock, XSettingDivider, XSettingRow, XSettingsSection, XSettingsSkeleton, XStatusDot, XStatusText, XStepArrow, XSwitch, XTabs, XTagInput, XTestResult, XTextarea,
-  XTooltip, XUsagePill, XValueChip, XInnerTable, XMark, XRowToggle,
+  XTooltip, XUsagePill, XValueChip, XInnerTable, XMark, XRowToggle, XDateTime,
   type MenuItem,
 } from '../kit'
 
@@ -108,6 +108,8 @@ const demoColumns = [
   { key: 'to', label: 'Исходящее подключение', size: '.85fr', phone: 'head' as const },
 ]
 const demoCountry = ref(2)
+const demoProto = ref('vless')
+const demoDate = ref(0)
 const plainColumns = [{ key: 'ext', label: 'Маршрутизация (ext:…)' }, { key: 'at', label: 'Обновлено' }, { key: 'act', label: 'Действия', fit: true }]
 const plainRows = [
   { ext: 'ext:geosite_ads.dat:tag', at: '2026-10-09 14:32:05', busy: false },
@@ -592,6 +594,8 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
           <XKeyValue :rows="[{ label: 'Access Token', value: 'fb4d5e78-31cd-44c5-ad60-0084c5af7c2a' }, { label: 'Device ID', value: 't.73479747-81ad-4783-ac51-9638e62ddb34' }]" />
           <XDivider label="Статус исходящего подключения" />
           <XSelect v-model="demoCountry" :options="[{ value: 1, label: 'Georgia (GE)' }, { value: 2, label: 'Germany (DE)' }, { value: 3, label: 'Netherlands (NL)' }]" search placeholder="Страна" />
+          <XSelect v-model="demoProto" :options="[{ value: 'vless', label: 'vless' }, { value: 'mtproto', label: 'mtproto', disabled: true, note: 'Подключение mtproto может быть только одно' }]" mono />
+          <XDateTime v-model="demoDate" />
           <div class="kit__row kit__row--wrap">
             <XTestResult state="idle" />
             <XTestResult state="testing" />
