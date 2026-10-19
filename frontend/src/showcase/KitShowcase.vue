@@ -4,7 +4,7 @@ import { useTheme } from '../stores/theme'
 import {
   XActionBar, XActionList, XActionRow, XAddButton, XBadge, XCountList, XExpandTable, XSummaryStat, XBusyOverlay, XButton, XButtonGroup, XCard, XCheckbox, XChip, XCodeArea, XCodeEditor, XCodeInput, XConfirm, XCounter, XDataTable, XDivider, XEmpty, XErrorBox, XExample, XField, XFieldGrid, XFieldNote, XGridTable, XInfoRow, XInlineButton, XInput, XInputList, XKeyValue, XListHead, XMenu, XModal, XMultiSelect, XNavItem, XNest, XNestCard, XNotice, XPlainTable,
   XNumber, XOrderToggles, XPager, XPairList, XPickList, XPopConfirm, XProcessError, XProgressLine, XQrCode, XRecordCard, XRouteTarget, XRowLink, XSection, XSegmented, XSelect, XSettingBlock, XSettingDivider, XSettingRow, XSettingsSection, XSettingsSkeleton, XStatusDot, XStatusText, XStepArrow, XSwitch, XTabs, XTagInput, XTestResult, XTextarea,
-  XTooltip, XUsagePill, XValueChip, XInnerTable, XMark, XRowToggle, XDateTime, XPartHead, XButtonRow, XCheckGroup,
+  XTooltip, XUsagePill, XValueChip, XInnerTable, XMark, XRowToggle, XDateTime, XPartHead, XButtonRow, XCheckGroup, XStateBar,
   type MenuItem,
 } from '../kit'
 
@@ -840,6 +840,11 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
           <XButton size="sm" variant="primary">Get New Cert</XButton>
           <XButton size="sm" variant="danger">Clear</XButton>
         </XButtonRow>
+        <XStateBar>Account is Expired And Disabled</XStateBar>
+        <XField label="Дата окончания" help="Оставьте пустым, чтобы не ограничивать">
+          <template #badge><XChip tone="err">Expired</XChip></template>
+          <template #default="a"><XInput v-bind="a" model-value="2026-09-30 00:00:00" mono /></template>
+        </XField>
         <XDivider spaced />
         <XCheckGroup v-model="demoSniff" :options="['http', 'tls', 'quic', 'fakedns'].map((v) => ({ value: v, label: v }))" mono label="Sniffing" />
         <XSwitch v-model="demoWeb" boxed label="WEB-прокси" help="Те же клиенты получают вторую ссылку — tg://webproxy." />
