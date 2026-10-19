@@ -748,6 +748,8 @@ export interface MessageSchema {
     "publicKey": string
     "privateKey": string
     "setDefaultCert": string
+    "enabled": string
+    "sniffingHelp": string
   }
   "units": {
     "value": string

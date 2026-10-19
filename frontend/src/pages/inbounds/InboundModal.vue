@@ -14,6 +14,7 @@ import InboundProtocol from './InboundProtocol.vue'
 import InboundStream from './InboundStream.vue'
 import InboundExternal from './InboundExternal.vue'
 import InboundSecurity from './InboundSecurity.vue'
+import InboundSniffing from './InboundSniffing.vue'
 import { protocols, type DbInbound, type Protocol } from './model'
 
 /**
@@ -34,6 +35,7 @@ watch(open, (on) => {
   if (!on) return
   f.value = props.inbound ? fromDb(props.inbound) : newInbound()
   clientOpen.value = !props.inbound
+  sniffingOpen.value = !props.inbound
 })
 
 const editing = computed(() => !!props.inbound)
@@ -74,6 +76,7 @@ const totalGb = computed({
 // clients, closed, as the old panel did. Clients are changed in their own windows.
 
 const clientOpen = ref(true)
+const sniffingOpen = ref(true)
 const hasClients = computed(() => withClients(f.value.protocol, f.value.settings))
 const clients = computed(() => clientsOf(f.value))
 
@@ -154,10 +157,14 @@ async function save() {
       <InboundProtocol :f="f" />
       <InboundStream v-if="canStream(f.protocol)" :f="f" />
       <template v-if="canStream(f.protocol) || f.protocol === 'mtproto'">
-        <XDivider />
+        <XDivider spaced />
         <InboundExternal :f="f" />
       </template>
       <InboundSecurity v-if="canStream(f.protocol)" :f="f" />
+      <template v-if="f.protocol !== 'mtproto'">
+        <XDivider spaced />
+        <InboundSniffing v-model:open="sniffingOpen" :f="f" />
+      </template>
     </div>
 
     <template #footer>

@@ -1480,6 +1480,8 @@
 "publicKey" = "Public Key"
 "privateKey" = "Private Key"
 "setDefaultCert" = "Set Cert from Panel"
+"enabled" = "Enabled"
+"sniffingHelp" = "It is recommended to keep the default"
 
 [kit]
 "pickDate" = "Pick a date"
