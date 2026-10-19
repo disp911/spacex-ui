@@ -1,8 +1,8 @@
 <script setup lang="ts" generic="T">
-import { computed } from 'vue'
+import { computed, onBeforeUnmount, onMounted, provide, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import XIcon from './XIcon.vue'
-import { usePhone } from './media'
+import { compactKey, usePhone } from './media'
 
 export interface ExpandColumn {
   key: string
@@ -22,7 +22,9 @@ export interface ExpandColumn {
  * Phones get their own columns; there the page places the toggle itself, from
  * the slot props, as the row's name usually opens it. A muted row, e.g. a
  * disabled inbound, dims its cells. A cell shows the `cell-<key>` slot on
- * desktop and `phone-<key>` on phones.
+ * desktop and `phone-<key>` on phones. With compactBelow it takes its phone
+ * columns whenever it is narrower than that, e.g. a laptop screen too small
+ * for every column; the lists its rows open onto follow it.
  */
 const props = defineProps<{
   columns: ExpandColumn[]
@@ -34,10 +36,27 @@ const props = defineProps<{
   muted?: (row: T) => boolean
   /** The accessible name of a row's chevron, e.g. «Clients». */
   toggleLabel?: string
+  /** The narrowest width, in pixels, the desktop columns fit in; below it the phone columns show. */
+  compactBelow?: number
 }>()
 const open = defineModel<(string | number)[]>('open', { default: () => [] })
 const { t } = useI18n()
-const phone = usePhone()
+const screenPhone = usePhone()
+const root = ref<HTMLElement | null>(null)
+const narrow = ref(false)
+let observer: ResizeObserver | null = null
+onMounted(() => {
+  if (!props.compactBelow || !root.value) return
+  // Measured at once too, so the first paint already has the right columns.
+  narrow.value = root.value.getBoundingClientRect().width < props.compactBelow
+  observer = new ResizeObserver(([entry]) => (narrow.value = !!entry && entry.contentRect.width < props.compactBelow!))
+  observer.observe(root.value)
+})
+onBeforeUnmount(() => observer?.disconnect())
+
+/** Phone columns on a phone, or wherever the desktop ones do not fit. */
+const phone = computed(() => screenPhone.value || narrow.value)
+provide(compactKey, phone)
 
 const columns = computed(() => (phone.value ? props.phoneColumns : props.columns))
 const template = computed(() =>
@@ -52,7 +71,7 @@ const canOpen = (row: T) => props.expandable?.(row) ?? false
 </script>
 
 <template>
-  <section :class="['x-expand', { 'x-expand--phone': phone }]">
+  <section ref="root" :class="['x-expand', { 'x-expand--phone': phone }]">
     <div v-if="$slots.tools" class="x-expand__tools"><slot name="tools" /></div>
 
     <div class="x-expand__head x-caps" role="row">

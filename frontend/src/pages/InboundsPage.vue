@@ -331,6 +331,7 @@ const clientFilter = computed<Filter>(() => (mode.value === 'filter' ? filter.va
         :expandable="(ib) => hasClients(ib)"
         :muted="(ib) => !ib.enable"
         :toggle-label="t('inbounds.clients')"
+        :compact-below="1000"
       >
         <template #tools>
           <InboundsTools v-model:mode="mode" v-model:search="search" v-model:filter="filter" :subscription="subscription" @action="actAll" @create="openInbound(null)" />

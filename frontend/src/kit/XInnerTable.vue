@@ -1,6 +1,6 @@
 <script setup lang="ts" generic="T">
 import { computed } from 'vue'
-import { usePhone } from './media'
+import { useCompact } from './media'
 
 export interface InnerColumn {
   key: string
@@ -14,8 +14,8 @@ export interface InnerColumn {
 /**
  * The list a row of XExpandTable opens onto, e.g. an inbound's clients: a caps
  * header and one-line rows split by thin lines, with room for a pager below.
- * Phones get their own columns. A cell shows the `cell-<key>` slot on desktop
- * and `phone-<key>` on phones.
+ * Phones get their own columns, and so does a narrow XExpandTable around it. A
+ * cell shows the `cell-<key>` slot on desktop and `phone-<key>` on phones.
  */
 const props = defineProps<{
   columns: InnerColumn[]
@@ -23,7 +23,7 @@ const props = defineProps<{
   rows: T[]
   rowKey: (row: T, index: number) => string | number
 }>()
-const phone = usePhone()
+const phone = useCompact()
 
 const columns = computed(() => (phone.value ? props.phoneColumns : props.columns))
 const template = computed(() => columns.value.map((c) => c.size ?? 'minmax(0, 1fr)').join(' '))
