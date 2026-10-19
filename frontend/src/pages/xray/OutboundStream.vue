@@ -13,7 +13,11 @@ const props = defineProps<{ o: Outbound }>()
 const { t } = useI18n()
 const open = ref(true)
 
-const st = computed(() => (props.o.streamSettings ??= { network: 'tcp', security: 'none' }))
+const st = computed(() => {
+  props.o.streamSettings ??= { network: 'tcp', security: 'none' }
+  // Read back through the reactive object: ??= hands back the plain new value.
+  return props.o.streamSettings
+})
 const net = computed({
   get: () => st.value.network ?? 'tcp',
   set: (n: string) => {
@@ -24,7 +28,11 @@ const net = computed({
   },
 })
 /** The settings of the network in use, made when missing. */
-const ns = computed(() => (st.value[`${net.value}Settings`] ??= defaultNetwork(net.value)))
+const ns = computed(() => {
+  st.value[`${net.value}Settings`] ??= defaultNetwork(net.value)
+  // Read back through the reactive object: ??= hands back the plain new value.
+  return st.value[`${net.value}Settings`]
+})
 
 const netOptions = computed<Option[]>(() => [
   ...networks,
@@ -65,7 +73,11 @@ const hopPort = computed({
 
 // --- Masks ------------------------------------------------------------------------------
 
-const fm = computed(() => (st.value.finalmask ??= {}))
+const fm = computed(() => {
+  st.value.finalmask ??= {}
+  // Read back through the reactive object: ??= hands back the plain new value.
+  return st.value.finalmask
+})
 const tcpMasks = computed(() => ['tcp', 'raw', 'httpupgrade', 'ws', 'grpc', 'xhttp'].includes(net.value))
 const udpMasks = computed(() => net.value === 'kcp' || props.o.protocol === 'hysteria')
 const quic = computed(() => net.value === 'xhttp' || props.o.protocol === 'hysteria')

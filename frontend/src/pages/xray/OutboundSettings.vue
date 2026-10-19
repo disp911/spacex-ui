@@ -16,7 +16,11 @@ const props = defineProps<{ o: Outbound; tags: string[] }>()
 const { t } = useI18n()
 const open = ref(true)
 
-const s = computed(() => (props.o.settings ??= {}))
+const s = computed(() => {
+  props.o.settings ??= {}
+  // Read back through the reactive object: ??= hands back the plain new value.
+  return props.o.settings
+})
 const srv = computed(() => server(props.o))
 const usr = computed(() => user(props.o))
 
@@ -41,7 +45,11 @@ const reverseTag = computed({
   get: () => s.value.reverse?.tag ?? '',
   set: (v: string) => (s.value.reverse = { ...(s.value.reverse ?? {}), tag: v }),
 })
-const seeds = computed(() => (usr.value.testseed ??= [900, 500, 900, 256]) as number[])
+const seeds = computed(() => {
+  usr.value.testseed ??= [900, 500, 900, 256]
+  // Read back through the reactive object: ??= hands back the plain new value.
+  return usr.value.testseed as number[]
+})
 
 // --- Shadowsocks, SOCKS, HTTP ------------------------------------------------------
 

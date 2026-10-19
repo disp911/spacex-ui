@@ -10,7 +10,11 @@ const props = defineProps<{ o: Outbound }>()
 const { t } = useI18n()
 const open = ref(true)
 
-const st = computed(() => (props.o.streamSettings ??= { network: 'tcp', security: 'none' }))
+const st = computed(() => {
+  props.o.streamSettings ??= { network: 'tcp', security: 'none' }
+  // Read back through the reactive object: ??= hands back the plain new value.
+  return props.o.streamSettings
+})
 const sec = computed({
   get: () => st.value.security ?? 'none',
   set: (v: string) => {
@@ -19,8 +23,16 @@ const sec = computed({
     if (v === 'reality') st.value.realitySettings ??= defaultReality()
   },
 })
-const tls = computed(() => (st.value.tlsSettings ??= defaultTls()))
-const reality = computed(() => (st.value.realitySettings ??= defaultReality()))
+const tls = computed(() => {
+  st.value.tlsSettings ??= defaultTls()
+  // Read back through the reactive object: ??= hands back the plain new value.
+  return st.value.tlsSettings
+})
+const reality = computed(() => {
+  st.value.realitySettings ??= defaultReality()
+  // Read back through the reactive object: ??= hands back the plain new value.
+  return st.value.realitySettings
+})
 
 const kinds = computed(() => [
   { value: 'none', label: 'none' },
