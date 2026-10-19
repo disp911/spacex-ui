@@ -9,6 +9,7 @@ import {
 import { formatBytes, formatDate, formatRelative } from '../../i18n/format'
 import { useInbounds } from '../../stores/inbounds'
 import { cause } from '../settings/form'
+import { ask } from './ask'
 import {
   allTimeOf, clientKey, clientsOf, clientView, delayedDays, hasLink, pageSizes, renewShare, settingsOf, shownClients, statsMap,
   type Client, type ClientView, type DbInbound, type Filter, type State,
@@ -92,6 +93,10 @@ function menu(c: Client): MenuItem[] {
 
 function act(key: string, c: Client) {
   if (key === 'enable') setEnable(c, !c.enable)
+  else if (key === 'reset')
+    ask({ title: `${t('inbounds.resetTraffic')} ${c.email}`, text: t('inbounds.resetConfirm'), cta: t('inbounds.reset'), danger: true, run: () => resetRequest(c) })
+  else if (key === 'delete')
+    ask({ title: `${t('inbounds.deleteClient')} ${c.email}`, text: t('inbounds.deleteConfirm'), cta: t('inbounds.delete'), danger: true, run: () => removeRequest(c) })
   else if (key === 'qr' || key === 'edit' || key === 'info') emit('action', key, c)
 }
 
@@ -130,18 +135,13 @@ async function setEnable(c: Client, on: boolean) {
   }
 }
 
-async function resetTraffic(c: Client) {
-  try {
-    await api.post(`panel/api/inbounds/${props.inbound.id}/resetClientTraffic/${encodeURIComponent(c.email)}`)
-  } catch (e) {
-    toast('err', cause(e))
-  }
-  await store.load().catch(() => {})
-}
+const resetRequest = (c: Client) => api.post(`panel/api/inbounds/${props.inbound.id}/resetClientTraffic/${encodeURIComponent(c.email)}`)
+const removeRequest = (c: Client) => api.post(`panel/api/inbounds/${props.inbound.id}/delClient/${encodeURIComponent(keyOf(c))}`)
 
-async function remove(c: Client) {
+/** From the row's own confirmation on desktop; phones ask in the page's window. */
+async function confirmed(request: Promise<unknown>) {
   try {
-    await api.post(`panel/api/inbounds/${props.inbound.id}/delClient/${encodeURIComponent(keyOf(c))}`)
+    await request
   } catch (e) {
     toast('err', cause(e))
   }
@@ -156,10 +156,10 @@ async function remove(c: Client) {
         <XInlineButton v-if="hasLink(inbound.protocol)" icon="qr" :label="t('inbounds.qr')" tip @click="emit('action', 'qr', row)" />
         <XInlineButton icon="edit" :label="t('inbounds.editClient')" tip @click="emit('action', 'edit', row)" />
         <XInlineButton icon="info" :label="t('inbounds.info')" tip @click="emit('action', 'info', row)" />
-        <XPopConfirm v-slot="{ props: trigger }" :text="t('inbounds.resetConfirm')" :cta="t('inbounds.reset')" @confirm="resetTraffic(row)">
+        <XPopConfirm v-slot="{ props: trigger }" :text="t('inbounds.resetConfirm')" :cta="t('inbounds.reset')" @confirm="confirmed(resetRequest(row))">
           <XInlineButton v-bind="trigger" icon="reset" :label="t('inbounds.resetTraffic')" tip />
         </XPopConfirm>
-        <XPopConfirm v-if="total > 1" v-slot="{ props: trigger }" :text="t('inbounds.deleteConfirm')" :cta="t('inbounds.delete')" @confirm="remove(row)">
+        <XPopConfirm v-if="total > 1" v-slot="{ props: trigger }" :text="t('inbounds.deleteConfirm')" :cta="t('inbounds.delete')" @confirm="confirmed(removeRequest(row))">
           <XInlineButton v-bind="trigger" icon="delete" :label="t('inbounds.delete')" danger tip />
         </XPopConfirm>
       </div>

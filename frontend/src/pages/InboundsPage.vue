@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, reactive, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, reactive, ref, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { api } from '../api'
 import {
-  toast, XButton, XCard, XChip, XEmpty, XExpandTable, XInlineButton, XKeyValue, XMark, XMenu, XNotice, XPager, XPopover, XRowToggle, XSpinner, XSummaryStat, XSwitch,
+  toast, XButton, XCard, XChip, XConfirm, XEmpty, XExpandTable, XInlineButton, XKeyValue, XMark, XMenu, XNotice, XPager, XPopover, XRowToggle, XSpinner, XSummaryStat, XSwitch,
   XTooltip,
   type ExpandColumn, type MenuItem,
 } from '../kit'
@@ -11,6 +11,8 @@ import { formatBytes, formatDate, formatRelative } from '../i18n/format'
 import AppPage from '../layout/AppPage.vue'
 import { useInbounds } from '../stores/inbounds'
 import { insecure } from './xray/model'
+import { cause } from './settings/form'
+import { ask, asked, type Ask } from './inbounds/ask'
 import ClientCounts from './inbounds/ClientCounts.vue'
 import InboundClients from './inbounds/InboundClients.vue'
 import InboundsTools from './inbounds/InboundsTools.vue'
@@ -153,7 +155,73 @@ function menu(ib: DbInbound, phone = false): MenuItem[] {
 }
 
 function act(key: string, ib: DbInbound) {
-  if (key === 'enable') setEnable(ib, !ib.enable)
+  const base = 'panel/api/inbounds'
+  switch (key) {
+    case 'enable':
+      return setEnable(ib, !ib.enable)
+    case 'resetTraffic':
+      return ask({ title: `${t('inbounds.resetTraffic')} #${ib.id}`, text: t('inbounds.resetConfirm'), cta: t('inbounds.reset'), danger: true, run: () => resetTraffic(ib) })
+    case 'delete':
+      return ask({ title: `${t('inbounds.deleteInbound')} #${ib.id}`, text: t('inbounds.deleteInboundText'), cta: t('inbounds.delete'), danger: true, run: () => api.post(`${base}/del/${ib.id}`) })
+    case 'resetClients':
+      return ask({ title: t('inbounds.resetClientsTitle'), text: t('inbounds.resetClientsText'), cta: t('inbounds.reset'), danger: true, run: () => api.post(`${base}/resetAllClientTraffics/${ib.id}`) })
+    case 'delDepleted':
+      return ask({ title: t('inbounds.delDepletedTitle'), text: t('inbounds.delDepletedText'), cta: t('inbounds.delete'), danger: true, run: () => api.post(`${base}/delDepletedClients/${ib.id}`) })
+  }
+}
+
+/** The general actions over every inbound. */
+function actAll(key: string) {
+  const base = 'panel/api/inbounds'
+  switch (key) {
+    case 'resetAllInbounds':
+      return ask({ title: t('inbounds.resetAllInbounds'), text: t('inbounds.resetAllInboundsText'), cta: t('inbounds.reset'), danger: true, run: () => api.post(`${base}/resetAllTraffics`) })
+    case 'resetAllClients':
+      return ask({ title: t('inbounds.resetAllClients'), text: t('inbounds.resetAllClientsText'), cta: t('inbounds.reset'), danger: true, run: () => api.post(`${base}/resetAllClientTraffics/-1`) })
+    case 'delDepleted':
+      return ask({ title: t('inbounds.delDepletedTitle'), text: t('inbounds.delDepletedText'), cta: t('inbounds.delete'), danger: true, run: () => api.post(`${base}/delDepletedClients/-1`) })
+  }
+}
+
+/** The inbound saved again with its counters at zero, as the old panel reset one inbound's traffic. */
+function resetTraffic(ib: DbInbound) {
+  const form = new FormData()
+  const fields = {
+    up: 0, down: 0, total: ib.total, remark: ib.remark, enable: ib.enable, expiryTime: ib.expiryTime, trafficReset: ib.trafficReset,
+    lastTrafficResetTime: ib.lastTrafficResetTime, listen: ib.listen, port: ib.port, protocol: ib.protocol, settings: ib.settings,
+    streamSettings: ib.streamSettings, sniffing: ib.sniffing,
+  }
+  for (const [k, v] of Object.entries(fields)) form.set(k, String(v))
+  return api.post(`panel/api/inbounds/update/${ib.id}`, form)
+}
+
+// --- Asking first ------------------------------------------------------------------
+
+const answering = ref(false)
+/** The last question, kept while the window fades out. */
+const question = shallowRef<Ask | null>(null)
+watch(asked, (q) => q && (question.value = q))
+
+onBeforeUnmount(() => (asked.value = null))
+
+function dismiss() {
+  if (!answering.value) asked.value = null
+}
+
+/** The action asked about: done while the window waits, then the list is fetched again. */
+async function answer() {
+  const q = asked.value
+  if (!q || answering.value) return
+  answering.value = true
+  try {
+    await q.run()
+  } catch (e) {
+    toast('err', cause(e))
+  } finally {
+    answering.value = false
+    asked.value = null
+  }
+  await store.load().catch(() => {})
 }
 
 // --- Enabling ----------------------------------------------------------------------
@@ -243,7 +311,7 @@ const clientFilter = computed<Filter>(() => (mode.value === 'filter' ? filter.va
         :toggle-label="t('inbounds.clients')"
       >
         <template #tools>
-          <InboundsTools v-model:mode="mode" v-model:search="search" v-model:filter="filter" :subscription="subscription" />
+          <InboundsTools v-model:mode="mode" v-model:search="search" v-model:filter="filter" :subscription="subscription" @action="actAll" />
         </template>
 
         <template #cell-menu="{ row }">
@@ -366,6 +434,18 @@ const clientFilter = computed<Filter>(() => (mode.value === 'filter' ? filter.va
       </XExpandTable>
     </template>
   </AppPage>
+
+  <XConfirm
+    :open="!!asked"
+    :title="question?.title ?? ''"
+    :cta="question?.cta ?? ''"
+    :danger="question?.danger"
+    :busy="answering"
+    @update:open="!$event && dismiss()"
+    @confirm="answer"
+  >
+    {{ question?.text }}
+  </XConfirm>
 </template>
 
 <style scoped>

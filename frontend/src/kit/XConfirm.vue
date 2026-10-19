@@ -8,9 +8,13 @@ import type { IconName } from './icons'
  * Asks before an action that changes a lot: a warning icon, a title, the
  * text (the slot), Cancel and the action. While busy the action shows a
  * spinner and its busy label, and the window cannot be closed. icon names the
- * action in place of the warning sign, e.g. refresh for a restart.
+ * action in place of the warning sign, e.g. refresh for a restart. danger is
+ * for what cannot be undone, e.g. deleting or resetting traffic: the sign and
+ * the action turn red.
  */
-const props = withDefaults(defineProps<{ title: string; cta: string; busy?: boolean; busyLabel?: string; icon?: IconName }>(), { icon: 'alert' })
+const props = withDefaults(defineProps<{ title: string; cta: string; busy?: boolean; busyLabel?: string; icon?: IconName; danger?: boolean }>(), {
+  icon: 'alert',
+})
 const emit = defineEmits<{ confirm: [] }>()
 const open = defineModel<boolean>('open', { default: false })
 
@@ -22,14 +26,14 @@ function run() {
 <template>
   <XModal v-model:open="open" :title="title" size="xs" headless cancel :dismissible="!busy">
     <div class="x-confirm">
-      <span class="x-confirm__icon"><XIcon :name="icon" :size="16" :stroke="1.4" /></span>
+      <span :class="['x-confirm__icon', { 'x-confirm__icon--danger': danger }]"><XIcon :name="icon" :size="16" :stroke="1.4" /></span>
       <div class="x-confirm__body">
         <h2 class="x-confirm__title">{{ title }}</h2>
         <div class="x-confirm__text"><slot /></div>
       </div>
     </div>
     <template #footer>
-      <XButton variant="primary" :loading="busy" @click="run">{{ busy && busyLabel ? busyLabel : cta }}</XButton>
+      <XButton :variant="danger ? 'danger' : 'primary'" :loading="busy" @click="run">{{ busy && busyLabel ? busyLabel : cta }}</XButton>
     </template>
   </XModal>
 </template>
@@ -51,6 +55,12 @@ function run() {
   border-radius: var(--r-10);
   background: var(--warn-bg);
   color: var(--warn);
+}
+
+.x-confirm__icon--danger {
+  border-color: var(--err-line);
+  background: var(--err-bg);
+  color: var(--err-t);
 }
 
 .x-confirm__body {

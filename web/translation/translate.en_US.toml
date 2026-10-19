@@ -1380,6 +1380,15 @@
 "deleteConfirm" = "Are you sure you want to delete client?"
 "delayedStart" = "Start after first use"
 "periodDays" = "{n} d"
+"deleteInbound" = "Delete Inbound"
+"deleteInboundText" = "Are you sure you want to delete inbound?"
+"deleteClient" = "Delete Client"
+"resetClientsTitle" = "Reset Clients Traffic"
+"resetClientsText" = "Are you sure you want to reset the traffic of this inbound's clients?"
+"resetAllInboundsText" = "Are you sure you want to reset the traffic of all inbounds?"
+"resetAllClientsText" = "Are you sure you want to reset the traffic of all clients?"
+"delDepletedTitle" = "Delete Depleted Clients"
+"delDepletedText" = "Are you sure you want to delete all the depleted clients?"
 
 [kit]
 "addValue" = "Add “{value}”"

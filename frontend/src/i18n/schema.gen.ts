@@ -648,6 +648,15 @@ export interface MessageSchema {
     "deleteConfirm": string
     "delayedStart": string
     "periodDays": string
+    "deleteInbound": string
+    "deleteInboundText": string
+    "deleteClient": string
+    "resetClientsTitle": string
+    "resetClientsText": string
+    "resetAllInboundsText": string
+    "resetAllClientsText": string
+    "delDepletedTitle": string
+    "delDepletedText": string
   }
   "units": {
     "value": string
