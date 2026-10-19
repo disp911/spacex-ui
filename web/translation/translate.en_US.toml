@@ -1482,6 +1482,13 @@
 "setDefaultCert" = "Set Cert from Panel"
 "enabled" = "Enabled"
 "sniffingHelp" = "It is recommended to keep the default"
+"submitAdd" = "Add Client"
+"submitEdit" = "Save Changes"
+"usage" = "Usage"
+"ipLog" = "IP Log"
+"ipLogDesc" = "The IPs history log. (to enable inbound after disabling, clear the log)"
+"ipLogMtprotoDesc" = "Addresses the client is connected from now or connected from recently. telemt keeps this list, so it needs no clearing."
+"ipLogClear" = "Clear The Log"
 
 [kit]
 "pickDate" = "Pick a date"

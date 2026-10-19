@@ -17,9 +17,10 @@ import ClientCounts from './inbounds/ClientCounts.vue'
 import InboundClients from './inbounds/InboundClients.vue'
 import InboundsTools from './inbounds/InboundsTools.vue'
 import InboundModal from './inbounds/InboundModal.vue'
+import ClientModal from './inbounds/ClientModal.vue'
 import { cloneOf, toForm } from './inbounds/inbound'
 import {
-  deepSearch, expiryState, filterEmails, hasClients, pageSizes, protocolChips, trafficState, type ClientCounts as Counts, type DbInbound, type Filter, type State,
+  deepSearch, expiryState, filterEmails, hasClients, pageSizes, protocolChips, trafficState, type Client, type ClientCounts as Counts, type DbInbound, type Filter, type State,
 } from './inbounds/model'
 
 const { t } = useI18n()
@@ -163,6 +164,8 @@ function act(key: string, ib: DbInbound) {
       return setEnable(ib, !ib.enable)
     case 'edit':
       return openInbound(ib)
+    case 'addClient':
+      return openClient(ib, null)
     case 'clone':
       return ask({
         title: `${t('inbounds.cloneTitle')} "${ib.remark}"`,
@@ -215,6 +218,22 @@ const editing = shallowRef<DbInbound | null>(null)
 function openInbound(ib: DbInbound | null) {
   editing.value = ib
   inboundOpen.value = true
+}
+
+// --- The client window -------------------------------------------------------------
+
+const clientOpen = ref(false)
+const clientInbound = shallowRef<DbInbound | null>(null)
+const clientEditing = shallowRef<Client | null>(null)
+
+function openClient(ib: DbInbound, c: Client | null) {
+  clientInbound.value = ib
+  clientEditing.value = c
+  clientOpen.value = true
+}
+
+function clientAction(key: 'qr' | 'edit' | 'info', ib: DbInbound, c: Client) {
+  if (key === 'edit') openClient(ib, c)
 }
 
 // --- Asking first ------------------------------------------------------------------
@@ -445,7 +464,7 @@ const clientFilter = computed<Filter>(() => (mode.value === 'filter' ? filter.va
         </template>
 
         <template #expanded="{ row }">
-          <InboundClients :inbound="row" :query="clientQuery" :filter="clientFilter" />
+          <InboundClients :inbound="row" :query="clientQuery" :filter="clientFilter" @action="(key, c) => clientAction(key, row, c)" />
         </template>
 
         <template #empty>
@@ -459,6 +478,7 @@ const clientFilter = computed<Filter>(() => (mode.value === 'filter' ? filter.va
   </AppPage>
 
   <InboundModal v-model:open="inboundOpen" :inbound="editing" />
+  <ClientModal v-model:open="clientOpen" :inbound="clientInbound" :client="clientEditing" />
 
   <XConfirm
     :open="!!asked"

@@ -46,6 +46,8 @@ const describedBy = computed(() => (props.error || props.hint ? `${id}-note` : u
           <XIcon :name="actionIcon" :size="12" :stroke="1.6" />
         </button>
       </XTooltip>
+      <!-- A state of the value after the label, e.g. an «Expired» chip. -->
+      <span v-if="$slots.badge" class="x-field__badge"><slot name="badge" /></span>
       <p v-if="layout === 'row' && (error || hint)" :id="`${id}-note`" :class="['x-field__note', { 'is-error': !!error }]">
         {{ error || hint }}
       </p>
@@ -101,7 +103,7 @@ const describedBy = computed(() => (props.error || props.hint ? `${id}-note` : u
   font-size: var(--ctl-fs);
 }
 
-.x-field--stack .x-field__head:has(.x-field__help, .x-field__action) {
+.x-field--stack .x-field__head:has(.x-field__help, .x-field__action, .x-field__badge) {
   flex-direction: row;
   align-items: center;
   gap: var(--sp-6);
@@ -151,6 +153,11 @@ const describedBy = computed(() => (props.error || props.hint ? `${id}-note` : u
 
 .x-field__action:focus-visible {
   box-shadow: 0 0 0 2px var(--acc-line);
+}
+
+.x-field__badge {
+  display: inline-flex;
+  margin: -2px 0;
 }
 
 .x-field__required {

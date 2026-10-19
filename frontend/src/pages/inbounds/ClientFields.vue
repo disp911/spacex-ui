@@ -10,7 +10,9 @@ import type { Protocol } from './model'
 /**
  * A client's fields as the old panel's client form had them, laid out as
  * window 11 of the mockup groups them: who it is, its limits, its options,
- * its traffic and when it ends. The client is changed in place.
+ * its traffic and when it ends. The client is changed in place. The client
+ * window (12) adds its own parts through slots: the IP log under the limits,
+ * the usage beside the traffic limit and a badge after the end date.
  */
 const props = defineProps<{
   client: Record<string, any>
@@ -108,7 +110,7 @@ const expiry = computed({
       </XField>
     </XFieldGrid>
 
-    <XFieldGrid v-if="ipLimit">
+    <XFieldGrid v-if="ipLimit" :phone="2">
       <XField v-slot="a" :label="t('inbounds.ipLimit')" :help="t('inbounds.ipLimitDesc')">
         <XNumber v-bind="a" v-model="client.limitIp" block :min="0" />
       </XField>
@@ -125,6 +127,8 @@ const expiry = computed({
       </template>
     </XFieldGrid>
 
+    <slot name="ips" />
+
     <XFieldGrid v-if="flow || protocol === 'vless'">
       <XField v-if="flow" v-slot="a" label="Flow">
         <XSelect v-bind="a" v-model="client.flow" :options="flowOptions" mono />
@@ -138,6 +142,7 @@ const expiry = computed({
       <XField v-slot="a" :label="t('inbounds.totalFlow')" :help="t('inbounds.totalHelp')">
         <XNumber v-bind="a" v-model="totalGb" block decimal :min="0" :unit="t('inbounds.gb')" />
       </XField>
+      <slot name="usage" />
     </XFieldGrid>
 
     <XSwitch :model-value="delayed" boxed :label="t('inbounds.delayedStart')" @update:model-value="setDelayed" />
@@ -145,8 +150,9 @@ const expiry = computed({
       <XField v-if="delayed" v-slot="a" :label="t('inbounds.expireDays')">
         <XNumber v-bind="a" v-model="days" block :min="0" />
       </XField>
-      <XField v-else v-slot="a" :label="t('inbounds.colExpiry')" :help="t('inbounds.expiryHelp')">
-        <XDateTime v-bind="a" v-model="expiry" />
+      <XField v-else :label="t('inbounds.colExpiry')" :help="t('inbounds.expiryHelp')">
+        <template v-if="$slots.expiry" #badge><slot name="expiry" /></template>
+        <template #default="a"><XDateTime v-bind="a" v-model="expiry" /></template>
       </XField>
       <XField v-if="client.expiryTime" v-slot="a" :label="t('inbounds.renew')" :help="t('inbounds.renewDesc')">
         <XNumber v-bind="a" v-model="client.reset" block :min="0" />

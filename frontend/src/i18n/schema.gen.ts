@@ -750,6 +750,13 @@ export interface MessageSchema {
     "setDefaultCert": string
     "enabled": string
     "sniffingHelp": string
+    "submitAdd": string
+    "submitEdit": string
+    "usage": string
+    "ipLog": string
+    "ipLogDesc": string
+    "ipLogMtprotoDesc": string
+    "ipLogClear": string
   }
   "units": {
     "value": string

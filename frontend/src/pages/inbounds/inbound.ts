@@ -595,15 +595,27 @@ function finalStream(f: InboundForm, input: Json): Json | undefined {
   return st
 }
 
+/**
+ * A client as the panel stores it: no Vision flow where the inbound cannot
+ * take one, no empty reverse tag, no MTProto limits left at 0. Used for the
+ * inbound's own clients and by the client window (addClient, updateClient).
+ */
+export function finalClient(f: InboundForm, client: Json): Json {
+  const c: Json = JSON.parse(JSON.stringify(client))
+  if (f.protocol === 'vless') {
+    if (!canFlow(f)) c.flow = ''
+    if (empty(c.reverse?.tag)) delete c.reverse
+  }
+  if (f.protocol === 'mtproto') for (const k of ['rateUp', 'rateDown', 'maxConns']) if (!c[k]) delete c[k]
+  return c
+}
+
 function finalSettings(f: InboundForm): Json {
   const s: Json = JSON.parse(JSON.stringify(f.settings))
+  if (Array.isArray(s.clients)) s.clients = s.clients.map((c: Json) => finalClient(f, c))
   switch (f.protocol) {
     case 'vless': {
       const clients = s.clients ?? []
-      for (const c of clients) {
-        if (!canFlow(f)) c.flow = ''
-        if (empty(c.reverse?.tag)) delete c.reverse
-      }
       if (!clients.some((c: Json) => !empty(c.flow))) delete s.testseed
       if (empty(s.fallbacks)) delete s.fallbacks
       if (empty(s.selectedAuth)) delete s.selectedAuth
@@ -614,7 +626,6 @@ function finalSettings(f: InboundForm): Json {
       break
     case 'mtproto':
       if (!s.web?.enable && empty(s.web?.host) && empty(s.web?.path)) delete s.web
-      for (const c of s.clients ?? []) for (const k of ['rateUp', 'rateDown', 'maxConns']) if (!c[k]) delete c[k]
       break
     case 'mixed':
       if (s.auth !== 'password') delete s.accounts
