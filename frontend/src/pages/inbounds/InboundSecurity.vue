@@ -165,7 +165,7 @@ function panelCert(c: Json) {
         <XSwitch v-model="tls.enableSessionResumption" boxed label="Session Resumption" />
       </XFieldGrid>
 
-      <XNestCard v-for="(c, i) in certs" :key="i" :title="`#${i + 1}`">
+      <XNestCard divided v-for="(c, i) in certs" :key="i" :title="`#${i + 1}`">
         <template #actions>
           <XAddButton v-if="i === 0" :label="t('kit.addRow', { list: t('inbounds.certificate') })" @click="certs.push(defaultCert())" />
           <XInlineButton v-if="certs.length > 1" icon="minus" :label="t('kit.removeRow', { n: i + 1 })" @click="certs.splice(i, 1)" />
@@ -184,10 +184,10 @@ function panelCert(c: Json) {
           </XFieldGrid>
           <XFieldGrid v-else>
             <XField v-slot="a" :label="t('inbounds.publicKey')">
-              <XTextarea v-bind="a" v-model="c.certificate" mono :rows="5" />
+              <XTextarea v-bind="a" v-model="c.certificate" mono :rows="4" />
             </XField>
             <XField v-slot="a" :label="t('inbounds.privateKey')">
-              <XTextarea v-bind="a" v-model="c.key" mono :rows="5" />
+              <XTextarea v-bind="a" v-model="c.key" mono :rows="4" />
             </XField>
           </XFieldGrid>
           <XButtonRow v-if="c.useFile">

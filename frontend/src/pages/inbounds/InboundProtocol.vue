@@ -188,11 +188,11 @@ const webFrontOk = location.protocol === 'https:' && (location.port === '' || lo
     <!-- Fallbacks -->
     <template v-if="fallbacks">
       <XListHead title="Fallbacks" add @add="(s.fallbacks ??= []).push(newFallback())" />
-      <XNestCard v-for="(fb, i) in fallbackList" :key="i" :title="`Fallback ${i + 1}`">
+      <XNestCard divided v-for="(fb, i) in fallbackList" :key="i" :title="`Fallback ${i + 1}`">
         <template #actions>
           <XInlineButton icon="delete" danger :label="t('xray.removeItem', { n: i + 1 })" @click="s.fallbacks.splice(i, 1)" />
         </template>
-        <XFieldGrid :cols="3">
+        <XFieldGrid :cols="3" :phone="2">
           <XField v-slot="a" label="SNI">
             <XInput v-bind="a" v-model="fb.name" mono />
           </XField>
@@ -240,8 +240,8 @@ const webFrontOk = location.protocol === 'https:' && (location.port === '' || lo
         <XField v-slot="a" :label="t('inbounds.network')">
           <XSelect v-bind="a" v-model="s.network" :options="networkOptions" mono />
         </XField>
+        <XSwitch v-model="s.ivCheck" boxed label="ivCheck" />
       </XFieldGrid>
-      <XSwitch v-model="s.ivCheck" boxed label="ivCheck" />
     </template>
 
     <!-- Hysteria -->
@@ -265,10 +265,10 @@ const webFrontOk = location.protocol === 'https:' && (location.port === '' || lo
         <XField v-slot="a" label="MTU">
           <XNumber v-bind="a" v-model="s.mtu" block :min="0" />
         </XField>
+        <XSwitch v-model="s.noKernelTun" boxed label="No Kernel Tun" />
       </XFieldGrid>
-      <XSwitch v-model="s.noKernelTun" boxed label="No Kernel Tun" />
       <XListHead title="Peers" add @add="s.peers.push(newPeer(s.peers.length))" />
-      <XNestCard v-for="(peer, i) in peers" :key="i" :title="`Peer ${i + 1}`">
+      <XNestCard divided v-for="(peer, i) in peers" :key="i" :title="`Peer ${i + 1}`">
         <template #actions>
           <XInlineButton v-if="s.peers.length > 1" icon="delete" danger :label="t('xray.removeItem', { n: i + 1 })" @click="s.peers.splice(i, 1)" />
         </template>
@@ -280,10 +280,10 @@ const webFrontOk = location.protocol === 'https:' && (location.port === '' || lo
             <XField v-slot="a" :label="t('inbounds.publicKey')">
               <XInput v-bind="a" v-model.trim="peer.publicKey" mono />
             </XField>
-            <XField v-slot="a" :label="t('inbounds.wgPsk')" :action="t('inbounds.reset')" @action="peer.preSharedKey = newPsk()">
+            <XField v-slot="a" :label="t('inbounds.wgPsk')" :action="t('inbounds.reset')" class="x-wide" @action="peer.preSharedKey = newPsk()">
               <XInput v-bind="a" v-model.trim="peer.preSharedKey" mono />
             </XField>
-            <XInputList v-model="peer.allowedIPs" :title="t('inbounds.wgAllowedIPs')" mono />
+            <XInputList v-model="peer.allowedIPs" :title="t('inbounds.wgAllowedIPs')" mono class="x-wide" />
           </XFieldGrid>
           <XFieldGrid :cols="3">
             <XField v-slot="a" label="Keep Alive">
@@ -381,7 +381,7 @@ const webFrontOk = location.protocol === 'https:' && (location.port === '' || lo
         <XInput v-bind="a" v-model.trim="s.tlsDomain" mono placeholder="www.example.com" />
       </XField>
       <XSwitch v-model="webOn" boxed :label="t('inbounds.mtprotoWeb')" :help="t('inbounds.mtprotoWebDesc')" />
-      <XFieldNote v-if="webOn && !webFrontOk">{{ t('inbounds.mtprotoWebNeedsHttps') }}</XFieldNote>
+      <XFieldNote v-if="webOn && !webFrontOk" attached>{{ t('inbounds.mtprotoWebNeedsHttps') }}</XFieldNote>
       <XNest v-if="webOn" bare>
         <XFieldGrid :cols="1">
           <XFieldGrid>

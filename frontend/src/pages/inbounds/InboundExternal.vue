@@ -39,23 +39,19 @@ const tlsOptions = computed<Option[]>(() => [
   <XNest v-if="on" bare>
     <XFieldGrid :cols="1">
       <template v-if="phone">
-        <XNestCard v-for="(r, i) in rows" :key="i" :title="r.remark || String(i + 1)">
-          <template #actions>
-            <XButton icon="minus" :label="t('kit.removeRow', { n: i + 1 })" @click="rows.splice(i, 1)" />
-          </template>
-          <XFieldGrid :cols="2" :phone="2">
+        <XNestCard v-for="(r, i) in rows" :key="i" divided :title="r.remark || String(i + 1)">
+          <XFieldGrid :cols="1">
             <XField v-slot="a" label="Force TLS">
-              <XSelect v-bind="a" v-model="r.forceTls" :options="tlsOptions" />
+              <XFieldGrid :cols="2" :phone="2">
+                <XSelect v-bind="a" v-model="r.forceTls" :options="tlsOptions" />
+                <XNumber v-model="r.port" block :min="1" :max="65535" :aria-label="t('inbounds.colPort')" />
+              </XFieldGrid>
             </XField>
-            <XField v-slot="a" :label="t('inbounds.colPort')">
-              <XNumber v-bind="a" v-model="r.port" block :min="1" :max="65535" />
-            </XField>
-            <XField v-slot="a" :label="t('inbounds.host')">
-              <XInput v-bind="a" v-model.trim="r.dest" mono />
-            </XField>
-            <XField v-slot="a" :label="t('inbounds.colRemark')">
-              <XInput v-bind="a" v-model.trim="r.remark" />
-            </XField>
+            <XInput v-model.trim="r.dest" mono :placeholder="t('inbounds.host')" :aria-label="t('inbounds.host')" />
+            <XFieldGrid columns="minmax(0, 1fr) auto" phone-columns="minmax(0, 1fr) auto">
+              <XInput v-model.trim="r.remark" :placeholder="t('inbounds.colRemark')" :aria-label="t('inbounds.colRemark')" />
+              <XButton icon="minus" :label="t('kit.removeRow', { n: i + 1 })" @click="rows.splice(i, 1)" />
+            </XFieldGrid>
           </XFieldGrid>
         </XNestCard>
       </template>

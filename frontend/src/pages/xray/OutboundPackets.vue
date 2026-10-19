@@ -5,8 +5,9 @@ import { XField, XFieldGrid, XInlineButton, XInput, XNestCard, XNumber, XSelect,
 /**
  * Packets of a mask, e.g. Header Custom or Noise: random bytes of a length
  * (array) or bytes given as text, hex or base64, each with an optional delay.
+ * divided draws the cards of the inbound window.
  */
-const props = defineProps<{ items: Record<string, any>[]; withDelay?: boolean; removable?: boolean }>()
+const props = defineProps<{ items: Record<string, any>[]; withDelay?: boolean; removable?: boolean; divided?: boolean }>()
 const { t } = useI18n()
 
 const types: Option[] = [
@@ -26,7 +27,7 @@ function setType(item: Record<string, any>, type: string) {
 </script>
 
 <template>
-  <XNestCard v-for="(item, i) in props.items" :key="i" :title="String(i + 1)">
+  <XNestCard v-for="(item, i) in props.items" :key="i" :title="String(i + 1)" :divided="divided">
     <template v-if="removable" #actions>
       <XInlineButton icon="delete" danger :label="t('xray.removeItem', { n: i + 1 })" @click="props.items.splice(i, 1)" />
     </template>

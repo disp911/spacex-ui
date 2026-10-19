@@ -76,7 +76,7 @@ const forwarded = [{ options: ['CF-Connecting-IP', 'X-Real-IP', 'True-Client-IP'
         <XField v-slot="a" label="Interface Name">
           <XInput v-bind="a" v-model="so.interface" mono />
         </XField>
-        <XField v-slot="a" label="Trusted X-Forwarded-For">
+        <XField v-slot="a" label="Trusted X-Forwarded-For" class="x-wide">
           <XTagInput v-bind="a" :model-value="so.trustedXForwardedFor ?? []" :groups="forwarded" mono @update:model-value="so.trustedXForwardedFor = $event" />
         </XField>
       </XFieldGrid>

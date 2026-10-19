@@ -80,7 +80,7 @@ const setTables = (m: Json, v: string) => (m.settings.customTables = v.split(','
   <!-- TCP masks -->
   <template v-if="tcpMasks">
     <XListHead title="TCP Masks" add @add="(fm.tcp ??= []).push(defaultTcpMask())" />
-    <XNestCard v-for="(m, i) in items(fm.tcp)" :key="i" :title="String(i + 1)">
+    <XNestCard divided v-for="(m, i) in items(fm.tcp)" :key="i" :title="String(i + 1)">
       <template #actions>
         <XInlineButton icon="delete" danger :label="t('xray.removeItem', { n: i + 1 })" @click="fm.tcp.splice(i, 1)" />
       </template>
@@ -109,11 +109,11 @@ const setTables = (m: Json, v: string) => (m.settings.customTables = v.split(','
         <template v-if="m.type === 'header-custom'">
           <template v-for="side in (['clients', 'servers'] as const)" :key="side">
             <XListHead :title="side === 'clients' ? 'Clients' : 'Servers'" add @add="(m.settings[side] ??= []).push([packetItem()])" />
-            <XNestCard v-for="(group, gi) in items(m.settings[side])" :key="gi" :title="`${side === 'clients' ? 'Clients' : 'Servers'} Group ${gi + 1}`">
+            <XNestCard divided v-for="(group, gi) in items(m.settings[side])" :key="gi" :title="`${side === 'clients' ? 'Clients' : 'Servers'} Group ${gi + 1}`">
               <template #actions>
                 <XInlineButton icon="delete" danger :label="t('xray.removeItem', { n: gi + 1 })" @click="m.settings[side].splice(gi, 1)" />
               </template>
-              <OutboundPackets :items="items(group)" with-delay />
+              <OutboundPackets divided :items="items(group)" with-delay />
             </XNestCard>
           </template>
         </template>
@@ -124,7 +124,7 @@ const setTables = (m: Json, v: string) => (m.settings.customTables = v.split(','
   <!-- UDP masks -->
   <template v-if="udpMasks">
     <XListHead title="UDP Masks" add @add="addUdpMask" />
-    <XNestCard v-for="(m, i) in items(fm.udp)" :key="i" :title="String(i + 1)">
+    <XNestCard divided v-for="(m, i) in items(fm.udp)" :key="i" :title="String(i + 1)">
       <template #actions>
         <XInlineButton icon="delete" danger :label="t('xray.removeItem', { n: i + 1 })" @click="fm.udp.splice(i, 1)" />
       </template>
@@ -152,13 +152,13 @@ const setTables = (m: Json, v: string) => (m.settings.customTables = v.split(','
         </XFieldGrid>
         <template v-if="m.type === 'noise'">
           <XListHead title="Noise" add @add="m.settings.noise.push({ rand: '1-8192', randRange: '0-255', type: 'array', packet: [], delay: '10-20' })" />
-          <OutboundPackets :items="m.settings.noise" with-delay removable />
+          <OutboundPackets divided :items="m.settings.noise" with-delay removable />
         </template>
         <template v-if="m.type === 'header-custom'">
           <XListHead title="Client" add @add="m.settings.client.push(packetItem())" />
-          <OutboundPackets :items="m.settings.client" removable />
+          <OutboundPackets divided :items="m.settings.client" removable />
           <XListHead title="Server" add @add="m.settings.server.push(packetItem())" />
-          <OutboundPackets :items="m.settings.server" removable />
+          <OutboundPackets divided :items="m.settings.server" removable />
         </template>
       </XFieldGrid>
     </XNestCard>
