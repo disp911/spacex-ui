@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed, useId } from 'vue'
+import XIcon from './XIcon.vue'
 import XTooltip from './XTooltip.vue'
+import type { IconName } from './icons'
 
 /**
  * Label, control and its hint or error. The control receives id and
@@ -17,9 +19,13 @@ const props = withDefaults(
     required?: boolean
     /** row: label on the left, control on the right (switches, short values). */
     layout?: 'stack' | 'row'
+    /** A small button after the label that does something to the value, e.g. «Reset» to a new random one; emits action. */
+    action?: string
+    actionIcon?: IconName
   }>(),
-  { layout: 'stack' },
+  { layout: 'stack', actionIcon: 'refresh' },
 )
+const emit = defineEmits<{ action: [] }>()
 
 const id = useId()
 const describedBy = computed(() => (props.error || props.hint ? `${id}-note` : undefined))
@@ -34,6 +40,11 @@ const describedBy = computed(() => (props.error || props.hint ? `${id}-note` : u
       </label>
       <XTooltip v-if="help" :text="help">
         <span class="x-field__help" tabindex="0" :aria-label="help">?</span>
+      </XTooltip>
+      <XTooltip v-if="action" :text="action" :delay="0">
+        <button type="button" class="x-field__action" :aria-label="action" @click="emit('action')">
+          <XIcon :name="actionIcon" :size="12" :stroke="1.6" />
+        </button>
       </XTooltip>
       <p v-if="layout === 'row' && (error || hint)" :id="`${id}-note`" :class="['x-field__note', { 'is-error': !!error }]">
         {{ error || hint }}
@@ -90,7 +101,7 @@ const describedBy = computed(() => (props.error || props.hint ? `${id}-note` : u
   font-size: var(--ctl-fs);
 }
 
-.x-field--stack .x-field__head:has(.x-field__help) {
+.x-field--stack .x-field__head:has(.x-field__help, .x-field__action) {
   flex-direction: row;
   align-items: center;
   gap: var(--sp-6);
@@ -114,6 +125,32 @@ const describedBy = computed(() => (props.error || props.hint ? `${id}-note` : u
 .x-field__help:hover,
 .x-field__help:focus-visible {
   color: var(--fg);
+}
+
+.x-field__action {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  margin: -1px 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--r-6);
+  background: transparent;
+  color: var(--acc);
+  cursor: pointer;
+  outline: none;
+  transition: background-color var(--t-fast);
+}
+
+.x-field__action:hover {
+  background: var(--acc-soft);
+}
+
+.x-field__action:focus-visible {
+  box-shadow: 0 0 0 2px var(--acc-line);
 }
 
 .x-field__required {

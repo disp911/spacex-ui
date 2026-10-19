@@ -20,18 +20,26 @@ export interface PlainColumn {
  *
  * On phones a table turns into a card per row: the first column on top, the
  * others under it with their labels and the fitted ones at the end of that
- * line. A list stays a list with taller rows.
+ * line. A list stays a list with taller rows. With a height the table scrolls
+ * under its header, e.g. hundreds of clients, and stays a table on phones.
  */
 const props = defineProps<{
   columns: PlainColumn[]
   rows: T[]
   rowKey: (row: T, index: number) => string | number
   active?: (row: T) => boolean
+  /** The most it grows to before it scrolls, in pixels; phoneHeight on phones. */
+  height?: number
+  phoneHeight?: number
 }>()
 
 const phone = usePhone()
 const head = computed(() => props.columns.some((c) => c.label))
-const cards = computed(() => phone.value && head.value)
+const cards = computed(() => phone.value && head.value && !props.height)
+const maxHeight = computed(() => {
+  const h = phone.value ? (props.phoneHeight ?? props.height) : props.height
+  return h ? `${h}px` : undefined
+})
 const first = computed(() => props.columns[0]!)
 const labelled = computed(() => props.columns.slice(1).filter((c) => !c.fit))
 const fitted = computed(() => props.columns.slice(1).filter((c) => c.fit))
@@ -56,7 +64,7 @@ const fitted = computed(() => props.columns.slice(1).filter((c) => c.fit))
     </div>
   </div>
 
-  <div v-else :class="['x-ptable', { 'x-ptable--list': !head, 'x-ptable--phone': phone }]">
+  <div v-else :class="['x-ptable', { 'x-ptable--list': !head, 'x-ptable--phone': phone, 'x-ptable--scroll': !!maxHeight }]" :style="{ maxHeight }">
     <table>
       <thead v-if="head">
         <tr>
@@ -141,6 +149,18 @@ const fitted = computed(() => props.columns.slice(1).filter((c) => c.fit))
 .x-ptable__empty > :deep(*) {
   display: inline-block;
   vertical-align: middle;
+}
+
+/* A long table scrolls under its header; room for the scrollbar stays, so nothing moves when it shows. */
+.x-ptable--scroll {
+  overflow: auto;
+  scrollbar-gutter: stable;
+}
+
+.x-ptable--scroll th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
 
 /* A list: rows of a set height, the buttons close to the edge. */

@@ -678,6 +678,29 @@ export interface MessageSchema {
     "cloneOk": string
     "totalHelp": string
     "gb": string
+    "client": string
+    "clientCount": string
+    "email": string
+    "emailDesc": string
+    "password": string
+    "subscriptionDesc": string
+    "commentLabel": string
+    "ipLimit": string
+    "ipLimitDesc": string
+    "rateDown": string
+    "rateDownDesc": string
+    "rateUp": string
+    "rateUpDesc": string
+    "maxConns": string
+    "maxConnsDesc": string
+    "expireDays": string
+    "renew": string
+    "renewDesc": string
+    "reverseTag": string
+    "reverseTagDesc": string
+    "reverseTagPlaceholder": string
+    "security": string
+    "none": string
   }
   "units": {
     "value": string

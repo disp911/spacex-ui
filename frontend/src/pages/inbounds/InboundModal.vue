@@ -2,11 +2,14 @@
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { api } from '../../api'
-import { toast, XButton, XDateTime, XField, XFieldGrid, XInput, XModal, XNumber, XSelect, XSwitch, type Option } from '../../kit'
+import {
+  toast, XButton, XDateTime, XField, XFieldGrid, XInput, XModal, XNumber, XPlainTable, XSection, XSelect, XSwitch, type Option, type PlainColumn,
+} from '../../kit'
 import { formatDate } from '../../i18n/format'
 import { useInbounds } from '../../stores/inbounds'
 import { cause } from '../settings/form'
-import { fromDb, newInbound, setProtocol, toForm, trafficResets, type InboundForm } from './inbound'
+import { canFlow, clientsOf, fromDb, newInbound, setProtocol, toForm, trafficResets, withClients, type InboundForm } from './inbound'
+import ClientFields from './ClientFields.vue'
 import { protocols, type DbInbound, type Protocol } from './model'
 
 /**
@@ -24,7 +27,9 @@ const f = ref<InboundForm>(newInbound())
 const saving = ref(false)
 
 watch(open, (on) => {
-  if (on) f.value = props.inbound ? fromDb(props.inbound) : newInbound()
+  if (!on) return
+  f.value = props.inbound ? fromDb(props.inbound) : newInbound()
+  clientOpen.value = !props.inbound
 })
 
 const editing = computed(() => !!props.inbound)
@@ -59,6 +64,25 @@ const totalGb = computed({
   get: () => Math.round((f.value.total / GB) * 100) / 100,
   set: (gb: number | null) => (f.value.total = Math.round((gb ?? 0) * GB)),
 })
+
+// --- Clients -------------------------------------------------------------------------
+// A new inbound gets its first client's fields, open; a stored one lists its
+// clients, closed, as the old panel did. Clients are changed in their own windows.
+
+const clientOpen = ref(true)
+const hasClients = computed(() => withClients(f.value.protocol, f.value.settings))
+const clients = computed(() => clientsOf(f.value))
+
+/** The column a client is known by, besides its email; VMess shows its security too. */
+const clientColumns = computed<PlainColumn[]>(() => {
+  const key: Record<string, string> = { vmess: 'ID', vless: 'ID', mtproto: 'Secret', trojan: 'Password', shadowsocks: 'Password', hysteria: 'Auth' }
+  return [
+    { key: 'email', label: t('inbounds.email') },
+    { key: 'key', label: key[f.value.protocol] ?? 'ID' },
+    ...(f.value.protocol === 'vmess' ? [{ key: 'security', label: t('inbounds.security') }] : []),
+  ]
+})
+const keyOf = (c: Record<string, any>) => String(c.id ?? c.password ?? c.auth ?? '')
 
 const portValid = computed(() => !!f.value.port && f.value.port >= 1 && f.value.port <= 65535)
 const valid = computed(() => portValid.value && !(f.value.protocol === 'mtproto' && mtprotoTaken.value))
@@ -109,6 +133,19 @@ async function save() {
           <XDateTime v-bind="a" v-model="f.expiryTime" />
         </XField>
       </XFieldGrid>
+
+      <template v-if="hasClients">
+        <XSection v-if="!editing && clients[0]" v-model:open="clientOpen" :title="t('inbounds.client')" card>
+          <ClientFields :client="clients[0]" :protocol="f.protocol" :method="f.settings.method" :flow="canFlow(f)" />
+        </XSection>
+        <XSection v-else-if="editing" v-model:open="clientOpen" :title="`${t('inbounds.clientCount')} : ${clients.length}`" card>
+          <XPlainTable :columns="clientColumns" :rows="clients" :row-key="(c, i) => `${i}-${c.email}`" :height="280" :phone-height="320">
+            <template #cell-email="{ row }">{{ row.email }}</template>
+            <template #cell-key="{ row }"><span class="inbound__key">{{ keyOf(row) }}</span></template>
+            <template #cell-security="{ row }"><span class="inbound__key">{{ row.security }}</span></template>
+          </XPlainTable>
+        </XSection>
+      </template>
     </div>
 
     <template #footer>
@@ -122,5 +159,21 @@ async function save() {
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+.inbound__key {
+  display: block;
+  max-width: 420px;
+  overflow: hidden;
+  color: var(--mut);
+  font: 400 var(--fs-11) / var(--lh-tight) var(--font-mono);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 767px) {
+  .inbound__key {
+    max-width: 170px;
+  }
 }
 </style>
