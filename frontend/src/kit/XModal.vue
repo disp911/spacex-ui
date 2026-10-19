@@ -24,6 +24,11 @@ const props = withDefaults(
     headless?: boolean
     /** Cancel in the footer on desktop too, before the window's buttons. */
     cancel?: boolean
+    /**
+     * A long form that keeps to the screen: centred, its title and buttons in
+     * view and only the body scrolling, e.g. the inbound window. As phones do.
+     */
+    scrollBody?: boolean
   }>(),
   { size: 'md', dismissible: true },
 )
@@ -88,7 +93,7 @@ onBeforeUnmount(() => {
           :aria-labelledby="headless ? undefined : `${id}-title`"
           :aria-label="headless ? title : undefined"
           tabindex="-1"
-          :class="['x-modal__dialog', `x-modal__dialog--${size}`, { 'x-modal__dialog--full': full, 'x-modal__dialog--headless': headless }]"
+          :class="['x-modal__dialog', `x-modal__dialog--${size}`, { 'x-modal__dialog--full': full, 'x-modal__dialog--headless': headless, 'x-modal__dialog--scroll': scrollBody }]"
         >
           <header v-if="!headless" :class="['x-modal__head', { 'x-modal__head--sub': $slots.subtitle }]">
             <div class="x-modal__heading">
@@ -196,6 +201,18 @@ onBeforeUnmount(() => {
 .x-modal__body--flush {
   gap: 0;
   padding: 0;
+}
+
+/* The window within the screen's padding; the body scrolls, with room kept for its scrollbar. */
+.x-modal__dialog--scroll {
+  max-height: calc(100dvh - 96px);
+}
+
+.x-modal__dialog--scroll .x-modal__body {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
 }
 
 .x-modal__foot {

@@ -7,15 +7,19 @@ import XListHead from './XListHead.vue'
 /**
  * Name and value pairs, e.g. the attributes of a routing rule: a title with a
  * dashed + at its right, then numbered rows of two fields and a − to drop the
- * row, under a line of column names.
+ * row, under a line of column names. headless leaves the title out, when a
+ * switch above the list names it and adds its rows, e.g. accounts under
+ * «Password»; add() is exposed for that.
  */
-defineProps<{ title: string; nameLabel: string; valueLabel: string; mono?: boolean }>()
+defineProps<{ title: string; nameLabel: string; valueLabel: string; mono?: boolean; headless?: boolean }>()
 const pairs = defineModel<[string, string][]>({ default: () => [] })
 const { t } = useI18n()
 
 function add() {
   pairs.value = [...pairs.value, ['', '']]
 }
+
+defineExpose({ add })
 
 function drop(i: number) {
   pairs.value = pairs.value.filter((_, j) => j !== i)
@@ -28,7 +32,7 @@ function set(i: number, k: 0 | 1, v: string) {
 
 <template>
   <div class="x-pairs">
-    <XListHead :title="title" add @add="add" />
+    <XListHead v-if="!headless" :title="title" add @add="add" />
     <template v-if="pairs.length">
       <div class="x-pairs__names" aria-hidden="true">
         <span>{{ nameLabel }}</span>

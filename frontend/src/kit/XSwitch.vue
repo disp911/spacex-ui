@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, useAttrs, useId } from 'vue'
 import XSpinner from './XSpinner.vue'
+import XTooltip from './XTooltip.vue'
 
 defineOptions({ inheritAttrs: false })
 
@@ -22,6 +23,8 @@ const props = defineProps<{
    * Mux among the fields of a window; the actions slot sits before the switch.
    */
   boxed?: boolean
+  /** A round ? after a boxed label that tells more on hover or focus. */
+  help?: string
 }>()
 
 const model = defineModel<boolean>({ default: false })
@@ -49,6 +52,10 @@ const button = computed(() => ({
 <template>
   <div v-if="boxed" :class="['x-switch-box', { 'is-disabled': disabled }]">
     <label class="x-switch-box__label" :for="id">{{ label }}</label>
+    <XTooltip v-if="help" :text="help">
+      <span class="x-switch-box__help" tabindex="0" :aria-label="help">?</span>
+    </XTooltip>
+    <span v-if="help" class="x-switch-box__gap" />
     <slot name="actions" />
     <button v-bind="button" @click="loading || toggle()">
       <span class="x-switch__knob"><XSpinner v-if="loading" :size="12" /></span>
@@ -80,6 +87,37 @@ const button = computed(() => ({
 
 .x-switch-box:hover {
   border-color: var(--field-hover);
+}
+
+.x-switch-box__help {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  margin-left: -4px;
+  border: 1.2px solid;
+  border-radius: 50%;
+  color: var(--dim);
+  font: 600 var(--fs-10) / 1 var(--font-sans);
+  cursor: help;
+  outline: none;
+}
+
+.x-switch-box__help:hover,
+.x-switch-box__help:focus-visible {
+  color: var(--fg);
+}
+
+/* The label and its ? sit together at the left; the switch keeps to the right. */
+.x-switch-box:has(.x-switch-box__help) .x-switch-box__label {
+  flex: 0 1 auto;
+}
+
+.x-switch-box__gap {
+  flex: 1;
+  align-self: stretch;
 }
 
 .x-switch-box.is-disabled {

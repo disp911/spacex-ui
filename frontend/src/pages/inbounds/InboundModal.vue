@@ -10,6 +10,7 @@ import { useInbounds } from '../../stores/inbounds'
 import { cause } from '../settings/form'
 import { canFlow, clientsOf, fromDb, newInbound, setProtocol, toForm, trafficResets, withClients, type InboundForm } from './inbound'
 import ClientFields from './ClientFields.vue'
+import InboundProtocol from './InboundProtocol.vue'
 import { protocols, type DbInbound, type Protocol } from './model'
 
 /**
@@ -103,7 +104,7 @@ async function save() {
 </script>
 
 <template>
-  <XModal v-model:open="open" :title="editing ? t('inbounds.editTitle') : t('inbounds.addTitle')" size="lg" cancel :dismissible="!saving">
+  <XModal v-model:open="open" :title="editing ? t('inbounds.editTitle') : t('inbounds.addTitle')" size="lg" cancel scroll-body :dismissible="!saving">
     <div class="inbound">
       <XSwitch v-model="f.enable" boxed :label="t('inbounds.enable')" />
       <XFieldGrid>
@@ -146,6 +147,8 @@ async function save() {
           </XPlainTable>
         </XSection>
       </template>
+
+      <InboundProtocol :f="f" />
     </div>
 
     <template #footer>

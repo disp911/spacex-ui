@@ -701,6 +701,33 @@ export interface MessageSchema {
     "reverseTagPlaceholder": string
     "security": string
     "none": string
+    "encryption": string
+    "network": string
+    "targetAddress": string
+    "destinationPort": string
+    "portMap": string
+    "username": string
+    "wgSecretKey": string
+    "wgPublicKey": string
+    "wgPsk": string
+    "wgAllowedIPs": string
+    "tunNameDesc": string
+    "tunMtuDesc": string
+    "tunUserLevel": string
+    "tunUserLevelDesc": string
+    "version": string
+    "mtprotoDomain": string
+    "mtprotoDomainDesc": string
+    "mtprotoWeb": string
+    "mtprotoWebDesc": string
+    "mtprotoWebNeedsHttps": string
+    "mtprotoWebHost": string
+    "mtprotoWebHostDesc": string
+    "mtprotoWebIp": string
+    "mtprotoWebIpDesc": string
+    "mtprotoWebIpAuto": string
+    "mtprotoWebPath": string
+    "mtprotoWebPathDesc": string
   }
   "units": {
     "value": string
