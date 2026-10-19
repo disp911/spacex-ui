@@ -137,6 +137,7 @@ const setVals = ref({ port: 2054, session: 30, json: true, path: '/panel-x7/', r
 const setInbounds = ['inbound-443', 'inbound-8443', 'vless-reality', 'trojan-ws'].map((v) => ({ value: v, label: v }))
 const busyOpen = ref(false)
 const restartAsk = ref(false)
+const deleteAsk = ref(false)
 const setTheme = ref('dark')
 const demoCode = ref('')
 const demoTfa = ref(false)
@@ -668,6 +669,7 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
           <XStatusText tone="err">Исправьте ошибки: 1 · не сохранено: 2</XStatusText>
           <XButton @click="busyOpen = true">Перезапуск: оверлей на 3 с</XButton>
           <XButton icon="refresh" @click="restartAsk = true">Подтверждение перезапуска</XButton>
+          <XButton icon="delete" @click="deleteAsk = true">Подтверждение удаления</XButton>
         </div>
         <XSettingsSection v-model:open="setOpen" title="Основное" :count="6" :modified="2" :errors="1" note="IP по умолчанию">
           <XSettingRow title="Порт панели" description="Порт, на котором работает панель" narrow modified>
@@ -924,6 +926,9 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
         </XExpandTable>
       </div>
     </XCard>
+    <XConfirm v-model:open="deleteAsk" title="Удалить подключение #3" cta="Удалить" danger @confirm="deleteAsk = false">
+      Вы уверены, что хотите удалить подключение?
+    </XConfirm>
     <XConfirm v-model:open="restartAsk" icon="refresh" title="Перезапуск панели" cta="Да" @confirm="restartAsk = false">
       Вы уверены, что хотите перезапустить панель? Если панель будет недоступна, проверьте лог сервера
     </XConfirm>
