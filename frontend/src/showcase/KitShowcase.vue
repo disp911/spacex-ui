@@ -109,6 +109,8 @@ const demoColumns = [
 ]
 const demoCountry = ref(2)
 const demoProto = ref('vless')
+const demoEmail = ref('k3x9mf2q')
+const demoManyClients = Array.from({ length: 30 }, (_, i) => ({ email: `user-${String(i + 1).padStart(3, '0')}`, id: `0740d687-743b-4269-ad61-${String(i).padStart(12, '0')}` }))
 const demoDate = ref(0)
 const plainColumns = [{ key: 'ext', label: 'Маршрутизация (ext:…)' }, { key: 'at', label: 'Обновлено' }, { key: 'act', label: 'Действия', fit: true }]
 const plainRows = [
@@ -819,6 +821,13 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
           </XPlainTable>
           <XPlainTable :columns="plainColumns" :rows="noPlainRows" :row-key="(r) => r.ext" />
         </XSection>
+        <XField v-slot="a" label="Email" help="Пожалуйста, укажите уникальный Email" action="Сбросить" @action="demoEmail = Math.random().toString(36).slice(2, 11)">
+          <XInput v-bind="a" v-model="demoEmail" />
+        </XField>
+        <XPlainTable :columns="[{ key: 'email', label: 'Email' }, { key: 'id', label: 'ID' }]" :rows="demoManyClients" :row-key="(r) => r.email" :height="200" :phone-height="240">
+          <template #cell-email="{ row }">{{ row.email }}</template>
+          <template #cell-id="{ row }"><code>{{ row.id }}</code></template>
+        </XPlainTable>
         <XCard title="Шаблон конфигурации Xray" description="Карточка без линии под заголовком; переключатель прокручивается, если не помещается." seamless>
           <template #actions>
             <XSegmented v-model="editorPart" :options="[{ value: 'all', label: 'Все' }, { value: 'in', label: 'Входящие подключения' }, { value: 'out', label: 'Исходящие подключения' }, { value: 'rules', label: 'Маршрутизация' }]" scroll />
