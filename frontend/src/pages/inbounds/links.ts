@@ -4,7 +4,7 @@
 // WEB proxy link of MTProto and the configs of WireGuard's peers.
 
 import { wireguardKeys } from '../../wireguard'
-import { defaultTls, fromDb, withClients, isSS2022, isSSMultiUser, type InboundForm } from './inbound'
+import { defaultTls, fromDb, withClients, withMask, isSS2022, isSSMultiUser, type InboundForm } from './inbound'
 import type { DbInbound } from './model'
 
 type Json = Record<string, any>
@@ -125,22 +125,16 @@ function transportParams(st: Json, params: Map<string, unknown>, after: Json = {
   if (fm) params.set('fm', fm)
 }
 
-/**
- * TLS of the inbound in a link's query. VLESS gives the SNI before ECH and,
- * given a flow, its Vision flow over raw TCP; Trojan and Shadowsocks give ECH
- * first.
- */
+/** TLS of the inbound in a link's query; given a flow, VLESS's Vision flow over raw TCP too. */
 function tlsParams(st: Json, params: Map<string, unknown>, flow?: string) {
   params.set('security', 'tls')
   if (st.security !== 'tls') return
   const t = st.tlsSettings ?? {}
   params.set('fp', t.settings?.fingerprint)
   params.set('alpn', t.alpn)
-  const sni = () => filled(t.serverName) && params.set('sni', t.serverName)
-  if (flow !== undefined) sni()
+  if (filled(t.serverName)) params.set('sni', t.serverName)
   if (t.settings?.echConfigList?.length > 0) params.set('ech', t.settings.echConfigList)
-  if (flow === undefined) sni()
-  else if (st.network === 'tcp' && filled(flow)) params.set('flow', flow)
+  if (flow !== undefined && st.network === 'tcp' && filled(flow)) params.set('flow', flow)
 }
 
 /** Reality of the inbound in a link's query: the first server name and the first short ID. */
@@ -151,8 +145,8 @@ function realityParams(st: Json, params: Map<string, unknown>, flow?: string) {
   params.set('security', 'reality')
   params.set('pbk', r.settings?.publicKey)
   params.set('fp', r.settings?.fingerprint)
-  // The old panel always gave the first server name, an empty one too.
-  params.set('sni', names.split(',')[0])
+  // Without a server name the client takes the address, so an empty one is left out.
+  if (names.split(',')[0]) params.set('sni', names.split(',')[0])
   if (ids.length > 0) params.set('sid', ids.split(',')[0])
   if (filled(r.settings?.spiderX)) params.set('spx', r.settings.spiderX)
   if (filled(r.settings?.mldsa65Verify)) params.set('pqv', r.settings.mldsa65Verify)
@@ -350,12 +344,9 @@ export function allLinks(f: InboundForm, remarkModel = defaultRemarkModel, clien
   return out
 }
 
-/** The peers, an address without a mask taken as /32 as the old panel read them. */
+/** The peers, an address without a mask taken as one host. */
 const peersOf = (f: InboundForm): Json[] =>
-  (Array.isArray(f.settings.peers) ? f.settings.peers : []).map((p: Json) => ({
-    ...p,
-    allowedIPs: (p.allowedIPs ?? ['10.0.0.2/32']).map((a: string) => (a.length > 0 && !a.includes('/') ? `${a}/32` : a)),
-  }))
+  (Array.isArray(f.settings.peers) ? f.settings.peers : []).map((p: Json) => ({ ...p, allowedIPs: (p.allowedIPs ?? ['10.0.0.2/32']).map(withMask) }))
 
 /** WireGuard's public key, from its secret key. */
 function wireguardPublicKey(secretKey: string) {

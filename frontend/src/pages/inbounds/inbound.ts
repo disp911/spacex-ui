@@ -183,6 +183,9 @@ export function newPeer(index: number): Json {
   return { privateKey: keys.privateKey, publicKey: keys.publicKey, preSharedKey: '', allowedIPs: [`10.0.0.${index + 2}/32`], keepAlive: 0 }
 }
 
+/** An address as Xray's allowedIPs take it, in CIDR: one host, /32 for IPv4 and /128 for IPv6, when no mask is given. */
+export const withMask = (a: string) => (a && !a.includes('/') ? `${a}/${a.includes(':') ? 128 : 32}` : a)
+
 export const newAccount = () => ({ user: randomSeq(10), pass: randomSeq(10) })
 export const newFallback = () => ({ name: '', alpn: '', path: '', dest: '', xver: 0 })
 
@@ -633,7 +636,7 @@ function finalSettings(f: InboundForm): Json {
     case 'wireguard':
       for (const p of s.peers ?? []) {
         if (empty(p.preSharedKey)) delete p.preSharedKey
-        p.allowedIPs = (p.allowedIPs ?? []).map((a: string) => (a && !a.includes('/') ? `${a}/32` : a))
+        p.allowedIPs = (p.allowedIPs ?? []).map(withMask)
       }
       break
     case 'tunnel':
