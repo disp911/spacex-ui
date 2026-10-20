@@ -12,8 +12,8 @@ import { lockScroll } from './scrollLock'
 const props = withDefaults(
   defineProps<{
     title: string
-    /** wide: up to 1368, for tables such as the connection log. */
-    size?: 'xs' | 'sm' | 'md' | 'form' | 'lg' | 'xl' | 'table' | 'wide'
+    /** wide: up to 1368, for tables such as the connection log; fit: as wide as what it holds, e.g. QR codes side by side. */
+    size?: 'xs' | 'sm' | 'md' | 'form' | 'lg' | 'xl' | 'table' | 'wide' | 'fit'
     /** Close on Escape and on a click outside. Off while a form is saving. */
     dismissible?: boolean
     /** The body draws its own sections edge to edge: no padding, no gap. */
@@ -97,7 +97,11 @@ onBeforeUnmount(() => {
         >
           <header v-if="!headless" :class="['x-modal__head', { 'x-modal__head--sub': $slots.subtitle }]">
             <div class="x-modal__heading">
-              <h2 :id="`${id}-title`" class="x-modal__title">{{ title }}</h2>
+              <div class="x-modal__title-row">
+                <h2 :id="`${id}-title`" class="x-modal__title">{{ title }}</h2>
+                <!-- Beside the title, e.g. a gear with the window's options. -->
+                <slot name="title-end" />
+              </div>
               <p v-if="$slots.subtitle" class="x-modal__subtitle"><slot name="subtitle" /></p>
             </div>
             <slot name="head" />
@@ -159,6 +163,13 @@ onBeforeUnmount(() => {
 .x-modal__dialog--table { max-width: 900px; }
 .x-modal__dialog--wide { max-width: 1368px; }
 
+@media (min-width: 768px) {
+  .x-modal__dialog--fit {
+    width: auto;
+    max-width: 100%;
+  }
+}
+
 .x-modal__head {
   display: flex;
   align-items: center;
@@ -176,7 +187,15 @@ onBeforeUnmount(() => {
   min-width: 0;
 }
 
+.x-modal__title-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-6);
+  min-width: 0;
+}
+
 .x-modal__title {
+  min-width: 0;
   margin: 0;
   overflow: hidden;
   color: var(--fg);

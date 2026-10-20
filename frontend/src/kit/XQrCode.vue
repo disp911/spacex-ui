@@ -1,16 +1,20 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { encode } from 'uqr'
 import XIcon from './XIcon.vue'
 import { copyText } from './clipboard'
+import { toast } from './toast'
 
 /**
  * A QR code on a white plate, black on white in both themes so cameras read
  * it. With copy, a click puts that text on the clipboard: the corner badge
- * turns from a copy sign into a check for a moment.
+ * turns from a copy sign into a check for a moment. quiet drops the badge and
+ * says so in a toast instead, e.g. a row of QR codes to share.
  */
-const props = withDefaults(defineProps<{ value: string; size?: number; copy?: string; copyLabel?: string }>(), { size: 180 })
+const props = withDefaults(defineProps<{ value: string; size?: number; copy?: string; copyLabel?: string; quiet?: boolean }>(), { size: 180 })
 const emit = defineEmits<{ copied: [ok: boolean] }>()
+const { t } = useI18n()
 
 const qr = computed(() => encode(props.value, { ecc: 'L', border: 2 }))
 const path = computed(() => {
@@ -25,6 +29,7 @@ async function onCopy() {
   if (props.copy == null) return
   const ok = await copyText(props.copy)
   emit('copied', ok)
+  if (props.quiet) return toast(ok ? 'ok' : 'err', t(ok ? 'kit.copied' : 'kit.copyFailed'))
   if (!ok) return
   done.value = false
   requestAnimationFrame(() => (done.value = true))
@@ -47,7 +52,7 @@ onBeforeUnmount(() => clearTimeout(timer))
     <svg :viewBox="`0 0 ${qr.size} ${qr.size}`" shape-rendering="crispEdges" aria-hidden="true">
       <path :d="path" fill="#000" />
     </svg>
-    <span v-if="copy != null" :class="['x-qr__badge', { 'is-done': done }]" aria-hidden="true">
+    <span v-if="copy != null && !quiet" :class="['x-qr__badge', { 'is-done': done }]" aria-hidden="true">
       <XIcon :name="done ? 'check' : 'copy'" :size="14" :stroke="done ? 1.9 : 1.5" />
     </span>
   </component>

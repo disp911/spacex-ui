@@ -5,7 +5,7 @@ import {
   toast, XActionBar, XActionList, XActionRow, XAddButton, XBadge, XCountList, XExpandTable, XSummaryStat, XBusyOverlay, XButton, XButtonGroup, XCard, XCheckbox, XChip, XCodeArea, XCodeEditor, XCodeInput, XConfirm, XCounter, XDataTable, XDivider, XEmpty, XErrorBox, XExample, XField, XFieldGrid, XFieldNote, XGridTable, XInfoRow, XInlineButton, XInput, XInputList, XKeyValue, XListHead, XMenu, XModal, XMultiSelect, XNavItem, XNest, XNestCard, XNotice, XPlainTable,
   XNumber, XOrderToggles, XPager, XPairList, XPickList, XPopConfirm, XProcessError, XProgressLine, XQrCode, XRecordCard, XRouteTarget, XRowLink, XSection, XSegmented, XSelect, XSettingBlock, XSettingDivider, XSettingRow, XSettingsSection, XSettingsSkeleton, XStatusDot, XStatusText, XStepArrow, XSwitch, XTabs, XTagInput, XTestResult, XTextarea,
   XTooltip, XUsagePill, XValueChip, XInnerTable, XMark, XRowToggle, XDateTime, XPartHead, XButtonRow, XCheckGroup, XStateBar, XChipBox,
-  XFactRow, XFactTile, XCopyChip, XCopyBlock,
+  XFactRow, XFactTile, XCopyChip, XCopyBlock, XQrCard,
   type MenuItem,
 } from '../kit'
 
@@ -852,6 +852,10 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
           <XFactTile label="Остаток"><XChip mono>68,3 ГБ</XChip></XFactTile>
           <XFactTile label="Общий расход"><XChip tone="warn" mono>100 ГБ</XChip></XFactTile>
           <XFactTile label="Дата окончания"><XChip icon="infinity" aria-label="Бесконечно" /></XFactTile>
+        </div>
+        <div class="demo-tiles">
+          <XQrCard label="Подписка" tone="unl" value="https://de.example.net:2096/sub/06e819f5e0bcf42c" />
+          <XQrCard label="Germany-VLESS-alice" value="vless://0740d687-743b-4269-ad61-3b98734c039b@de.example.net:443?type=tcp#Germany-VLESS-alice" />
         </div>
         <XCopyBlock label="Subscription Link" tone="unl" text="https://de.example.net:2096/sub/06e819f5e0bcf42c" />
         <XCopyBlock label="Config" :text="'[Interface]\nPrivateKey = eCtXsJZ27+4PbhDkHnB923tkUn2Gj59wZw5wFA75MnU=\nAddress = 10.0.0.2/32'">
