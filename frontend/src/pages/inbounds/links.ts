@@ -356,7 +356,7 @@ const peersOf = (f: InboundForm): Json[] =>
   (Array.isArray(f.settings.peers) ? f.settings.peers : []).map((p: Json) => ({ ...p, allowedIPs: (p.allowedIPs ?? ['10.0.0.2/32']).map(withMask) }))
 
 /** WireGuard's public key, from its secret key. */
-function wireguardPublicKey(secretKey: string) {
+export function wireguardPublicKey(secretKey: string) {
   try {
     return secretKey ? wireguardKeys(secretKey).publicKey : ''
   } catch {
