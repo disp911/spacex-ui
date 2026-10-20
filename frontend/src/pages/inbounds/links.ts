@@ -421,6 +421,37 @@ export function inboundLinks(f: InboundForm, remarkModel = defaultRemarkModel): 
   return []
 }
 
+// --- The server's IPv4 ------------------------------------------------------------
+
+/**
+ * A link or a WireGuard config that reaches the server at its public IPv4
+ * instead of the address it names, as the old QR window's switch did: the
+ * Endpoint of a config, the server of tg://proxy, the address in a VMess
+ * link's JSON, the host of the others. MTProto's WEB proxy keeps its domain,
+ * which its TLS needs.
+ */
+export function withIPv4(link: string, ipv4: string): string {
+  if (!ipv4) return link
+  if (link.startsWith('[Interface]')) return link.replace(/Endpoint = (.+):(\d+)/, `Endpoint = ${ipv4}:$2`)
+  if (link.startsWith('tg://webproxy')) return link
+  if (link.startsWith('vmess://')) {
+    try {
+      const obj = JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(link.slice(8)), (ch) => ch.charCodeAt(0))))
+      return 'vmess://' + base64(JSON.stringify({ ...obj, add: ipv4 }, null, 2))
+    } catch {
+      return link
+    }
+  }
+  try {
+    const url = new URL(link)
+    if (link.startsWith('tg://proxy')) url.searchParams.set('server', ipv4)
+    else url.hostname = ipv4
+    return url.toString()
+  } catch {
+    return link
+  }
+}
+
 // --- Fallbacks ---------------------------------------------------------------------
 
 /**

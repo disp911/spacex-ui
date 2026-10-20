@@ -1518,6 +1518,10 @@
 "peerN" = "Peer {n}"
 "accountN" = "Аккаунт {n}"
 "auth" = "Аутентификация"
+"useIPv4ForHost" = "Использовать IPv4 для подключения к хосту"
+"qrSub" = "Подписка"
+"qrSubJson" = "Подписка Json"
+"qrOptions" = "Настройки ссылок"
 
 [kit]
 "pickDate" = "Выбрать дату"

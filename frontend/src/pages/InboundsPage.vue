@@ -21,6 +21,7 @@ import ClientModal from './inbounds/ClientModal.vue'
 import BulkClientModal from './inbounds/BulkClientModal.vue'
 import CopyClientsModal from './inbounds/CopyClientsModal.vue'
 import InfoModal from './inbounds/InfoModal.vue'
+import QrModal from './inbounds/QrModal.vue'
 import { cloneOf, toForm } from './inbounds/inbound'
 import {
   deepSearch, expiryState, filterEmails, hasClients, pageSizes, protocolChips, trafficState, type Client, type ClientCounts as Counts, type DbInbound, type Filter, type State,
@@ -179,6 +180,8 @@ function act(key: string, ib: DbInbound) {
       return
     case 'info':
       return openInfo(ib, null)
+    case 'qr':
+      return openQr(ib, null)
     case 'clone':
       return ask({
         title: `${t('inbounds.cloneTitle')} "${ib.remark}"`,
@@ -260,9 +263,20 @@ function openInfo(ib: DbInbound, c: Client | null) {
   infoOpen.value = true
 }
 
+const qrOpen = ref(false)
+const qrInbound = shallowRef<DbInbound | null>(null)
+const qrClient = shallowRef<Client | null>(null)
+
+function openQr(ib: DbInbound, c: Client | null) {
+  qrInbound.value = ib
+  qrClient.value = c
+  qrOpen.value = true
+}
+
 function clientAction(key: 'qr' | 'edit' | 'info', ib: DbInbound, c: Client) {
   if (key === 'edit') openClient(ib, c)
   else if (key === 'info') openInfo(ib, c)
+  else openQr(ib, c)
 }
 
 // --- Asking first ------------------------------------------------------------------
@@ -511,6 +525,7 @@ const clientFilter = computed<Filter>(() => (mode.value === 'filter' ? filter.va
   <BulkClientModal v-model:open="bulkOpen" :inbound="bulkInbound" />
   <CopyClientsModal v-model:open="copyOpen" :inbound="copyInbound" />
   <InfoModal v-model:open="infoOpen" :inbound="infoInbound" :client="infoClient" />
+  <QrModal v-model:open="qrOpen" :inbound="qrInbound" :client="qrClient" />
 
   <XConfirm
     :open="!!asked"

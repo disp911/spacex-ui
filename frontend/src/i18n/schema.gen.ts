@@ -786,6 +786,10 @@ export interface MessageSchema {
     "peerN": string
     "accountN": string
     "auth": string
+    "useIPv4ForHost": string
+    "qrSub": string
+    "qrSubJson": string
+    "qrOptions": string
   }
   "units": {
     "value": string

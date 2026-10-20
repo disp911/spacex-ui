@@ -1518,6 +1518,10 @@
 "peerN" = "Peer {n}"
 "accountN" = "Account {n}"
 "auth" = "Authentication"
+"useIPv4ForHost" = "Use IPv4 for host"
+"qrSub" = "Subscription"
+"qrSubJson" = "Subscription Json"
+"qrOptions" = "Link options"
 
 [kit]
 "pickDate" = "Pick a date"
