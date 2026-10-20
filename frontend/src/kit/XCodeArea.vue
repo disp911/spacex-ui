@@ -6,9 +6,10 @@ import { computed, ref } from 'vue'
  * highlighting. The numbers scroll with the text. A height in px, or none to
  * fill the column it sits in; phoneFill drops the height on phones, where a
  * full-screen window gives the text all the room left. While loading the
- * lines are grey bars.
+ * lines are grey bars. plain drops the numbers, e.g. a list of links;
+ * autofocus has a window put the cursor in it, e.g. text to paste.
  */
-defineProps<{ height?: number; phoneFill?: boolean; loading?: boolean; readonly?: boolean; label?: string }>()
+defineProps<{ height?: number; phoneFill?: boolean; loading?: boolean; readonly?: boolean; label?: string; plain?: boolean; autofocus?: boolean }>()
 const text = defineModel<string>({ default: '' })
 
 const lines = computed(() => text.value.split('\n').length)
@@ -28,7 +29,7 @@ const skeleton = [14, 30, 46, 38, 24, 52, 44, 30, 20, 48, 36, 26, 42, 18]
       <span v-for="(w, i) in skeleton" :key="i" class="x-skeleton__bar" :style="{ width: `${w}%` }" />
     </div>
     <template v-else>
-      <div ref="gutter" class="x-code__gutter" aria-hidden="true">
+      <div v-if="!plain" ref="gutter" class="x-code__gutter" aria-hidden="true">
         <div v-for="n in lines" :key="n">{{ n }}</div>
       </div>
       <textarea
@@ -37,6 +38,7 @@ const skeleton = [14, 30, 46, 38, 24, 52, 44, 30, 20, 48, 36, 26, 42, 18]
         spellcheck="false"
         wrap="off"
         :readonly="readonly"
+        :autofocus="autofocus || undefined"
         :aria-label="label"
         @scroll="sync"
       />
