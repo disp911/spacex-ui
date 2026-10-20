@@ -1522,6 +1522,8 @@
 "qrSub" = "Подписка"
 "qrSubJson" = "Подписка Json"
 "qrOptions" = "Настройки ссылок"
+"inboundData" = "Данные подключений"
+"import" = "Импортировать"
 
 [kit]
 "pickDate" = "Выбрать дату"

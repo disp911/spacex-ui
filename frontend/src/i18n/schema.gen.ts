@@ -790,6 +790,8 @@ export interface MessageSchema {
     "qrSub": string
     "qrSubJson": string
     "qrOptions": string
+    "inboundData": string
+    "import": string
   }
   "units": {
     "value": string

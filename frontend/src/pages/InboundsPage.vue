@@ -22,9 +22,12 @@ import BulkClientModal from './inbounds/BulkClientModal.vue'
 import CopyClientsModal from './inbounds/CopyClientsModal.vue'
 import InfoModal from './inbounds/InfoModal.vue'
 import QrModal from './inbounds/QrModal.vue'
+import TextModal from './inbounds/TextModal.vue'
+import ImportModal from './inbounds/ImportModal.vue'
 import { cloneOf, toForm } from './inbounds/inbound'
+import { inboundLinks, linkForm, subLinks } from './inbounds/links'
 import {
-  deepSearch, expiryState, filterEmails, hasClients, pageSizes, protocolChips, trafficState, type Client, type ClientCounts as Counts, type DbInbound, type Filter, type State,
+  clientsOf, deepSearch, expiryState, filterEmails, hasClients, pageSizes, protocolChips, trafficState, type Client, type ClientCounts as Counts, type DbInbound, type Filter, type State,
 } from './inbounds/model'
 
 const { t } = useI18n()
@@ -182,6 +185,12 @@ function act(key: string, ib: DbInbound) {
       return openInfo(ib, null)
     case 'qr':
       return openQr(ib, null)
+    case 'exportLinks':
+      return showText(t('inbounds.exportLinks'), linksOf(ib).join('\r\n'), ib.remark)
+    case 'exportSubs':
+      return showText(t('inbounds.exportSubs'), subsOf([ib]).join('\n'), `${ib.remark}-Subs`)
+    case 'exportInbound':
+      return showText(t('inbounds.inboundData'), JSON.stringify(ib, null, 2))
     case 'clone':
       return ask({
         title: `${t('inbounds.cloneTitle')} "${ib.remark}"`,
@@ -205,6 +214,13 @@ function act(key: string, ib: DbInbound) {
 function actAll(key: string) {
   const base = 'panel/api/inbounds'
   switch (key) {
+    case 'import':
+      importOpen.value = true
+      return
+    case 'exportLinks':
+      return showText(t('inbounds.exportLinks'), store.list.flatMap(linksOf).join('\r\n'), 'All-Inbounds')
+    case 'exportSubs':
+      return showText(t('inbounds.exportSubs'), subsOf(store.list).join('\r\n'), 'All-Inbounds-Subs')
     case 'resetAllInbounds':
       return ask({ title: t('inbounds.resetAllInbounds'), text: t('inbounds.resetAllInboundsText'), cta: t('inbounds.reset'), danger: true, run: () => api.post(`${base}/resetAllTraffics`) })
     case 'resetAllClients':
@@ -262,6 +278,21 @@ function openInfo(ib: DbInbound, c: Client | null) {
   infoClient.value = c
   infoOpen.value = true
 }
+
+// --- Exports and import ------------------------------------------------------------
+
+const textOpen = ref(false)
+const text = shallowRef({ title: '', text: '', fileName: '' })
+const importOpen = ref(false)
+
+function showText(title: string, body: string, fileName = '') {
+  text.value = { title, text: body, fileName }
+  textOpen.value = true
+}
+
+/** An inbound's share links, a fallback's through the inbound it hangs on. */
+const linksOf = (ib: DbInbound) => inboundLinks(linkForm(ib, store.list), store.defaults?.remarkModel || '-ieo')
+const subsOf = (list: DbInbound[]) => subLinks(list.flatMap((ib) => clientsOf(ib)), store.defaults?.subURI ?? '')
 
 const qrOpen = ref(false)
 const qrInbound = shallowRef<DbInbound | null>(null)
@@ -526,6 +557,8 @@ const clientFilter = computed<Filter>(() => (mode.value === 'filter' ? filter.va
   <CopyClientsModal v-model:open="copyOpen" :inbound="copyInbound" />
   <InfoModal v-model:open="infoOpen" :inbound="infoInbound" :client="infoClient" />
   <QrModal v-model:open="qrOpen" :inbound="qrInbound" :client="qrClient" />
+  <TextModal v-model:open="textOpen" :title="text.title" :text="text.text" :file-name="text.fileName" />
+  <ImportModal v-model:open="importOpen" />
 
   <XConfirm
     :open="!!asked"

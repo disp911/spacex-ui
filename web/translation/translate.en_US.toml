@@ -1522,6 +1522,8 @@
 "qrSub" = "Subscription"
 "qrSubJson" = "Subscription Json"
 "qrOptions" = "Link options"
+"inboundData" = "Inbound's Data"
+"import" = "Import"
 
 [kit]
 "pickDate" = "Pick a date"
