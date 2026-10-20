@@ -1,0 +1,452 @@
+// Share links of an inbound and its clients, built as the old panel built them
+// (web/assets/js/model/inbound.js genLink and the rest): one per address the
+// clients reach the inbound by, named by the panel's remark model, plus the
+// WEB proxy link of MTProto and the configs of WireGuard's peers.
+
+import { wireguardKeys } from '../../wireguard'
+import { defaultTls, fromDb, withClients, isSS2022, isSSMultiUser, type InboundForm } from './inbound'
+import type { DbInbound } from './model'
+
+type Json = Record<string, any>
+
+/** A link with the name it carries. */
+export interface Link {
+  remark: string
+  link: string
+}
+
+/** The remark model the panel falls back to: "-" between the inbound, the email and the External Proxy's remark. */
+export const defaultRemarkModel = '-ieo'
+
+// --- Pieces ------------------------------------------------------------------------
+
+/** Base64 of the text as UTF-8; url-safe without padding when asked. */
+function base64(text: string, safe = false) {
+  const out = btoa(String.fromCharCode(...new TextEncoder().encode(text)))
+  return safe ? out.replace(/\+/g, '-').replace(/=/g, '').replace(/\//g, '_') : out
+}
+
+const filled = (v: unknown) => v !== undefined && v !== null && v !== ''
+
+/** The first value of a header, its name in any case; undefined without one. */
+function headerOf(headers: Json | undefined, name: string): string | undefined {
+  for (const [k, v] of Object.entries(headers ?? {})) {
+    if (k.toLowerCase() !== name.toLowerCase()) continue
+    if (!Array.isArray(v)) return v
+    if (v.length) return v[0]
+  }
+  return undefined
+}
+
+const header = (headers: Json | undefined, name: string) => headerOf(headers, name) ?? ''
+
+/** The Host of a transport: its own field when set, else its Host header. */
+const hostOf = (s: Json) => (s.host?.length > 0 ? s.host : header(s.headers, 'host'))
+
+/** The address the inbound's links point at: its listen address when a specific one, the panel's host otherwise. */
+export const linkAddress = (f: InboundForm) => (filled(f.listen) && f.listen !== '0.0.0.0' ? f.listen : location.hostname)
+
+/** finalmask as share links carry it (fm=…), when it has a value to share. */
+function finalMask(st: Json): string {
+  const fm = st.finalmask
+  if (!fm) return ''
+  const out: Json = {}
+  if (Array.isArray(fm.tcp) && fm.tcp.length) out.tcp = fm.tcp
+  if (Array.isArray(fm.udp) && fm.udp.length) out.udp = fm.udp
+  if (fm.quicParams) out.quicParams = fm.quicParams
+  const shareable = (v: unknown): boolean => {
+    if (v == null) return false
+    if (Array.isArray(v)) return v.some(shareable)
+    if (typeof v === 'object') return Object.values(v).some(shareable)
+    if (typeof v === 'string') return v.length > 0
+    return true
+  }
+  return shareable(out) ? JSON.stringify(out) : ''
+}
+
+/**
+ * xhttp padding a client must know, or the server turns its handshakes down:
+ * x_padding_bytes for sing-box clients and the whole of it in extra for Xray.
+ */
+function xhttpPadding(x: Json): Json {
+  const out: Json = {}
+  if (typeof x.xPaddingBytes === 'string' && x.xPaddingBytes.length > 0) out.xPaddingBytes = x.xPaddingBytes
+  if (x.xPaddingObfsMode === true) {
+    out.xPaddingObfsMode = true
+    for (const k of ['xPaddingKey', 'xPaddingHeader', 'xPaddingPlacement', 'xPaddingMethod']) if (typeof x[k] === 'string' && x[k].length > 0) out[k] = x[k]
+  }
+  return out
+}
+
+/**
+ * The transport's part of a link's query, as VLESS, Trojan and Shadowsocks
+ * share it; what goes right after the type (VLESS's encryption) comes in after.
+ */
+function transportParams(st: Json, params: Map<string, unknown>, after: Json = {}) {
+  const net = st.network
+  const s: Json = st[`${net}Settings`] ?? {}
+  params.set('type', net)
+  for (const [k, v] of Object.entries(after)) params.set(k, v)
+  switch (net) {
+    case 'tcp':
+      if (s.header?.type === 'http') {
+        const request = s.header.request ?? {}
+        params.set('path', (request.path ?? ['/']).join(','))
+        const host = headerOf(request.headers, 'host')
+        if (host !== undefined) params.set('host', host)
+        params.set('headerType', 'http')
+      }
+      break
+    case 'kcp':
+      params.set('mtu', s.mtu)
+      params.set('tti', s.tti)
+      break
+    case 'ws':
+    case 'httpupgrade':
+      params.set('path', s.path)
+      params.set('host', hostOf(s))
+      break
+    case 'grpc':
+      params.set('serviceName', s.serviceName)
+      params.set('authority', s.authority)
+      if (s.multiMode) params.set('mode', 'multi')
+      break
+    case 'xhttp': {
+      params.set('path', s.path)
+      params.set('host', hostOf(s))
+      params.set('mode', s.mode)
+      const pad = xhttpPadding(s)
+      if (pad.xPaddingBytes) params.set('x_padding_bytes', pad.xPaddingBytes)
+      if (Object.keys(pad).length) params.set('extra', JSON.stringify(pad))
+      break
+    }
+  }
+  const fm = finalMask(st)
+  if (fm) params.set('fm', fm)
+}
+
+/**
+ * TLS of the inbound in a link's query. VLESS gives the SNI before ECH and,
+ * given a flow, its Vision flow over raw TCP; Trojan and Shadowsocks give ECH
+ * first.
+ */
+function tlsParams(st: Json, params: Map<string, unknown>, flow?: string) {
+  params.set('security', 'tls')
+  if (st.security !== 'tls') return
+  const t = st.tlsSettings ?? {}
+  params.set('fp', t.settings?.fingerprint)
+  params.set('alpn', t.alpn)
+  const sni = () => filled(t.serverName) && params.set('sni', t.serverName)
+  if (flow !== undefined) sni()
+  if (t.settings?.echConfigList?.length > 0) params.set('ech', t.settings.echConfigList)
+  if (flow === undefined) sni()
+  else if (st.network === 'tcp' && filled(flow)) params.set('flow', flow)
+}
+
+/** Reality of the inbound in a link's query: the first server name and the first short ID. */
+function realityParams(st: Json, params: Map<string, unknown>, flow?: string) {
+  const r = st.realitySettings ?? {}
+  const names = ([] as string[]).concat(r.serverNames ?? []).join(',')
+  const ids = ([] as string[]).concat(r.shortIds ?? []).join(',')
+  params.set('security', 'reality')
+  params.set('pbk', r.settings?.publicKey)
+  params.set('fp', r.settings?.fingerprint)
+  // The old panel always gave the first server name, an empty one too.
+  params.set('sni', names.split(',')[0])
+  if (ids.length > 0) params.set('sid', ids.split(',')[0])
+  if (filled(r.settings?.spiderX)) params.set('spx', r.settings.spiderX)
+  if (filled(r.settings?.mldsa65Verify)) params.set('pqv', r.settings.mldsa65Verify)
+  if (flow !== undefined && st.network === 'tcp' && filled(flow)) params.set('flow', flow)
+}
+
+/** A link of the form scheme://user@address:port?query#remark. */
+function urlLink(base: string, params: Map<string, unknown>, remark: string) {
+  const url = new URL(base)
+  for (const [k, v] of params) url.searchParams.set(k, String(v))
+  url.hash = encodeURIComponent(remark)
+  return url.toString()
+}
+
+const securityOf = (st: Json, forceTls: string) => (forceTls === 'same' ? st.security : forceTls)
+
+// --- One link per protocol ---------------------------------------------------------
+
+function vmessLink(f: InboundForm, address: string, port: number, forceTls: string, remark: string, c: Json) {
+  const st = f.streamSettings ?? {}
+  const tls = securityOf(st, forceTls)
+  const s: Json = st[`${st.network}Settings`] ?? {}
+  const obj: Json = { v: '2', ps: remark, add: address, port, id: c.id, scy: c.security ?? 'auto', net: st.network, tls }
+  switch (st.network) {
+    case 'tcp':
+      obj.type = s.header?.type
+      if (s.header?.type === 'http') {
+        const request = s.header.request ?? {}
+        obj.path = (request.path ?? ['/']).join(',')
+        const host = header(request.headers, 'host')
+        if (host) obj.host = host
+      }
+      break
+    case 'kcp':
+      obj.mtu = s.mtu
+      obj.tti = s.tti
+      break
+    case 'ws':
+    case 'httpupgrade':
+      obj.path = s.path
+      obj.host = hostOf(s)
+      break
+    case 'grpc':
+      obj.path = s.serviceName
+      obj.authority = s.authority
+      if (s.multiMode) obj.type = 'multi'
+      break
+    case 'xhttp': {
+      obj.path = s.path
+      obj.host = hostOf(s)
+      obj.type = s.mode
+      const pad = xhttpPadding(s)
+      if (pad.xPaddingBytes) obj.x_padding_bytes = pad.xPaddingBytes
+      delete pad.xPaddingBytes
+      Object.assign(obj, pad)
+      break
+    }
+  }
+  const fm = finalMask(st)
+  if (fm) obj.fm = fm
+  if (tls === 'tls') {
+    const t = st.tlsSettings ?? defaultTls()
+    if (filled(t.serverName)) obj.sni = t.serverName
+    if (filled(t.settings?.fingerprint)) obj.fp = t.settings.fingerprint
+    if (t.alpn?.length > 0) obj.alpn = t.alpn.join(',')
+  }
+  return 'vmess://' + base64(JSON.stringify(obj, null, 2))
+}
+
+function vlessLink(f: InboundForm, address: string, port: number, forceTls: string, remark: string, c: Json) {
+  const st = f.streamSettings ?? {}
+  const params = new Map<string, unknown>()
+  transportParams(st, params, { encryption: f.settings.encryption ?? 'none' })
+  const sec = securityOf(st, forceTls)
+  if (sec === 'tls') tlsParams(st, params, c.flow ?? '')
+  else if (sec === 'reality') realityParams(st, params, c.flow ?? '')
+  else params.set('security', 'none')
+  return urlLink(`vless://${c.id}@${address}:${port}`, params, remark)
+}
+
+function trojanLink(f: InboundForm, address: string, port: number, forceTls: string, remark: string, password: string) {
+  const st = f.streamSettings ?? {}
+  const params = new Map<string, unknown>()
+  transportParams(st, params)
+  const sec = securityOf(st, forceTls)
+  if (sec === 'tls') tlsParams(st, params)
+  else if (sec === 'reality') realityParams(st, params)
+  else params.set('security', 'none')
+  return urlLink(`trojan://${password}@${address}:${port}`, params, remark)
+}
+
+function ssLink(f: InboundForm, address: string, port: number, forceTls: string, remark: string, clientPassword = '') {
+  const st = f.streamSettings ?? {}
+  const s = f.settings
+  const params = new Map<string, unknown>()
+  transportParams(st, params)
+  if (securityOf(st, forceTls) === 'tls') tlsParams(st, params)
+  const password: string[] = []
+  if (isSS2022(s.method)) password.push(s.password)
+  if (isSSMultiUser(s.method)) password.push(clientPassword)
+  return urlLink(`ss://${base64(`${s.method}:${password.join(':')}`, true)}@${address}:${port}`, params, remark)
+}
+
+function hysteriaLink(f: InboundForm, address: string, port: number, remark: string, auth: string) {
+  const st = f.streamSettings ?? {}
+  const t = st.tlsSettings ?? defaultTls()
+  const params = new Map<string, unknown>()
+  params.set('security', 'tls')
+  if (t.settings?.fingerprint?.length > 0) params.set('fp', t.settings.fingerprint)
+  if (t.alpn?.length > 0) params.set('alpn', t.alpn)
+  if (t.settings?.echConfigList?.length > 0) params.set('ech', t.settings.echConfigList)
+  if (t.serverName?.length > 0) params.set('sni', t.serverName)
+  const salamander = (Array.isArray(st.finalmask?.udp) ? st.finalmask.udp : []).find((m: Json) => m?.type === 'salamander')
+  const obfs = salamander?.settings?.password
+  if (typeof obfs === 'string' && obfs.length > 0) {
+    params.set('obfs', 'salamander')
+    params.set('obfs-password', obfs)
+  }
+  const fm = finalMask(st)
+  if (fm) params.set('fm', fm)
+  return urlLink(`${(f.settings.version ?? 2) == 2 ? 'hysteria2' : 'hysteria'}://${auth}@${address}:${port}`, params, remark)
+}
+
+/** Telegram's tg://proxy: the ee prefix selects Fake-TLS, the masking domain follows the secret as hex. */
+function mtprotoLink(f: InboundForm, address: string, port: number, secret = '') {
+  const domain = [...new TextEncoder().encode(f.settings.tlsDomain || '')].map((b) => b.toString(16).padStart(2, '0')).join('')
+  return `tg://proxy?server=${address}&port=${port}&secret=ee${secret}${domain}`
+}
+
+/**
+ * The WEB proxy's tg://webproxy: the host and the secret path, no port as
+ * Telegram always uses 443; the secret is 0x70, then the dd-prefixed secret,
+ * as unpadded base64url.
+ */
+function mtprotoWebLink(f: InboundForm, secret = '') {
+  const web = f.settings.web ?? {}
+  const bytes = [0x70, 0xdd, ...(secret.match(/../g) ?? []).map((h) => parseInt(h, 16))]
+  const encoded = btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+  return `tg://webproxy?server=${encodeURIComponent(`${web.host}/${web.path}`)}&secret=${encoded}`
+}
+
+/** Whether the MTProto inbound's WEB proxy has what its links need. */
+const webReady = (f: InboundForm) => !!f.settings.web?.enable && filled(f.settings.web?.host) && filled(f.settings.web?.path)
+
+/** One client's link to the address and port; forceTls "same" keeps the inbound's security. */
+export function genLink(f: InboundForm, address: string, port: number, forceTls: string, remark: string, client: Json | undefined): string {
+  const c = client ?? {}
+  switch (f.protocol) {
+    case 'vmess':
+      return vmessLink(f, address, port, forceTls, remark, c)
+    case 'vless':
+      return vlessLink(f, address, port, forceTls, remark, c)
+    case 'shadowsocks':
+      return ssLink(f, address, port, forceTls, remark, isSSMultiUser(f.settings.method) ? c.password : '')
+    case 'trojan':
+      return trojanLink(f, address, port, forceTls, remark, c.password)
+    case 'hysteria':
+      return hysteriaLink(f, address, port, remark, c.auth?.length > 0 ? c.auth : (f.streamSettings?.hysteriaSettings?.auth ?? ''))
+    case 'mtproto':
+      return mtprotoLink(f, address, port, c.id)
+    default:
+      return ''
+  }
+}
+
+// --- All of them -------------------------------------------------------------------
+
+/**
+ * A client's links: one to the inbound itself, or one per External Proxy
+ * address, and MTProto's WEB proxy; each named by the remark model, its first
+ * character the separator and the rest the order of the inbound's remark (i),
+ * the email (e) and the External Proxy's remark (o).
+ */
+export function allLinks(f: InboundForm, remarkModel = defaultRemarkModel, client?: Json): Link[] {
+  const sep = remarkModel.charAt(0)
+  const order = remarkModel.slice(1).split('')
+  const parts: Record<string, string> = { i: f.remark, e: client?.email ?? '', o: '' }
+  const name = () => order.map((ch) => parts[ch] ?? '').filter((x) => x.length > 0).join(sep)
+  const out: Link[] = []
+  const proxies: Json[] = f.streamSettings?.externalProxy ?? []
+  if (!proxies.length) {
+    const r = name()
+    out.push({ remark: r, link: genLink(f, linkAddress(f), f.port ?? 0, 'same', r, client) })
+  } else {
+    for (const ep of proxies) {
+      parts.o = ep.remark ?? ''
+      const r = name()
+      out.push({ remark: r, link: genLink(f, ep.dest, ep.port, ep.forceTls, r, client) })
+    }
+  }
+  if (f.protocol === 'mtproto' && client && webReady(f)) {
+    parts.o = 'WEB'
+    out.push({ remark: name(), link: mtprotoWebLink(f, client.id) })
+  }
+  return out
+}
+
+/** The peers, an address without a mask taken as /32 as the old panel read them. */
+const peersOf = (f: InboundForm): Json[] =>
+  (Array.isArray(f.settings.peers) ? f.settings.peers : []).map((p: Json) => ({
+    ...p,
+    allowedIPs: (p.allowedIPs ?? ['10.0.0.2/32']).map((a: string) => (a.length > 0 && !a.includes('/') ? `${a}/32` : a)),
+  }))
+
+/** WireGuard's public key, from its secret key. */
+function wireguardPublicKey(secretKey: string) {
+  try {
+    return secretKey ? wireguardKeys(secretKey).publicKey : ''
+  } catch {
+    return ''
+  }
+}
+
+/** WireGuard's settings with the MTU the old panel took when none is set. */
+const wireguardSettings = (f: InboundForm): Json => ({ ...f.settings, mtu: f.settings.mtu ?? 1420 })
+
+/** A peer's config file, as wg-quick reads it. */
+function wireguardConfig(f: InboundForm, address: string, port: number, remark: string, peer: Json) {
+  const s = wireguardSettings(f)
+  let txt = '[Interface]\n'
+  txt += `PrivateKey = ${peer.privateKey}\n`
+  txt += `Address = ${peer.allowedIPs?.[0]}\n`
+  txt += 'DNS = 1.1.1.1, 1.0.0.1\n'
+  if (s.mtu) txt += `MTU = ${s.mtu}\n`
+  txt += `\n# ${remark}\n`
+  txt += '[Peer]\n'
+  txt += `PublicKey = ${wireguardPublicKey(s.secretKey)}\n`
+  txt += 'AllowedIPs = 0.0.0.0/0, ::/0\n'
+  txt += `Endpoint = ${address}:${port}`
+  if (peer.preSharedKey) txt += `\nPresharedKey = ${peer.preSharedKey}`
+  if (peer.keepAlive) txt += `\nPersistentKeepalive = ${peer.keepAlive}\n`
+  return txt
+}
+
+/** A peer's wireguard:// link. */
+function wireguardLink(f: InboundForm, address: string, port: number, remark: string, peer: Json) {
+  const s = wireguardSettings(f)
+  const url = new URL(`wireguard://${address}:${port}`)
+  url.username = peer.privateKey || ''
+  const pub = wireguardPublicKey(s.secretKey)
+  if (pub) url.searchParams.set('publickey', pub)
+  if (Array.isArray(peer.allowedIPs) && peer.allowedIPs[0]) url.searchParams.set('address', peer.allowedIPs[0])
+  if (s.mtu) url.searchParams.set('mtu', String(s.mtu))
+  url.hash = encodeURIComponent(remark)
+  return url.toString()
+}
+
+
+/** Each WireGuard peer's config, named after the inbound and the peer's number. */
+export const wireguardConfigs = (f: InboundForm, remarkModel = defaultRemarkModel, address = linkAddress(f)) =>
+  peersOf(f).map((p, i) => wireguardConfig(f, address, f.port ?? 0, f.remark + remarkModel.charAt(0) + (i + 1), p))
+
+/** Each WireGuard peer's link, named as its config. */
+export const wireguardLinks = (f: InboundForm, remarkModel = defaultRemarkModel, address = linkAddress(f)) =>
+  peersOf(f).map((p, i) => wireguardLink(f, address, f.port ?? 0, f.remark + remarkModel.charAt(0) + (i + 1), p))
+
+/**
+ * Everything an inbound shares: every client's links; for Shadowsocks
+ * with one key the inbound's link; for WireGuard the peers' configs.
+ */
+export function inboundLinks(f: InboundForm, remarkModel = defaultRemarkModel): string[] {
+  if (withClients(f.protocol, f.settings)) {
+    const clients: Json[] = Array.isArray(f.settings.clients) ? f.settings.clients : []
+    return clients.flatMap((c) => allLinks(f, remarkModel, c).map((l) => l.link))
+  }
+  if (f.protocol === 'shadowsocks') return [ssLink(f, linkAddress(f), f.port ?? 0, 'same', f.remark)]
+  if (f.protocol === 'wireguard') return wireguardConfigs(f, remarkModel)
+  return []
+}
+
+// --- Fallbacks ---------------------------------------------------------------------
+
+/**
+ * An inbound for its links. One listening on a socket (@…) is a fallback of a
+ * VLESS or Trojan inbound over TCP: its clients reach it at that inbound's
+ * address and port, with its security, TLS and External Proxy.
+ */
+export function linkForm(ib: DbInbound, all: DbInbound[]): InboundForm {
+  if (!ib.listen?.startsWith('@')) return fromDb(ib)
+  const root = all
+    .filter((x) => ['trojan', 'vless'].includes(x.protocol))
+    .map(fromDb)
+    .find((x) => x.streamSettings?.network === 'tcp' && (x.settings.fallbacks ?? []).some((fb: Json) => fb.dest === ib.listen))
+  if (!root) return fromDb(ib)
+  const st: Json = JSON.parse(ib.streamSettings || '{}')
+  const rs = root.streamSettings ?? {}
+  st.security = rs.security
+  if (rs.tlsSettings) st.tlsSettings = rs.tlsSettings
+  else delete st.tlsSettings
+  st.externalProxy = rs.externalProxy
+  return fromDb({ ...ib, listen: root.listen, port: root.port ?? ib.port, streamSettings: JSON.stringify(st) })
+}
+
+/** Subscription links of the clients that have one, each once. */
+export function subLinks(clients: Json[], subURI: string): string[] {
+  return [...new Set(clients.filter((c) => c.subId?.length > 0).map((c) => subURI + c.subId))]
+}
