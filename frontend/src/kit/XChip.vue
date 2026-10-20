@@ -15,6 +15,8 @@ const props = withDefaults(
     interactive?: boolean
     /** Only the frame and the text, e.g. a transport beside a filled protocol. */
     outline?: boolean
+    /** A long value, e.g. a key: at most 300px and its place, cut with an ellipsis. */
+    truncate?: boolean
   }>(),
   { tone: 'neutral' },
 )
@@ -24,11 +26,12 @@ const props = withDefaults(
   <component
     :is="props.interactive ? 'button' : 'span'"
     :type="props.interactive ? 'button' : undefined"
-    :class="['x-chip', `x-chip--${tone}`, { 'x-chip--mono': mono, 'x-chip--interactive': interactive, 'x-chip--outline': outline }]"
+    :class="['x-chip', `x-chip--${tone}`, { 'x-chip--mono': mono, 'x-chip--interactive': interactive, 'x-chip--outline': outline, 'x-chip--truncate': truncate }]"
   >
     <span v-if="dot" class="x-chip__dot" />
     <XIcon v-if="icon" :name="icon" :size="12" :stroke="1.6" />
-    <slot />
+    <span v-if="truncate" class="x-chip__text"><slot /></span>
+    <slot v-else />
   </component>
 </template>
 
@@ -55,6 +58,16 @@ const props = withDefaults(
 
 .x-chip--mono {
   font-family: var(--font-mono);
+}
+
+.x-chip--truncate {
+  flex: 0 1 auto;
+  max-width: min(300px, 100%);
+}
+
+.x-chip__text {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .x-chip__dot {

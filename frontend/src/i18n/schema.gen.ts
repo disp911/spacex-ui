@@ -774,6 +774,18 @@ export interface MessageSchema {
     "selectAll": string
     "clearAll": string
     "unlimited": string
+    "details": string
+    "address": string
+    "authentication": string
+    "domain": string
+    "createdAt": string
+    "updatedAt": string
+    "lastOnlineAt": string
+    "subscriptionUrl": string
+    "download": string
+    "peerN": string
+    "accountN": string
+    "auth": string
   }
   "units": {
     "value": string
@@ -829,5 +841,8 @@ export interface MessageSchema {
     "pageOf": string
     "expand": string
     "comment": string
+    "copy": string
+    "copied": string
+    "copyFailed": string
   }
 }

@@ -1506,6 +1506,18 @@
 "selectAll" = "Select all"
 "clearAll" = "Clear all"
 "unlimited" = "Unlimited"
+"details" = "Details"
+"address" = "Address"
+"authentication" = "Authentication"
+"domain" = "Domain"
+"createdAt" = "Created"
+"updatedAt" = "Updated"
+"lastOnlineAt" = "Last online"
+"subscriptionUrl" = "Subscription URL"
+"download" = "Download"
+"peerN" = "Peer {n}"
+"accountN" = "Account {n}"
+"auth" = "Authentication"
 
 [kit]
 "pickDate" = "Pick a date"
@@ -1545,6 +1557,9 @@
 "pageOf" = "Page {page} of {pages}"
 "expand" = "Expand"
 "comment" = "Comment: {text}"
+"copy" = "Copy"
+"copied" = "Copied"
+"copyFailed" = "Could not copy"
 
 [units]
 "value" = "{n} {unit}"

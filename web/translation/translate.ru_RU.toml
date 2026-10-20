@@ -1506,6 +1506,18 @@
 "selectAll" = "Выбрать всех"
 "clearAll" = "Снять всё"
 "unlimited" = "Безлимит"
+"details" = "Подробнее"
+"address" = "Адрес"
+"authentication" = "Authentication"
+"domain" = "Домен"
+"createdAt" = "Создано"
+"updatedAt" = "Обновлено"
+"lastOnlineAt" = "Был(а) в сети"
+"subscriptionUrl" = "Subscription URL"
+"download" = "Скачать"
+"peerN" = "Peer {n}"
+"accountN" = "Аккаунт {n}"
+"auth" = "Аутентификация"
 
 [kit]
 "pickDate" = "Выбрать дату"
@@ -1545,6 +1557,9 @@
 "pageOf" = "Стр. {page} из {pages}"
 "expand" = "Развернуть"
 "comment" = "Комментарий: {text}"
+"copy" = "Копировать"
+"copied" = "Скопировано"
+"copyFailed" = "Не удалось скопировать"
 
 [units]
 "value" = "{n} {unit}"
