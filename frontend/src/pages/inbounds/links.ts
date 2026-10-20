@@ -81,19 +81,21 @@ function xhttpPadding(x: Json): Json {
 /**
  * The transport's part of a link's query, as VLESS, Trojan and Shadowsocks
  * share it; what goes right after the type (VLESS's encryption) comes in after.
+ * Empty values are left out, as the share link standard asks (Xray-core
+ * discussion 716): the client takes its default for them.
  */
 function transportParams(st: Json, params: Map<string, unknown>, after: Json = {}) {
   const net = st.network
   const s: Json = st[`${net}Settings`] ?? {}
+  const set = (k: string, v: unknown) => filled(v) && params.set(k, v)
   params.set('type', net)
   for (const [k, v] of Object.entries(after)) params.set(k, v)
   switch (net) {
     case 'tcp':
       if (s.header?.type === 'http') {
         const request = s.header.request ?? {}
-        params.set('path', (request.path ?? ['/']).join(','))
-        const host = headerOf(request.headers, 'host')
-        if (host !== undefined) params.set('host', host)
+        set('path', (request.path ?? ['/']).join(','))
+        set('host', headerOf(request.headers, 'host'))
         params.set('headerType', 'http')
       }
       break
@@ -103,17 +105,18 @@ function transportParams(st: Json, params: Map<string, unknown>, after: Json = {
       break
     case 'ws':
     case 'httpupgrade':
-      params.set('path', s.path)
-      params.set('host', hostOf(s))
+      set('path', s.path)
+      set('host', hostOf(s))
       break
     case 'grpc':
-      params.set('serviceName', s.serviceName)
+      set('serviceName', s.serviceName)
+      // The standard lets the authority be empty.
       params.set('authority', s.authority)
       if (s.multiMode) params.set('mode', 'multi')
       break
     case 'xhttp': {
-      params.set('path', s.path)
-      params.set('host', hostOf(s))
+      set('path', s.path)
+      set('host', hostOf(s))
       params.set('mode', s.mode)
       const pad = xhttpPadding(s)
       if (pad.xPaddingBytes) params.set('x_padding_bytes', pad.xPaddingBytes)
@@ -125,13 +128,17 @@ function transportParams(st: Json, params: Map<string, unknown>, after: Json = {
   if (fm) params.set('fm', fm)
 }
 
-/** TLS of the inbound in a link's query; given a flow, VLESS's Vision flow over raw TCP too. */
+/**
+ * TLS of the inbound in a link's query, without an empty fingerprint or ALPN
+ * (the client then takes chrome and the core's choice); given a flow, VLESS's
+ * Vision flow over raw TCP too.
+ */
 function tlsParams(st: Json, params: Map<string, unknown>, flow?: string) {
   params.set('security', 'tls')
   if (st.security !== 'tls') return
   const t = st.tlsSettings ?? {}
-  params.set('fp', t.settings?.fingerprint)
-  params.set('alpn', t.alpn)
+  if (filled(t.settings?.fingerprint)) params.set('fp', t.settings.fingerprint)
+  if (t.alpn?.length > 0) params.set('alpn', t.alpn)
   if (filled(t.serverName)) params.set('sni', t.serverName)
   if (t.settings?.echConfigList?.length > 0) params.set('ech', t.settings.echConfigList)
   if (flow !== undefined && st.network === 'tcp' && filled(flow)) params.set('flow', flow)
@@ -144,7 +151,7 @@ function realityParams(st: Json, params: Map<string, unknown>, flow?: string) {
   const ids = ([] as string[]).concat(r.shortIds ?? []).join(',')
   params.set('security', 'reality')
   params.set('pbk', r.settings?.publicKey)
-  params.set('fp', r.settings?.fingerprint)
+  if (filled(r.settings?.fingerprint)) params.set('fp', r.settings.fingerprint)
   // Without a server name the client takes the address, so an empty one is left out.
   if (names.split(',')[0]) params.set('sni', names.split(',')[0])
   if (ids.length > 0) params.set('sid', ids.split(',')[0])
