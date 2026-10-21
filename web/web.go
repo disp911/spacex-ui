@@ -1,12 +1,11 @@
 // Package web provides the main web server implementation for the 3x-ui panel,
-// including HTTP/HTTPS serving, routing, templates, and background job scheduling.
+// including HTTP/HTTPS serving, routing, the frontend, and background job scheduling.
 package web
 
 import (
 	"context"
 	"crypto/tls"
 	"embed"
-	"html/template"
 	"io"
 	"io/fs"
 	"net"
@@ -36,68 +35,19 @@ import (
 	"github.com/robfig/cron/v3"
 )
 
-//go:embed assets
-var assetsFS embed.FS
-
-//go:embed html/*
-var htmlFS embed.FS
-
 //go:embed translation/*
 var i18nFS embed.FS
+
+// decoyPage is shown for paths outside the base path, see frontendOrDecoy.
+//
+//go:embed decoy.html
+var decoyPage []byte
 
 // appFS holds the v3 frontend that Vite builds from frontend/ into web/app.
 // The directory keeps a .gitkeep, so the panel compiles before the first build.
 //
 //go:embed all:app
 var appFS embed.FS
-
-var startTime = time.Now()
-
-type wrapAssetsFS struct {
-	embed.FS
-}
-
-func (f *wrapAssetsFS) Open(name string) (fs.File, error) {
-	file, err := f.FS.Open("assets/" + name)
-	if err != nil {
-		return nil, err
-	}
-	return &wrapAssetsFile{
-		File: file,
-	}, nil
-}
-
-type wrapAssetsFile struct {
-	fs.File
-}
-
-func (f *wrapAssetsFile) Stat() (fs.FileInfo, error) {
-	info, err := f.File.Stat()
-	if err != nil {
-		return nil, err
-	}
-	return &wrapAssetsFileInfo{
-		FileInfo: info,
-	}, nil
-}
-
-type wrapAssetsFileInfo struct {
-	fs.FileInfo
-}
-
-func (f *wrapAssetsFileInfo) ModTime() time.Time {
-	return startTime
-}
-
-// EmbeddedHTML returns the embedded HTML templates filesystem for reuse by other servers.
-func EmbeddedHTML() embed.FS {
-	return htmlFS
-}
-
-// EmbeddedAssets returns the embedded assets filesystem for reuse by other servers.
-func EmbeddedAssets() embed.FS {
-	return assetsFS
-}
 
 // AppFS returns the v3 frontend that Vite builds: web/app on disk in debug
 // mode, the embedded copy otherwise. The subscription server serves its page
@@ -145,55 +95,8 @@ func NewServer() *Server {
 	}
 }
 
-// getHtmlFiles walks the local `web/html` directory and returns a list of
-// template file paths. Used only in debug/development mode.
-func (s *Server) getHtmlFiles() ([]string, error) {
-	files := make([]string, 0)
-	dir, _ := os.Getwd()
-	err := fs.WalkDir(os.DirFS(dir), "web/html", func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-		if d.IsDir() {
-			return nil
-		}
-		files = append(files, path)
-		return nil
-	})
-	if err != nil {
-		return nil, err
-	}
-	return files, nil
-}
-
-// getHtmlTemplate parses embedded HTML templates from the bundled `htmlFS`
-// using the provided template function map and returns the resulting
-// template set for production usage.
-func (s *Server) getHtmlTemplate(funcMap template.FuncMap) (*template.Template, error) {
-	t := template.New("").Funcs(funcMap)
-	err := fs.WalkDir(htmlFS, "html", func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-
-		if d.IsDir() {
-			newT, err := t.ParseFS(htmlFS, path+"/*.html")
-			if err != nil {
-				// ignore
-				return nil
-			}
-			t = newT
-		}
-		return nil
-	})
-	if err != nil {
-		return nil, err
-	}
-	return t, nil
-}
-
-// initRouter initializes Gin, registers middleware, templates, static
-// assets, controllers and returns the configured engine.
+// initRouter initializes Gin, registers middleware, controllers and the
+// frontend and returns the configured engine.
 func (s *Server) initRouter() (*gin.Engine, error) {
 	if config.IsDebug() {
 		gin.SetMode(gin.DebugMode)
@@ -247,35 +150,8 @@ func (s *Server) initRouter() (*gin.Engine, error) {
 		return nil, err
 	}
 
-	// Apply locale middleware for i18n
-	i18nWebFunc := func(key string, params ...string) string {
-		return locale.I18n(locale.Web, key, params...)
-	}
-	// Register template functions before loading templates
-	funcMap := template.FuncMap{
-		"i18n": i18nWebFunc,
-	}
-	engine.SetFuncMap(funcMap)
+	// Server messages in the request's language, see controller.I18nWeb.
 	engine.Use(locale.LocalizerMiddleware())
-
-	// set static files and template
-	if config.IsDebug() {
-		// for development
-		files, err := s.getHtmlFiles()
-		if err != nil {
-			return nil, err
-		}
-		// Use the registered func map with the loaded templates
-		engine.LoadHTMLFiles(files...)
-	} else {
-		// for production
-		template, err := s.getHtmlTemplate(funcMap)
-		if err != nil {
-			return nil, err
-		}
-		engine.SetHTMLTemplate(template)
-	}
-	engine.HTMLRender = locale.HTMLRender(engine.HTMLRender)
 
 	// Apply the redirect middleware (`/xui` to `/panel`)
 	engine.Use(middleware.RedirectMiddleware(basePath))
@@ -316,7 +192,7 @@ func (s *Server) initRouter() (*gin.Engine, error) {
 	// Under the base path the frontend answers instead: a page of the app or
 	// its files. The server's own endpoints under panel/ stay theirs.
 	engine.NoRoute(frontendOrDecoy(basePath, app, func(c *gin.Context) {
-		c.HTML(http.StatusOK, "decoy.html", gin.H{"base_path": basePath})
+		c.Data(http.StatusOK, "text/html; charset=utf-8", decoyPage)
 	}))
 
 	return engine, nil

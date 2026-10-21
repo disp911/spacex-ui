@@ -1,6 +1,6 @@
 // An inbound as the inbound window edits it: Xray's own JSON for settings,
 // streamSettings and sniffing beside the panel's fields, with the rules of the
-// old panel's Inbound class (web/assets/js/model/inbound.js) for what goes
+// old panel's Inbound class (inbound.js of the 2.x panel) for what goes
 // with what, the defaults it filled in, the fresh keys a new inbound or client
 // gets and the cleanup it did on save.
 

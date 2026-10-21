@@ -1,5 +1,5 @@
 // Share links of an inbound and its clients, built as the old panel built them
-// (web/assets/js/model/inbound.js genLink and the rest): one per address the
+// (genLink and the rest in inbound.js of the 2.x panel): one per address the
 // clients reach the inbound by, named by the panel's remark model, plus the
 // WEB proxy link of MTProto and the configs of WireGuard's peers.
 

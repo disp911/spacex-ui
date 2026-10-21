@@ -4,7 +4,6 @@ package locale
 
 import (
 	"embed"
-	"html/template"
 	"io/fs"
 	"os"
 	"strings"
@@ -13,7 +12,6 @@ import (
 	"github.com/disp911/spacex-ui/v2/logger"
 
 	"github.com/gin-gonic/gin"
-	"github.com/gin-gonic/gin/render"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"github.com/pelletier/go-toml/v2"
 	"golang.org/x/text/language"
@@ -23,10 +21,6 @@ var (
 	bundleMu   sync.Mutex
 	i18nBundle *i18n.Bundle
 )
-
-// localizerKey is where a request's localizer is kept, in the gin context and
-// in the data of the page rendered for it.
-const localizerKey = "localizer"
 
 // I18nType represents the type of interface for internationalization.
 type I18nType string
@@ -125,7 +119,6 @@ func LocalizerMiddleware() gin.HandlerFunc {
 		}
 
 		localizer := i18n.NewLocalizer(currentBundle(), lang)
-		c.Set(localizerKey, localizer)
 		c.Set("I18n", func(i18nType I18nType, key string, params ...string) string {
 			if i18nType != Web {
 				logger.Errorf("Invalid type for I18n: %s", i18nType)
@@ -135,55 +128,6 @@ func LocalizerMiddleware() gin.HandlerFunc {
 		})
 		c.Next()
 	}
-}
-
-// PageData adds the request's localizer to the data of a page, so that
-// HTMLRender translates the page into the request's language.
-func PageData(c *gin.Context, data gin.H) gin.H {
-	if localizer, ok := c.Get(localizerKey); ok {
-		data[localizerKey] = localizer
-	}
-	return data
-}
-
-// HTMLRender wraps a page renderer so that each page is translated into the
-// language of its request. html/template binds the i18n function when the
-// templates are parsed, so every page is rendered from a clone with i18n
-// bound to the localizer in its data. The parsed templates themselves are
-// never run, which keeps them clonable.
-func HTMLRender(inner render.HTMLRender) render.HTMLRender {
-	return htmlRender{inner: inner}
-}
-
-type htmlRender struct {
-	inner render.HTMLRender
-}
-
-func (r htmlRender) Instance(name string, data any) render.Render {
-	out := r.inner.Instance(name, data)
-	page, ok := out.(render.HTML)
-	if !ok || page.Template == nil {
-		return out
-	}
-	var localizer *i18n.Localizer
-	if h, ok := data.(gin.H); ok {
-		localizer, _ = h[localizerKey].(*i18n.Localizer)
-	}
-	if localizer == nil {
-		localizer = i18n.NewLocalizer(currentBundle(), "en-US")
-	}
-	t, err := page.Template.Clone()
-	if err != nil {
-		logger.Error("i18n: cannot clone the page templates:", err)
-		return out
-	}
-	t.Funcs(template.FuncMap{
-		"i18n": func(key string, params ...string) string {
-			return localize(localizer, key, params...)
-		},
-	})
-	page.Template = t
-	return page
 }
 
 // loadTranslationsFromDisk attempts to load translation files from "web/translation" using the local filesystem.

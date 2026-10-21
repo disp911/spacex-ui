@@ -1,5 +1,5 @@
 // The panel's inbounds as GET panel/api/inbounds/list answers them, read the
-// way the old panel read them (web/assets/js/model/dbinbound.js, inbound.js and
+// way the old panel read them (dbinbound.js, inbound.js and
 // the inbounds page): clients, their traffic and their state.
 
 type Json = Record<string, any>
