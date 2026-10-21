@@ -4,7 +4,7 @@
 export interface AppConfig {
   /** Panel base path, e.g. "/" or "/secret/"; the server endpoints live under it. */
   base: string
-  /** Where this frontend is served, e.g. "/secret/v3/". */
+  /** Where this frontend is served: the panel base path, e.g. "/secret/". */
   mount: string
   loggedIn: boolean
   version: string

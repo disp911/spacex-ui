@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -19,36 +21,19 @@ func NewXUIController(g *gin.RouterGroup) *XUIController {
 	return a
 }
 
-// initRouter sets up the main panel routes and initializes sub-controllers.
+// initRouter sets up the panel's settings endpoints, behind the login check,
+// and sends the old interface's pages to the same screens of the new one, so
+// bookmarks keep working.
 func (a *XUIController) initRouter(g *gin.RouterGroup) {
+	for from, to := range map[string]string{"/panel/": "", "/panel/inbounds": "inbounds", "/panel/settings": "settings", "/panel/xray": "xray"} {
+		g.GET(from, func(c *gin.Context) {
+			c.Redirect(http.StatusMovedPermanently, c.GetString("base_path")+to)
+		})
+	}
+
 	g = g.Group("/panel")
 	g.Use(a.checkLogin)
 
-	g.GET("/", a.index)
-	g.GET("/inbounds", a.inbounds)
-	g.GET("/settings", a.settings)
-	g.GET("/xray", a.xraySettings)
-
 	a.settingController = NewSettingController(g)
 	a.xraySettingController = NewXraySettingController(g)
-}
-
-// index renders the main panel index page.
-func (a *XUIController) index(c *gin.Context) {
-	html(c, "index.html", "pages.index.title", nil)
-}
-
-// inbounds renders the inbounds management page.
-func (a *XUIController) inbounds(c *gin.Context) {
-	html(c, "inbounds.html", "pages.inbounds.title", nil)
-}
-
-// settings renders the settings management page.
-func (a *XUIController) settings(c *gin.Context) {
-	html(c, "settings.html", "pages.settings.title", nil)
-}
-
-// xraySettings renders the Xray settings page.
-func (a *XUIController) xraySettings(c *gin.Context) {
-	html(c, "xray.html", "pages.xray.title", nil)
 }

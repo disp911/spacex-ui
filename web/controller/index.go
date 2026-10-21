@@ -33,22 +33,13 @@ func NewIndexController(g *gin.RouterGroup) *IndexController {
 	return a
 }
 
-// initRouter sets up the routes for index, login, logout, and two-factor authentication.
+// initRouter sets up the routes for login, logout, and two-factor authentication.
+// The login page itself is the frontend's.
 func (a *IndexController) initRouter(g *gin.RouterGroup) {
-	g.GET("/", a.index)
 	g.GET("/logout", a.logout)
 
 	g.POST("/login", a.login)
 	g.POST("/getTwoFactorEnable", a.getTwoFactorEnable)
-}
-
-// index handles the root route, redirecting logged-in users to the panel or showing the login page.
-func (a *IndexController) index(c *gin.Context) {
-	if session.IsLogin(c) {
-		c.Redirect(http.StatusTemporaryRedirect, "panel/")
-		return
-	}
-	html(c, "login.html", "pages.login.title", nil)
 }
 
 // login handles user authentication and session creation.

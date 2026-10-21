@@ -224,7 +224,6 @@ func (s *Server) initRouter() (*gin.Engine, error) {
 		return nil, err
 	}
 	engine.Use(gzip.Gzip(gzip.DefaultCompression))
-	assetsBasePath := basePath + "assets/"
 
 	store := cookie.NewStore(secret)
 	// Configure default session cookie options, including expiration (MaxAge)
@@ -240,12 +239,6 @@ func (s *Server) initRouter() (*gin.Engine, error) {
 	engine.Use(sessions.Sessions("3x-ui", store))
 	engine.Use(func(c *gin.Context) {
 		c.Set("base_path", basePath)
-	})
-	engine.Use(func(c *gin.Context) {
-		uri := c.Request.RequestURI
-		if strings.HasPrefix(uri, assetsBasePath) {
-			c.Header("Cache-Control", "max-age=31536000")
-		}
 	})
 
 	// init i18n
@@ -274,7 +267,6 @@ func (s *Server) initRouter() (*gin.Engine, error) {
 		}
 		// Use the registered func map with the loaded templates
 		engine.LoadHTMLFiles(files...)
-		engine.StaticFS(basePath+"assets", http.FS(os.DirFS("web/assets")))
 	} else {
 		// for production
 		template, err := s.getHtmlTemplate(funcMap)
@@ -282,7 +274,6 @@ func (s *Server) initRouter() (*gin.Engine, error) {
 			return nil, err
 		}
 		engine.SetHTMLTemplate(template)
-		engine.StaticFS(basePath+"assets", http.FS(&wrapAssetsFS{FS: assetsFS}))
 	}
 	engine.HTMLRender = locale.HTMLRender(engine.HTMLRender)
 
@@ -295,10 +286,11 @@ func (s *Server) initRouter() (*gin.Engine, error) {
 	s.panel = controller.NewXUIController(g)
 	s.api = controller.NewAPIController(g, s.customGeoService)
 
-	// The v3 frontend, served at v3/ while it is being built.
-	g.GET("/v3/*path", spa.Handler(AppFS(), func(c *gin.Context) spa.Config {
-		return spa.Config{Base: basePath, Mount: basePath + "v3/", LoggedIn: session.IsLogin(c), Version: config.GetVersion()}
-	}))
+	// The panel's frontend, served from the base path: its files, and for any
+	// other page index.html, so the app's own routes survive a reload.
+	app := spa.Handler(AppFS(), func(c *gin.Context) spa.Config {
+		return spa.Config{Base: basePath, Mount: basePath, LoggedIn: session.IsLogin(c), Version: config.GetVersion()}
+	})
 
 	// Initialize WebSocket hub
 	s.wsHub = websocket.NewHub()
@@ -320,15 +312,32 @@ func (s *Server) initRouter() (*gin.Engine, error) {
 	// looks like an ordinary, unrelated website rather than a panel that
 	// rejected the request. A small, barely visible link on that page leads
 	// back to the real login page at basePath.
-	engine.NoRoute(func(c *gin.Context) {
-		if c.Request.Method == http.MethodGet || c.Request.Method == http.MethodHead {
-			c.HTML(http.StatusOK, "decoy.html", gin.H{"base_path": basePath})
-			return
-		}
-		c.AbortWithStatus(http.StatusNotFound)
-	})
+	//
+	// Under the base path the frontend answers instead: a page of the app or
+	// its files. The server's own endpoints under panel/ stay theirs.
+	engine.NoRoute(frontendOrDecoy(basePath, app, func(c *gin.Context) {
+		c.HTML(http.StatusOK, "decoy.html", gin.H{"base_path": basePath})
+	}))
 
 	return engine, nil
+}
+
+// frontendOrDecoy answers a GET the routes did not take: under the base path
+// with the frontend (app), except for the server's endpoints under panel/,
+// and anywhere else with the decoy page. Other methods get 404.
+func frontendOrDecoy(basePath string, app, decoy gin.HandlerFunc) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if c.Request.Method != http.MethodGet && c.Request.Method != http.MethodHead {
+			c.AbortWithStatus(http.StatusNotFound)
+			return
+		}
+		if rest, ok := strings.CutPrefix(c.Request.URL.Path, basePath); ok && !strings.HasPrefix(rest, "panel/") {
+			c.Params = append(c.Params, gin.Param{Key: "path", Value: "/" + rest})
+			app(c)
+			return
+		}
+		decoy(c)
+	}
 }
 
 // startWebDecoy opens the loopback decoy site of the WEB proxies and tells
