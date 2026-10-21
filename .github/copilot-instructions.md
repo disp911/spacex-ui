@@ -1,13 +1,14 @@
 # 3X-UI Development Guide
 
 ## Project Overview
-3X-UI is a web-based control panel for managing Xray-core servers. It's a Go application using Gin web framework with embedded static assets and SQLite database. The panel manages VPN/proxy inbounds and monitors traffic.
+3X-UI is a web-based control panel for managing Xray-core servers. It's a Go application using the Gin web framework and a SQLite database, with a Vue 3 + TypeScript frontend embedded into the binary. The panel manages VPN/proxy inbounds and monitors traffic.
 
 ## Architecture
 
 ### Core Components
 - **main.go**: Entry point that initializes database, web server, and subscription server. Handles graceful shutdown via SIGHUP/SIGTERM signals
-- **web/**: Primary web server with Gin router, HTML templates, and static assets embedded via `//go:embed`
+- **web/**: Primary web server with Gin router; serves the built frontend (`web/app`) and the API
+- **frontend/**: The panel's frontend and the subscription page: Vue 3, TypeScript, Vite, its own component kit in `frontend/src/kit`
 - **xray/**: Xray-core process management and API communication for traffic monitoring
 - **database/**: GORM-based SQLite database with models in `database/model/`
 - **sub/**: Subscription server running alongside main web server (separate port)
@@ -16,10 +17,10 @@
 - **web/job/**: Cron-based background jobs for traffic monitoring and LDAP sync
 
 ### Key Architectural Patterns
-1. **Embedded Resources**: All web assets (HTML, CSS, JS, translations) are embedded at compile time using `embed.FS`:
-   - `web/assets` → `assetsFS`
-   - `web/html` → `htmlFS`
+1. **Embedded Resources**: embedded at compile time using `embed.FS`:
+   - `web/app` → `appFS`: the frontend Vite builds from `frontend/` (two pages: `index.html` for the panel, `sub.html` for the subscription page); in debug mode it is read from disk
    - `web/translation` → `i18nFS`
+   - `web/decoy.html`: the page shown for paths outside the panel's base path
 
 2. **Dual Server Design**: Main web panel + subscription server run concurrently, managed by `web/global` package
 
@@ -33,12 +34,15 @@
 
 ### Building & Running
 ```bash
-# Build (creates bin/3x-ui.exe)
-go run tasks.json → "go: build" task
+# Build the frontend into web/app (checks translations and types first)
+npm ci --prefix frontend
+npm --prefix frontend run build
 
 # Run with debug logging
 XUI_DEBUG=true go run ./main.go
-# Or use task: "go: run"
+
+# Frontend with hot reload against a running panel
+PANEL_URL=http://127.0.0.1:2053 npm --prefix frontend run dev
 
 # Test
 go test ./...
@@ -86,9 +90,9 @@ func (a *InboundController) getInbounds(c *gin.Context) {
 - Use `config.GetLogLevel()`, `config.GetDBPath()` helpers
 
 ### Internationalization
-- Translation files: `web/translation/translate.*.toml`
-- Access via `I18nWeb(c, "pages.login.loginAgain")` in controllers
-- Use `locale.I18nType` enum (Web, Api, etc.)
+- Translation files: `web/translation/translate.*.toml`, shared by the server and the frontend
+- Server messages: `I18nWeb(c, "pages.login.loginAgain")` in controllers; a test in `web/` checks every such key is translated
+- Frontend: its own tables (`common`, `nav`, `auth`, `dashboard`, `settings`, `xray`, `inbounds`, `sub`, `units`, `kit`); `node frontend/build/i18n.ts` checks both languages have the same keys and that every key is used
 
 ## External Dependencies & Integration
 
@@ -139,7 +143,7 @@ Multi-stage Dockerfile:
 - Traffic debugging: Check `3xipl.log` for IP limit tracking
 
 ## Common Gotchas
-1. **Embedded Assets**: Changes to HTML/CSS require recompilation (not hot-reload)
+1. **Embedded Frontend**: A release binary carries the frontend built before `go build`; run `npm --prefix frontend run build` first, or use the Vite dev server while working on it
 2. **Password Migration**: Seeder system tracks bcrypt migration - check `HistoryOfSeeders` table
 3. **Port Binding**: Subscription server uses different port from main panel
 4. **Xray Binary**: Must match OS/arch exactly - managed by installer scripts
