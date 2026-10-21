@@ -118,6 +118,13 @@ const fitted = computed(() => props.columns.slice(1).filter((c) => c.fit))
   color: var(--fg2);
   font: 400 var(--fs-12) / var(--lh-tight) var(--font-sans);
   vertical-align: middle;
+  /* A long value, e.g. an email, breaks rather than pushing the table wider than a phone. */
+  overflow-wrap: anywhere;
+}
+
+/* A checkbox in a cell sits in its middle, not on the text line, which would add to the row. */
+.x-ptable :deep(.x-check) {
+  vertical-align: middle;
 }
 
 .x-ptable tbody tr + tr td {
@@ -184,6 +191,15 @@ const fitted = computed(() => props.columns.slice(1).filter((c) => c.fit))
 
 .x-ptable--phone.x-ptable--list tr {
   height: 50px;
+}
+
+/* A checkbox in a row gets a finger's room: the control height. */
+.x-ptable--phone td :deep(.x-check) {
+  min-height: var(--ctl-h);
+}
+
+.x-ptable--phone td:has(.x-check) {
+  padding-block: var(--sp-4);
 }
 
 .x-ptable--phone :deep(.x-inline-btn),

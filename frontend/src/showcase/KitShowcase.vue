@@ -905,7 +905,11 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
         <div class="kit__duo">
           <div class="kit__stack">
             <XInputList v-model="demoIps" title="Allowed IPs" mono />
-            <XListHead title="Peers" add />
+            <XListHead title="Peers" add>
+              <XNestCard title="Peer 1">
+                <XField v-slot="a" label="Keep Alive"><XNumber v-bind="a" v-model="demoMtu" :min="0" block /></XField>
+              </XNestCard>
+            </XListHead>
             <XSwitch v-model="demoFragment" boxed label="Fragment" />
             <XNest v-if="demoFragment" bare>
               <XFieldGrid :cols="3">

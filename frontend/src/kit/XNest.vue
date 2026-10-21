@@ -7,7 +7,7 @@
 defineProps<{
   title?: string
   columns?: number
-  /** Only a step in, no frame: fields that a switch opens among other fields, e.g. XMUX. */
+  /** Only a step in behind a thin line, no frame: fields that a switch opens among other fields, e.g. XMUX. */
   bare?: boolean
 }>()
 </script>
@@ -29,8 +29,10 @@ defineProps<{
 }
 
 .x-nest--bare {
-  padding: 0 0 0 var(--sp-20);
+  margin-left: var(--sp-6);
+  padding: 0 0 0 var(--sp-14);
   border: 0;
+  border-left: 1px solid var(--div);
   border-radius: 0;
   background: none;
 }
@@ -44,5 +46,11 @@ defineProps<{
   /* Columns of at least --nest-col, but never wider than the block on a narrow screen. */
   grid-template-columns: repeat(auto-fit, minmax(min(var(--nest-col), 100%), 1fr));
   gap: 12px;
+}
+
+@media (max-width: 767px) {
+  .x-nest--bare {
+    padding-left: var(--sp-12);
+  }
 }
 </style>

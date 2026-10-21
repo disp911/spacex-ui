@@ -37,7 +37,7 @@ const tlsOptions = computed<Option[]>(() => [
     </template>
   </XSwitch>
   <XNest v-if="on" bare>
-    <XFieldGrid :cols="1">
+    <XFieldGrid :cols="1" tight>
       <template v-if="phone">
         <XNestCard v-for="(r, i) in rows" :key="i" :title="r.remark || String(i + 1)">
           <XFieldGrid :cols="1">
@@ -55,7 +55,7 @@ const tlsOptions = computed<Option[]>(() => [
           </XFieldGrid>
         </XNestCard>
       </template>
-      <XFieldGrid v-for="(r, i) in rows" v-else :key="i" columns="110px minmax(0, 1.6fr) 76px minmax(0, 1fr) auto">
+      <XFieldGrid v-for="(r, i) in rows" v-else :key="i" columns="110px minmax(0, 1.6fr) 76px minmax(0, 1fr) auto" tight>
         <XSelect v-model="r.forceTls" :options="tlsOptions" aria-label="Force TLS" />
         <XInput v-model.trim="r.dest" mono :placeholder="t('inbounds.host')" :aria-label="t('inbounds.host')" />
         <XNumber v-model="r.port" block :min="1" :max="65535" :aria-label="t('inbounds.colPort')" />

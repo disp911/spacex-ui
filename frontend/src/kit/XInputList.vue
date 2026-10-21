@@ -38,7 +38,7 @@ const set = (i: number, v: string) => (values.value = values.value.map((x, j) =>
 .x-inputs {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--sp-6);
   min-width: 0;
 }
 

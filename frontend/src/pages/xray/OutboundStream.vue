@@ -291,93 +291,99 @@ const resolverHint = computed(() => t('xray.hintExample', { v: 'xxx+udp://8.8.8.
 
     <!-- TCP masks -->
     <template v-if="tcpMasks">
-      <XListHead title="TCP Masks" add @add="(fm.tcp ??= []).push({ type: 'fragment', settings: tcpMaskSettings('fragment') })" />
-      <XNestCard v-for="(m, i) in items(fm.tcp)" :key="i" :title="String(i + 1)">
-        <template #actions>
-          <XInlineButton icon="delete" danger :label="t('xray.removeItem', { n: i + 1 })" @click="remove(fm.tcp, i)" />
-        </template>
-        <XFieldGrid :cols="1">
-          <XFieldGrid :cols="2">
-            <XField v-slot="a" label="Type">
-              <XSelect v-bind="a" :model-value="m.type" :options="tcpTypes" @update:model-value="setTcpType(m, String($event))" />
-            </XField>
-          </XFieldGrid>
-          <XFieldGrid :cols="4" v-if="m.type === 'fragment'">
-            <XField v-slot="a" label="Packets"><XSelect v-bind="a" v-model="m.settings.packets" :options="list(['tlshello', '1-3', '1-5'])" mono /></XField>
-            <XField v-slot="a" label="Length"><XInput v-bind="a" v-model="m.settings.length" mono :placeholder="t('xray.hintExample', { v: '100-200' })" /></XField>
-            <XField v-slot="a" label="Delay"><XInput v-bind="a" v-model="m.settings.delay" mono :placeholder="t('xray.hintExample', { v: '10-20' })" /></XField>
-            <XField v-slot="a" label="Max Split"><XInput v-bind="a" v-model="m.settings.maxSplit" mono :placeholder="t('xray.hintExample', { v: '3-6' })" /></XField>
-          </XFieldGrid>
-          <XFieldGrid :cols="3" v-if="m.type === 'sudoku'">
-            <XField v-slot="a" label="Password"><XInput v-bind="a" v-model="m.settings.password" mono :placeholder="t('xray.hintObfs')" /></XField>
-            <XField v-slot="a" label="ASCII"><XInput v-bind="a" v-model="m.settings.ascii" mono /></XField>
-            <XField v-slot="a" label="Custom Table"><XInput v-bind="a" v-model="m.settings.customTable" mono /></XField>
-            <XField v-slot="a" label="Custom Tables">
-              <XInput v-bind="a" :model-value="tablesText(m)" mono @update:model-value="setTables(m, $event)" />
-            </XField>
-            <XField v-slot="a" label="Padding Min"><XNumber v-bind="a" block v-model="m.settings.paddingMin" :min="0" /></XField>
-            <XField v-slot="a" label="Padding Max"><XNumber v-bind="a" block v-model="m.settings.paddingMax" :min="0" /></XField>
-          </XFieldGrid>
-          <template v-if="m.type === 'header-custom'">
-            <template v-for="side in (['clients', 'servers'] as const)" :key="side">
-              <XListHead :title="side === 'clients' ? 'Clients' : 'Servers'" add @add="(m.settings[side] ??= []).push([packetItem()])" />
-              <XNestCard v-for="(group, gi) in items(m.settings[side])" :key="gi" :title="`${side === 'clients' ? 'Clients' : 'Servers'} Group ${gi + 1}`">
-                <template #actions>
-                  <XInlineButton icon="delete" danger :label="t('xray.removeItem', { n: gi + 1 })" @click="remove(m.settings[side], gi)" />
-                </template>
-                <OutboundPackets :items="items(group)" with-delay />
-              </XNestCard>
-            </template>
+      <XListHead title="TCP Masks" add @add="(fm.tcp ??= []).push({ type: 'fragment', settings: tcpMaskSettings('fragment') })">
+        <XNestCard v-for="(m, i) in items(fm.tcp)" :key="i" :title="String(i + 1)">
+          <template #actions>
+            <XInlineButton icon="delete" danger :label="t('xray.removeItem', { n: i + 1 })" @click="remove(fm.tcp, i)" />
           </template>
-        </XFieldGrid>
-      </XNestCard>
+          <XFieldGrid :cols="1">
+            <XFieldGrid :cols="2">
+              <XField v-slot="a" label="Type">
+                <XSelect v-bind="a" :model-value="m.type" :options="tcpTypes" @update:model-value="setTcpType(m, String($event))" />
+              </XField>
+            </XFieldGrid>
+            <XFieldGrid :cols="4" v-if="m.type === 'fragment'">
+              <XField v-slot="a" label="Packets"><XSelect v-bind="a" v-model="m.settings.packets" :options="list(['tlshello', '1-3', '1-5'])" mono /></XField>
+              <XField v-slot="a" label="Length"><XInput v-bind="a" v-model="m.settings.length" mono :placeholder="t('xray.hintExample', { v: '100-200' })" /></XField>
+              <XField v-slot="a" label="Delay"><XInput v-bind="a" v-model="m.settings.delay" mono :placeholder="t('xray.hintExample', { v: '10-20' })" /></XField>
+              <XField v-slot="a" label="Max Split"><XInput v-bind="a" v-model="m.settings.maxSplit" mono :placeholder="t('xray.hintExample', { v: '3-6' })" /></XField>
+            </XFieldGrid>
+            <XFieldGrid :cols="3" v-if="m.type === 'sudoku'">
+              <XField v-slot="a" label="Password"><XInput v-bind="a" v-model="m.settings.password" mono :placeholder="t('xray.hintObfs')" /></XField>
+              <XField v-slot="a" label="ASCII"><XInput v-bind="a" v-model="m.settings.ascii" mono /></XField>
+              <XField v-slot="a" label="Custom Table"><XInput v-bind="a" v-model="m.settings.customTable" mono /></XField>
+              <XField v-slot="a" label="Custom Tables">
+                <XInput v-bind="a" :model-value="tablesText(m)" mono @update:model-value="setTables(m, $event)" />
+              </XField>
+              <XField v-slot="a" label="Padding Min"><XNumber v-bind="a" block v-model="m.settings.paddingMin" :min="0" /></XField>
+              <XField v-slot="a" label="Padding Max"><XNumber v-bind="a" block v-model="m.settings.paddingMax" :min="0" /></XField>
+            </XFieldGrid>
+            <template v-if="m.type === 'header-custom'">
+              <template v-for="side in (['clients', 'servers'] as const)" :key="side">
+                <XListHead :title="side === 'clients' ? 'Clients' : 'Servers'" add @add="(m.settings[side] ??= []).push([packetItem()])">
+                  <XNestCard v-for="(group, gi) in items(m.settings[side])" :key="gi" :title="`${side === 'clients' ? 'Clients' : 'Servers'} Group ${gi + 1}`">
+                    <template #actions>
+                      <XInlineButton icon="delete" danger :label="t('xray.removeItem', { n: gi + 1 })" @click="remove(m.settings[side], gi)" />
+                    </template>
+                    <OutboundPackets :items="items(group)" with-delay />
+                  </XNestCard>
+                </XListHead>
+              </template>
+            </template>
+          </XFieldGrid>
+        </XNestCard>
+      </XListHead>
     </template>
 
     <!-- UDP masks -->
     <template v-if="udpMasks">
-      <XListHead title="UDP Masks" add @add="addUdpMask" />
-      <XNestCard v-for="(m, i) in items(fm.udp)" :key="i" :title="String(i + 1)">
-        <template #actions>
-          <XInlineButton icon="delete" danger :label="t('xray.removeItem', { n: i + 1 })" @click="remove(fm.udp, i)" />
-        </template>
-        <XFieldGrid :cols="1">
-          <XFieldGrid :cols="2">
-            <XField v-slot="a" label="Type">
-              <XSelect v-bind="a" :model-value="m.type" :options="udpTypes" @update:model-value="setUdpType(m, String($event))" />
-            </XField>
-            <XField v-if="m.type === 'salamander'" v-slot="a" label="Password">
-              <XInput v-bind="a" v-model="m.settings.password" mono :placeholder="t('xray.hintObfs')" />
-            </XField>
-            <template v-if="m.type === 'mkcp-legacy'">
-              <XField v-slot="a" label="Header"><XSelect v-bind="a" v-model="m.settings.header" :options="kcpHeaders" /></XField>
-              <XField v-if="!m.settings.header" v-slot="a" label="Password">
-                <XInput v-bind="a" v-model="m.settings.value" mono :placeholder="t('xray.hintMkcp')" />
+      <XListHead title="UDP Masks" add @add="addUdpMask">
+        <XNestCard v-for="(m, i) in items(fm.udp)" :key="i" :title="String(i + 1)">
+          <template #actions>
+            <XInlineButton icon="delete" danger :label="t('xray.removeItem', { n: i + 1 })" @click="remove(fm.udp, i)" />
+          </template>
+          <XFieldGrid :cols="1">
+            <XFieldGrid :cols="2">
+              <XField v-slot="a" label="Type">
+                <XSelect v-bind="a" :model-value="m.type" :options="udpTypes" @update:model-value="setUdpType(m, String($event))" />
               </XField>
-              <XField v-if="m.settings.header === 'dns'" v-slot="a" label="Domain">
-                <XInput v-bind="a" v-model="m.settings.value" mono :placeholder="t('xray.hintExample', { v: 'www.example.com' })" />
+              <XField v-if="m.type === 'salamander'" v-slot="a" label="Password">
+                <XInput v-bind="a" v-model="m.settings.password" mono :placeholder="t('xray.hintObfs')" />
               </XField>
+              <template v-if="m.type === 'mkcp-legacy'">
+                <XField v-slot="a" label="Header"><XSelect v-bind="a" v-model="m.settings.header" :options="kcpHeaders" /></XField>
+                <XField v-if="!m.settings.header" v-slot="a" label="Password">
+                  <XInput v-bind="a" v-model="m.settings.value" mono :placeholder="t('xray.hintMkcp')" />
+                </XField>
+                <XField v-if="m.settings.header === 'dns'" v-slot="a" label="Domain">
+                  <XInput v-bind="a" v-model="m.settings.value" mono :placeholder="t('xray.hintExample', { v: 'www.example.com' })" />
+                </XField>
+              </template>
+              <XField v-if="m.type === 'xdns'" v-slot="a" label="Resolvers" class="x-wide">
+                <XTagInput v-bind="a" v-model="m.settings.resolvers" mono :placeholder="resolverHint" />
+              </XField>
+              <template v-if="m.type === 'xicmp'">
+                <XField v-slot="a" label="IPs"><XTagInput v-bind="a" v-model="m.settings.ips" mono :placeholder="t('xray.hintExample', { v: '1.2.3.4' })" /></XField>
+                <XSwitch v-model="m.settings.dgram" boxed label="DGRAM" />
+              </template>
+              <XField v-if="m.type === 'noise'" v-slot="a" label="Reset"><XNumber v-bind="a" block v-model="m.settings.reset" :min="0" /></XField>
+            </XFieldGrid>
+            <template v-if="m.type === 'noise'">
+              <XListHead title="Noise" add @add="m.settings.noise.push({ ...packetItem(), delay: '' })">
+                <OutboundPackets :items="m.settings.noise" with-delay removable />
+              </XListHead>
             </template>
-            <XField v-if="m.type === 'xdns'" v-slot="a" label="Resolvers" class="x-wide">
-              <XTagInput v-bind="a" v-model="m.settings.resolvers" mono :placeholder="resolverHint" />
-            </XField>
-            <template v-if="m.type === 'xicmp'">
-              <XField v-slot="a" label="IPs"><XTagInput v-bind="a" v-model="m.settings.ips" mono :placeholder="t('xray.hintExample', { v: '1.2.3.4' })" /></XField>
-              <XSwitch v-model="m.settings.dgram" boxed label="DGRAM" />
+            <template v-if="m.type === 'header-custom'">
+              <XListHead title="Client" add @add="m.settings.client.push(packetItem())">
+                <OutboundPackets :items="m.settings.client" removable />
+              </XListHead>
+              <XListHead title="Server" add @add="m.settings.server.push(packetItem())">
+                <OutboundPackets :items="m.settings.server" removable />
+              </XListHead>
             </template>
-            <XField v-if="m.type === 'noise'" v-slot="a" label="Reset"><XNumber v-bind="a" block v-model="m.settings.reset" :min="0" /></XField>
           </XFieldGrid>
-          <template v-if="m.type === 'noise'">
-            <XListHead title="Noise" add @add="m.settings.noise.push({ ...packetItem(), delay: '' })" />
-            <OutboundPackets :items="m.settings.noise" with-delay removable />
-          </template>
-          <template v-if="m.type === 'header-custom'">
-            <XListHead title="Client" add @add="m.settings.client.push(packetItem())" />
-            <OutboundPackets :items="m.settings.client" removable />
-            <XListHead title="Server" add @add="m.settings.server.push(packetItem())" />
-            <OutboundPackets :items="m.settings.server" removable />
-          </template>
-        </XFieldGrid>
-      </XNestCard>
+        </XNestCard>
+      </XListHead>
     </template>
 
     <!-- QUIC parameters -->

@@ -187,29 +187,30 @@ const webFrontOk = location.protocol === 'https:' && (location.port === '' || lo
 
     <!-- Fallbacks -->
     <template v-if="fallbacks">
-      <XListHead title="Fallbacks" add @add="(s.fallbacks ??= []).push(newFallback())" />
-      <XNestCard v-for="(fb, i) in fallbackList" :key="i" :title="`Fallback ${i + 1}`">
-        <template #actions>
-          <XInlineButton icon="delete" danger :label="t('xray.removeItem', { n: i + 1 })" @click="s.fallbacks.splice(i, 1)" />
-        </template>
-        <XFieldGrid :cols="3" :phone="2">
-          <XField v-slot="a" label="SNI">
-            <XInput v-bind="a" v-model="fb.name" mono />
-          </XField>
-          <XField v-slot="a" label="ALPN">
-            <XInput v-bind="a" v-model="fb.alpn" mono />
-          </XField>
-          <XField v-slot="a" label="Path">
-            <XInput v-bind="a" v-model="fb.path" mono />
-          </XField>
-          <XField v-slot="a" label="Dest">
-            <XInput v-bind="a" v-model="fb.dest" mono />
-          </XField>
-          <XField v-slot="a" label="xVer">
-            <XNumber v-bind="a" v-model="fb.xver" block :min="0" :max="2" />
-          </XField>
-        </XFieldGrid>
-      </XNestCard>
+      <XListHead title="Fallbacks" add @add="(s.fallbacks ??= []).push(newFallback())">
+        <XNestCard v-for="(fb, i) in fallbackList" :key="i" :title="`Fallback ${i + 1}`">
+          <template #actions>
+            <XInlineButton icon="delete" danger :label="t('xray.removeItem', { n: i + 1 })" @click="s.fallbacks.splice(i, 1)" />
+          </template>
+          <XFieldGrid :cols="3" :phone="2">
+            <XField v-slot="a" label="SNI">
+              <XInput v-bind="a" v-model="fb.name" mono />
+            </XField>
+            <XField v-slot="a" label="ALPN">
+              <XInput v-bind="a" v-model="fb.alpn" mono />
+            </XField>
+            <XField v-slot="a" label="Path">
+              <XInput v-bind="a" v-model="fb.path" mono />
+            </XField>
+            <XField v-slot="a" label="Dest">
+              <XInput v-bind="a" v-model="fb.dest" mono />
+            </XField>
+            <XField v-slot="a" label="xVer">
+              <XNumber v-bind="a" v-model="fb.xver" block :min="0" :max="2" />
+            </XField>
+          </XFieldGrid>
+        </XNestCard>
+      </XListHead>
     </template>
 
     <!-- Vision seed -->
@@ -267,31 +268,32 @@ const webFrontOk = location.protocol === 'https:' && (location.port === '' || lo
         </XField>
         <XSwitch v-model="s.noKernelTun" boxed label="No Kernel Tun" />
       </XFieldGrid>
-      <XListHead title="Peers" add @add="s.peers.push(newPeer(s.peers.length))" />
-      <XNestCard v-for="(peer, i) in peers" :key="i" :title="`Peer ${i + 1}`">
-        <template #actions>
-          <XInlineButton v-if="s.peers.length > 1" icon="delete" danger :label="t('xray.removeItem', { n: i + 1 })" @click="s.peers.splice(i, 1)" />
-        </template>
-        <XFieldGrid :cols="1">
-          <XFieldGrid>
-            <XField v-slot="a" :label="t('inbounds.wgSecretKey')" :action="t('inbounds.reset')" @action="newPeerKeys(peer)">
-              <XInput v-bind="a" v-model.trim="peer.privateKey" mono />
-            </XField>
-            <XField v-slot="a" :label="t('inbounds.publicKey')">
-              <XInput v-bind="a" v-model.trim="peer.publicKey" mono />
-            </XField>
-            <XField v-slot="a" :label="t('inbounds.wgPsk')" :action="t('inbounds.reset')" class="x-wide" @action="peer.preSharedKey = newPsk()">
-              <XInput v-bind="a" v-model.trim="peer.preSharedKey" mono />
-            </XField>
-            <XInputList v-model="peer.allowedIPs" :title="t('inbounds.wgAllowedIPs')" mono class="x-wide" />
+      <XListHead title="Peers" add @add="s.peers.push(newPeer(s.peers.length))">
+        <XNestCard v-for="(peer, i) in peers" :key="i" :title="`Peer ${i + 1}`">
+          <template #actions>
+            <XInlineButton v-if="s.peers.length > 1" icon="delete" danger :label="t('xray.removeItem', { n: i + 1 })" @click="s.peers.splice(i, 1)" />
+          </template>
+          <XFieldGrid :cols="1">
+            <XFieldGrid>
+              <XField v-slot="a" :label="t('inbounds.wgSecretKey')" :action="t('inbounds.reset')" @action="newPeerKeys(peer)">
+                <XInput v-bind="a" v-model.trim="peer.privateKey" mono />
+              </XField>
+              <XField v-slot="a" :label="t('inbounds.publicKey')">
+                <XInput v-bind="a" v-model.trim="peer.publicKey" mono />
+              </XField>
+              <XField v-slot="a" :label="t('inbounds.wgPsk')" :action="t('inbounds.reset')" class="x-wide" @action="peer.preSharedKey = newPsk()">
+                <XInput v-bind="a" v-model.trim="peer.preSharedKey" mono />
+              </XField>
+              <XInputList v-model="peer.allowedIPs" :title="t('inbounds.wgAllowedIPs')" mono class="x-wide" />
+            </XFieldGrid>
+            <XFieldGrid :cols="3">
+              <XField v-slot="a" label="Keep Alive">
+                <XNumber v-bind="a" v-model="peer.keepAlive" block :min="0" />
+              </XField>
+            </XFieldGrid>
           </XFieldGrid>
-          <XFieldGrid :cols="3">
-            <XField v-slot="a" label="Keep Alive">
-              <XNumber v-bind="a" v-model="peer.keepAlive" block :min="0" />
-            </XField>
-          </XFieldGrid>
-        </XFieldGrid>
-      </XNestCard>
+        </XNestCard>
+      </XListHead>
     </template>
 
     <!-- Mixed -->

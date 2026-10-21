@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { api } from '../../api'
-import { toast, XButton, XChip, XField, XInlineButton, XModal, XPopConfirm, XStateBar, XTextarea, type Tone } from '../../kit'
+import { toast, XButton, XChip, XField, XModal, XPopConfirm, XStateBar, XTextarea, type Tone } from '../../kit'
 import { formatBytes } from '../../i18n/format'
 import { useInbounds } from '../../stores/inbounds'
 import { cause } from '../settings/form'
@@ -133,7 +133,7 @@ async function save() {
             <div class="client-window__usage">
               <XChip :tone="usageTone" mono>{{ usage }}</XChip>
               <XPopConfirm v-slot="{ props: trigger }" :text="t('inbounds.resetConfirm')" :cta="t('inbounds.reset')" @confirm="resetTraffic">
-                <XInlineButton v-bind="trigger" icon="reset" :label="t('inbounds.resetTraffic')" tip />
+                <XButton v-bind="trigger" icon="reset" :label="t('inbounds.resetTraffic')" />
               </XPopConfirm>
             </div>
           </XField>

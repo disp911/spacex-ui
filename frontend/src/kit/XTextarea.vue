@@ -84,10 +84,6 @@ function onKeydown(e: KeyboardEvent) {
   resize: vertical;
 }
 
-.x-field-box--mono .x-textarea__control {
-  line-height: var(--lh-code);
-}
-
 /* A long one-line value: control height at one line, characters wrap, no resize. */
 .x-textarea--grow {
   min-height: var(--ctl-h);

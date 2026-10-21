@@ -181,23 +181,24 @@ const remove = (list: unknown[], i: number) => list.splice(i, 1)
           <XSelect v-bind="a" v-model="s.network" :options="list(['udp', 'tcp'])" mono />
         </XField>
       </XFieldGrid>
-      <XListHead title="Rules" add @add="(s.rules ??= []).push(defaultDnsRule())" />
-      <XNestCard v-for="(r, i) in items(s.rules)" :key="i" :title="String(i + 1)">
-        <template #actions>
-          <XInlineButton icon="delete" danger :label="t('xray.removeItem', { n: i + 1 })" @click="remove(s.rules, i)" />
-        </template>
-        <XFieldGrid :cols="3">
-          <XField v-slot="a" label="Action">
-            <XSelect v-bind="a" v-model="r.action" :options="list(['direct', 'drop', 'return', 'hijack'])" mono />
-          </XField>
-          <XField v-slot="a" label="QType" :help="t('xray.hintQtype')">
-            <XInput v-bind="a" v-model="r.qType" mono placeholder="1,3,23-24" />
-          </XField>
-          <XField v-slot="a" label="Domain" :help="t('xray.hintDomainRules')">
-            <XInput v-bind="a" v-model="r.domain" mono placeholder="domain:example.com" />
-          </XField>
-        </XFieldGrid>
-      </XNestCard>
+      <XListHead title="Rules" add @add="(s.rules ??= []).push(defaultDnsRule())">
+        <XNestCard v-for="(r, i) in items(s.rules)" :key="i" :title="String(i + 1)">
+          <template #actions>
+            <XInlineButton icon="delete" danger :label="t('xray.removeItem', { n: i + 1 })" @click="remove(s.rules, i)" />
+          </template>
+          <XFieldGrid :cols="3">
+            <XField v-slot="a" label="Action">
+              <XSelect v-bind="a" v-model="r.action" :options="list(['direct', 'drop', 'return', 'hijack'])" mono />
+            </XField>
+            <XField v-slot="a" label="QType" :help="t('xray.hintQtype')">
+              <XInput v-bind="a" v-model="r.qType" mono placeholder="1,3,23-24" />
+            </XField>
+            <XField v-slot="a" label="Domain" :help="t('xray.hintDomainRules')">
+              <XInput v-bind="a" v-model="r.domain" mono placeholder="domain:example.com" />
+            </XField>
+          </XFieldGrid>
+        </XNestCard>
+      </XListHead>
     </template>
 
     <!-- Blackhole -->
@@ -217,29 +218,30 @@ const remove = (list: unknown[], i: number) => list.splice(i, 1)
           <XInput v-bind="a" v-model="s.redirect" mono />
         </XField>
       </XFieldGrid>
-      <XListHead title="Final Rules" add @add="(s.finalRules ??= []).push(defaultFinalRule())" />
-      <XNestCard v-for="(r, i) in items(s.finalRules)" :key="i" :title="String(i + 1)">
-        <template #actions>
-          <XInlineButton icon="delete" danger :label="t('xray.removeItem', { n: i + 1 })" @click="remove(s.finalRules, i)" />
-        </template>
-        <XFieldGrid :cols="3" :phone="2">
-          <XField v-slot="a" label="Action">
-            <XSelect v-bind="a" v-model="r.action" :options="list(['allow', 'block'])" mono />
-          </XField>
-          <XField v-slot="a" label="Network" :help="t('xray.hintNetwork')">
-            <XInput v-bind="a" :model-value="networkText(r)" mono placeholder="tcp,udp" @update:model-value="r.network = $event" />
-          </XField>
-          <XField v-slot="a" label="Port" :help="t('xray.hintPortRule')">
-            <XInput v-bind="a" v-model="r.port" mono placeholder="53,443" />
-          </XField>
-          <XField v-slot="a" label="IP" :help="t('xray.hintIpRule')">
-            <XTagInput v-bind="a" v-model="r.ip" mono placeholder="geoip:cn,10.0.0.0/8" />
-          </XField>
-          <XField v-if="r.action === 'block'" v-slot="a" label="Block Delay">
-            <XInput v-bind="a" v-model="r.blockDelay" mono placeholder="30-90" />
-          </XField>
-        </XFieldGrid>
-      </XNestCard>
+      <XListHead title="Final Rules" add @add="(s.finalRules ??= []).push(defaultFinalRule())">
+        <XNestCard v-for="(r, i) in items(s.finalRules)" :key="i" :title="String(i + 1)">
+          <template #actions>
+            <XInlineButton icon="delete" danger :label="t('xray.removeItem', { n: i + 1 })" @click="remove(s.finalRules, i)" />
+          </template>
+          <XFieldGrid :cols="3" :phone="2">
+            <XField v-slot="a" label="Action">
+              <XSelect v-bind="a" v-model="r.action" :options="list(['allow', 'block'])" mono />
+            </XField>
+            <XField v-slot="a" label="Network" :help="t('xray.hintNetwork')">
+              <XInput v-bind="a" :model-value="networkText(r)" mono placeholder="tcp,udp" @update:model-value="r.network = $event" />
+            </XField>
+            <XField v-slot="a" label="Port" :help="t('xray.hintPortRule')">
+              <XInput v-bind="a" v-model="r.port" mono placeholder="53,443" />
+            </XField>
+            <XField v-slot="a" label="IP" :help="t('xray.hintIpRule')">
+              <XTagInput v-bind="a" v-model="r.ip" mono placeholder="geoip:cn,10.0.0.0/8" />
+            </XField>
+            <XField v-if="r.action === 'block'" v-slot="a" label="Block Delay">
+              <XInput v-bind="a" v-model="r.blockDelay" mono placeholder="30-90" />
+            </XField>
+          </XFieldGrid>
+        </XNestCard>
+      </XListHead>
 
       <XSwitch v-model="fragmentOn" boxed label="Fragment" />
       <XNest v-if="fragmentOn" bare>
@@ -321,31 +323,32 @@ const remove = (list: unknown[], i: number) => list.splice(i, 1)
         </XField>
         <XSwitch v-model="s.noKernelTun" boxed label="No Kernel Tun" />
       </XFieldGrid>
-      <XListHead title="Peers" add @add="(s.peers ??= []).push(defaultPeer())" />
-      <XNestCard v-for="(p, i) in items(s.peers)" :key="i" :title="t('xray.peer', { n: i + 1 })">
-        <template #actions>
-          <XInlineButton v-if="s.peers.length > 1" icon="delete" danger :label="t('xray.removeItem', { n: i + 1 })" @click="remove(s.peers, i)" />
-        </template>
-        <XFieldGrid :cols="1">
-          <XField v-slot="a" :label="t('xray.endpoint')">
-            <XInput v-bind="a" v-model="p.endpoint" mono />
-          </XField>
-          <XFieldGrid :cols="2">
-            <XField v-slot="a" :label="t('xray.publicKey')">
-              <XInput v-bind="a" v-model="p.publicKey" mono />
+      <XListHead title="Peers" add @add="(s.peers ??= []).push(defaultPeer())">
+        <XNestCard v-for="(p, i) in items(s.peers)" :key="i" :title="t('xray.peer', { n: i + 1 })">
+          <template #actions>
+            <XInlineButton v-if="s.peers.length > 1" icon="delete" danger :label="t('xray.removeItem', { n: i + 1 })" @click="remove(s.peers, i)" />
+          </template>
+          <XFieldGrid :cols="1">
+            <XField v-slot="a" :label="t('xray.endpoint')">
+              <XInput v-bind="a" v-model="p.endpoint" mono />
             </XField>
-            <XField v-slot="a" :label="t('xray.psk')">
-              <XInput v-bind="a" v-model="p.preSharedKey" mono />
-            </XField>
+            <XFieldGrid :cols="2">
+              <XField v-slot="a" :label="t('xray.publicKey')">
+                <XInput v-bind="a" v-model="p.publicKey" mono />
+              </XField>
+              <XField v-slot="a" :label="t('xray.psk')">
+                <XInput v-bind="a" v-model="p.preSharedKey" mono />
+              </XField>
+            </XFieldGrid>
+            <XInputList v-model="p.allowedIPs" title="Allowed IPs" mono />
+            <XFieldGrid :cols="3">
+              <XField v-slot="a" label="Keep Alive">
+                <XNumber v-bind="a" block v-model="p.keepAlive" :min="0" />
+              </XField>
+            </XFieldGrid>
           </XFieldGrid>
-          <XInputList v-model="p.allowedIPs" title="Allowed IPs" mono />
-          <XFieldGrid :cols="3">
-            <XField v-slot="a" label="Keep Alive">
-              <XNumber v-bind="a" block v-model="p.keepAlive" :min="0" />
-            </XField>
-          </XFieldGrid>
-        </XFieldGrid>
-      </XNestCard>
+        </XNestCard>
+      </XListHead>
     </template>
   </XSection>
 </template>

@@ -8,8 +8,12 @@ import { computed } from 'vue'
  * an address beside a narrow port. A child with the class x-wide takes the
  * whole row, one with x-wide-phone only on phones. One column is a stack.
  * top lines them up at their top instead, e.g. a field beside a taller list.
+ * tight sets them 8px apart, e.g. the rows of a list of fields.
  */
-const props = withDefaults(defineProps<{ cols?: 1 | 2 | 3 | 4; phone?: 1 | 2 | 4; columns?: string; phoneColumns?: string; top?: boolean }>(), { cols: 2 })
+const props = withDefaults(
+  defineProps<{ cols?: 1 | 2 | 3 | 4; phone?: 1 | 2 | 4; columns?: string; phoneColumns?: string; top?: boolean; tight?: boolean }>(),
+  { cols: 2 },
+)
 
 const even = (n: number) => `repeat(${n}, minmax(0, 1fr))`
 const desktop = computed(() => props.columns ?? even(props.cols))
@@ -17,7 +21,7 @@ const phoneTrack = computed(() => props.phoneColumns ?? even(props.phone ?? (pro
 </script>
 
 <template>
-  <div :class="['x-field-grid', { 'x-field-grid--top': top }]"><slot /></div>
+  <div :class="['x-field-grid', { 'x-field-grid--top': top, 'x-field-grid--tight': tight }]"><slot /></div>
 </template>
 
 <style scoped>
@@ -31,6 +35,10 @@ const phoneTrack = computed(() => props.phoneColumns ?? even(props.phone ?? (pro
 
 .x-field-grid--top {
   align-items: start;
+}
+
+.x-field-grid--tight {
+  gap: var(--sp-8);
 }
 
 .x-field-grid > :slotted(.x-wide) {
