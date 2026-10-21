@@ -1525,6 +1525,9 @@
 "inboundData" = "Inbound's Data"
 "import" = "Import"
 
+[sub]
+"title" = "Subscription info"
+
 [kit]
 "pickDate" = "Pick a date"
 "addValue" = "Add “{value}”"

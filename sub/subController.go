@@ -3,11 +3,11 @@ package sub
 import (
 	"encoding/base64"
 	"fmt"
+	"io/fs"
 	"strconv"
 	"strings"
 
-	"github.com/disp911/spacex-ui/v2/config"
-	"github.com/disp911/spacex-ui/v2/web/locale"
+	"github.com/disp911/spacex-ui/v2/web/spa"
 
 	"github.com/gin-gonic/gin"
 )
@@ -28,6 +28,11 @@ type SUBController struct {
 	subEncrypt       bool
 	updateInterval   string
 
+	// app is the built frontend the subscription page comes from, pageBase
+	// the path its files are served under.
+	app      fs.FS
+	pageBase string
+
 	subService      *SubService
 	subJsonService  *SubJsonService
 	subClashService *SubClashService
@@ -36,6 +41,8 @@ type SUBController struct {
 // NewSUBController creates a new subscription controller with the given configuration.
 func NewSUBController(
 	g *gin.RouterGroup,
+	app fs.FS,
+	pageBase string,
 	subPath string,
 	jsonPath string,
 	clashPath string,
@@ -71,6 +78,8 @@ func NewSUBController(
 		clashEnabled:     clashEnabled,
 		subEncrypt:       encrypt,
 		updateInterval:   update,
+		app:              app,
+		pageBase:         pageBase,
 
 		subService:      sub,
 		subJsonService:  NewSubJsonService(jsonFragment, jsonNoise, jsonMux, jsonRules, sub),
@@ -98,7 +107,7 @@ func (a *SUBController) initRouter(g *gin.RouterGroup) {
 // subs handles HTTP requests for subscription links, returning either HTML page or base64-encoded subscription data.
 func (a *SUBController) subs(c *gin.Context) {
 	subId := c.Param("subid")
-	scheme, host, hostWithPort, hostHeader := a.subService.ResolveRequest(c)
+	scheme, host, hostWithPort, _ := a.subService.ResolveRequest(c)
 	subs, lastOnline, traffic, err := a.subService.GetSubs(subId, host)
 	if err != nil || len(subs) == 0 {
 		c.String(400, "Error!")
@@ -108,10 +117,9 @@ func (a *SUBController) subs(c *gin.Context) {
 			result += sub + "\n"
 		}
 
-		// If the request expects HTML (e.g., browser) or explicitly asked (?html=1 or ?view=html), render the info page here
+		// A browser (or ?html=1, ?view=html) gets the subscription page.
 		accept := c.GetHeader("Accept")
 		if strings.Contains(strings.ToLower(accept), "text/html") || c.Query("html") == "1" || strings.EqualFold(c.Query("view"), "html") {
-			// Build page data in service
 			subURL, subJsonURL, subClashURL := a.subService.BuildURLs(scheme, hostWithPort, a.subPath, a.subJsonPath, a.subClashPath, subId)
 			if !a.jsonEnabled {
 				subJsonURL = ""
@@ -119,42 +127,8 @@ func (a *SUBController) subs(c *gin.Context) {
 			if !a.clashEnabled {
 				subClashURL = ""
 			}
-			// Get base_path from context (set by middleware)
-			basePath, exists := c.Get("base_path")
-			if !exists {
-				basePath = "/"
-			}
-			// Add subId to base_path for asset URLs
-			basePathStr := basePath.(string)
-			if basePathStr == "/" {
-				basePathStr = "/" + subId + "/"
-			} else {
-				// Remove trailing slash if exists, add subId, then add trailing slash
-				basePathStr = strings.TrimRight(basePathStr, "/") + "/" + subId + "/"
-			}
-			page := a.subService.BuildPageData(subId, hostHeader, traffic, lastOnline, subs, subURL, subJsonURL, subClashURL, basePathStr)
-			c.HTML(200, "subpage.html", locale.PageData(c, gin.H{
-				"title":        "subscription.title",
-				"cur_ver":      config.GetVersion(),
-				"host":         page.Host,
-				"base_path":    page.BasePath,
-				"sId":          page.SId,
-				"enabled":      page.Enabled,
-				"download":     page.Download,
-				"upload":       page.Upload,
-				"total":        page.Total,
-				"used":         page.Used,
-				"remained":     page.Remained,
-				"expire":       page.Expire,
-				"lastOnline":   page.LastOnline,
-				"downloadByte": page.DownloadByte,
-				"uploadByte":   page.UploadByte,
-				"totalByte":    page.TotalByte,
-				"subUrl":       page.SubUrl,
-				"subJsonUrl":   page.SubJsonUrl,
-				"subClashUrl":  page.SubClashUrl,
-				"result":       page.Result,
-			}))
+			page := a.subService.BuildPageData(subId, traffic, lastOnline, subs, subURL, subJsonURL, subClashURL)
+			spa.ServePage(c, a.app, "sub.html", a.pageBase, page)
 			return
 		}
 

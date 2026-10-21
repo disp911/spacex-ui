@@ -5,40 +5,39 @@ package sub
 import (
 	"context"
 	"crypto/tls"
-	"html/template"
 	"io"
 	"io/fs"
 	"net"
 	"net/http"
-	"os"
-	"path/filepath"
+	"path"
 	"strconv"
 	"strings"
 
 	"github.com/disp911/spacex-ui/v2/logger"
 	"github.com/disp911/spacex-ui/v2/util/common"
 	webpkg "github.com/disp911/spacex-ui/v2/web"
-	"github.com/disp911/spacex-ui/v2/web/locale"
 	"github.com/disp911/spacex-ui/v2/web/middleware"
 	"github.com/disp911/spacex-ui/v2/web/network"
 	"github.com/disp911/spacex-ui/v2/web/service"
+	"github.com/disp911/spacex-ui/v2/web/spa"
 
 	"github.com/gin-gonic/gin"
 )
 
-// setEmbeddedTemplates parses and sets embedded templates on the engine
-func setEmbeddedTemplates(engine *gin.Engine) error {
-	t, err := template.New("").Funcs(engine.FuncMap).ParseFS(
-		webpkg.EmbeddedHTML(),
-		"html/common/page.html",
-		"html/component/aThemeSwitch.html",
-		"html/settings/panel/subscription/subpage.html",
-	)
-	if err != nil {
-		return err
+// pageFiles serves the subscription page's files, which the page asks for
+// under base (the links path) + "assets/".
+func pageFiles(app fs.FS, base string) gin.HandlerFunc {
+	prefix := base + "assets/"
+	return func(c *gin.Context) {
+		name, ok := strings.CutPrefix(c.Request.URL.Path, prefix)
+		if !ok {
+			return
+		}
+		if !spa.ServeFile(c, app, path.Join("assets", path.Clean("/"+name))) {
+			c.Status(http.StatusNotFound)
+		}
+		c.Abort()
 	}
-	engine.SetHTMLTemplate(t)
-	return nil
 }
 
 // Server represents the subscription server that serves subscription links and JSON configurations.
@@ -106,16 +105,11 @@ func (s *Server) initRouter() (*gin.Engine, error) {
 		return nil, err
 	}
 
-	// Set base_path based on LinksPath for template rendering
-	// Ensure LinksPath ends with "/" for proper asset URL generation
+	// The subscription page and its files resolve against the links path.
 	basePath := LinksPath
 	if basePath != "/" && !strings.HasSuffix(basePath, "/") {
 		basePath += "/"
 	}
-	// logger.Debug("sub: Setting base_path to:", basePath)
-	engine.Use(func(c *gin.Context) {
-		c.Set("base_path", basePath)
-	})
 
 	Encrypt, err := s.settingService.GetSubEncrypt()
 	if err != nil {
@@ -187,113 +181,19 @@ func (s *Server) initRouter() (*gin.Engine, error) {
 		SubRoutingRules = ""
 	}
 
-	// set per-request localizer from headers/cookies
-	engine.Use(locale.LocalizerMiddleware())
-
-	// register i18n function similar to web server
-	i18nWebFunc := func(key string, params ...string) string {
-		return locale.I18n(locale.Web, key, params...)
-	}
-	engine.SetFuncMap(map[string]any{"i18n": i18nWebFunc})
-
-	// Templates: prefer embedded; fallback to disk if necessary
-	if err := setEmbeddedTemplates(engine); err != nil {
-		logger.Warning("sub: failed to parse embedded templates:", err)
-		if files, derr := s.getHtmlFiles(); derr == nil {
-			engine.LoadHTMLFiles(files...)
-		} else {
-			logger.Error("sub: no templates available (embedded parse and disk load failed)", err, derr)
-		}
-	}
-	engine.HTMLRender = locale.HTMLRender(engine.HTMLRender)
-
-	// Assets: use disk if present, fallback to embedded
-	// Serve under both root (/assets) and under the subscription path prefix (LinksPath + "assets")
-	// so reverse proxies with a URI prefix can load assets correctly.
-	// Determine LinksPath earlier to compute prefixed assets mount.
-	// Note: LinksPath always starts and ends with "/" (validated in settings).
-	var linksPathForAssets string
-	if LinksPath == "/" {
-		linksPathForAssets = "/assets"
-	} else {
-		// ensure single slash join
-		linksPathForAssets = strings.TrimRight(LinksPath, "/") + "/assets"
-	}
-
-	// Mount assets in multiple paths to handle different URL patterns
-	var assetsFS http.FileSystem
-	if _, err := os.Stat("web/assets"); err == nil {
-		assetsFS = http.FS(os.DirFS("web/assets"))
-	} else {
-		if subFS, err := fs.Sub(webpkg.EmbeddedAssets(), "assets"); err == nil {
-			assetsFS = http.FS(subFS)
-		} else {
-			logger.Error("sub: failed to mount embedded assets:", err)
-		}
-	}
-
-	if assetsFS != nil {
-		engine.StaticFS("/assets", assetsFS)
-		if linksPathForAssets != "/assets" {
-			engine.StaticFS(linksPathForAssets, assetsFS)
-		}
-
-		// Add middleware to handle dynamic asset paths with subid
-		if LinksPath != "/" {
-			engine.Use(func(c *gin.Context) {
-				path := c.Request.URL.Path
-				// Check if this is an asset request with subid pattern: /sub/path/{subid}/assets/...
-				pathPrefix := strings.TrimRight(LinksPath, "/") + "/"
-				if strings.HasPrefix(path, pathPrefix) && strings.Contains(path, "/assets/") {
-					// Extract the asset path after /assets/
-					assetsIndex := strings.Index(path, "/assets/")
-					if assetsIndex != -1 {
-						assetPath := path[assetsIndex+8:] // +8 to skip "/assets/"
-						if assetPath != "" {
-							// Serve the asset file
-							c.FileFromFS(assetPath, assetsFS)
-							c.Abort()
-							return
-						}
-					}
-				}
-				c.Next()
-			})
-		}
-	}
+	// The subscription page is a page of the v3 frontend; its files are
+	// served under the subscription path, where its <base> points.
+	app := webpkg.AppFS()
+	engine.Use(pageFiles(app, basePath))
 
 	g := engine.Group("/")
 
 	s.sub = NewSUBController(
-		g, LinksPath, JsonPath, ClashPath, subJsonEnable, subClashEnable, Encrypt, ShowInfo, RemarkModel, SubUpdates,
+		g, app, basePath, LinksPath, JsonPath, ClashPath, subJsonEnable, subClashEnable, Encrypt, ShowInfo, RemarkModel, SubUpdates,
 		SubJsonFragment, SubJsonNoises, SubJsonMux, SubJsonRules, SubTitle, SubSupportUrl,
 		SubProfileUrl, SubAnnounce, SubEnableRouting, SubRoutingRules)
 
 	return engine, nil
-}
-
-// getHtmlFiles loads templates from local folder (used in debug mode)
-func (s *Server) getHtmlFiles() ([]string, error) {
-	dir, _ := os.Getwd()
-	files := []string{}
-	// common layout
-	common := filepath.Join(dir, "web", "html", "common", "page.html")
-	if _, err := os.Stat(common); err == nil {
-		files = append(files, common)
-	}
-	// components used
-	theme := filepath.Join(dir, "web", "html", "component", "aThemeSwitch.html")
-	if _, err := os.Stat(theme); err == nil {
-		files = append(files, theme)
-	}
-	// page itself
-	page := filepath.Join(dir, "web", "html", "subpage.html")
-	if _, err := os.Stat(page); err == nil {
-		files = append(files, page)
-	} else {
-		return nil, err
-	}
-	return files, nil
 }
 
 // Start initializes and starts the subscription server with configured settings.

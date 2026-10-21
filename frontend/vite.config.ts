@@ -46,6 +46,8 @@ export default defineConfig({
   build: {
     outDir: '../web/app',
     emptyOutDir: true,
+    // The panel, and the subscription page that the subscription server serves on its own.
+    rolldownOptions: { input: { index: 'index.html', sub: 'sub.html' } },
   },
   server: {
     proxy: {

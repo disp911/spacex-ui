@@ -793,6 +793,9 @@ export interface MessageSchema {
     "inboundData": string
     "import": string
   }
+  "sub": {
+    "title": string
+  }
   "units": {
     "value": string
     "byte": string

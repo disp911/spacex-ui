@@ -1290,27 +1290,20 @@ func searchHost(headers any) string {
 	return ""
 }
 
-// PageData is a view model for subpage.html
-// PageData contains data for rendering the subscription information page.
+// PageData is what the subscription page shows, handed to it as JSON in
+// the page: amounts in bytes, times in milliseconds (0 when there is none).
 type PageData struct {
-	Host         string
-	BasePath     string
-	SId          string
-	Enabled      bool
-	Download     string
-	Upload       string
-	Total        string
-	Used         string
-	Remained     string
-	Expire       int64
-	LastOnline   int64
-	DownloadByte int64
-	UploadByte   int64
-	TotalByte    int64
-	SubUrl       string
-	SubJsonUrl   string
-	SubClashUrl  string
-	Result       []string
+	SubID       string   `json:"subId"`
+	Enabled     bool     `json:"enabled"`
+	Up          int64    `json:"up"`
+	Down        int64    `json:"down"`
+	Total       int64    `json:"total"`
+	Expiry      int64    `json:"expiry"`
+	LastOnline  int64    `json:"lastOnline"`
+	SubURL      string   `json:"subUrl"`
+	SubJSONURL  string   `json:"subJsonUrl"`
+	SubClashURL string   `json:"subClashUrl"`
+	Links       []string `json:"links"`
 }
 
 // ResolveRequest extracts scheme and host info from request/headers consistently.
@@ -1422,39 +1415,20 @@ func (s *SubService) joinPathWithID(basePath, subId string) string {
 	return basePath + "/" + subId
 }
 
-// BuildPageData parses header and prepares the template view model.
-// BuildPageData constructs page data for rendering the subscription information page.
-func (s *SubService) BuildPageData(subId string, hostHeader string, traffic xray.ClientTraffic, lastOnline int64, subs []string, subURL, subJsonURL, subClashURL string, basePath string) PageData {
-	download := common.FormatTraffic(traffic.Down)
-	upload := common.FormatTraffic(traffic.Up)
-	total := "∞"
-	used := common.FormatTraffic(traffic.Up + traffic.Down)
-	remained := ""
-	if traffic.Total > 0 {
-		total = common.FormatTraffic(traffic.Total)
-		left := max(traffic.Total-(traffic.Up+traffic.Down), 0)
-		remained = common.FormatTraffic(left)
-	}
-
+// BuildPageData gathers what the subscription page shows.
+func (s *SubService) BuildPageData(subId string, traffic xray.ClientTraffic, lastOnline int64, subs []string, subURL, subJsonURL, subClashURL string) PageData {
 	return PageData{
-		Host:         hostHeader,
-		BasePath:     basePath,
-		SId:          subId,
-		Enabled:      traffic.Enable,
-		Download:     download,
-		Upload:       upload,
-		Total:        total,
-		Used:         used,
-		Remained:     remained,
-		Expire:       traffic.ExpiryTime / 1000,
-		LastOnline:   lastOnline,
-		DownloadByte: traffic.Down,
-		UploadByte:   traffic.Up,
-		TotalByte:    traffic.Total,
-		SubUrl:       subURL,
-		SubJsonUrl:   subJsonURL,
-		SubClashUrl:  subClashURL,
-		Result:       subs,
+		SubID:       subId,
+		Enabled:     traffic.Enable,
+		Up:          traffic.Up,
+		Down:        traffic.Down,
+		Total:       traffic.Total,
+		Expiry:      traffic.ExpiryTime,
+		LastOnline:  lastOnline,
+		SubURL:      subURL,
+		SubJSONURL:  subJsonURL,
+		SubClashURL: subClashURL,
+		Links:       subs,
 	}
 }
 

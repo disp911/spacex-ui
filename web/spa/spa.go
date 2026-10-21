@@ -24,8 +24,8 @@ type Config struct {
 	Version  string `json:"version"`
 }
 
-// placeholder is the comment in frontend/index.html that the server replaces
-// with the <base> element and the config.
+// placeholder is the comment in the frontend's pages (index.html, sub.html)
+// that the server replaces with the <base> element and the config.
 const placeholder = "<!--app-config-->"
 
 // Handler serves fsys: files under assets/ with a year-long cache, any other
@@ -35,12 +35,7 @@ func Handler(fsys fs.FS, config func(c *gin.Context) Config) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		name := strings.TrimPrefix(path.Clean("/"+c.Param("path")), "/")
 		if name != "" && !strings.HasPrefix(path.Base(name), ".") && path.Ext(name) != "" {
-			if data, err := fs.ReadFile(fsys, name); err == nil {
-				if strings.HasPrefix(name, "assets/") {
-					// Vite puts a content hash in every asset name.
-					c.Header("Cache-Control", "public, max-age=31536000, immutable")
-				}
-				c.Data(http.StatusOK, contentType(name), data)
+			if ServeFile(c, fsys, name) {
 				return
 			}
 			if strings.HasPrefix(name, "assets/") {
@@ -48,23 +43,45 @@ func Handler(fsys fs.FS, config func(c *gin.Context) Config) gin.HandlerFunc {
 				return
 			}
 		}
-
-		index, err := fs.ReadFile(fsys, "index.html")
-		if err != nil {
-			c.String(http.StatusServiceUnavailable, "The panel frontend is not built: run npm --prefix frontend run build")
-			return
-		}
-		c.Header("Cache-Control", "no-cache")
-		c.Data(http.StatusOK, "text/html; charset=utf-8", render(index, config(c)))
+		cfg := config(c)
+		ServePage(c, fsys, "index.html", cfg.Mount, cfg)
 	}
 }
 
-// render puts the <base> element and the config into index.html.
-func render(index []byte, cfg Config) []byte {
-	data, _ := json.Marshal(cfg)
-	head := `<base href="` + html.EscapeString(cfg.Mount) + `">` +
+// ServeFile answers with the file name of fsys, files under assets/ with a
+// year-long cache, and tells whether it was there.
+func ServeFile(c *gin.Context, fsys fs.FS, name string) bool {
+	data, err := fs.ReadFile(fsys, name)
+	if err != nil {
+		return false
+	}
+	if strings.HasPrefix(name, "assets/") {
+		// Vite puts a content hash in every asset name.
+		c.Header("Cache-Control", "public, max-age=31536000, immutable")
+	}
+	c.Data(http.StatusOK, contentType(name), data)
+	return true
+}
+
+// ServePage answers with the built page name of fsys, its relative URLs
+// resolved against mount and config put in for the frontend to read, e.g.
+// the panel's index.html or the subscription page.
+func ServePage(c *gin.Context, fsys fs.FS, name, mount string, config any) {
+	page, err := fs.ReadFile(fsys, name)
+	if err != nil {
+		c.String(http.StatusServiceUnavailable, "The panel frontend is not built: run npm --prefix frontend run build")
+		return
+	}
+	c.Header("Cache-Control", "no-cache")
+	c.Data(http.StatusOK, "text/html; charset=utf-8", render(page, mount, config))
+}
+
+// render puts the <base> element and the config into a page.
+func render(page []byte, mount string, config any) []byte {
+	data, _ := json.Marshal(config)
+	head := `<base href="` + html.EscapeString(mount) + `">` +
 		`<meta name="app-config" content="` + html.EscapeString(string(data)) + `">`
-	return bytes.Replace(index, []byte(placeholder), []byte(head), 1)
+	return bytes.Replace(page, []byte(placeholder), []byte(head), 1)
 }
 
 func contentType(name string) string {

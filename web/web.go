@@ -99,6 +99,17 @@ func EmbeddedAssets() embed.FS {
 	return assetsFS
 }
 
+// AppFS returns the v3 frontend that Vite builds: web/app on disk in debug
+// mode, the embedded copy otherwise. The subscription server serves its page
+// from it too.
+func AppFS() fs.FS {
+	if config.IsDebug() {
+		return os.DirFS("web/app")
+	}
+	app, _ := fs.Sub(appFS, "app")
+	return app
+}
+
 // Server represents the main web server for the 3x-ui panel with controllers, services, and scheduled jobs.
 type Server struct {
 	httpServer *http.Server
@@ -285,11 +296,7 @@ func (s *Server) initRouter() (*gin.Engine, error) {
 	s.api = controller.NewAPIController(g, s.customGeoService)
 
 	// The v3 frontend, served at v3/ while it is being built.
-	var app fs.FS = os.DirFS("web/app")
-	if !config.IsDebug() {
-		app, _ = fs.Sub(appFS, "app")
-	}
-	g.GET("/v3/*path", spa.Handler(app, func(c *gin.Context) spa.Config {
+	g.GET("/v3/*path", spa.Handler(AppFS(), func(c *gin.Context) spa.Config {
 		return spa.Config{Base: basePath, Mount: basePath + "v3/", LoggedIn: session.IsLogin(c), Version: config.GetVersion()}
 	}))
 

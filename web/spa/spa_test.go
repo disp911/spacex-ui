@@ -91,8 +91,21 @@ func TestUnbuiltFrontendSaysSo(t *testing.T) {
 }
 
 func TestConfigIsEscaped(t *testing.T) {
-	out := string(render([]byte("<head><!--app-config--></head>"), Config{Base: `/"><script>x</script>/`, Mount: `/"><b>/`}))
+	out := string(render([]byte("<head><!--app-config--></head>"), `/"><b>/`, Config{Base: `/"><script>x</script>/`}))
 	if strings.Contains(out, "<script>") || strings.Contains(out, "<b>") {
 		t.Fatalf("unescaped config: %s", out)
+	}
+}
+
+func TestOtherPageGetsItsMountAndConfig(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	engine := gin.New()
+	fsys := fstest.MapFS{"sub.html": {Data: []byte(`<head><!--app-config--></head>`)}}
+	engine.GET("/sub/:id", func(c *gin.Context) {
+		ServePage(c, fsys, "sub.html", "/sub/", map[string]string{"subId": c.Param("id")})
+	})
+	body := get(engine, "/sub/abc").Body.String()
+	if !strings.Contains(body, `<base href="/sub/">`) || !strings.Contains(body, `{&#34;subId&#34;:&#34;abc&#34;}`) {
+		t.Fatalf("page: %q", body)
 	}
 }
