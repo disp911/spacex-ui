@@ -11,6 +11,9 @@ const MAX_HEIGHT = 360
  * it is open: below the anchor, or above it when there is no room below.
  * Clicks outside both elements and Escape call onDismiss.
  */
+/** Open popups, the latest last: a list opened inside a popover sits above it. */
+const stack: Ref<HTMLElement | null>[] = []
+
 export function useFloating(
   anchor: Ref<HTMLElement | null>,
   popup: Ref<HTMLElement | null>,
@@ -55,20 +58,28 @@ export function useFloating(
     frame = requestAnimationFrame(update)
   }
 
+  // A click in a popup opened above this one, e.g. the list of a select in a
+  // popover, is inside it; Escape closes only the topmost.
+  const above = () => stack.slice(stack.indexOf(popup) + 1)
+
   function onPointerDown(e: PointerEvent) {
     const t = e.target as Node
     if (anchor.value?.contains(t) || popup.value?.contains(t)) return
+    if (above().some((p) => p.value?.contains(t))) return
     options.onDismiss?.()
   }
 
   function onKeyDown(e: KeyboardEvent) {
-    if (e.key === 'Escape') {
+    if (e.key === 'Escape' && !above().length) {
       e.stopPropagation()
       options.onDismiss?.()
     }
   }
 
   function bind(on: boolean) {
+    const at = stack.indexOf(popup)
+    if (at !== -1) stack.splice(at, 1)
+    if (on) stack.push(popup)
     if (on) {
       window.addEventListener('scroll', schedule, true)
       window.addEventListener('resize', schedule)

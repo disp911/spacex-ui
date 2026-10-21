@@ -5,7 +5,7 @@ import {
   toast, XActionBar, XActionList, XActionRow, XAddButton, XBadge, XCountList, XExpandTable, XSummaryStat, XBusyOverlay, XButton, XButtonGroup, XCard, XCheckbox, XChip, XCodeArea, XCodeEditor, XCodeInput, XConfirm, XCounter, XDataTable, XDivider, XEmpty, XErrorBox, XExample, XField, XFieldGrid, XFieldNote, XGridTable, XInfoRow, XInlineButton, XInput, XInputList, XKeyValue, XListHead, XMenu, XModal, XMultiSelect, XNavItem, XNest, XNestCard, XNotice, XPlainTable,
   XNumber, XOrderToggles, XPager, XPairList, XPickList, XPopConfirm, XProcessError, XProgressLine, XQrCode, XRecordCard, XRouteTarget, XRowLink, XSection, XSegmented, XSelect, XSettingBlock, XSettingDivider, XSettingRow, XSettingsSection, XSettingsSkeleton, XStatusDot, XStatusText, XStepArrow, XSwitch, XTabs, XTagInput, XTestResult, XTextarea,
   XTooltip, XUsagePill, XValueChip, XInnerTable, XMark, XRowToggle, XDateTime, XPartHead, XButtonRow, XCheckGroup, XStateBar, XChipBox,
-  XFactRow, XFactTile, XCopyChip, XCopyBlock, XQrCard,
+  XFactRow, XFactTile, XCopyChip, XCopyBlock, XCopyFrame, XQrCard, XPopover,
   type MenuItem,
 } from '../kit'
 
@@ -861,6 +861,23 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
         <XCopyBlock label="Config" :text="'[Interface]\nPrivateKey = eCtXsJZ27+4PbhDkHnB923tkUn2Gj59wZw5wFA75MnU=\nAddress = 10.0.0.2/32'">
           <template #actions><XButton size="sm" icon="download">Скачать</XButton></template>
         </XCopyBlock>
+        <h3 class="kit__h3">Страница подписки</h3>
+        <XKeyValue
+          columns
+          :rows="[{ label: 'ID подписки', value: 'alice-7f3k2' }, { key: 'status', label: 'Статус' }, { label: 'Общий лимит', value: '100 ГБ' }]"
+        >
+          <template #value-status><XChip tone="ok">Активна</XChip></template>
+        </XKeyValue>
+        <XCopyFrame label="Germany-VLESS-alice" text="vless://0740d687-743b-4269-ad61-3b98734c039b@de.example.net:443?type=tcp&security=reality#Germany-VLESS-alice" />
+        <XButtonRow>
+          <XMenu v-slot="{ props }" :items="[{ key: 'v2box', label: 'V2Box' }, { key: 'happ', label: 'Happ' }]" placement="top">
+            <XButton v-bind="props" variant="primary" caret>Android</XButton>
+          </XMenu>
+          <XPopover label="Настройки" placement="bottom-end">
+            <template #default="{ props }"><XButton v-bind="props" icon="sun" round label="Настройки" /></template>
+            <template #content>Поповер у правого края кнопки</template>
+          </XPopover>
+        </XButtonRow>
         <XChipBox label="Предпросмотр итоговых email">
           <XChip v-for="e in ['alice_7', 'carol_7', 'dmitry_7', 'igor_7', 'nikita_7']" :key="e" mono>{{ e }}</XChip>
         </XChipBox>

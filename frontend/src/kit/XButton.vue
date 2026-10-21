@@ -149,6 +149,12 @@ const linkAttrs = computed(() => (props.to ? { to: props.to } : props.href ? { h
   color: var(--dim);
 }
 
+/* A primary button opening a menu of actions, e.g. the apps of the subscription page, keeps it by its text, in its colour. */
+.x-btn--primary .x-btn__caret {
+  margin-left: 0;
+  color: inherit;
+}
+
 @media (max-width: 767px) {
   .x-btn--phone-icon {
     position: relative;

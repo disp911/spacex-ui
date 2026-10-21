@@ -1,6 +1,6 @@
 import type { SubData } from './data'
 
-// The subscriptions mockup frames 1a, 1b and 1c draw, for the Vite dev server.
+// The subscriptions mockup frames 1a, 1b and 1c draw, and a delayed start, for the Vite dev server.
 
 const GB = 1024 ** 3
 const at = (s: string) => new Date(s).getTime()
@@ -19,6 +19,9 @@ export function sample(state: string | null): SubData {
   }
   if (state === 'unlimited') {
     return { ...common, up: 18.6 * GB, down: 412.8 * GB, total: 0, expiry: 0, lastOnline: at('2026-10-10T02:41:37'), subJsonUrl: '', subClashUrl: '' }
+  }
+  if (state === 'delayed') {
+    return { ...common, up: 0, down: 0, total: 100 * GB, expiry: -30 * 86_400_000, lastOnline: 0 }
   }
   if (state === 'inactive') {
     return { ...common, up: 1.1 * GB, down: 48.9 * GB, total: 50 * GB, expiry: at('2026-09-30T00:00:00'), lastOnline: 0 }

@@ -795,6 +795,25 @@ export interface MessageSchema {
   }
   "sub": {
     "title": string
+    "subId": string
+    "status": string
+    "active": string
+    "inactive": string
+    "unlimited": string
+    "downloaded": string
+    "uploaded": string
+    "usage": string
+    "totalQuota": string
+    "remained": string
+    "lastOnline": string
+    "expiry": string
+    "noExpiry": string
+    "afterFirstUse": string
+    "sub": string
+    "subJson": string
+    "link": string
+    "settings": string
+    "darkTheme": string
   }
   "units": {
     "value": string

@@ -1,19 +1,21 @@
 <script setup lang="ts">
 import { ref, useId } from 'vue'
-import { useFloating } from './floating'
+import { useFloating, type Placement } from './floating'
 
 /**
  * Panel of content that opens from a trigger and closes on a click outside
  * or Escape. The trigger binds the slot props:
  *   <XPopover><template #default="{ props }"><button v-bind="props">…</button></template><template #content>…</template></XPopover>
+ * It opens under the trigger from its left edge; bottom-end lines it up with
+ * the right edge, e.g. a settings button at the end of a header.
  */
-const props = withDefaults(defineProps<{ disabled?: boolean; label?: string }>(), {})
+const props = withDefaults(defineProps<{ disabled?: boolean; label?: string; placement?: Placement }>(), { placement: 'bottom-start' })
 
 const id = useId()
 const anchor = ref<HTMLElement | null>(null)
 const panel = ref<HTMLElement | null>(null)
 const open = ref(false)
-const { style } = useFloating(anchor, panel, open, { onDismiss: close })
+const { style } = useFloating(anchor, panel, open, { placement: props.placement, onDismiss: close })
 
 function close() {
   open.value = false

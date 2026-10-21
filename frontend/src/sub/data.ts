@@ -17,7 +17,7 @@ export interface SubData {
   links: string[]
 }
 
-/** The page's data; the Vite dev server has none, so development shows a sample (?state=unlimited|inactive). */
+/** The page's data; the Vite dev server has none, so development shows a sample (?state=unlimited|inactive|delayed). */
 export async function loadData(): Promise<SubData | null> {
   const raw = document.querySelector<HTMLMetaElement>('meta[name="app-config"]')?.content
   if (raw) {

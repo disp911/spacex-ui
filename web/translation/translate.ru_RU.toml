@@ -1527,6 +1527,25 @@
 
 [sub]
 "title" = "Информация о подписке"
+"subId" = "ID подписки"
+"status" = "Статус"
+"active" = "Активна"
+"inactive" = "Неактивна"
+"unlimited" = "Неограниченно"
+"downloaded" = "Загружено"
+"uploaded" = "Отправлено"
+"usage" = "Использование"
+"totalQuota" = "Общий лимит"
+"remained" = "Остаток"
+"lastOnline" = "Был(а) в сети"
+"expiry" = "Срок действия"
+"noExpiry" = "Бессрочно"
+"afterFirstUse" = "{n} д после первого подключения"
+"sub" = "Подписка"
+"subJson" = "Подписка Json"
+"link" = "Ссылка {n}"
+"settings" = "Настройки"
+"darkTheme" = "Тёмная тема"
 
 [kit]
 "pickDate" = "Выбрать дату"

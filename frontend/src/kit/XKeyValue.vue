@@ -7,12 +7,15 @@
  * plain drops the frame and the tint for thin lines between the facts, the
  * name always beside its value, e.g. the facts of an inbound in a phone
  * popover; a row with a key shows the `value-<key>` slot, e.g. chips.
+ *
+ * columns puts the names in a tinted column of their own and the values in
+ * plain mono beside them, on phones too, e.g. the facts of a subscription.
  */
-defineProps<{ rows: { label: string; value?: string; key?: string }[]; plain?: boolean }>()
+defineProps<{ rows: { label: string; value?: string; key?: string }[]; plain?: boolean; columns?: boolean }>()
 </script>
 
 <template>
-  <dl :class="['x-kv', { 'x-kv--plain': plain }]">
+  <dl :class="['x-kv', { 'x-kv--plain': plain, 'x-kv--columns': columns }]">
     <div v-for="r in rows" :key="r.key ?? r.label" class="x-kv__row">
       <dt class="x-kv__label">{{ r.label }}</dt>
       <dd class="x-kv__value">
@@ -91,6 +94,38 @@ defineProps<{ rows: { label: string; value?: string; key?: string }[]; plain?: b
   word-break: normal;
 }
 
+.x-kv--columns .x-kv__row {
+  grid-template-columns: 200px minmax(0, 1fr);
+  align-items: stretch;
+  gap: 0;
+  min-height: 36px;
+  padding: 0;
+}
+
+.x-kv--columns .x-kv__row:nth-child(even) {
+  background: none;
+}
+
+.x-kv--columns .x-kv__label,
+.x-kv--columns .x-kv__value {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  padding: var(--sp-8) var(--sp-14);
+}
+
+.x-kv--columns .x-kv__label {
+  background: var(--tint);
+  font-size: var(--fs-13);
+}
+
+.x-kv--columns .x-kv__value {
+  padding-block: var(--sp-6);
+  color: var(--fg);
+  font-size: var(--fs-13);
+}
+
 @media (max-width: 767px) {
   .x-kv {
     border-radius: var(--r-12);
@@ -108,6 +143,17 @@ defineProps<{ rows: { label: string; value?: string; key?: string }[]; plain?: b
   .x-kv--plain .x-kv__row {
     grid-template-columns: 104px minmax(0, 1fr);
     gap: var(--sp-10);
+  }
+
+  .x-kv--columns .x-kv__row {
+    grid-template-columns: 128px minmax(0, 1fr);
+    gap: 0;
+    min-height: 40px;
+  }
+
+  .x-kv--columns .x-kv__label,
+  .x-kv--columns .x-kv__value {
+    padding-inline: var(--sp-12);
   }
 }
 </style>

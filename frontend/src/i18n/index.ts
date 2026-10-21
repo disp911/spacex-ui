@@ -3,9 +3,9 @@ import type { MessageSchema } from './schema.gen'
 
 export type Locale = 'en-US' | 'ru-RU'
 
-export const locales: { value: Locale; label: string }[] = [
-  { value: 'ru-RU', label: 'Русский' },
-  { value: 'en-US', label: 'English' },
+export const locales: { value: Locale; label: string; flag: string }[] = [
+  { value: 'ru-RU', label: 'Русский', flag: '🇷🇺' },
+  { value: 'en-US', label: 'English', flag: '🇬🇧' },
 ]
 
 declare module 'vue-i18n' {

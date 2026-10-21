@@ -1527,6 +1527,25 @@
 
 [sub]
 "title" = "Subscription info"
+"subId" = "Subscription ID"
+"status" = "Status"
+"active" = "Active"
+"inactive" = "Inactive"
+"unlimited" = "Unlimited"
+"downloaded" = "Downloaded"
+"uploaded" = "Uploaded"
+"usage" = "Usage"
+"totalQuota" = "Total quota"
+"remained" = "Remained"
+"lastOnline" = "Last online"
+"expiry" = "Expiry"
+"noExpiry" = "No expiry"
+"afterFirstUse" = "{n} d after the first connection"
+"sub" = "Subscription"
+"subJson" = "Subscription Json"
+"link" = "Link {n}"
+"settings" = "Settings"
+"darkTheme" = "Dark theme"
 
 [kit]
 "pickDate" = "Pick a date"
