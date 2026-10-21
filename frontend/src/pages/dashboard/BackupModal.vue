@@ -58,10 +58,10 @@ async function restore() {
   <XModal v-model:open="open" :title="t('dashboard.backup')" size="sm">
     <XActionList>
       <XActionRow :title="t('dashboard.backupExport')" icon="download" :loading="exporting" @click="exportDb">
-        <i18n-t keypath="dashboard.backupExportText" tag="span"><template #ext><code>.db</code></template></i18n-t>
+        <i18n-t scope="global" keypath="dashboard.backupExportText" tag="span"><template #ext><code>.db</code></template></i18n-t>
       </XActionRow>
       <XActionRow :title="t('dashboard.backupImport')" icon="upload" :loading="restoring" @click="picker?.click()">
-        <i18n-t keypath="dashboard.backupImportText" tag="span"><template #ext><code>.db</code></template></i18n-t>
+        <i18n-t scope="global" keypath="dashboard.backupImportText" tag="span"><template #ext><code>.db</code></template></i18n-t>
       </XActionRow>
     </XActionList>
     <input ref="picker" type="file" accept=".db" hidden @change="pick" />

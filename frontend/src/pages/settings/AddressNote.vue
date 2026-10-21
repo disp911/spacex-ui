@@ -7,6 +7,6 @@ defineProps<{ address: string }>()
 
 <template>
   <XFieldNote>
-    <i18n-t keypath="settings.afterRestart"><template #address><code>{{ address }}</code></template></i18n-t>
+    <i18n-t scope="global" keypath="settings.afterRestart"><template #address><code>{{ address }}</code></template></i18n-t>
   </XFieldNote>
 </template>

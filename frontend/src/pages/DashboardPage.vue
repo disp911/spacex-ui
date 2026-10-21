@@ -121,7 +121,7 @@ const dash = '—'
 <template>
   <AppPage :title="t('nav.dashboard')">
     <template #subtitle>
-      <i18n-t keypath="common.server" tag="span">
+      <i18n-t scope="global" keypath="common.server" tag="span">
         <template #host><span class="mono">{{ host }}</span></template>
       </i18n-t>
     </template>

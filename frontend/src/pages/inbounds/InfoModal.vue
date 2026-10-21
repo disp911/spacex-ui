@@ -278,24 +278,24 @@ const accounts = computed<Json[]>(() => (Array.isArray(s.value.accounts) && (pro
 
       <template v-if="inbound.protocol === 'wireguard'">
         <XFactRow :label="t('inbounds.wgSecretKey')">
-          <XChip mono truncate>{{ s.secretKey }}</XChip>
-          <XCopyChip :text="s.secretKey" />
+          <XChip mono truncate>{{ s.secretKey || '-' }}</XChip>
+          <XCopyChip v-if="s.secretKey" :text="s.secretKey" />
         </XFactRow>
         <XFactRow :label="t('inbounds.publicKey')">
-          <XChip mono truncate>{{ wgPublicKey }}</XChip>
-          <XCopyChip :text="wgPublicKey" />
+          <XChip mono truncate>{{ wgPublicKey || '-' }}</XChip>
+          <XCopyChip v-if="wgPublicKey" :text="wgPublicKey" />
         </XFactRow>
         <XFactRow label="MTU"><XChip mono>{{ s.mtu ?? 1420 }}</XChip></XFactRow>
         <XFactRow label="No Kernel Tun"><XChip mono>{{ !!s.noKernelTun }}</XChip></XFactRow>
         <template v-for="(p, i) in peers" :key="i">
           <XDivider :label="t('inbounds.peerN', { n: i + 1 })" spaced />
           <XFactRow :label="t('inbounds.wgSecretKey')">
-            <XChip mono truncate>{{ p.privateKey }}</XChip>
-            <XCopyChip :text="p.privateKey" />
+            <XChip mono truncate>{{ p.privateKey || '-' }}</XChip>
+            <XCopyChip v-if="p.privateKey" :text="p.privateKey" />
           </XFactRow>
           <XFactRow :label="t('inbounds.publicKey')">
-            <XChip mono truncate>{{ p.publicKey }}</XChip>
-            <XCopyChip :text="p.publicKey" />
+            <XChip mono truncate>{{ p.publicKey || '-' }}</XChip>
+            <XCopyChip v-if="p.publicKey" :text="p.publicKey" />
           </XFactRow>
           <XFactRow :label="t('inbounds.wgPsk')">
             <template v-if="p.preSharedKey">
