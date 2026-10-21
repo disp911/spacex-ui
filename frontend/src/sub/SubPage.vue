@@ -268,5 +268,9 @@ const dark = computed({
     grid-template-columns: minmax(0, 1fr);
     gap: var(--sp-10);
   }
+
+  .sub-settings {
+    width: 232px;
+  }
 }
 </style>
