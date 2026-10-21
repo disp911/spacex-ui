@@ -42,3 +42,7 @@ docker-compose.override.yml
 # v3 frontend build output, embedded by web/web.go
 /web/app/*
 !/web/app/.gitkeep
+
+# Design mockups and the kit preview, kept outside the repository
+/web/new-design/
+/kit.html
