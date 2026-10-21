@@ -98,7 +98,6 @@ defineProps<{ rows: { label: string; value?: string; key?: string }[]; plain?: b
   grid-template-columns: 200px minmax(0, 1fr);
   align-items: stretch;
   gap: 0;
-  min-height: 36px;
   padding: 0;
 }
 
@@ -112,6 +111,7 @@ defineProps<{ rows: { label: string; value?: string; key?: string }[]; plain?: b
   flex-wrap: wrap;
   align-items: center;
   gap: 4px;
+  min-height: 36px;
   padding: var(--sp-8) var(--sp-14);
 }
 
@@ -148,11 +148,11 @@ defineProps<{ rows: { label: string; value?: string; key?: string }[]; plain?: b
   .x-kv--columns .x-kv__row {
     grid-template-columns: 128px minmax(0, 1fr);
     gap: 0;
-    min-height: 40px;
   }
 
   .x-kv--columns .x-kv__label,
   .x-kv--columns .x-kv__value {
+    min-height: 40px;
     padding-inline: var(--sp-12);
   }
 }

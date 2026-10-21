@@ -132,7 +132,7 @@ const dark = computed({
         </div>
 
         <div class="sub__apps x-ctl-lg">
-          <XMenu v-for="p in platforms" :key="p.name" v-slot="{ props: trigger }" :items="menuItems(p.apps)" :title="p.name" placement="top" @select="useApp(p.apps, $event)">
+          <XMenu v-for="p in platforms" :key="p.name" v-slot="{ props: trigger }" :items="menuItems(p.apps)" placement="top" match-width @select="useApp(p.apps, $event)">
             <XButton v-bind="trigger" variant="primary" caret block>{{ p.name }}</XButton>
           </XMenu>
         </div>

@@ -42,6 +42,8 @@ const props = withDefaults(
     scrim?: boolean
     /** Several items can be checked: choosing one toggles it and the menu stays open. */
     multiple?: boolean
+    /** At least as wide as its button, e.g. the app buttons of the subscription page. */
+    matchWidth?: boolean
   }>(),
   { placement: 'bottom-end' },
 )
@@ -52,7 +54,7 @@ const anchor = ref<HTMLElement | null>(null)
 const menu = ref<HTMLElement | null>(null)
 const open = ref(false)
 const asSheet = ref(false)
-const { style } = useFloating(anchor, menu, open, { placement: props.placement, onDismiss: () => close(!!menu.value?.contains(document.activeElement)) })
+const { style } = useFloating(anchor, menu, open, { placement: props.placement, matchWidth: props.matchWidth, onDismiss: () => close(!!menu.value?.contains(document.activeElement)) })
 
 function enabledItems() {
   return [...(menu.value?.querySelectorAll<HTMLElement>('[role^="menuitem"]:not([aria-disabled="true"])') ?? [])]
