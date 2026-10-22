@@ -212,6 +212,8 @@ async function download() {
         </XButton>
       </XMenu>
 
+      <XInput v-model="query" icon="search" clearable mono :placeholder="t('dashboard.xlogSearch')" class="xlog-search" />
+
       <XMenu :items="kindItems" :title="t('dashboard.xlogTypes')" placement="bottom-start" sheet multiple @select="shown[$event as Kind] = !shown[$event as Kind]">
         <template #default="{ props }">
           <XButton v-bind="props" :label="`${t('dashboard.xlogTypes')}: ${kindsLabel}`" caret class="xlog-filter xlog-types">{{ kindsLabel }}</XButton>
@@ -222,8 +224,6 @@ async function download() {
           </XButton>
         </template>
       </XMenu>
-
-      <XInput v-model="query" icon="search" clearable mono :placeholder="t('dashboard.xlogSearch')" class="xlog-search" />
 
       <XCheckbox v-for="k in kinds" :key="k.key" v-model="shown[k.key]" boxed :tone="k.tone" class="xlog-check">{{ k.label }}</XCheckbox>
 
