@@ -185,7 +185,6 @@ function select(key: string, o: Outbound, i: number) {
       <template #cell-test="{ row }">
         <XButton
           icon="bolt"
-          round
           :label="t('xray.outTest')"
           :loading="result(row).state === 'testing'"
           :disabled="untestable(row)"

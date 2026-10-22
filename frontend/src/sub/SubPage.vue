@@ -99,7 +99,7 @@ const dark = computed({
         </div>
         <XPopover :label="t('sub.settings')" placement="bottom-end">
           <template #default="{ props: trigger }">
-            <XButton v-bind="trigger" icon="sun" round :label="t('sub.settings')" />
+            <XButton v-bind="trigger" icon="sun" :label="t('sub.settings')" />
           </template>
           <template #content>
             <div class="sub-settings">

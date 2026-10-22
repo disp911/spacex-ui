@@ -33,9 +33,7 @@ const props = withDefaults(
     success?: boolean
     /** Waits for an earlier step, e.g. Restart for Save: disabled, in a dashed outline. */
     pending?: boolean
-    /** An icon button in a circle, e.g. a row's test; at work it turns accent around the spinner, and while what it opens is open. */
-    round?: boolean
-    /** A small badge at the top right of a round button, e.g. pause on a disabled inbound. */
+    /** A small badge at the top right of an icon button, e.g. pause on a disabled inbound. */
     mark?: IconName
     /** A small accent dot at the top right, e.g. auto refresh is on behind a menu button. */
     dot?: boolean
@@ -62,7 +60,7 @@ const linkAttrs = computed(() => (props.to ? { to: props.to } : props.href ? { h
       'x-btn',
       `x-btn--${variant}`,
       `x-btn--${sizeClass}`,
-      { 'x-btn--icon': iconOnly, 'x-btn--block': block, 'x-btn--mono': mono, 'x-btn--phone-icon': phoneIconOnly && !iconOnly, 'x-btn--phone-block': phoneBlock, 'is-loading': loading, 'is-success': success, 'is-pending': pending, 'x-btn--round': round && iconOnly },
+      { 'x-btn--icon': iconOnly, 'x-btn--block': block, 'x-btn--mono': mono, 'x-btn--phone-icon': phoneIconOnly && !iconOnly, 'x-btn--phone-block': phoneBlock, 'is-loading': loading, 'is-success': success, 'is-pending': pending },
     ]"
     :disabled="isLink ? undefined : disabled || pending"
     :aria-disabled="loading || (isLink && disabled) || undefined"
@@ -76,7 +74,7 @@ const linkAttrs = computed(() => (props.to ? { to: props.to } : props.href ? { h
     <span v-if="$slots.default" class="x-btn__text"><slot /></span>
     <XIcon v-if="caret" name="caret" :size="12" :stroke="1.6" class="x-btn__caret" />
     <span v-if="dot" class="x-btn__dot" aria-hidden="true" />
-    <span v-if="mark && round" class="x-btn__mark" aria-hidden="true"><XIcon :name="mark" :size="12" :stroke="2.4" /></span>
+    <span v-if="mark && iconOnly" class="x-btn__mark" aria-hidden="true"><XIcon :name="mark" :size="12" :stroke="2.4" /></span>
   </component>
 </template>
 
@@ -217,16 +215,7 @@ const linkAttrs = computed(() => (props.to ? { to: props.to } : props.href ? { h
   opacity: .8;
 }
 
-.x-btn--round {
-  border-radius: 50%;
-}
-
-.x-btn--round {
-  position: relative;
-  overflow: visible;
-}
-
-.x-btn:has(.x-btn__dot) {
+.x-btn:has(.x-btn__dot, .x-btn__mark) {
   position: relative;
 }
 
@@ -238,12 +227,6 @@ const linkAttrs = computed(() => (props.to ? { to: props.to } : props.href ? { h
   height: 6px;
   border-radius: var(--r-pill);
   background: var(--acc);
-}
-
-.x-btn--round[aria-expanded='true'] {
-  border-color: var(--acc-line);
-  background: var(--acc-soft);
-  color: var(--acc);
 }
 
 .x-btn__mark {
@@ -261,12 +244,6 @@ const linkAttrs = computed(() => (props.to ? { to: props.to } : props.href ? { h
   color: var(--card);
 }
 
-.x-btn--round.is-loading {
-  border-color: var(--acc-line);
-  background: var(--acc-soft);
-  color: var(--acc);
-  opacity: 1;
-}
 
 .x-btn:focus-visible,
 .x-btn.is-focus {

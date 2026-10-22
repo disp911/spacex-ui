@@ -255,7 +255,7 @@ async function confirmed(request: Promise<unknown>) {
     <template #phone-info="{ row }">
       <XPopover :label="t('inbounds.colInfo')">
         <template #default="{ props: trigger }">
-          <XButton v-bind="trigger" icon="info" round :mark="row.enable ? undefined : 'pause'" :label="t('inbounds.colInfo')" />
+          <XButton v-bind="trigger" icon="info" :mark="row.enable ? undefined : 'pause'" :label="t('inbounds.colInfo')" />
         </template>
         <template #content>
           <div class="clients__info">

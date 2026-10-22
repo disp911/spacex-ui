@@ -498,7 +498,7 @@ const clientFilter = computed<Filter>(() => (mode.value === 'filter' ? filter.va
         <template #phone-info="{ row }">
           <XPopover :label="t('inbounds.colInfo')">
             <template #default="{ props: trigger }">
-              <XButton v-bind="trigger" icon="info" round :mark="row.enable ? undefined : 'pause'" :label="t('inbounds.colInfo')" />
+              <XButton v-bind="trigger" icon="info" :mark="row.enable ? undefined : 'pause'" :label="t('inbounds.colInfo')" />
             </template>
             <template #content>
               <XKeyValue

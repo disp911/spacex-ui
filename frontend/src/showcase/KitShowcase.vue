@@ -592,9 +592,6 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
                 <XButton v-bind="props" icon="reset" label="Сбросить трафик" />
               </XPopConfirm>
             </XButtonGroup>
-            <XButton icon="bolt" round label="Тест" />
-            <XButton icon="bolt" round label="Тест" loading />
-            <XButton icon="bolt" round label="Тест" disabled />
             <XChip mono>vless</XChip>
             <XChip mono outline>xhttp</XChip>
             <XChip tone="ok" mono outline>reality</XChip>
@@ -874,7 +871,7 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
             <XButton v-bind="props" variant="primary" caret>Android</XButton>
           </XMenu>
           <XPopover label="Настройки" placement="bottom-end">
-            <template #default="{ props }"><XButton v-bind="props" icon="sun" round label="Настройки" /></template>
+            <template #default="{ props }"><XButton v-bind="props" icon="sun" label="Настройки" /></template>
             <template #content>Поповер у правого края кнопки</template>
           </XPopover>
         </XButtonRow>
@@ -993,8 +990,8 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
           <XMenu v-slot="{ props }" :items="demoInbMenu" @select="$event === 'enable' && (demoInbOn = !demoInbOn)">
             <XButton v-bind="props" caret>Меню с переключателем</XButton>
           </XMenu>
-          <XButton icon="info" round label="Информация" />
-          <XButton icon="info" round mark="pause" label="Информация, отключено" />
+          <XButton icon="info" label="Информация" />
+          <XButton icon="info" mark="pause" label="Информация, отключено" />
           <XButton icon="caret" label="Автообновление" dot />
         </div>
         <XKeyValue plain :rows="[{ label: 'Порт', value: '443' }, { key: 'proto', label: 'Протокол' }]" style="max-width: 320px">
