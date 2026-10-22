@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { api, ApiError } from '../api'
 import { config } from '../config'
 import { bytesParts, formatDuration, formatNumber, formatSpeed } from '../i18n/format'
-import { toast, XButton, XIcon, XInlineButton, XNotice, XRowLink, XStatusDot } from '../kit'
+import { toast, XButton, XIcon, XInlineButton, XNotice, XRowLink, XSkeletonText, XStatusDot } from '../kit'
 import AppPage from '../layout/AppPage.vue'
 import { useServerStatus } from '../stores/server'
 import DashCard from './dashboard/DashCard.vue'
@@ -22,6 +22,8 @@ const { t } = useI18n()
 const server = useServerStatus()
 server.watch()
 const status = computed(() => server.status)
+// Until the first status arrives the figures are grey bars; if it cannot be fetched they fall back to dashes.
+const loading = computed(() => !server.status && !server.failed)
 const host = location.hostname
 
 // --- Services -------------------------------------------------------------
@@ -141,6 +143,7 @@ const dash = '—'
           version-prefix="v"
           class="area-xray"
           :service="status?.xray"
+          :loading="loading"
           :error-title="t('dashboard.xrayError')"
           :busy="busy.xray"
           @restart="act('xray', 'restart')"
@@ -183,7 +186,10 @@ const dash = '—'
           <div class="tiles tiles--ip">
             <div v-for="tile in ipTiles" :key="tile.kind" class="tile tile--ip">
               <div class="x-caps tile__label">{{ tile.name }}</div>
-              <div :class="['tile__ip', { 'is-hidden': !ipShown[tile.kind] }]">{{ ip(status?.publicIP[tile.kind]) }}</div>
+              <div :class="['tile__ip', { 'is-hidden': !ipShown[tile.kind] }]">
+                <XSkeletonText v-if="loading" :width="104" />
+                <template v-else>{{ ip(status?.publicIP[tile.kind]) }}</template>
+              </div>
               <XInlineButton
                 :icon="ipShown[tile.kind] ? 'eyeOff' : 'eye'"
                 :label="t(ipShown[tile.kind] ? 'dashboard.hideAddress' : 'dashboard.showAddress', { name: tile.name })"
@@ -197,7 +203,7 @@ const dash = '—'
       </div>
 
       <div class="dash__col">
-        <ResourcesCard :status="status" class="grow area-resources" />
+        <ResourcesCard :status="status" :loading="loading" class="grow area-resources" />
 
         <DashCard :title="t('dashboard.network')" class="area-network">
           <div class="tiles">
@@ -206,33 +212,39 @@ const dash = '—'
                 <XIcon name="arrowUp" :size="12" class="up" />
                 <span class="long">{{ t('dashboard.sent') }}</span><span class="short">{{ t('dashboard.sentShort') }}</span>
               </div>
-              <div class="tile__total up">{{ status ? sent.n : dash }} <small v-if="status">{{ sent.unit }}</small></div>
+              <div class="tile__total up">
+                <XSkeletonText v-if="loading" :width="88" />
+                <template v-else>{{ status ? sent.n : dash }} <small v-if="status">{{ sent.unit }}</small></template>
+              </div>
             </div>
             <div class="tile tile--total">
               <div class="x-caps tile__label">
                 <XIcon name="arrowDown" :size="12" class="down" />
                 <span class="long">{{ t('dashboard.received') }}</span><span class="short">{{ t('dashboard.receivedShort') }}</span>
               </div>
-              <div class="tile__total down">{{ status ? received.n : dash }} <small v-if="status">{{ received.unit }}</small></div>
+              <div class="tile__total down">
+                <XSkeletonText v-if="loading" :width="88" />
+                <template v-else>{{ status ? received.n : dash }} <small v-if="status">{{ received.unit }}</small></template>
+              </div>
             </div>
           </div>
           <div class="net-figures">
             <div class="net-figures__pair">
-              <DashStat :label="t('dashboard.upload')" :value="status ? formatSpeed(status.netIO.up) : dash" small tone="up" />
-              <DashStat :label="t('dashboard.download')" :value="status ? formatSpeed(status.netIO.down) : dash" small tone="down" />
+              <DashStat :label="t('dashboard.upload')" :value="status ? formatSpeed(status.netIO.up) : dash" :loading="loading" small tone="up" />
+              <DashStat :label="t('dashboard.download')" :value="status ? formatSpeed(status.netIO.down) : dash" :loading="loading" small tone="down" />
             </div>
             <div class="net-figures__pair">
-              <DashStat label="TCP" :value="status ? formatNumber(status.tcpCount) : dash" small />
-              <DashStat label="UDP" :value="status ? formatNumber(status.udpCount) : dash" small />
+              <DashStat label="TCP" :value="status ? formatNumber(status.tcpCount) : dash" :loading="loading" small />
+              <DashStat label="UDP" :value="status ? formatNumber(status.udpCount) : dash" :loading="loading" small />
             </div>
           </div>
         </DashCard>
 
         <DashCard :title="t('dashboard.system')" class="area-system">
           <div class="system">
-            <DashStat :label="t('dashboard.osUptime')" :value="status ? formatDuration(status.uptime) : dash" class="system__uptime" />
+            <DashStat :label="t('dashboard.osUptime')" :value="status ? formatDuration(status.uptime) : dash" :loading="loading" class="system__uptime" />
             <div class="system__load">
-              <DashStat :label="t('dashboard.load')" :short="t('dashboard.loadShort')" value="">
+              <DashStat :label="t('dashboard.load')" :short="t('dashboard.loadShort')" value="" :loading="loading">
                 <template v-if="status?.loads?.length">
                   <template v-for="(l, i) in status.loads" :key="i">
                     <span v-if="i" class="system__sep"> | </span>{{ formatNumber(l, 2) }}

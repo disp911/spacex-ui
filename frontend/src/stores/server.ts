@@ -38,17 +38,25 @@ export interface ServerStatus {
 /** Live server status while someone watches it. */
 export const useServerStatus = defineStore('serverStatus', () => {
   const status = ref<ServerStatus | null>(null)
+  /** The first status could not be fetched; screens stop showing it as loading. */
+  const failed = ref(false)
   let watchers = 0
   let unsubscribe: (() => void) | null = null
   let updatedAt = 0
 
   function set(next: ServerStatus) {
     status.value = next
+    failed.value = false
     updatedAt = Date.now()
   }
 
   async function refresh() {
-    set(await api.get<ServerStatus>('panel/api/server/status'))
+    try {
+      set(await api.get<ServerStatus>('panel/api/server/status'))
+    } catch (e) {
+      if (!status.value) failed.value = true
+      throw e
+    }
   }
 
   /** Starts live updates for the calling component's lifetime. */
@@ -72,5 +80,5 @@ export const useServerStatus = defineStore('serverStatus', () => {
     })
   }
 
-  return { status, refresh, watch }
+  return { status, failed, refresh, watch }
 })

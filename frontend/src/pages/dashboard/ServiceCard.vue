@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { formatBytes, formatDuration, formatNumber } from '../../i18n/format'
-import { XBadge, XButton, XErrorBox, XIcon, XPopover, XStatusDot, type Tone } from '../../kit'
+import { XBadge, XButton, XErrorBox, XIcon, XPopover, XSkeletonText, XStatusDot, type Tone } from '../../kit'
 import type { ServiceStatus } from '../../stores/server'
 import DashCard from './DashCard.vue'
 import DashStat from './DashStat.vue'
@@ -12,6 +12,8 @@ const props = defineProps<{
   title: string
   /** Undefined until the first status arrives. */
   service?: ServiceStatus
+  /** The first status is on its way: grey bars stand in for the state and the figures. */
+  loading?: boolean
   errorTitle: string
   busy?: 'restart' | 'stop' | null
   /** Xray versions are shown as v26.4.25, the Telegram proxy's without the v. */
@@ -37,7 +39,8 @@ const dash = '—'
   <DashCard :title="title">
     <div class="service">
       <div class="service__state">
-        <XPopover :disabled="!errorLines.length" :label="errorTitle">
+        <div v-if="loading" class="service__status"><XSkeletonText :width="96" /></div>
+        <XPopover v-else :disabled="!errorLines.length" :label="errorTitle">
           <template #default="{ props: trigger }">
           <component
             :is="errorLines.length ? 'button' : 'div'"
@@ -68,9 +71,9 @@ const dash = '—'
       </div>
 
       <div class="service__stats">
-        <DashStat :label="t('dashboard.online')" :short="t('dashboard.onlineShort')" :value="running ? formatNumber(service!.online) : dash" />
-        <DashStat :label="t('dashboard.uptime')" :short="t('dashboard.uptimeShort')" :value="running ? formatDuration(service!.uptime) : dash" />
-        <DashStat :label="t('dashboard.memory')" :value="running ? formatBytes(service!.mem) : dash" />
+        <DashStat :label="t('dashboard.online')" :short="t('dashboard.onlineShort')" :value="running ? formatNumber(service!.online) : dash" :loading="loading" />
+        <DashStat :label="t('dashboard.uptime')" :short="t('dashboard.uptimeShort')" :value="running ? formatDuration(service!.uptime) : dash" :loading="loading" />
+        <DashStat :label="t('dashboard.memory')" :value="running ? formatBytes(service!.mem) : dash" :loading="loading" />
       </div>
 
       <div class="service__actions">

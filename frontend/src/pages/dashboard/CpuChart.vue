@@ -3,7 +3,7 @@ import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { api } from '../../api'
 import { formatNumber } from '../../i18n/format'
-import { XButton, XMenu, type MenuItem } from '../../kit'
+import { XButton, XMenu, XSpinner, type MenuItem } from '../../kit'
 
 /** CPU load history; the server averages it into 60 buckets of the chosen size. */
 const { t } = useI18n()
@@ -22,18 +22,27 @@ const points = ref<{ t: number; cpu: number }[]>([])
 const current = computed(() => ranges.find((r) => r.bucket === bucket.value) ?? ranges[0])
 const items = computed<MenuItem[]>(() => ranges.map((r) => ({ key: String(r.bucket), label: t(r.key), checked: r.bucket === bucket.value })))
 
+// While a range's first picture is on its way the plot shows a spinner; later refreshes keep the last picture.
+const loading = ref(true)
 let timer = 0
 async function load() {
+  const range = bucket.value
   try {
-    points.value = (await api.get<{ t: number; cpu: number }[]>(`panel/api/server/cpuHistory/${bucket.value}`)) ?? []
+    const next = (await api.get<{ t: number; cpu: number }[]>(`panel/api/server/cpuHistory/${range}`)) ?? []
+    // An answer for a range no longer shown is dropped.
+    if (range === bucket.value) points.value = next
   } catch {
     // keep the last picture
+  } finally {
+    if (range === bucket.value) loading.value = false
   }
 }
 
 watch(
   bucket,
   () => {
+    points.value = []
+    loading.value = true
     load()
     clearInterval(timer)
     // A new point appears once per bucket; the live view follows the 2 s status.
@@ -74,6 +83,7 @@ const area = computed(() => (line.value ? `${line.value} L${W} ${H} L0 ${H} Z` :
         <path v-if="line" :d="line" class="cpu__line" vector-effect="non-scaling-stroke" />
       </svg>
       <span v-for="tick in ticks" :key="tick.v" class="cpu__tick" :style="{ top: `${(tick.y / H) * 100}%` }">{{ tick.v }}%</span>
+      <div v-if="loading" class="cpu__loading" role="status"><XSpinner :size="16" /></div>
     </div>
   </div>
 </template>
@@ -105,7 +115,16 @@ const area = computed(() => (line.value ? `${line.value} L${W} ${H} L0 ${H} Z` :
   background: var(--field);
 }
 
-.cpu__plot svg {
+.cpu__loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--dim);
+}
+
+.cpu__plot > svg {
   display: block;
   width: 100%;
   height: 88px;

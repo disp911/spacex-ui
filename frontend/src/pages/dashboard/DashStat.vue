@@ -1,6 +1,8 @@
 <script setup lang="ts">
-/** A labelled figure; short is the label phones show. Small figures are secondary, coloured by direction. */
-defineProps<{ label: string; short?: string; value: string; small?: boolean; tone?: 'up' | 'down' }>()
+import { XSkeletonText } from '../../kit'
+
+/** A labelled figure; short is the label phones show. Small figures are secondary, coloured by direction. A grey bar stands in while loading. */
+defineProps<{ label: string; short?: string; value: string; small?: boolean; tone?: 'up' | 'down'; loading?: boolean }>()
 </script>
 
 <template>
@@ -9,7 +11,10 @@ defineProps<{ label: string; short?: string; value: string; small?: boolean; ton
       <span :class="{ 'stat__long': short }">{{ label }}</span>
       <span v-if="short" class="stat__short">{{ short }}</span>
     </div>
-    <div class="stat__value"><slot>{{ value }}</slot></div>
+    <div class="stat__value">
+      <XSkeletonText v-if="loading" :width="small ? 48 : 64" />
+      <slot v-else>{{ value }}</slot>
+    </div>
   </div>
 </template>
 
