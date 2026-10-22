@@ -77,6 +77,8 @@
   --btn-sq-r: var(--ctl-r);
   /* Icon in a regular button and in the squares */
   --btn-icon: 16px;
+  /* Room around the icon of an inline button (28px box, 14px icon): a column label over such buttons starts this far in, over the icon. */
+  --inline-inset: 7px;
 
   /* Motion */
   --ease: cubic-bezier(.2, .7, .3, 1);

@@ -45,7 +45,7 @@ const sizes = computed(() => pageSizes(store.defaults?.pageSize || 25, shown.val
 // --- Rows --------------------------------------------------------------------------
 
 const columns = computed<InnerColumn[]>(() => [
-  { key: 'menu', label: t('inbounds.colMenu'), size: '148px' },
+  { key: 'menu', label: t('inbounds.colMenu'), size: '148px', icons: true },
   { key: 'enable', label: t('inbounds.colEnable'), size: '58px' },
   { key: 'online', label: t('inbounds.colOnline'), size: '72px' },
   { key: 'client', label: t('inbounds.colClient') },
@@ -329,6 +329,11 @@ async function confirmed(request: Promise<unknown>) {
   display: flex;
   flex: none;
   margin-top: 1px;
+}
+
+/* The dot's hover spot is wider than the dot: the dot itself stands under the column label. */
+.clients__who:not(.clients__who--phone) .clients__dot {
+  margin-left: -4px;
 }
 
 .clients__who--phone .clients__dot {

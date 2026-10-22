@@ -69,7 +69,7 @@ const fitted = computed(() => props.columns.slice(1).filter((c) => c.fit))
     <table>
       <thead v-if="head">
         <tr>
-          <th v-for="c in columns" :key="c.key"><slot :name="`head-${c.key}`">{{ c.label }}</slot></th>
+          <th v-for="c in columns" :key="c.key" :class="{ 'x-ptable__fit': c.fit }"><slot :name="`head-${c.key}`">{{ c.label }}</slot></th>
         </tr>
       </thead>
       <tbody>
@@ -134,6 +134,11 @@ const fitted = computed(() => props.columns.slice(1).filter((c) => c.fit))
 .x-ptable tr.is-active,
 .x-ptable-card.is-active {
   background: var(--tint);
+}
+
+/* A fitted column holds inline buttons: its label stands over the first icon. */
+.x-ptable th.x-ptable__fit {
+  padding-left: calc(var(--sp-8) + var(--inline-inset));
 }
 
 .x-ptable td.x-ptable__fit {

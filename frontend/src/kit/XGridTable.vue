@@ -50,6 +50,8 @@ const hintId = useId()
 
 const lead = computed(() => props.sortable || props.numbered || !!props.menu)
 // The lead holds the handle, the number and the menu; without a handle it is narrower.
+// The number column is as wide as the longest number, so «#» and the digits share one centre.
+const digits = computed(() => String(Math.max(props.rows.length, 1)).length)
 const template = computed(() => [lead.value ? (props.sortable ? '108px' : '76px') : '', ...props.columns.map((c) => `minmax(0, ${c.size ?? '1fr'})`)].filter(Boolean).join(' '))
 const headColumns = computed(() => props.columns.filter((c) => c.phone === 'head'))
 const bodyColumns = computed(() => props.columns.filter((c) => c.phone !== 'head'))
@@ -190,7 +192,10 @@ function rowStyle(k: number) {
     <span :id="hintId" hidden>{{ t('kit.moveHint') }}</span>
 
     <div v-if="!phone" class="x-grid__head x-caps" role="row">
-      <span v-if="lead" :class="['x-grid__lead-head', { 'x-grid__lead-head--grip': sortable }]" role="columnheader">{{ numbered ? '#' : '' }}</span>
+      <span v-if="lead" class="x-grid__lead-head" role="columnheader">
+        <span v-if="sortable" class="x-grid__grip-room" />
+        <span v-if="numbered" class="x-grid__number x-grid__number--head">#</span>
+      </span>
       <span v-for="c in columns" :key="c.key" role="columnheader">{{ c.label }}</span>
     </div>
 
@@ -276,8 +281,16 @@ function rowStyle(k: number) {
   background: var(--field);
 }
 
-.x-grid__lead-head--grip {
-  padding-left: 28px;
+/* The head repeats the lead's layout: room for the handle, then «#» over the numbers. */
+.x-grid__lead-head {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.x-grid__grip-room {
+  flex: none;
+  width: 22px;
 }
 
 .x-grid:not(.x-grid--phone) .x-grid__row {
@@ -370,10 +383,16 @@ function rowStyle(k: number) {
 
 .x-grid__number {
   flex: none;
-  width: 24px;
+  width: calc(v-bind(digits) * 1ch);
+  /* The handle and the dots carry 4px and 7px of room inside their boxes: 8px of space either side of the number. */
+  margin-right: -3px;
   color: var(--dim);
   font: 500 var(--fs-12) / 1 var(--font-mono);
-  text-align: right;
+  text-align: center;
+}
+
+.x-grid__number--head {
+  color: inherit;
 }
 
 /* While a row is lifted the others step aside smoothly; the lifted one follows the pointer at once. */
@@ -447,6 +466,7 @@ function rowStyle(k: number) {
 
 .x-grid--phone .x-grid__number {
   width: auto;
+  margin-right: 0;
 }
 
 /* Without a handle the number opens the card: kept off its edge. */
