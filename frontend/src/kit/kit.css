@@ -324,6 +324,11 @@ html {
   background-color: var(--scrollbar-hover);
 }
 
+/* Over a textarea's bars the arrow, not the text cursor: see scrollbarCursor.ts. */
+.x-on-scrollbar {
+  cursor: default;
+}
+
 /* Chrome draws its own bar, with arrows, once scrollbar-width is set: only browsers without the rules above get it. */
 @supports not selector(::-webkit-scrollbar) {
   * {

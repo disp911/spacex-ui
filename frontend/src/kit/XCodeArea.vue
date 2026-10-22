@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { scrollbarCursor } from './scrollbarCursor'
 
 /**
  * Monospace text with line numbers, e.g. config.json: a plain text field, no
@@ -41,6 +42,8 @@ const skeleton = [14, 30, 46, 38, 24, 52, 44, 30, 20, 48, 36, 26, 42, 18]
         :autofocus="autofocus || undefined"
         :aria-label="label"
         @scroll="sync"
+        @pointermove="scrollbarCursor"
+        @pointerleave="scrollbarCursor"
       />
     </template>
   </div>

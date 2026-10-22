@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { nextTick, onMounted, ref, watch } from 'vue'
+import { scrollbarCursor } from './scrollbarCursor'
 import { useFieldAttrs } from './useFieldAttrs'
 
 defineOptions({ inheritAttrs: false })
@@ -58,6 +59,8 @@ function onKeydown(e: KeyboardEvent) {
       :aria-invalid="invalid || undefined"
       :spellcheck="mono ? false : undefined"
       @keydown="onKeydown"
+      @pointermove="scrollbarCursor"
+      @pointerleave="scrollbarCursor"
     />
   </div>
 </template>
