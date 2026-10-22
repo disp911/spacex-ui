@@ -1,32 +1,39 @@
 <script setup lang="ts">
+import { useId } from 'vue'
 import XIcon from './XIcon.vue'
 import XSpinner from './XSpinner.vue'
 import type { IconName } from './icons'
 
 /**
  * A row of XActionList: a title, a description (the slot) and a square
- * accent button. The whole row is the button.
+ * accent button. Only the button reacts to the pointer and clicks; the
+ * text beside it is plain.
  */
 defineProps<{ title: string; icon: IconName; loading?: boolean; disabled?: boolean }>()
+const emit = defineEmits<{ click: [MouseEvent] }>()
+const textId = useId()
 </script>
 
 <template>
-  <button
-    type="button"
-    class="x-action-row"
-    :disabled="disabled"
-    :aria-disabled="loading || undefined"
-    :aria-busy="loading || undefined"
-  >
-    <span class="x-action-row__body">
+  <div class="x-action-row">
+    <div class="x-action-row__body">
       <span class="x-action-row__title">{{ title }}</span>
-      <span v-if="$slots.default" class="x-action-row__text"><slot /></span>
-    </span>
-    <span class="x-action-row__icon" aria-hidden="true">
+      <span v-if="$slots.default" :id="textId" class="x-action-row__text"><slot /></span>
+    </div>
+    <button
+      type="button"
+      class="x-action-row__icon"
+      :aria-label="title"
+      :aria-describedby="$slots.default ? textId : undefined"
+      :disabled="disabled"
+      :aria-disabled="loading || undefined"
+      :aria-busy="loading || undefined"
+      @click="emit('click', $event)"
+    >
       <XSpinner v-if="loading" :size="14" />
       <XIcon v-else :name="icon" :size="16" :stroke="1.6" class="x-action-row__glyph" />
-    </span>
-  </button>
+    </button>
+  </div>
 </template>
 
 <style scoped>
@@ -34,34 +41,8 @@ defineProps<{ title: string; icon: IconName; loading?: boolean; disabled?: boole
   display: flex;
   align-items: center;
   gap: 14px;
-  width: 100%;
   padding: 14px 16px;
-  border: 0;
-  background: transparent;
   color: var(--fg);
-  text-align: left;
-  cursor: pointer;
-  outline: none;
-  transition: background-color var(--t-fast);
-}
-
-.x-action-row:hover:not(:disabled),
-.x-action-row.is-hover {
-  background: var(--ctrl);
-}
-
-.x-action-row:focus-visible,
-.x-action-row.is-focus {
-  box-shadow: inset 0 0 0 2px var(--acc-line);
-}
-
-.x-action-row[aria-disabled='true'] {
-  pointer-events: none;
-}
-
-.x-action-row:disabled {
-  cursor: not-allowed;
-  opacity: .5;
 }
 
 .x-action-row__body {
@@ -101,16 +82,34 @@ defineProps<{ title: string; icon: IconName; loading?: boolean; disabled?: boole
   justify-content: center;
   width: var(--btn-sq);
   height: var(--btn-sq);
+  padding: 0;
+  border: 0;
   border-radius: var(--btn-sq-r);
   background: var(--acc);
   color: var(--acc-ink);
+  cursor: pointer;
+  outline: none;
   transition: background-color var(--t-fast), box-shadow var(--t-fast);
 }
 
-.x-action-row:hover:not(:disabled) .x-action-row__icon,
+.x-action-row__icon:hover:not(:disabled),
 .x-action-row.is-hover .x-action-row__icon {
   background: var(--acc-hover);
   box-shadow: 0 0 0 4px var(--acc-ring), 0 0 18px var(--acc-glow);
+}
+
+.x-action-row__icon:focus-visible,
+.x-action-row.is-focus .x-action-row__icon {
+  box-shadow: 0 0 0 3px var(--acc-ring);
+}
+
+.x-action-row__icon[aria-disabled='true'] {
+  pointer-events: none;
+}
+
+.x-action-row__icon:disabled {
+  cursor: not-allowed;
+  opacity: .5;
 }
 
 @media (max-width: 767px) {
