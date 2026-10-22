@@ -871,7 +871,7 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
             <XButton v-bind="props" variant="primary" caret>Android</XButton>
           </XMenu>
           <XPopover label="Настройки" placement="bottom-end">
-            <template #default="{ props }"><XButton v-bind="props" icon="sun" label="Настройки" /></template>
+            <template #default="{ props }"><XButton v-bind="props" icon="gear" label="Настройки" /></template>
             <template #content>Поповер у правого края кнопки</template>
           </XPopover>
         </XButtonRow>

@@ -73,7 +73,7 @@ function setIPv4(i: number, on: boolean) {
     <template #title-end>
       <XPopover v-if="links.some(switchable)" :label="t('inbounds.qrOptions')">
         <template #default="{ props: trigger, open: gearOpen }">
-          <XButton v-bind="trigger" icon="sun" :variant="gearOpen ? 'soft' : 'ghost'" :label="t('inbounds.qrOptions')" />
+          <XButton v-bind="trigger" icon="gear" :variant="gearOpen ? 'soft' : 'ghost'" :label="t('inbounds.qrOptions')" />
         </template>
         <template #content>
           <div class="qr-options">
