@@ -75,10 +75,11 @@ const canOpen = (row: T) => props.expandable?.(row) ?? false
     <div v-if="$slots.tools" class="x-expand__tools"><slot name="tools" /></div>
 
     <div class="x-expand__head x-caps" role="row">
+      <span v-if="!phone" aria-hidden="true" />
       <span
-        v-for="(c, i) in columns"
+        v-for="c in columns"
         :key="c.key"
-        :class="{ 'x-expand__lead-head': i === 0 && !phone, 'is-end': c.align === 'end' }"
+        :class="{ 'is-end': c.align === 'end' }"
         role="columnheader"
       >{{ c.label }}</span>
     </div>
@@ -153,11 +154,6 @@ const canOpen = (row: T) => props.expandable?.(row) ?? false
 .x-expand__head:first-child {
   border-top: 0;
   border-radius: calc(var(--r-16) - 1px) calc(var(--r-16) - 1px) 0 0;
-}
-
-/* The first label stands over the chevron too, e.g. «Menu». */
-.x-expand__lead-head {
-  grid-column: 1 / 3;
 }
 
 .x-expand__item {
