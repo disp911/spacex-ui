@@ -287,7 +287,7 @@ const reason = computed(() => (issue.value ? reasons.value[issue.value.kind] : '
   justify-content: center;
   width: 16px;
   height: 16px;
-  border-radius: 4px;
+  border-radius: var(--r-4);
   color: var(--faint);
   cursor: pointer;
   transition: background-color var(--t-fast), color var(--t-fast);

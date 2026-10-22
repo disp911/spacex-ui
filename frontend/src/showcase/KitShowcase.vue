@@ -236,7 +236,7 @@ const swatches = {
   'Акцент': ['acc', 'acc-hover', 'acc-press', 'acc-soft', 'acc-ink'],
   'Статусы': ['ok', 'warn', 'err', 'unl', 'on', 'off', 'mod'],
 }
-const radii = [4, 6, 8, 10, 12, 16, 22]
+const radii = [4, 6, 8, 10, 12, 16]
 const fontSizes = [10, 11, 12, 13, 14, 16, 18, 20, 24]
 const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
 </script>

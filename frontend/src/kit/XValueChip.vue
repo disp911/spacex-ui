@@ -129,7 +129,7 @@ onBeforeUnmount(() => clearTimeout(timer))
   flex: none;
   height: 16px;
   padding: 0 4px;
-  border-radius: 4px;
+  border-radius: var(--r-4);
   background: var(--hov);
   color: var(--mut);
   font: 500 var(--fs-10) / 16px var(--font-mono);

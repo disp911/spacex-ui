@@ -284,7 +284,7 @@ onBeforeUnmount(() => {
     max-height: 100%;
     margin: 0;
     border-bottom: 0;
-    border-radius: var(--r-22) var(--r-22) 0 0;
+    border-radius: var(--r-16) var(--r-16) 0 0;
     box-shadow: var(--shadow-sheet);
   }
 

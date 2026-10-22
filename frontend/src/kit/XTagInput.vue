@@ -375,7 +375,7 @@ function onBlur() {
   width: 15px;
   height: 15px;
   border: 1.5px solid var(--field-hover);
-  border-radius: 4px;
+  border-radius: var(--r-4);
   color: var(--acc-ink);
 }
 
