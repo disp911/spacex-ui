@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { api } from '../../api'
-import { toast, XButton, XChip, XDivider, XField, XInput, XKeyValue, XModal, XSegmented, XSelect, type Option } from '../../kit'
+import { toast, XButton, XChip, XDivider, XField, XInput, XKeyValue, XModal, XSegmented, XSelect, XSpinner, type Option } from '../../kit'
 import { cause } from '../settings/form'
 import { useXrayForm } from './form'
 import type { Outbound } from './model'
@@ -207,13 +207,16 @@ const keys = computed(() =>
 
 <template>
   <XModal v-model:open="open" title="NordVPN NordLynx" :dismissible="busy !== 'login' && busy !== 'logout'">
-    <div v-if="!data" class="nord">
+    <!-- While the account is looked up a spinner stands where the login form would be. -->
+    <div v-if="!data && busy === 'load'" class="nord nord--wait" role="status"><XSpinner :size="16" /></div>
+
+    <div v-else-if="!data" class="nord">
       <div class="nord__way">
         <XSegmented v-model="way" :options="ways" :label="t('xray.loginBy')" block />
       </div>
       <div class="nord__line">
-        <XInput v-model="secret" mono :aria-label="way === 'token' ? t('xray.nordToken') : t('xray.nordKey')" :disabled="busy === 'load'" />
-        <XButton variant="primary" :loading="busy === 'login'" :disabled="!secret.trim() || busy === 'load'" @click="login">
+        <XInput v-model="secret" mono :aria-label="way === 'token' ? t('xray.nordToken') : t('xray.nordKey')" />
+        <XButton variant="primary" :loading="busy === 'login'" :disabled="!secret.trim()" @click="login">
           {{ way === 'token' ? t('xray.nordLogin') : t('xray.save') }}
         </XButton>
       </div>
@@ -229,11 +232,14 @@ const keys = computed(() =>
       <XField v-slot="a" :label="t('xray.nordCountry')">
         <XSelect v-bind="a" v-model="countryId" :options="countryOptions" search />
       </XField>
-      <XField v-slot="a" :label="t('xray.nordCity')">
-        <XSelect v-bind="a" v-model="cityId" :options="cityOptions" :disabled="!cities.length" />
+      <!-- A country's cities and servers load after it is picked: a spinner after their labels meanwhile. -->
+      <XField :label="t('xray.nordCity')">
+        <template #default="a"><XSelect v-bind="a" v-model="cityId" :options="cityOptions" :disabled="!cities.length" /></template>
+        <template v-if="busy === 'servers'" #badge><XSpinner :size="12" class="nord__spin" /></template>
       </XField>
-      <XField v-slot="a" :label="t('xray.nordServer')">
-        <XSelect v-bind="a" v-model="serverId" :options="serverOptions" :disabled="!shownServers.length" />
+      <XField :label="t('xray.nordServer')">
+        <template #default="a"><XSelect v-bind="a" v-model="serverId" :options="serverOptions" :disabled="!shownServers.length" /></template>
+        <template v-if="busy === 'servers'" #badge><XSpinner :size="12" class="nord__spin" /></template>
       </XField>
 
       <XDivider :label="t('xray.outStatus')" />
@@ -251,6 +257,18 @@ const keys = computed(() =>
   display: flex;
   flex-direction: column;
   gap: 14px;
+}
+
+/* As tall as WARP's «Create» row, 16px above and below a control. */
+.nord--wait {
+  align-items: center;
+  justify-content: center;
+  min-height: calc(var(--ctl-h) + 32px);
+  color: var(--acc);
+}
+
+.nord__spin {
+  color: var(--acc);
 }
 
 .nord__way {

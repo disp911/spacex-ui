@@ -3,7 +3,7 @@ import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { api } from '../../api'
 import { formatBytes } from '../../i18n/format'
-import { toast, XButton, XChip, XDivider, XField, XInput, XKeyValue, XModal, XSection } from '../../kit'
+import { toast, XButton, XChip, XDivider, XField, XInput, XKeyValue, XModal, XSection, XSpinner } from '../../kit'
 import { base64Bytes, wireguardKeys } from '../../wireguard'
 import { cause } from '../settings/form'
 import { useXrayForm } from './form'
@@ -172,8 +172,10 @@ const details = computed(() => {
 
 <template>
   <XModal v-model:open="open" title="Cloudflare WARP" :dismissible="busy !== 'reg' && busy !== 'del'">
+    <!-- While the account is looked up a spinner stands where «Create» would be. -->
     <div v-if="!data" class="warp warp--empty">
-      <XButton variant="primary" :loading="busy === 'reg'" :disabled="busy === 'load'" @click="register">{{ t('xray.create') }}</XButton>
+      <span v-if="busy === 'load'" class="warp__wait" role="status"><XSpinner :size="16" /></span>
+      <XButton v-else variant="primary" :loading="busy === 'reg'" @click="register">{{ t('xray.create') }}</XButton>
     </div>
 
     <div v-else class="warp">
@@ -219,6 +221,13 @@ const details = computed(() => {
 .warp--empty {
   align-items: center;
   padding: 16px 0;
+}
+
+.warp__wait {
+  display: flex;
+  align-items: center;
+  height: var(--ctl-h);
+  color: var(--acc);
 }
 
 .warp__line {
