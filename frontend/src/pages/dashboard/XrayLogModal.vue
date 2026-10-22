@@ -188,7 +188,7 @@ async function download() {
 </script>
 
 <template>
-  <XModal v-model:open="open" :title="t('dashboard.xlogTitle')" size="wide" flush full>
+  <XModal v-model:open="open" :title="t('dashboard.xlogTitle')" size="wide" flush full scroll-body>
     <template #subtitle>
       <template v-if="data?.date">
         <span class="xlog-wide">{{ t('dashboard.xlogSubtitle', { n: formatNumber(total), date: day }, total) }}</span>
@@ -241,6 +241,7 @@ async function download() {
         :row-tone="(r: Row) => tones[r.kind]"
         :loading="loading"
         :height="520"
+        fit
       >
         <template #cell-outbound="{ row }">
           <XStatusDot size="sm" :color="dots[(row as Row).kind]" class="xlog-dot" /> {{ (row as Row).outbound }}
@@ -317,7 +318,7 @@ async function download() {
 
 .xlog-area {
   display: flex;
-  flex: 1;
+  flex: 1 1 auto;
   flex-direction: column;
   min-height: 0;
   padding: 12px;
