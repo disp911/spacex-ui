@@ -115,6 +115,7 @@ const sizes = computed(() => pageSizes(store.defaults?.pageSize || 25, shown.val
 // --- Rows --------------------------------------------------------------------------
 
 const columns = computed<ExpandColumn[]>(() => [
+  { key: 'id', label: 'ID', size: '36px' },
   { key: 'menu', label: t('inbounds.colMenu'), size: '28px', muted: 'none' },
   { key: 'enable', label: t('inbounds.colEnable'), size: '52px', muted: 'none' },
   { key: 'remark', label: t('inbounds.colRemark'), size: 'minmax(0, 1.6fr)', muted: 'soft' },
@@ -430,6 +431,9 @@ const clientFilter = computed<Filter>(() => (mode.value === 'filter' ? filter.va
           <InboundsTools v-model:mode="mode" v-model:search="search" v-model:filter="filter" :subscription="subscription" @action="actAll" @create="openInbound(null)" />
         </template>
 
+        <template #cell-id="{ row }">
+          <span class="inbounds__id">{{ row.id }}</span>
+        </template>
         <template #cell-menu="{ row }">
           <XMenu v-slot="{ props: trigger }" :items="menu(row)" placement="bottom-start" @select="act($event, row)">
             <XInlineButton v-bind="trigger" icon="dots" :label="t('inbounds.colMenu')" />
@@ -607,6 +611,7 @@ const clientFilter = computed<Filter>(() => (mode.value === 'filter' ? filter.va
   color: var(--mut);
 }
 
+.inbounds__id,
 .inbounds__port {
   color: var(--fg2);
   font: 400 var(--fs-13) / var(--lh-tight) var(--font-mono);
