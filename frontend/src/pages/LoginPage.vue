@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { api, ApiError } from '../api'
 import { formatMilliseconds } from '../i18n/format'
-import { XButton, XInput, XNotice, XSpinner, XStatusDot } from '../kit'
+import { XButton, XInput, XNotice, XStatusDot } from '../kit'
 import AppLogo from '../layout/AppLogo.vue'
 import LanguageMenu from '../layout/LanguageMenu.vue'
 import LoginBackdrop from '../layout/LoginBackdrop.vue'
@@ -178,13 +178,10 @@ onBeforeUnmount(() => clearInterval(timer))
           type="submit"
           variant="primary"
           block
+          :loading="phase === 'checking'"
           :success="phase === 'success'"
           class="login__submit"
-          :aria-busy="phase === 'checking' || undefined"
         >
-          <template v-if="phase === 'checking'" #icon>
-            <XSpinner :size="16" />
-          </template>
           {{ phase === 'checking' ? t('auth.checking') : phase === 'success' ? t('auth.success') : t('auth.submit') }}
         </XButton>
 

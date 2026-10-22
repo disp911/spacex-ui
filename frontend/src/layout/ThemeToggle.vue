@@ -15,8 +15,8 @@ const store = useTheme()
   >
     <template #icon>
       <span class="theme-icons">
-        <XIcon name="moon" :size="16" :stroke="1.4" :class="['theme-icons__icon', { 'is-hidden': store.theme !== 'dark' }]" />
-        <XIcon name="sun" :size="16" :stroke="1.4" :class="['theme-icons__icon', 'theme-icons__icon--sun', { 'is-hidden': store.theme !== 'light' }]" />
+        <XIcon name="moon" :size="16" :class="['theme-icons__icon', { 'is-hidden': store.theme !== 'dark' }]" />
+        <XIcon name="sun" :size="16" :class="['theme-icons__icon', 'theme-icons__icon--sun', { 'is-hidden': store.theme !== 'light' }]" />
       </span>
     </template>
   </XButton>
