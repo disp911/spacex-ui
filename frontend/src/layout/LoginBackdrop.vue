@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// Decorative background of the login screen: a glow and three drifting waves.
+// Decorative background of the login screen: a glow and three drifting waves, laid in the page under its content.
 const waves = [
   'M0 196 C 240 138 480 254 720 196 C 960 138 1200 254 1440 196 C 1680 138 1920 254 2160 196 C 2400 138 2640 254 2880 196 L2880 340 L0 340 Z',
   'M0 232 C 120 190 360 274 480 232 C 600 190 840 274 960 232 C 1080 190 1320 274 1440 232 C 1560 190 1800 274 1920 232 C 2040 190 2280 274 2400 232 C 2520 190 2760 274 2880 232 L2880 340 L0 340 Z',
@@ -27,8 +27,18 @@ const waves = [
   --wave-1-opacity: .3;
   --wave-2-opacity: .2;
   --wave-3-opacity: .42;
-  position: fixed;
-  inset: 0;
+  /*
+   * Part of the page, not fixed to the screen: iOS Safari draws nothing fixed
+   * under its floating bottom bar, so fixed waves stopped short of the screen's
+   * edge. As tall as the screen with its bars hidden (100lvh), the waves reach
+   * the bottom edge and show through the bar.
+   */
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 100%;
+  height: max(100%, 100lvh);
   overflow: hidden;
   pointer-events: none;
   background: radial-gradient(120% 90% at 50% 118%, var(--glow) 0%, transparent 62%);
