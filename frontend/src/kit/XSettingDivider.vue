@@ -1,10 +1,11 @@
 <script setup lang="ts">
-/** A caps label with a line, splitting the rows of a settings section into groups. */
+/** A caps label centred between two lines, splitting the rows of a settings section into groups. */
 defineProps<{ label: string }>()
 </script>
 
 <template>
   <div class="x-setting-divider" role="separator" :aria-label="label">
+    <span class="x-setting-divider__line" />
     <span class="x-caps x-caps--lg">{{ label }}</span>
     <span class="x-setting-divider__line" />
   </div>
