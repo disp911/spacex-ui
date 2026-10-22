@@ -245,6 +245,8 @@ const canOpen = (row: T) => props.expandable?.(row) ?? false
 
 .x-expand__inner {
   margin: 2px 14px 12px;
+  /* A hovered last row keeps to the rounded corners; popups are teleported, so nothing else is cut. */
+  overflow: clip;
   border: 1px solid var(--div);
   border-radius: var(--r-12);
   background: var(--nest);
