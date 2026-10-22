@@ -1,6 +1,4 @@
 <script setup lang="ts" generic="T">
-import { computed } from 'vue'
-
 export interface TableColumn {
   key: string
   label: string
@@ -18,8 +16,7 @@ export type RowTone = 'err' | 'upload'
  * A monospace log table: a caps header and rows of one line that scroll inside
  * a box of fixed height. Rows can be tinted by tone. A cell shows row[key], or
  * the `cell-<key>` slot. While loading the rows are grey bars; with no rows the
- * empty slot fills the box. fit lets the box shrink below its height to the
- * room its column has, e.g. a window held to the screen.
+ * empty slot fills the box.
  */
 const props = defineProps<{
   columns: TableColumn[]
@@ -29,27 +26,21 @@ const props = defineProps<{
   loading?: boolean
   /** Height of the scrolling body, px. */
   height?: number
-  fit?: boolean
 }>()
 
 const cellStyle = (c: TableColumn) => (c.width ? { width: `${c.width}px`, flex: 'none' } : { flex: '1', minWidth: '0' })
 const value = (row: T, key: string) => (row as Record<string, unknown>)[key] as string
-const bodyStyle = computed(() => {
-  if (!props.height) return undefined
-  const h = `${props.height}px`
-  return props.fit ? { flexBasis: h, maxHeight: h } : { height: h }
-})
 
 // Bar widths vary like real values.
 const skeleton = [72, 58, 80, 64, 50, 76, 60, 68, 54, 74, 62, 70, 56, 66]
 </script>
 
 <template>
-  <div :class="['x-table', { 'x-table--fit': fit }]" role="table">
+  <div class="x-table" role="table">
     <div class="x-table__head x-caps" role="row">
       <span v-for="c in columns" :key="c.key" class="x-table__cell" role="columnheader" :style="cellStyle(c)">{{ c.label }}</span>
     </div>
-    <div class="x-table__body" :style="bodyStyle" tabindex="0" :aria-busy="loading || undefined">
+    <div class="x-table__body" :style="{ height: height ? `${height}px` : undefined }" tabindex="0" :aria-busy="loading || undefined">
       <div v-if="loading" class="x-skeleton" aria-hidden="true">
         <div v-for="(w, i) in skeleton" :key="i" class="x-table__row">
           <span v-for="c in columns" :key="c.key" class="x-table__cell" :style="cellStyle(c)">
@@ -108,17 +99,6 @@ const skeleton = [72, 58, 80, 64, 50, 76, 60, 68, 54, 74, 62, 70, 56, 66]
   scrollbar-gutter: stable;
   border-bottom: 1px solid var(--line);
   background: var(--field);
-}
-
-/* Shrinks with its column, down to about four rows. */
-.x-table--fit {
-  flex: 0 1 auto;
-  min-height: 0;
-}
-
-.x-table--fit .x-table__body {
-  flex: 1 1 auto;
-  min-height: 136px;
 }
 
 .x-table__body {
