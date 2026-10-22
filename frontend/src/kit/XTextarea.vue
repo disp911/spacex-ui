@@ -16,6 +16,8 @@ const props = withDefaults(
     modified?: boolean
     /** A long one-line value: starts as a field of control height, grows with the text up to this many lines, Enter adds nothing. */
     grow?: number
+    /** The value is on its way: grey bars over the empty field, which keeps its size. */
+    loading?: boolean
   }>(),
   { rows: 3 },
 )
@@ -46,7 +48,11 @@ function onKeydown(e: KeyboardEvent) {
   <div
     v-bind="wrapper"
     :class="['x-field-box', 'x-textarea', { 'x-textarea--grow': grow, 'x-field-box--mono': mono, 'is-disabled': disabled, 'is-invalid': invalid, 'is-modified': modified }]"
+    :aria-busy="loading || undefined"
   >
+    <div v-if="loading" class="x-textarea__skeleton x-skeleton" aria-hidden="true">
+      <span v-for="w in [62, 44, 54].slice(0, grow ? 1 : rows)" :key="w" class="x-textarea__line"><span class="x-skeleton__bar" :style="{ width: `${w}%` }" /></span>
+    </div>
     <textarea
       ref="field"
       v-model="model"
@@ -67,6 +73,7 @@ function onKeydown(e: KeyboardEvent) {
 
 <style scoped>
 .x-textarea {
+  position: relative;
   height: auto;
   min-height: 76px;
   padding: 8px 10px 8px var(--input-px);
@@ -99,6 +106,20 @@ function onKeydown(e: KeyboardEvent) {
   overflow-y: auto;
   resize: none;
   word-break: break-all;
+}
+
+/* One bar per text line, over the field while its value loads. */
+.x-textarea__skeleton {
+  position: absolute;
+  inset: 8px 10px auto var(--input-px);
+  line-height: var(--lh-text);
+  pointer-events: none;
+}
+
+.x-textarea__line {
+  display: flex;
+  align-items: center;
+  height: 1lh;
 }
 
 .x-textarea__control::placeholder {

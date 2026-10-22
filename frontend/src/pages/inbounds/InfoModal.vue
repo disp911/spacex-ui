@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { api, saveFile } from '../../api'
-import { toast, XButton, XChip, XCopyBlock, XCopyChip, XDivider, XFactRow, XFactTile, XModal, type Tone } from '../../kit'
+import { toast, XButton, XChip, XCopyBlock, XCopyChip, XDivider, XFactRow, XFactTile, XModal, XSkeletonText, type Tone } from '../../kit'
 import { formatBytes, formatDate } from '../../i18n/format'
 import { useInbounds } from '../../stores/inbounds'
 import { cause } from '../settings/form'
@@ -88,22 +88,30 @@ const mtproto = computed(() => protocol.value === 'mtproto')
 const ipLimit = computed(() => !!store.defaults?.ipLimitEnable || mtproto.value)
 const ipLog = computed(() => !!c.value?.email && (mtproto.value || (!!store.defaults?.ipLimitEnable && (c.value.limitIp ?? 0) > 0)))
 const ips = ref<string[]>([])
+const ipsLoading = ref(false)
+const clearingIps = ref(false)
 
 async function loadIps() {
+  ipsLoading.value = true
   try {
     const list = await api.post<string[] | string>(`panel/api/inbounds/clientIps/${encodeURIComponent(c.value!.email)}`)
     ips.value = Array.isArray(list) ? list.map(String) : []
   } catch (e) {
     toast('err', cause(e))
+  } finally {
+    ipsLoading.value = false
   }
 }
 
 async function clearIps() {
+  clearingIps.value = true
   try {
     await api.post(`panel/api/inbounds/clearClientIps/${encodeURIComponent(c.value!.email)}`)
     ips.value = []
   } catch (e) {
     toast('err', cause(e))
+  } finally {
+    clearingIps.value = false
   }
 }
 
@@ -225,9 +233,12 @@ const accounts = computed<Json[]>(() => (Array.isArray(s.value.accounts) && (pro
         <XFactRow v-if="c.comment" :label="t('inbounds.commentLabel')"><XChip truncate :title="c.comment">{{ c.comment }}</XChip></XFactRow>
         <XFactRow v-if="ipLimit" :label="t('inbounds.ipLimit')"><XChip mono>{{ c.limitIp ?? 0 }}</XChip></XFactRow>
         <XFactRow v-if="ipLog" :label="t('inbounds.ipLog')">
-          <XChip v-for="ip in ips" :key="ip" mono>{{ ip }}</XChip>
-          <XChip v-if="!ips.length" tone="warn">{{ t('inbounds.none') }}</XChip>
-          <XButton v-if="!mtproto && ips.length" size="sm" variant="danger" @click="clearIps">{{ t('inbounds.ipLogClear') }}</XButton>
+          <XSkeletonText v-if="ipsLoading" :width="104" style="height: var(--chip-h)" />
+          <template v-else>
+            <XChip v-for="ip in ips" :key="ip" mono>{{ ip }}</XChip>
+            <XChip v-if="!ips.length" tone="warn">{{ t('inbounds.none') }}</XChip>
+            <XButton v-if="!mtproto && ips.length" size="sm" variant="danger" :loading="clearingIps" @click="clearIps">{{ t('inbounds.ipLogClear') }}</XButton>
+          </template>
         </XFactRow>
 
         <div class="info__tiles">

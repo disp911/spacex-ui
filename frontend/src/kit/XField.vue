@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, useId } from 'vue'
 import XIcon from './XIcon.vue'
+import XSpinner from './XSpinner.vue'
 import XTooltip from './XTooltip.vue'
 import type { IconName } from './icons'
 
@@ -22,6 +23,8 @@ const props = withDefaults(
     /** A small button after the label that does something to the value, e.g. «Reset» to a new random one; emits action. */
     action?: string
     actionIcon?: IconName
+    /** The action is running: a spinner in place of its icon, clicks wait. */
+    actionLoading?: boolean
   }>(),
   { layout: 'stack', actionIcon: 'refresh' },
 )
@@ -42,8 +45,9 @@ const describedBy = computed(() => (props.error || props.hint ? `${id}-note` : u
         <span class="x-field__help" tabindex="0" :aria-label="help">?</span>
       </XTooltip>
       <XTooltip v-if="action" :text="action" :delay="0">
-        <button type="button" class="x-field__action" :aria-label="action" @click="emit('action')">
-          <XIcon :name="actionIcon" :size="12" :stroke="1.6" />
+        <button type="button" class="x-field__action" :aria-label="action" :aria-busy="actionLoading || undefined" @click="actionLoading || emit('action')">
+          <XSpinner v-if="actionLoading" :size="12" />
+          <XIcon v-else :name="actionIcon" :size="12" :stroke="1.6" />
         </button>
       </XTooltip>
       <!-- A state of the value after the label, e.g. an «Expired» chip. -->
@@ -145,6 +149,10 @@ const describedBy = computed(() => (props.error || props.hint ? `${id}-note` : u
   cursor: pointer;
   outline: none;
   transition: background-color var(--t-fast);
+}
+
+.x-field__action[aria-busy='true'] {
+  cursor: progress;
 }
 
 .x-field__action:hover {

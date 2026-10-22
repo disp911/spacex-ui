@@ -71,23 +71,31 @@ async function resetTraffic() {
 const mtproto = computed(() => props.inbound?.protocol === 'mtproto')
 const ipLog = computed(() => editing.value && !!props.client?.email && (mtproto.value || (!!store.defaults?.ipLimitEnable && (props.client?.limitIp ?? 0) > 0)))
 const ips = ref('')
+const ipsLoading = ref(false)
+const clearingIps = ref(false)
 const ipLines = computed(() => Math.min(10, Math.max(3, ips.value.split('\n').length)))
 
 async function loadIps() {
+  ipsLoading.value = true
   try {
     const list = await api.post<string[] | string>(`panel/api/inbounds/clientIps/${encodeURIComponent(props.client!.email)}`)
     ips.value = Array.isArray(list) ? list.join('\n') : String(list ?? '')
   } catch (e) {
     ips.value = cause(e)
+  } finally {
+    ipsLoading.value = false
   }
 }
 
 async function clearIps() {
+  clearingIps.value = true
   try {
     await api.post(`panel/api/inbounds/clearClientIps/${encodeURIComponent(props.client!.email)}`)
     ips.value = ''
   } catch (e) {
     toast('err', cause(e))
+  } finally {
+    clearingIps.value = false
   }
 }
 
@@ -123,9 +131,10 @@ async function save() {
             :help="mtproto ? t('inbounds.ipLogMtprotoDesc') : t('inbounds.ipLogDesc')"
             :action="mtproto ? undefined : t('inbounds.ipLogClear')"
             action-icon="delete"
+            :action-loading="clearingIps"
             @action="clearIps"
           >
-            <XTextarea v-bind="a" :model-value="ips" :rows="ipLines" mono readonly />
+            <XTextarea v-bind="a" :model-value="ips" :rows="ipLines" :loading="ipsLoading" mono readonly />
           </XField>
         </template>
         <template v-if="editing && stat" #usage>
