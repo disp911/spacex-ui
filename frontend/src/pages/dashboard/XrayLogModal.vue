@@ -214,7 +214,7 @@ async function download() {
 
       <XMenu :items="kindItems" :title="t('dashboard.xlogTypes')" placement="bottom-start" sheet multiple @select="shown[$event as Kind] = !shown[$event as Kind]">
         <template #default="{ props }">
-          <XButton v-bind="props" :label="`${t('dashboard.xlogTypes')}: ${kindsLabel}`" caret class="xlog-filter xlog-narrow">{{ kindsLabel }}</XButton>
+          <XButton v-bind="props" :label="`${t('dashboard.xlogTypes')}: ${kindsLabel}`" caret class="xlog-filter xlog-types">{{ kindsLabel }}</XButton>
         </template>
         <template #footer="{ close }">
           <XButton variant="primary" :loading="loading" block @click="close">
@@ -225,7 +225,7 @@ async function download() {
 
       <XInput v-model="query" icon="search" clearable mono :placeholder="t('dashboard.xlogSearch')" class="xlog-search" />
 
-      <XCheckbox v-for="k in kinds" :key="k.key" v-model="shown[k.key]" boxed :tone="k.tone" class="xlog-wide">{{ k.label }}</XCheckbox>
+      <XCheckbox v-for="k in kinds" :key="k.key" v-model="shown[k.key]" boxed :tone="k.tone" class="xlog-check">{{ k.label }}</XCheckbox>
 
       <XButton icon="download" :label="t('dashboard.logDownload')" :loading="downloading" phone-icon-only class="xlog-download" @click="download">
         {{ t('dashboard.logDownload') }}
@@ -288,8 +288,14 @@ async function download() {
 </template>
 
 <style scoped>
-/* What does not fit in a narrow window moves to a second line; nothing shrinks. */
+/*
+ * One line of tools. The bar measures itself: when the line no longer fits
+ * (1020px of content, in Russian, the longer language), the type boxes fold
+ * into the Types menu and the filters drop their labels, as on phones, so the
+ * window keeps its height. Phones arrange the tools on two lines below.
+ */
 .xlog-bar {
+  container: xlog-bar / inline-size;
   display: flex;
   flex: none;
   flex-wrap: wrap;
@@ -304,9 +310,37 @@ async function download() {
   margin-right: 2px;
 }
 
+/* A long client email keeps to its button: the line's width does not depend on it. */
+.xlog-filter {
+  max-width: 240px;
+}
+
+.xlog-types {
+  display: none;
+}
+
 .xlog-search {
   flex: 1;
   min-width: 160px;
+}
+
+@container xlog-bar (max-width: 1020px) {
+  .xlog-check,
+  .xlog-filter__label {
+    display: none;
+  }
+
+  .xlog-types {
+    display: inline-flex;
+  }
+
+  .xlog-filter {
+    max-width: 160px;
+  }
+
+  .xlog-search {
+    min-width: 100px;
+  }
 }
 
 /* Sits in the cell's text line. */
@@ -376,10 +410,7 @@ async function download() {
   .xlog-filter {
     flex: 1;
     min-width: 0;
-  }
-
-  .xlog-filter__label {
-    display: none;
+    max-width: none;
   }
 
   .xlog-area {
