@@ -234,7 +234,6 @@
 "xlogAllTypes" = "Все типы"
 "xlogNoTypes" = "Нет типов"
 "xlogSomeTypes" = "{n} из 3"
-"xlogShow" = "Показать {n} запись | Показать {n} записи | Показать {n} записей"
 "xlogTime" = "Дата"
 "xlogFrom" = "Откуда"
 "xlogTo" = "Куда"
@@ -905,6 +904,7 @@
 "darkTheme" = "Тёмная тема"
 
 [kit]
+"apply" = "Применить"
 "pickDate" = "Выбрать дату"
 "addValue" = "Добавить «{value}»"
 "clear" = "Очистить"

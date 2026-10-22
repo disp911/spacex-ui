@@ -234,7 +234,6 @@
 "xlogAllTypes" = "All types"
 "xlogNoTypes" = "No types"
 "xlogSomeTypes" = "{n} of 3"
-"xlogShow" = "Show {n} entry | Show {n} entries"
 "xlogTime" = "Date"
 "xlogFrom" = "From"
 "xlogTo" = "To"
@@ -905,6 +904,7 @@
 "darkTheme" = "Dark theme"
 
 [kit]
+"apply" = "Apply"
 "pickDate" = "Pick a date"
 "addValue" = "Add “{value}”"
 "clear" = "Clear"

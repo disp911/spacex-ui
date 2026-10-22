@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { nextTick, ref, useId } from 'vue'
+import { useI18n } from 'vue-i18n'
+import XButton from './XButton.vue'
 import XIcon from './XIcon.vue'
 import XSpinner from './XSpinner.vue'
 import { useFloating, type Placement } from './floating'
@@ -45,6 +47,7 @@ const props = withDefaults(
 )
 const emit = defineEmits<{ select: [key: string] }>()
 
+const { t } = useI18n()
 const id = useId()
 const anchor = ref<HTMLElement | null>(null)
 const menu = ref<HTMLElement | null>(null)
@@ -154,7 +157,8 @@ function choose(item: MenuItem) {
             <XIcon v-if="item.checked !== undefined && !item.switch" name="check" :size="12" :stroke="1.8" :class="['x-menu__check', { 'is-on': item.checked }]" />
           </button>
         </template>
-        <div v-if="$slots.footer" class="x-menu__foot"><slot name="footer" :close="() => close(true)" /></div>
+        <!-- Each choice applies at once; the button closes the list. -->
+        <div v-if="multiple" class="x-menu__foot"><XButton variant="primary" block @click="close(true)">{{ t('kit.apply') }}</XButton></div>
       </div>
     </Transition>
   </Teleport>

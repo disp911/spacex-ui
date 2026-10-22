@@ -145,7 +145,6 @@ export interface MessageSchema {
     "xlogAllTypes": string
     "xlogNoTypes": string
     "xlogSomeTypes": string
-    "xlogShow": string
     "xlogTime": string
     "xlogFrom": string
     "xlogTo": string
@@ -832,6 +831,7 @@ export interface MessageSchema {
     "milliseconds": string
   }
   "kit": {
+    "apply": string
     "pickDate": string
     "addValue": string
     "clear": string
