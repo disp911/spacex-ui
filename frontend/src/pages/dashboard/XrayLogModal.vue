@@ -240,7 +240,7 @@ async function download() {
         :row-key="(r: Row) => r.id"
         :row-tone="(r: Row) => tones[r.kind]"
         :loading="loading"
-        :height="340"
+        :height="396"
       >
         <template #cell-outbound="{ row }">
           <XStatusDot size="sm" :color="dots[(row as Row).kind]" class="xlog-dot" /> {{ (row as Row).outbound }}
