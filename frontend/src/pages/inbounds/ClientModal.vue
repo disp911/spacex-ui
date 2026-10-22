@@ -141,7 +141,7 @@ async function save() {
           <XField :label="t('inbounds.usage')">
             <div class="client-window__usage">
               <XChip :tone="usageTone" mono>{{ usage }}</XChip>
-              <XPopConfirm v-slot="{ props: trigger }" :text="t('inbounds.resetConfirm')" :cta="t('inbounds.reset')" @confirm="resetTraffic">
+              <XPopConfirm v-slot="{ props: trigger }" :text="t('inbounds.resetConfirm')" :cta="t('inbounds.reset')" :run="resetTraffic">
                 <XButton v-bind="trigger" icon="reset" :label="t('inbounds.resetTraffic')" />
               </XPopConfirm>
             </div>

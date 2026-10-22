@@ -156,10 +156,10 @@ async function confirmed(request: Promise<unknown>) {
         <XInlineButton v-if="hasLink(inbound.protocol)" icon="qr" :label="t('inbounds.qr')" tip @click="emit('action', 'qr', row)" />
         <XInlineButton icon="edit" :label="t('inbounds.editClient')" tip @click="emit('action', 'edit', row)" />
         <XInlineButton icon="info" :label="t('inbounds.info')" tip @click="emit('action', 'info', row)" />
-        <XPopConfirm v-slot="{ props: trigger }" :text="t('inbounds.resetConfirm')" :cta="t('inbounds.reset')" @confirm="confirmed(resetRequest(row))">
+        <XPopConfirm v-slot="{ props: trigger }" :text="t('inbounds.resetConfirm')" :cta="t('inbounds.reset')" :run="() => confirmed(resetRequest(row))">
           <XInlineButton v-bind="trigger" icon="reset" :label="t('inbounds.resetTraffic')" tip />
         </XPopConfirm>
-        <XPopConfirm v-if="total > 1" v-slot="{ props: trigger }" :text="t('inbounds.deleteConfirm')" :cta="t('inbounds.delete')" @confirm="confirmed(removeRequest(row))">
+        <XPopConfirm v-if="total > 1" v-slot="{ props: trigger }" :text="t('inbounds.deleteConfirm')" :cta="t('inbounds.delete')" :run="() => confirmed(removeRequest(row))">
           <XInlineButton v-bind="trigger" icon="delete" :label="t('inbounds.delete')" danger tip />
         </XPopConfirm>
       </div>

@@ -140,7 +140,7 @@ function select(key: string, o: Outbound, i: number) {
       <XButton @click="nordOpen = true">NordVPN</XButton>
       <XButtonGroup :label="t('xray.outTrafficTools')" class="outbounds__end">
         <XButton icon="refresh" :label="t('xray.outRefresh')" :loading="refreshing" @click="loadTraffic" />
-        <XPopConfirm v-slot="{ props }" :text="t('xray.outResetAllText')" :cta="t('xray.outReset')" @confirm="resetTraffic('-alltags-')">
+        <XPopConfirm v-slot="{ props }" :text="t('xray.outResetAllText')" :cta="t('xray.outReset')" :run="() => resetTraffic('-alltags-')">
           <XButton v-bind="props" icon="reset" :label="t('xray.outResetTraffic')" />
         </XPopConfirm>
       </XButtonGroup>
