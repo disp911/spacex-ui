@@ -98,6 +98,12 @@ const linkAttrs = computed(() => (props.to ? { to: props.to } : props.href ? { h
   transition: background-color var(--t-fast), border-color var(--t-fast), color var(--t-fast), box-shadow var(--t-fast), transform var(--t-fast);
 }
 
+/* Every button gives a little under the finger; each variant below darkens as well. */
+.x-btn:active:not(:disabled):not([aria-disabled='true']),
+.x-btn.is-active {
+  transform: scale(var(--press-scale));
+}
+
 .x-btn[aria-disabled='true'] {
   pointer-events: none;
   opacity: .5;
@@ -317,10 +323,6 @@ const linkAttrs = computed(() => (props.to ? { to: props.to } : props.href ? { h
 .x-btn--soft.is-hover {
   border-color: var(--acc);
 }
-.x-btn--soft:active:not(:disabled),
-.x-btn--soft.is-active {
-  transform: scale(.98);
-}
 
 /* danger */
 .x-btn--danger {
@@ -359,10 +361,6 @@ const linkAttrs = computed(() => (props.to ? { to: props.to } : props.href ? { h
 .x-btn--dashed.is-focus {
   border-color: var(--acc-line);
   box-shadow: 0 0 0 3px var(--acc-ring);
-}
-.x-btn--dashed:active:not(:disabled),
-.x-btn--dashed.is-active {
-  transform: scale(.98);
 }
 
 /* ghost: row actions, "more" buttons */

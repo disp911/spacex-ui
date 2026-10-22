@@ -148,7 +148,11 @@ const describedBy = computed(() => (props.error || props.hint ? `${id}-note` : u
   color: var(--acc);
   cursor: pointer;
   outline: none;
-  transition: background-color var(--t-fast);
+  transition: background-color var(--t-fast), transform var(--t-fast);
+}
+
+.x-field__action:active {
+  transform: scale(var(--press-scale-icon));
 }
 
 .x-field__action[aria-busy='true'] {

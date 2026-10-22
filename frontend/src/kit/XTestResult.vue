@@ -36,6 +36,11 @@ const { t } = useI18n()
   min-width: 0;
   font: 500 var(--fs-12) / var(--lh-tight) var(--font-mono);
   white-space: nowrap;
+  transition: transform var(--t-fast);
+}
+
+button.x-test-result:active {
+  transform: scale(var(--press-scale-chip));
 }
 
 .x-test-result--testing,

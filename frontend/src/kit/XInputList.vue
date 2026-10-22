@@ -66,7 +66,11 @@ const set = (i: number, v: string) => (values.value = values.value.map((x, j) =>
   background: transparent;
   color: var(--mut);
   outline: none;
-  transition: border-color var(--t-fast), color var(--t-fast);
+  transition: border-color var(--t-fast), color var(--t-fast), transform var(--t-fast);
+}
+
+.x-inputs__drop:active:not(:disabled) {
+  transform: scale(var(--press-scale-icon));
 }
 
 .x-inputs__drop:hover:not(:disabled) {

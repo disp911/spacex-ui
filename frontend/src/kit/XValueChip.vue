@@ -91,7 +91,11 @@ onBeforeUnmount(() => clearTimeout(timer))
   font: 400 var(--fs-12) / 1 var(--font-sans);
   cursor: default;
   outline: none;
-  transition: border-color var(--t-fast), box-shadow var(--t-fast);
+  transition: border-color var(--t-fast), box-shadow var(--t-fast), transform var(--t-fast);
+}
+
+.x-value-chip:active {
+  transform: scale(var(--press-scale-chip));
 }
 
 .x-value-chip:hover {

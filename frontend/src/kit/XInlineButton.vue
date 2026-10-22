@@ -69,7 +69,12 @@ withDefaults(
   background: transparent;
   color: var(--dim);
   outline: none;
-  transition: background-color var(--t-fast), color var(--t-fast);
+  transition: background-color var(--t-fast), color var(--t-fast), transform var(--t-fast);
+}
+
+.x-inline-btn:active:not(:disabled),
+.x-inline-btn.is-active {
+  transform: scale(var(--press-scale-icon));
 }
 
 .x-inline-btn:hover:not(:disabled),

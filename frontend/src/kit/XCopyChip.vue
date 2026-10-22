@@ -61,7 +61,7 @@ onBeforeUnmount(() => clearTimeout(timer))
 }
 
 .x-copy-chip:active {
-  transform: scale(.94);
+  transform: scale(var(--press-scale-chip));
 }
 
 @media (max-width: 767px) {

@@ -94,7 +94,7 @@ const panelStyle = computed(() => (phone.value && anchor.value ? { ...style.valu
 
 .x-count:active,
 .x-count.is-active {
-  transform: scale(.96);
+  transform: scale(var(--press-scale-chip));
 }
 
 .x-count__dot {

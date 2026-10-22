@@ -53,7 +53,11 @@ function toggle(v: T) {
   white-space: nowrap;
   cursor: pointer;
   outline: none;
-  transition: border-color var(--t-fast), background-color var(--t-fast), color var(--t-fast);
+  transition: border-color var(--t-fast), background-color var(--t-fast), color var(--t-fast), transform var(--t-fast);
+}
+
+.x-order__item:active {
+  transform: scale(var(--press-scale-chip));
 }
 
 .x-order__item--mono {

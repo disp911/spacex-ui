@@ -56,7 +56,12 @@ const model = defineModel<boolean>({ default: false })
   border-radius: var(--check-r);
   background: var(--field);
   color: var(--acc-ink);
-  transition: background-color var(--t-fast), border-color var(--t-fast), box-shadow var(--t-fast);
+  transition: background-color var(--t-fast), border-color var(--t-fast), box-shadow var(--t-fast), transform var(--t-fast);
+}
+
+/* The box gives under the finger, as a switch's knob does. */
+.x-check:not(.is-disabled):active .x-check__box {
+  transform: scale(var(--press-scale-icon));
 }
 
 .x-check:hover .x-check__box,

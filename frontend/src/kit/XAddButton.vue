@@ -25,7 +25,11 @@ defineProps<{ label: string }>()
   background: transparent;
   color: var(--acc);
   outline: none;
-  transition: background-color var(--t-fast);
+  transition: background-color var(--t-fast), transform var(--t-fast);
+}
+
+.x-add:active {
+  transform: scale(var(--press-scale));
 }
 
 .x-add:hover {

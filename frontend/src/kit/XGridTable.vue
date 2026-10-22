@@ -343,7 +343,13 @@ function rowStyle(k: number) {
   border: 0;
   background: transparent;
   outline: none;
-  transition: background-color var(--t-fast), color var(--t-fast);
+  transition: background-color var(--t-fast), color var(--t-fast), transform var(--t-fast);
+}
+
+/* A held handle drags its row, so it keeps its size then. */
+.x-grid__grip:active:not([aria-pressed='true']),
+.x-grid__more:active {
+  transform: scale(var(--press-scale-icon));
 }
 
 .x-grid__grip {

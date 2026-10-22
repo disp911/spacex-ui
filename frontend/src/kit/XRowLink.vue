@@ -42,6 +42,10 @@ defineProps<{ icon: IconName; label: string }>()
   color: var(--fg);
 }
 
+.x-row-link:active {
+  background: var(--press);
+}
+
 .x-row-link:focus-visible,
 .x-row-link.is-focus {
   box-shadow: inset 0 0 0 2px var(--acc-line);

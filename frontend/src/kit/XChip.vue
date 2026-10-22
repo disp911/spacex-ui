@@ -94,7 +94,7 @@ const props = withDefaults(
 
 .x-chip--interactive:active,
 .x-chip--interactive.is-active {
-  transform: scale(.96);
+  transform: scale(var(--press-scale-chip));
 }
 
 .x-chip--neutral {

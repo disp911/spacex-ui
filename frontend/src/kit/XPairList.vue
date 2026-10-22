@@ -103,7 +103,11 @@ function set(i: number, k: 0 | 1, v: string) {
   background: transparent;
   color: var(--mut);
   outline: none;
-  transition: border-color var(--t-fast), color var(--t-fast);
+  transition: border-color var(--t-fast), color var(--t-fast), transform var(--t-fast);
+}
+
+.x-pairs__drop:active {
+  transform: scale(var(--press-scale-icon));
 }
 
 .x-pairs__drop:hover {

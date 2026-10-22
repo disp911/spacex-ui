@@ -48,6 +48,10 @@ defineProps<{ icon: IconName; label: string; to?: RouteLocationRaw; danger?: boo
   color: var(--fg);
 }
 
+.x-nav-item:active {
+  background: var(--press);
+}
+
 .x-nav-item:focus-visible,
 .x-nav-item.is-focus {
   box-shadow: inset 0 0 0 2px var(--acc-line);

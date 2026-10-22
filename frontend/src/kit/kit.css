@@ -95,6 +95,7 @@
   cursor: pointer;
   user-select: none;
   outline: none;
+  transition: background-color var(--t-fast);
 }
 
 .x-popup-item:hover,
@@ -102,6 +103,10 @@
 .x-popup-item.is-active {
   background-color: var(--hov);
   color: var(--fg);
+}
+
+.x-popup-item:active:not([aria-disabled='true']) {
+  background-color: var(--press);
 }
 
 /*
@@ -216,6 +221,11 @@
   background: transparent;
   color: var(--dim);
   outline: none;
+  transition: transform var(--t-fast);
+}
+
+.x-tag-chip__remove:active {
+  transform: scale(var(--press-scale-icon));
 }
 
 .x-tag-chip__remove:hover,

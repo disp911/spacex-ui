@@ -206,7 +206,7 @@ const canOpen = (row: T) => props.expandable?.(row) ?? false
 
 .x-expand__toggle:active,
 .x-expand__toggle.is-active {
-  transform: scale(.92);
+  transform: scale(var(--press-scale-icon));
 }
 
 .x-expand__chevron {

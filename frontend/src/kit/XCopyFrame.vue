@@ -59,7 +59,11 @@ async function copy() {
   word-break: break-all;
   cursor: pointer;
   outline: none;
-  transition: border-color var(--t-fast);
+  transition: border-color var(--t-fast), background-color var(--t-fast);
+}
+
+.x-copy-frame__text:active {
+  background-color: var(--press);
 }
 
 .x-copy-frame__text:hover {

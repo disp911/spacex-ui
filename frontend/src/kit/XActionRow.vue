@@ -89,7 +89,11 @@ const textId = useId()
   color: var(--acc-ink);
   cursor: pointer;
   outline: none;
-  transition: background-color var(--t-fast), box-shadow var(--t-fast);
+  transition: background-color var(--t-fast), box-shadow var(--t-fast), transform var(--t-fast);
+}
+
+.x-action-row__icon:active:not(:disabled) {
+  transform: scale(var(--press-scale-icon));
 }
 
 .x-action-row__icon:hover:not(:disabled),

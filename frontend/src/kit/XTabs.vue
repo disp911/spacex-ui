@@ -105,7 +105,12 @@ function onKeydown(e: KeyboardEvent, items: TabItem<K>[]) {
   white-space: nowrap;
   cursor: pointer;
   outline: none;
-  transition: color var(--t-fast);
+  transition: color var(--t-fast), opacity var(--t-fast);
+}
+
+/* A tab has no box to darken: it dims under the finger, as a segment does. */
+.x-tabs__tab:active:not(:disabled) {
+  opacity: .75;
 }
 
 .x-tabs__tab:hover:not(:disabled),
