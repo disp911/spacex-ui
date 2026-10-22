@@ -13,8 +13,6 @@ export interface MenuItem {
   disabled?: boolean
   /** Thin line above the item. */
   divided?: boolean
-  /** Short text at the right edge, e.g. a language code. */
-  hint?: string
   /** Makes the item a choice: a check marks the chosen one. */
   checked?: boolean
   /** Makes the item a switch, on by checked, e.g. «Enable» in a phone row's menu; choosing it keeps the menu open. */
@@ -38,8 +36,6 @@ const props = withDefaults(
     title?: string
     /** On phones opens as a bottom sheet over a scrim: filters in windows. */
     sheet?: boolean
-    /** Blurs the page behind the open menu: the language menu. */
-    scrim?: boolean
     /** Several items can be checked: choosing one toggles it and the menu stays open. */
     multiple?: boolean
     /** At least as wide as its button, e.g. the app buttons of the subscription page. */
@@ -124,7 +120,7 @@ function choose(item: MenuItem) {
   />
   <Teleport to="body">
     <Transition name="x-menu-scrim">
-      <div v-if="open && (asSheet || scrim)" :class="['x-menu-scrim', { 'x-menu-scrim--soft': !asSheet }]" aria-hidden="true" />
+      <div v-if="open && asSheet" class="x-menu-scrim" aria-hidden="true" />
     </Transition>
     <Transition :name="asSheet ? 'x-menu-sheet' : 'x-popup'">
       <div
@@ -155,7 +151,6 @@ function choose(item: MenuItem) {
             <XIcon v-else-if="item.icon" :name="item.icon" :size="14" :stroke="1.4" />
             <span v-if="item.dot" class="x-menu__dot" :style="{ background: item.dot }" />
             <span class="x-menu__label">{{ item.label }}</span>
-            <span v-if="item.hint" class="x-menu__hint">{{ item.hint }}</span>
             <XIcon v-if="item.checked !== undefined && !item.switch" name="check" :size="12" :stroke="1.8" :class="['x-menu__check', { 'is-on': item.checked }]" />
           </button>
         </template>
@@ -253,10 +248,6 @@ function choose(item: MenuItem) {
   backdrop-filter: blur(3px) saturate(.92);
 }
 
-.x-menu-scrim--soft {
-  background: var(--scrim-soft);
-}
-
 .x-menu-scrim-enter-active,
 .x-menu-scrim-leave-active {
   transition: opacity var(--t-med);
@@ -291,11 +282,6 @@ function choose(item: MenuItem) {
 .x-menu__label {
   flex: 1;
   min-width: 0;
-}
-
-.x-menu__hint {
-  color: var(--dim);
-  font: 500 var(--fs-10) / 1 var(--font-mono);
 }
 
 .x-menu__check {

@@ -1102,9 +1102,6 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
             <XMenu v-slot="{ props }" :items="levelItems" title="Уровень" placement="bottom-start" sheet @select="level = $event">
               <XButton v-bind="props" caret>Меню-лист на телефоне</XButton>
             </XMenu>
-            <XMenu v-slot="{ props }" :items="levelItems" title="Уровень" placement="bottom-start" scrim @select="level = $event">
-              <XButton v-bind="props" caret>Меню с затемнением</XButton>
-            </XMenu>
           </div>
           <XField layout="row" label="Оптимистичный переключатель" hint="Спиннер на время запроса">
             <XSwitch v-model="sw.b" :loading="sw.loading" label="Применить" @update:model-value="applySwitch" />

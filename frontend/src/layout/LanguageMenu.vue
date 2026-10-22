@@ -4,17 +4,17 @@ import { useI18n } from 'vue-i18n'
 import { locales, setLocale, type Locale } from '../i18n'
 import { XButton, XMenu, type MenuItem } from '../kit'
 
-/** Language picker; the page behind the open menu is blurred. */
+/** Language picker: a plain kit menu, the current language checked. */
 const { t, locale } = useI18n()
 
 const code = (l: string) => l.slice(0, 2).toUpperCase()
 const items = computed<MenuItem[]>(() =>
-  locales.map((l) => ({ key: l.value, label: l.label, hint: code(l.value), checked: l.value === locale.value })),
+  locales.map((l) => ({ key: l.value, label: l.label, checked: l.value === locale.value })),
 )
 </script>
 
 <template>
-  <XMenu v-slot="{ props }" :items="items" :title="t('common.language')" scrim @select="setLocale($event as Locale)">
+  <XMenu v-slot="{ props }" :items="items" @select="setLocale($event as Locale)">
     <XButton v-bind="props" icon="globe" :label="t('common.language')" caret>{{ code(locale) }}</XButton>
   </XMenu>
 </template>

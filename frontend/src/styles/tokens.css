@@ -101,7 +101,6 @@
   --gut: #0D1118;
   --scrim: rgba(8, 11, 16, .55);
   /* Light blur behind an open menu, the same in both themes */
-  --scrim-soft: rgba(8, 11, 16, .14);
   --line: rgba(255, 255, 255, .08);
   --div: rgba(255, 255, 255, .07);
   --skel: rgba(255, 255, 255, .06);
