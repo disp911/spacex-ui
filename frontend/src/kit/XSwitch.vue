@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, useAttrs, useId } from 'vue'
+import { computed, useAttrs } from 'vue'
 import XSpinner from './XSpinner.vue'
 import XTooltip from './XTooltip.vue'
 
@@ -21,6 +21,7 @@ const props = defineProps<{
   /**
    * The label shown beside the switch in a frame of a field's height, e.g.
    * Mux among the fields of a window; the actions slot sits before the switch.
+   * Only the switch reacts to the pointer; the label and frame are plain.
    */
   boxed?: boolean
   /** A round ? after a boxed label that tells more on hover or focus. */
@@ -29,7 +30,6 @@ const props = defineProps<{
 
 const model = defineModel<boolean>({ default: false })
 const attrs = useAttrs()
-const id = useId()
 
 function toggle() {
   model.value = !model.value
@@ -37,7 +37,6 @@ function toggle() {
 
 const button = computed(() => ({
   ...attrs,
-  id: props.boxed ? id : (attrs.id as string | undefined),
   type: 'button' as const,
   role: 'switch',
   'aria-checked': model.value,
@@ -51,7 +50,7 @@ const button = computed(() => ({
 
 <template>
   <div v-if="boxed" :class="['x-switch-box', { 'is-disabled': disabled }]">
-    <label class="x-switch-box__label" :for="id">{{ label }}</label>
+    <span class="x-switch-box__label" aria-hidden="true">{{ label }}</span>
     <XTooltip v-if="help" :text="help">
       <span class="x-switch-box__help" tabindex="0" :aria-label="help">?</span>
     </XTooltip>
@@ -83,10 +82,6 @@ const button = computed(() => ({
   border: 1px solid var(--field-line);
   border-radius: var(--ctl-r);
   transition: border-color var(--t-fast);
-}
-
-.x-switch-box:hover {
-  border-color: var(--field-hover);
 }
 
 .x-switch-box__help {
@@ -131,7 +126,6 @@ const button = computed(() => ({
   display: flex;
   align-items: center;
   min-width: 0;
-  cursor: pointer;
   overflow: hidden;
   color: var(--fg2);
   font: 400 var(--fs-13) / var(--lh-tight) var(--font-sans);
