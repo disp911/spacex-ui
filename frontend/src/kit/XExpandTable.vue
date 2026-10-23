@@ -11,8 +11,8 @@ export interface ExpandColumn {
   size?: string
   /** How a muted row shows the cell: dimmed (the default), a little dimmed, or as it is, e.g. a menu or a switch. */
   muted?: 'soft' | 'none'
-  /** Label and content at the end of the cell, e.g. a button at the row's right. */
-  align?: 'end'
+  /** Label and content at the end of the cell, e.g. a button at the row's right; or in its middle, e.g. a short number. */
+  align?: 'end' | 'center'
   /** The cell starts with inline buttons: the label stands over the first icon, not the button's edge. */
   icons?: boolean
 }
@@ -81,7 +81,7 @@ const canOpen = (row: T) => props.expandable?.(row) ?? false
       <span
         v-for="c in columns"
         :key="c.key"
-        :class="{ 'is-end': c.align === 'end', 'is-icons': c.icons }"
+        :class="{ 'is-end': c.align === 'end', 'is-center': c.align === 'center', 'is-icons': c.icons }"
         role="columnheader"
       >{{ c.label }}</span>
     </div>
@@ -103,7 +103,7 @@ const canOpen = (row: T) => props.expandable?.(row) ?? false
         <div
           v-for="c in columns"
           :key="c.key"
-          :class="['x-expand__cell', { 'is-muted': muted?.(row) && c.muted !== 'none', 'is-soft': c.muted === 'soft', 'is-end': c.align === 'end' }]"
+          :class="['x-expand__cell', { 'is-muted': muted?.(row) && c.muted !== 'none', 'is-soft': c.muted === 'soft', 'is-end': c.align === 'end', 'is-center': c.align === 'center' }]"
           role="cell"
         >
           <slot
@@ -228,6 +228,15 @@ const canOpen = (row: T) => props.expandable?.(row) ?? false
 .x-expand__cell.is-end {
   display: flex;
   justify-content: flex-end;
+}
+
+.x-expand__head .is-center {
+  text-align: center;
+}
+
+.x-expand__cell.is-center {
+  display: flex;
+  justify-content: center;
 }
 
 .x-expand__cell {

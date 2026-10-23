@@ -115,7 +115,7 @@ const sizes = computed(() => pageSizes(store.defaults?.pageSize || 25, shown.val
 // --- Rows --------------------------------------------------------------------------
 
 const columns = computed<ExpandColumn[]>(() => [
-  { key: 'id', label: 'ID', size: '24px' },
+  { key: 'id', label: 'ID', size: '24px', align: 'center' },
   { key: 'menu', label: t('inbounds.colMenu'), size: '28px', muted: 'none', icons: true },
   { key: 'enable', label: t('inbounds.colEnable'), size: '52px', muted: 'none' },
   { key: 'remark', label: t('inbounds.colRemark'), size: 'minmax(0, 1.6fr)', muted: 'soft' },
