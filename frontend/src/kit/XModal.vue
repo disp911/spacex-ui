@@ -3,6 +3,7 @@ import { nextTick, onBeforeUnmount, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import XButton from './XButton.vue'
 import { lockScroll } from './scrollLock'
+import { startSheetDrag } from './sheetDrag'
 
 /**
  * Dialog on desktop, bottom sheet on phones. The sheet has a handle instead
@@ -43,6 +44,14 @@ const FOCUSABLE = 'a[href], button:not(:disabled), input:not(:disabled), select:
 
 function close() {
   if (props.dismissible) open.value = false
+}
+
+// Phones: the sheet comes down when pulled by its handle or title bar; the bar's buttons stay buttons.
+function onPointerDown(e: PointerEvent) {
+  const target = e.target as HTMLElement
+  if (!props.dismissible || !dialog.value || !matchMedia('(max-width: 767px)').matches) return
+  if (!target.closest('.x-modal__grip, .x-modal__head') || target.closest('button, a, input, textarea, select')) return
+  startSheetDrag(e, dialog.value, close)
 }
 
 function onKeydown(e: KeyboardEvent) {
@@ -94,7 +103,9 @@ onBeforeUnmount(() => {
           :aria-label="headless ? title : undefined"
           tabindex="-1"
           :class="['x-modal__dialog', `x-modal__dialog--${size}`, { 'x-modal__dialog--full': full, 'x-modal__dialog--headless': headless, 'x-modal__dialog--scroll': scrollBody }]"
+          @pointerdown="onPointerDown"
         >
+          <div class="x-modal__grip" aria-hidden="true" />
           <header v-if="!headless" :class="['x-modal__head', { 'x-modal__head--sub': $slots.subtitle }]">
             <div class="x-modal__heading">
               <div class="x-modal__title-row">
@@ -252,14 +263,26 @@ onBeforeUnmount(() => {
   display: none;
 }
 
-.x-modal-enter-active,
-.x-modal-leave-active {
-  transition: opacity var(--t-med);
+/* The handle of a phone sheet; desktop windows have none. */
+.x-modal__grip {
+  display: none;
 }
 
-.x-modal-enter-active .x-modal__dialog,
+/* Desktop: the scrim fades in and the window rises into place. */
+.x-modal-enter-active {
+  transition: opacity var(--t-enter) var(--ease-out);
+}
+
+.x-modal-leave-active {
+  transition: opacity var(--t-leave) ease-in;
+}
+
+.x-modal-enter-active .x-modal__dialog {
+  transition: transform var(--t-enter) var(--ease-out);
+}
+
 .x-modal-leave-active .x-modal__dialog {
-  transition: transform var(--t-med) var(--ease);
+  transition: transform var(--t-leave) ease-in;
 }
 
 .x-modal-enter-from,
@@ -269,7 +292,7 @@ onBeforeUnmount(() => {
 
 .x-modal-enter-from .x-modal__dialog,
 .x-modal-leave-to .x-modal__dialog {
-  transform: translateY(8px) scale(.98);
+  transform: translateY(16px) scale(.96);
 }
 
 @media (max-width: 767px) {
@@ -298,15 +321,30 @@ onBeforeUnmount(() => {
     padding-top: 10px;
   }
 
-  .x-modal__dialog:not(.x-modal__dialog--full)::before {
-    content: '';
+  /* Sheet: the handle, with room around it to take hold of. */
+  .x-modal__dialog:not(.x-modal__dialog--full) .x-modal__grip {
+    display: block;
     flex: none;
-    align-self: center;
+    align-self: stretch;
+    height: 24px;
+    /* Over the sheet's top padding: the bar sits where it did, the title 28px down. */
+    margin: -10px 0 4px;
+    touch-action: none;
+  }
+
+  .x-modal__dialog:not(.x-modal__dialog--full) .x-modal__grip::before {
+    content: '';
+    display: block;
     width: 38px;
     height: 4px;
-    margin-bottom: 14px;
+    margin: 10px auto 0;
     border-radius: var(--r-pill);
     background: var(--track);
+  }
+
+  /* The title bar pulls the window down too. */
+  .x-modal__head {
+    touch-action: none;
   }
 
   .x-modal__dialog:not(.x-modal__dialog--full) .x-modal__head {
@@ -364,9 +402,49 @@ onBeforeUnmount(() => {
     flex: 1;
   }
 
+  /* Phones: every window slides up from the bottom while the scrim darkens; it slides back down to close. */
+  .x-modal-enter-from,
+  .x-modal-leave-to {
+    opacity: 1;
+    background-color: transparent;
+  }
+
+  .x-modal-enter-active,
+  .x-modal-leave-active {
+    transition: background-color var(--t-sheet) var(--ease-out);
+  }
+
+  .x-modal-enter-active .x-modal__dialog {
+    transition: transform var(--t-sheet) var(--ease-out);
+  }
+
+  .x-modal-leave-active .x-modal__dialog {
+    transition: transform var(--t-enter) ease-in;
+  }
+
   .x-modal-enter-from .x-modal__dialog,
   .x-modal-leave-to .x-modal__dialog {
     transform: translateY(100%);
+  }
+}
+
+/* Less motion: windows only fade, nothing moves. */
+@media (prefers-reduced-motion: reduce) {
+  .x-modal-enter-active,
+  .x-modal-leave-active,
+  .x-modal-enter-active .x-modal__dialog,
+  .x-modal-leave-active .x-modal__dialog {
+    transition: opacity var(--t-enter) ease !important;
+  }
+
+  .x-modal-enter-from,
+  .x-modal-leave-to {
+    opacity: 0;
+  }
+
+  .x-modal-enter-from .x-modal__dialog,
+  .x-modal-leave-to .x-modal__dialog {
+    transform: none;
   }
 }
 </style>

@@ -172,15 +172,31 @@
   font-weight: 400;
 }
 
-.x-popup-enter-active,
+/* Menus, lists and popovers open out of their button: the origin is set where the button is. */
+.x-popup-enter-active {
+  transition: opacity var(--t-popup) var(--ease-out), transform var(--t-popup) var(--ease-out);
+}
+
 .x-popup-leave-active {
-  transition: opacity var(--t-fast), transform var(--t-fast) var(--ease);
+  transition: opacity var(--t-fast) ease-in, transform var(--t-fast) ease-in;
 }
 
 .x-popup-enter-from,
 .x-popup-leave-to {
   opacity: 0;
-  transform: translateY(-4px);
+  transform: scale(.96);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .x-popup-enter-active,
+  .x-popup-leave-active {
+    transition: opacity var(--t-leave) ease !important;
+  }
+
+  .x-popup-enter-from,
+  .x-popup-leave-to {
+    transform: none;
+  }
 }
 
 /* A value chip with a remove cross inside a field: tag input, multiple choice. */

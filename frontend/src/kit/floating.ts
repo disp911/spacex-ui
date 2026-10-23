@@ -50,6 +50,8 @@ export function useFloating(
       left: `${Math.round(left)}px`,
       ...(options.matchWidth ? { minWidth: `${Math.round(a.width)}px` } : {}),
       maxHeight: `${Math.max(0, room)}px`,
+      // Opens out of the button: at its middle, on the side it hangs from.
+      transformOrigin: `${Math.round(a.left + a.width / 2 - left)}px ${up ? '100%' : '0'}`,
     }
   }
 

@@ -5,6 +5,7 @@ import XButton from './XButton.vue'
 import XIcon from './XIcon.vue'
 import XSpinner from './XSpinner.vue'
 import { useFloating, type Placement } from './floating'
+import { startSheetDrag } from './sheetDrag'
 import type { IconName } from './icons'
 
 export interface MenuItem {
@@ -75,6 +76,13 @@ function close(refocus: boolean) {
   if (refocus) anchor.value?.focus()
 }
 
+// A phone sheet comes down when pulled by its handle or title.
+function onPointerDown(e: PointerEvent) {
+  const target = e.target as HTMLElement
+  if (!asSheet.value || !menu.value || !target.closest('.x-menu__grip, .x-menu__title')) return
+  startSheetDrag(e, menu.value, () => close(false))
+}
+
 function onTriggerClick(e: MouseEvent) {
   anchor.value = e.currentTarget as HTMLElement
   if (open.value) close(false)
@@ -135,7 +143,9 @@ function choose(item: MenuItem) {
         :class="['x-popup', 'x-menu', { 'x-menu--sheet': asSheet }]"
         :style="asSheet ? undefined : style"
         @keydown="onMenuKeydown"
+        @pointerdown="onPointerDown"
       >
+        <div v-if="asSheet" class="x-menu__grip" aria-hidden="true" />
         <div v-if="title" class="x-caps x-menu__title" aria-hidden="true">{{ title }}</div>
         <template v-for="item in items" :key="item.key">
           <div v-if="item.divided" class="x-menu__divider" role="separator" />
@@ -218,13 +228,21 @@ function choose(item: MenuItem) {
   box-shadow: var(--shadow-sheet);
 }
 
-.x-menu--sheet::before {
-  content: '';
+/* The handle, with room around it to take hold of; the bar sits where it did. */
+.x-menu__grip {
   flex: none;
-  align-self: center;
+  align-self: stretch;
+  height: 20px;
+  margin: -10px 0 0;
+  touch-action: none;
+}
+
+.x-menu__grip::before {
+  content: '';
+  display: block;
   width: 38px;
   height: 4px;
-  margin-bottom: 6px;
+  margin: 10px auto 0;
   border-radius: var(--r-pill);
   background: var(--track);
 }
@@ -232,6 +250,7 @@ function choose(item: MenuItem) {
 .x-menu--sheet .x-menu__title {
   margin-bottom: 6px;
   padding: 0 6px;
+  touch-action: none;
 }
 
 .x-menu--sheet .x-popup-item {
@@ -252,9 +271,12 @@ function choose(item: MenuItem) {
   backdrop-filter: blur(3px) saturate(.92);
 }
 
-.x-menu-scrim-enter-active,
+.x-menu-scrim-enter-active {
+  transition: opacity var(--t-sheet) var(--ease-out);
+}
+
 .x-menu-scrim-leave-active {
-  transition: opacity var(--t-med);
+  transition: opacity var(--t-enter) ease-in;
 }
 
 .x-menu-scrim-enter-from,
@@ -262,14 +284,34 @@ function choose(item: MenuItem) {
   opacity: 0;
 }
 
-.x-menu-sheet-enter-active,
+/* As phone windows: up from the bottom unhurried, back down quicker. */
+.x-menu-sheet-enter-active {
+  transition: transform var(--t-sheet) var(--ease-out);
+}
+
 .x-menu-sheet-leave-active {
-  transition: transform var(--t-med) var(--ease);
+  transition: transform var(--t-enter) ease-in;
 }
 
 .x-menu-sheet-enter-from,
 .x-menu-sheet-leave-to {
   transform: translateY(100%);
+}
+
+/* Less motion: the sheet fades in place. */
+@media (prefers-reduced-motion: reduce) {
+  .x-menu-sheet-enter-active,
+  .x-menu-sheet-leave-active,
+  .x-menu-scrim-enter-active,
+  .x-menu-scrim-leave-active {
+    transition: opacity var(--t-enter) ease !important;
+  }
+
+  .x-menu-sheet-enter-from,
+  .x-menu-sheet-leave-to {
+    opacity: 0;
+    transform: none;
+  }
 }
 
 .x-menu__title {
