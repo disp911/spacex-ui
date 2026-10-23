@@ -3,7 +3,7 @@ import { computed, nextTick, onMounted, provide, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { api } from '../api'
 import {
-  toast, XActionBar, XButton, XCard, XEmpty, XNotice, XProcessError, XSettingsSkeleton, XStatusText, XStepArrow, XTabs, type TabItem,
+  toast, XActionBar, XButton, XCard, XEmpty, XNotice, XProcessError, XSettingsSkeleton, XStatusText, XTabs, type TabItem,
 } from '../kit'
 import AppPage from '../layout/AppPage.vue'
 import { cause } from './settings/form'
@@ -203,14 +203,13 @@ async function restart() {
     </div>
 
     <template #bar>
-      <XActionBar fit>
+      <XActionBar>
         <template v-if="status" #state>
           <XStatusText tone="mod">{{ status }}</XStatusText>
         </template>
         <XButton variant="primary" :disabled="!canSave && !saving" :loading="saving" @click="save">
           {{ saving ? t('settings.saving') : t('settings.save') }}
         </XButton>
-        <XStepArrow :done="ready && !dirty" />
         <XButton variant="primary" icon="refresh" :disabled="!canRestart" :pending="ready && !!dirty" :loading="restarting" @click="restart">
           {{ t('xray.restart') }}
         </XButton>

@@ -1,13 +1,10 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 
-/** fit: buttons share the row by the length of their labels, e.g. a short Save beside Restart Xray. */
-defineProps<{ fit?: boolean }>()
-
 /**
  * Phones: a bar pinned to the bottom of a page with a line of state above the
  * page's main buttons (the slot), e.g. Save and Restart; buttons with text
- * share the row, square ones and anything else keep their size.
+ * share the row in equal parts, square ones and anything else keep their size.
  * Without anything in the state slot the line takes no room.
  * While it is shown, toasts rise 20px above it (--toast-bottom, read by XToaster).
  */
@@ -34,7 +31,7 @@ onBeforeUnmount(() => {
 <template>
   <div ref="bar" class="x-action-bar">
     <div v-if="$slots.state" class="x-action-bar__state"><slot name="state" /></div>
-    <div :class="['x-action-bar__buttons', { 'x-action-bar__buttons--fit': fit }]"><slot /></div>
+    <div class="x-action-bar__buttons"><slot /></div>
   </div>
 </template>
 
@@ -68,9 +65,5 @@ onBeforeUnmount(() => {
 .x-action-bar__buttons > :deep(.x-btn:not(.x-btn--icon)) {
   flex: 1;
   min-width: 0;
-}
-
-.x-action-bar__buttons--fit > :deep(.x-btn:not(.x-btn--icon)) {
-  flex: 1 1 auto;
 }
 </style>

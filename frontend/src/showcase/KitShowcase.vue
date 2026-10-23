@@ -3,7 +3,7 @@ import { computed, ref, watch } from 'vue'
 import { useTheme } from '../stores/theme'
 import {
   toast, XActionBar, XActionList, XActionRow, XAddButton, XBadge, XCountList, XExpandTable, XSummaryStat, XBusyOverlay, XButton, XButtonGroup, XCard, XCheckbox, XChip, XCodeArea, XCodeEditor, XCodeInput, XConfirm, XCounter, XDataTable, XDivider, XEmpty, XErrorBox, XExample, XField, XFieldGrid, XFieldNote, XGridTable, XInfoRow, XInlineButton, XInput, XInputList, XKeyValue, XListHead, XMenu, XModal, XMultiSelect, XNav, XNavItem, XNest, XNestCard, XNotice, XPlainTable,
-  XNumber, XOrderToggles, XPager, XPairList, XPickList, XPopConfirm, XProcessError, XProgressLine, XQrCode, XRecordCard, XRouteTarget, XRowLink, XSection, XSegmented, XSelect, XSettingBlock, XSettingDivider, XSettingRow, XSettingsSection, XSettingsSkeleton, XStatusDot, XStatusText, XStepArrow, XSwitch, XTabs, XTagInput, XTestResult, XTextarea,
+  XNumber, XOrderToggles, XPager, XPairList, XPickList, XPopConfirm, XProcessError, XProgressLine, XQrCode, XRecordCard, XRouteTarget, XRowLink, XSection, XSegmented, XSelect, XSettingBlock, XSettingDivider, XSettingRow, XSettingsSection, XSettingsSkeleton, XStatusDot, XStatusText, XSwitch, XTabs, XTagInput, XTestResult, XTextarea,
   XTooltip, XUsagePill, XValueChip, XInnerTable, XMark, XRowToggle, XDateTime, XPartHead, XButtonRow, XCheckGroup, XStateBar, XChipBox,
   XFactRow, XFactTile, XCopyChip, XCopyBlock, XCopyFrame, XQrCard, XPopover,
   type MenuItem,
@@ -783,16 +783,14 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
         <XSettingsSection title="Восстановить настройки по умолчанию" padded>
           <XButton variant="danger" icon="reset">Восстановить настройки по умолчанию</XButton>
         </XSettingsSection>
-        <XActionBar fit style="position: static; border-radius: 12px">
+        <XActionBar style="position: static; border-radius: 12px">
           <template #state><XStatusText tone="mod">Не сохранено: 1</XStatusText></template>
           <XButton variant="primary">Сохранить</XButton>
-          <XStepArrow />
           <XButton variant="primary" icon="refresh" pending>Перезапуск Xray</XButton>
           <XProcessError title="Ошибка при запуске Xray" :text="xrayStart" />
         </XActionBar>
-        <XActionBar fit style="position: static; border-radius: 12px">
+        <XActionBar style="position: static; border-radius: 12px">
           <XButton variant="primary" disabled>Сохранить</XButton>
-          <XStepArrow done />
           <XButton variant="primary" icon="refresh">Перезапуск Xray</XButton>
         </XActionBar>
         <XField v-slot="a" label="Domain" help="Элементы, разделённые запятыми">
