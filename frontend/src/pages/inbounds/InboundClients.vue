@@ -56,7 +56,7 @@ const columns = computed<InnerColumn[]>(() => [
 const phoneColumns = computed<InnerColumn[]>(() => [
   { key: 'menu', label: t('inbounds.colMenu'), size: '40px', quiet: true },
   { key: 'client', label: t('inbounds.colClient') },
-  { key: 'info', label: t('inbounds.colInfo'), size: '52px', align: 'end' },
+  { key: 'info', label: t('inbounds.colInfo'), size: 'var(--btn-sq)', align: 'end', quiet: true },
 ])
 
 const keyOf = (c: Client) => clientKey(props.inbound.protocol, c)

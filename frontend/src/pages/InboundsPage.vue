@@ -129,7 +129,7 @@ const columns = computed<ExpandColumn[]>(() => [
 const phoneColumns = computed<ExpandColumn[]>(() => [
   { key: 'menu', label: t('inbounds.colMenu'), size: '44px', muted: 'none', quiet: true },
   { key: 'remark', label: t('inbounds.colRemark'), muted: 'none' },
-  { key: 'info', label: t('inbounds.colInfo'), size: '76px', align: 'end', muted: 'none' },
+  { key: 'info', label: t('inbounds.colInfo'), size: 'var(--btn-sq)', align: 'end', muted: 'none', quiet: true },
 ])
 
 const toneOf = (s: State) => (s === 'unl' ? 'neutral' : s)
