@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import XIcon from './XIcon.vue'
 import XMenu, { type MenuItem } from './XMenu.vue'
+import { useSlidingThumb } from './slidingThumb'
 
 /**
  * Pages of a list. With sizes, a choice of rows per page at the end; with
@@ -30,13 +31,23 @@ const items = computed(() => {
   return out
 })
 
+// The current page's accent travels between the numbers like liquid.
+const nav = ref<HTMLElement | null>(null)
+const thumb = useSlidingThumb(nav, '.x-pager__number.is-current', [page, items])
+
 function go(to: number) {
   page.value = Math.min(Math.max(to, 1), props.pages)
 }
 </script>
 
 <template>
-  <nav :class="['x-pager', { 'x-pager--summary': summary }]" :aria-label="t('kit.pages')">
+  <nav ref="nav" :class="['x-pager', { 'x-pager--summary': summary }]" :aria-label="t('kit.pages')">
+    <span
+      v-if="thumb"
+      :class="['x-pager__thumb', thumb.ahead && `x-slide--${thumb.ahead}`]"
+      :style="{ left: `${thumb.left}px`, right: `${thumb.right}px`, top: `${thumb.top}px`, height: `${thumb.height}px` }"
+      aria-hidden="true"
+    />
     <span v-if="summary" class="x-pager__summary">{{ t('kit.pageOf', { page, pages }) }}</span>
     <button type="button" class="x-pager__chip x-pager__step" :aria-label="t('kit.previousPage')" :disabled="page <= 1" @click="go(page - 1)">
       <XIcon name="chevronLeft" :size="12" :stroke="1.8" />
@@ -50,7 +61,7 @@ function go(to: number) {
         :aria-current="item === page ? 'page' : undefined"
         @click="go(item)"
       >
-        {{ item }}
+        <span class="x-pager__n">{{ item }}</span>
       </button>
     </template>
     <span class="x-pager__compact">{{ page }} / {{ pages }}</span>
@@ -68,6 +79,7 @@ function go(to: number) {
 
 <style scoped>
 .x-pager {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 4px;
@@ -103,6 +115,20 @@ function go(to: number) {
 .x-pager__chip:active:not(:disabled),
 .x-pager__chip.is-active {
   background: var(--press);
+}
+
+/* Over the chips' backgrounds and under their numbers, which are lifted above it. */
+.x-pager__thumb {
+  position: absolute;
+  z-index: 1;
+  border-radius: var(--ctl-sm-r);
+  background: var(--acc);
+  pointer-events: none;
+}
+
+.x-pager__n {
+  position: relative;
+  z-index: 2;
 }
 
 .x-pager__chip.is-current {

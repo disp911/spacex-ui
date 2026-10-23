@@ -1,5 +1,6 @@
 <script setup lang="ts" generic="K extends string">
-import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { nextTick, onMounted, ref, watch } from 'vue'
+import { useSlidingThumb } from './slidingThumb'
 
 export interface TabItem<K extends string = string> {
   key: K
@@ -21,22 +22,15 @@ defineProps<{
 const model = defineModel<K>({ required: true })
 
 const strip = ref<HTMLElement | null>(null)
-const ink = ref<{ left: number; width: number } | null>(null)
+// The accent ink travels to the current tab like liquid.
+const ink = useSlidingThumb(strip, '.is-current', [model])
 
-function place() {
-  const current = strip.value?.querySelector<HTMLElement>('.is-current')
-  ink.value = current ? { left: current.offsetLeft, width: current.offsetWidth } : null
-  current?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+// In a strip that scrolls the current tab stays in sight.
+function reveal() {
+  strip.value?.querySelector<HTMLElement>('.is-current')?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
 }
-
-let observer: ResizeObserver | undefined
-onMounted(() => {
-  place()
-  observer = new ResizeObserver(place)
-  if (strip.value) observer.observe(strip.value)
-})
-onBeforeUnmount(() => observer?.disconnect())
-watch(model, () => nextTick(place))
+onMounted(reveal)
+watch(model, () => nextTick(reveal))
 
 function onKeydown(e: KeyboardEvent, items: TabItem<K>[]) {
   const i = items.findIndex((t) => t.key === model.value)
@@ -67,7 +61,7 @@ function onKeydown(e: KeyboardEvent, items: TabItem<K>[]) {
         <span class="x-tabs__label" :data-label="tab.label"><span>{{ tab.label }}</span></span>
         <span v-if="tab.dot" :class="['x-tabs__dot', `x-tabs__dot--${tab.dot}`]" />
       </button>
-      <span v-if="ink" class="x-tabs__ink" :style="{ left: `${ink.left}px`, width: `${ink.width}px` }" />
+      <span v-if="ink" :class="['x-tabs__ink', ink.ahead && `x-slide--${ink.ahead}`]" :style="{ left: `${ink.left}px`, right: `${ink.right}px` }" />
     </div>
   </div>
 </template>
@@ -187,7 +181,6 @@ function onKeydown(e: KeyboardEvent, items: TabItem<K>[]) {
   border-radius: var(--r-pill);
   background: var(--acc);
   pointer-events: none;
-  transition: left var(--t-med) var(--ease), width var(--t-med) var(--ease);
 }
 
 /*

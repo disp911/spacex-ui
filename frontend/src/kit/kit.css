@@ -172,6 +172,19 @@
   font-weight: 400;
 }
 
+/*
+ * A thumb sliding to the chosen item (slidingThumb.ts): moving right its right
+ * edge leads and the left one follows with a spring, moving left the reverse,
+ * so it stretches on the way and settles like liquid.
+ */
+.x-slide--right {
+  transition: right var(--t-enter) var(--ease-out), left var(--t-sheet) var(--ease-spring);
+}
+
+.x-slide--left {
+  transition: left var(--t-enter) var(--ease-out), right var(--t-sheet) var(--ease-spring);
+}
+
 /* Menus, lists and popovers open out of their button: the origin is set where the button is. */
 .x-popup-enter-active {
   transition: opacity var(--t-popup) var(--ease-out), transform var(--t-popup) var(--ease-out);
