@@ -159,7 +159,7 @@ const skeleton = [62, 48, 71, 55, 38, 66, 52, 44, 69, 58, 41, 63]
   display: flex;
   flex: 1;
   min-height: 0;
-  padding: 12px 12px 14px;
+  padding: 12px;
   background: var(--bg);
 }
 

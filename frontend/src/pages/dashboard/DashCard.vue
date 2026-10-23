@@ -31,7 +31,8 @@ defineProps<{ title: string }>()
   /* One 14px line; badges on the right overflow it evenly. */
   box-sizing: content-box;
   height: 14px;
-  margin: 0 -20px 12px;
+  /* The body sits as far under the line as above the card's bottom edge. */
+  margin: 0 -20px 14px;
   padding: 0 20px 10px;
   border-bottom: 1px solid var(--div);
 }

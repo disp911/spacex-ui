@@ -275,13 +275,18 @@ const canOpen = (row: T) => props.expandable?.(row) ?? false
 
 .x-expand--phone .x-expand__head {
   gap: 6px;
-  padding: 9px 10px 9px 12px;
+  padding: 9px 14px 9px 12px;
 }
 
+/*
+ * The menu button at the left is borderless, its dots 10px inside it; the info
+ * button at the right has a frame. Its frame keeps as far from the edge as the
+ * dots do, so the row looks even.
+ */
 .x-expand--phone .x-expand__row {
   gap: 6px;
   min-height: 56px;
-  padding: 2px 10px 2px 4px;
+  padding: 2px 14px 2px 4px;
 }
 
 .x-expand--phone .x-expand__inner {

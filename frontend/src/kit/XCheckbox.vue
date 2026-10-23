@@ -94,7 +94,7 @@ const model = defineModel<boolean>({ default: false })
 .x-check--boxed {
   flex: none;
   height: var(--ctl-h);
-  padding: 0 12px 0 10px;
+  padding: 0 12px;
   border: 1px solid var(--field-line);
   border-radius: var(--ctl-r);
   background: var(--ctrl);
