@@ -135,9 +135,11 @@ const linkAttrs = computed(() => (props.to ? { to: props.to } : props.href ? { h
   width: 100%;
 }
 
+/* Cut with an ellipsis when too long; the line is taller than the letters, so their tails (у, р, д) are not cut too. */
 .x-btn__text {
   min-width: 0;
   overflow: hidden;
+  line-height: var(--lh-tight);
   text-overflow: ellipsis;
 }
 

@@ -113,9 +113,11 @@ onBeforeUnmount(() => clearTimeout(timer))
   font: 500 var(--fs-10) / 1 var(--font-sans);
 }
 
+/* Cut with an ellipsis when too long; the line is taller than the letters, so their tails are not cut too. */
 .x-value-chip__value {
   min-width: 0;
   overflow: hidden;
+  line-height: var(--lh-tight);
   white-space: nowrap;
   text-overflow: ellipsis;
 }
