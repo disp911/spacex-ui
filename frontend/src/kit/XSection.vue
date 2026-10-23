@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useId } from 'vue'
+import XCollapse from './XCollapse.vue'
 import XIcon from './XIcon.vue'
 
 /**
@@ -37,9 +38,11 @@ const id = useId()
       <div v-if="$slots.meta" class="x-section__meta"><slot name="meta" /></div>
     </div>
     <p v-if="description && open" class="x-section__description">{{ description }}</p>
-    <div v-if="$slots.default" v-show="open" :id="`${id}-body`" class="x-section__body">
-      <slot />
-    </div>
+    <XCollapse v-if="$slots.default" :open="open">
+      <div :id="`${id}-body`" class="x-section__body">
+        <slot />
+      </div>
+    </XCollapse>
   </div>
 </template>
 

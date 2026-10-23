@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import XChip from './XChip.vue'
+import XCollapse from './XCollapse.vue'
 import XIcon from './XIcon.vue'
 
 /**
@@ -36,7 +37,9 @@ const { t } = useI18n()
         <XChip v-if="errors" tone="err" mono>{{ t('kit.errors', { n: errors }) }}</XChip>
       </span>
     </button>
-    <div v-show="open" :class="['x-settings__body', { 'x-settings__body--padded': padded }]"><slot /></div>
+    <XCollapse :open="open">
+      <div :class="['x-settings__body', { 'x-settings__body--padded': padded }]"><slot /></div>
+    </XCollapse>
   </section>
 </template>
 

@@ -1,6 +1,7 @@
 <script setup lang="ts" generic="T">
 import { computed, onBeforeUnmount, onMounted, provide, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import XCollapse from './XCollapse.vue'
 import XIcon from './XIcon.vue'
 import { compactKey, usePhone } from './media'
 
@@ -116,9 +117,11 @@ const canOpen = (row: T) => props.expandable?.(row) ?? false
           />
         </div>
       </div>
-      <div v-if="isOpen(rowKey(row, i)) && canOpen(row)" class="x-expand__inner">
-        <slot name="expanded" :row="row" :index="i" />
-      </div>
+      <XCollapse :open="isOpen(rowKey(row, i)) && canOpen(row)" lazy>
+        <div class="x-expand__inner">
+          <slot name="expanded" :row="row" :index="i" />
+        </div>
+      </XCollapse>
     </div>
 
     <div v-if="!rows.length && $slots.empty" class="x-expand__empty"><slot name="empty" /></div>
