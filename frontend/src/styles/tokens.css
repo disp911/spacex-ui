@@ -90,12 +90,14 @@
   /* Windows, sheets and popups: they come in unhurried and go quicker. */
   --t-enter: 240ms;
   --t-leave: 160ms;
-  --t-sheet: 300ms;
+  --t-sheet: 380ms;
   --t-popup: 160ms;
   /* Moves fast and settles softly: things coming in. */
   --ease-out: cubic-bezier(.16, 1, .3, 1);
   /* Overshoots a little and settles back: the trailing edge of a sliding thumb. */
   --ease-spring: cubic-bezier(.34, 1.4, .64, 1);
+  /* A phone sheet, as iOS moves its own: an even start and a long soft stop, no jolt. */
+  --ease-sheet: cubic-bezier(.32, .72, 0, 1);
 
   color-scheme: dark;
 

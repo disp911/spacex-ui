@@ -79,9 +79,10 @@ watch(open, async (on, was) => {
     returnFocus = document.activeElement as HTMLElement | null
     await nextTick()
     const target = dialog.value?.querySelector<HTMLElement>('[autofocus]') ?? dialog.value
-    target?.focus()
+    // Without scrolling: the window is still below the screen's edge on its way in, and the page must not move under it.
+    target?.focus({ preventScroll: true })
   } else {
-    returnFocus?.focus()
+    returnFocus?.focus({ preventScroll: true })
     returnFocus = null
   }
 }, { immediate: true })
@@ -402,29 +403,59 @@ onBeforeUnmount(() => {
     flex: 1;
   }
 
-  /* Phones: every window slides up from the bottom while the scrim darkens; it slides back down to close. */
+  /*
+   * Phones: every window slides up from the bottom while the scrim darkens, and
+   * slides back down to close. The scrim is a layer of its own that only fades,
+   * and both run on the compositor while they move, so nothing repaints the page
+   * and nothing jolts.
+   */
+  .x-modal {
+    background: none;
+  }
+
+  .x-modal::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: var(--scrim);
+    transition: opacity var(--t-sheet) var(--ease-sheet);
+  }
+
+  .x-modal__dialog {
+    position: relative;
+  }
+
   .x-modal-enter-from,
   .x-modal-leave-to {
     opacity: 1;
-    background-color: transparent;
   }
 
+  .x-modal-enter-from::before,
+  .x-modal-leave-to::before {
+    opacity: 0;
+  }
+
+  /* The window itself does not change; this keeps it in the page while its sheet and scrim move. */
   .x-modal-enter-active,
   .x-modal-leave-active {
-    transition: background-color var(--t-sheet) var(--ease-out);
+    transition: opacity var(--t-sheet);
   }
 
-  .x-modal-enter-active .x-modal__dialog {
-    transition: transform var(--t-sheet) var(--ease-out);
-  }
-
+  .x-modal-enter-active::before,
+  .x-modal-leave-active::before,
+  .x-modal-enter-active .x-modal__dialog,
   .x-modal-leave-active .x-modal__dialog {
-    transition: transform var(--t-enter) ease-in;
+    will-change: opacity, transform;
+  }
+
+  .x-modal-enter-active .x-modal__dialog,
+  .x-modal-leave-active .x-modal__dialog {
+    transition: transform var(--t-sheet) var(--ease-sheet);
   }
 
   .x-modal-enter-from .x-modal__dialog,
   .x-modal-leave-to .x-modal__dialog {
-    transform: translateY(100%);
+    transform: translate3d(0, 100%, 0);
   }
 }
 

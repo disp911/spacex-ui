@@ -36,12 +36,12 @@ export function startSheetDrag(e: PointerEvent, sheet: HTMLElement, close: () =>
     zone.removeEventListener('pointercancel', end)
     if (dy > sheet.offsetHeight / 4 || (dy > 24 && speed > 0.6)) {
       // Slides on from where the finger left it; the closing transition fades the scrim meanwhile.
-      sheet.style.transition = 'transform var(--t-enter) ease-in'
-      sheet.style.transform = 'translateY(100%)'
+      sheet.style.transition = 'transform var(--t-sheet) var(--ease-sheet)'
+      sheet.style.transform = 'translate3d(0, 100%, 0)'
       close()
       return
     }
-    sheet.style.transition = 'transform var(--t-enter) var(--ease-out)'
+    sheet.style.transition = 'transform var(--t-sheet) var(--ease-sheet)'
     sheet.style.transform = ''
     sheet.addEventListener('transitionend', () => (sheet.style.transition = ''), { once: true })
   }

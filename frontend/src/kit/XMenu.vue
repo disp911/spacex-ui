@@ -62,7 +62,8 @@ function enabledItems() {
 
 function focusItem(index: number) {
   const list = enabledItems()
-  list[(index + list.length) % list.length]?.focus()
+  // Without scrolling: a phone sheet is still below the screen's edge on its way in.
+  list[(index + list.length) % list.length]?.focus({ preventScroll: true })
 }
 
 function show(first: 'first' | 'last' | 'none') {
@@ -73,7 +74,7 @@ function show(first: 'first' | 'last' | 'none') {
 
 function close(refocus: boolean) {
   open.value = false
-  if (refocus) anchor.value?.focus()
+  if (refocus) anchor.value?.focus({ preventScroll: true })
 }
 
 // A phone sheet comes down when pulled by its handle or title.
@@ -271,12 +272,10 @@ function choose(item: MenuItem) {
   backdrop-filter: blur(3px) saturate(.92);
 }
 
-.x-menu-scrim-enter-active {
-  transition: opacity var(--t-sheet) var(--ease-out);
-}
-
+.x-menu-scrim-enter-active,
 .x-menu-scrim-leave-active {
-  transition: opacity var(--t-enter) ease-in;
+  transition: opacity var(--t-sheet) var(--ease-sheet);
+  will-change: opacity;
 }
 
 .x-menu-scrim-enter-from,
@@ -285,17 +284,15 @@ function choose(item: MenuItem) {
 }
 
 /* As phone windows: up from the bottom unhurried, back down quicker. */
-.x-menu-sheet-enter-active {
-  transition: transform var(--t-sheet) var(--ease-out);
-}
-
+.x-menu-sheet-enter-active,
 .x-menu-sheet-leave-active {
-  transition: transform var(--t-enter) ease-in;
+  transition: transform var(--t-sheet) var(--ease-sheet);
+  will-change: transform;
 }
 
 .x-menu-sheet-enter-from,
 .x-menu-sheet-leave-to {
-  transform: translateY(100%);
+  transform: translate3d(0, 100%, 0);
 }
 
 /* Less motion: the sheet fades in place. */
