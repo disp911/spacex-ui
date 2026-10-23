@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { useTheme } from '../stores/theme'
 import {
-  toast, XActionBar, XActionList, XActionRow, XAddButton, XBadge, XCountList, XExpandTable, XSummaryStat, XBusyOverlay, XButton, XButtonGroup, XCard, XCheckbox, XChip, XCodeArea, XCodeEditor, XCodeInput, XConfirm, XCounter, XDataTable, XDivider, XEmpty, XErrorBox, XExample, XField, XFieldGrid, XFieldNote, XGridTable, XInfoRow, XInlineButton, XInput, XInputList, XKeyValue, XListHead, XMenu, XModal, XMultiSelect, XNavItem, XNest, XNestCard, XNotice, XPlainTable,
+  toast, XActionBar, XActionList, XActionRow, XAddButton, XBadge, XCountList, XExpandTable, XSummaryStat, XBusyOverlay, XButton, XButtonGroup, XCard, XCheckbox, XChip, XCodeArea, XCodeEditor, XCodeInput, XConfirm, XCounter, XDataTable, XDivider, XEmpty, XErrorBox, XExample, XField, XFieldGrid, XFieldNote, XGridTable, XInfoRow, XInlineButton, XInput, XInputList, XKeyValue, XListHead, XMenu, XModal, XMultiSelect, XNav, XNavItem, XNest, XNestCard, XNotice, XPlainTable,
   XNumber, XOrderToggles, XPager, XPairList, XPickList, XPopConfirm, XProcessError, XProgressLine, XQrCode, XRecordCard, XRouteTarget, XRowLink, XSection, XSegmented, XSelect, XSettingBlock, XSettingDivider, XSettingRow, XSettingsSection, XSettingsSkeleton, XStatusDot, XStatusText, XStepArrow, XSwitch, XTabs, XTagInput, XTestResult, XTextarea,
   XTooltip, XUsagePill, XValueChip, XInnerTable, XMark, XRowToggle, XDateTime, XPartHead, XButtonRow, XCheckGroup, XStateBar, XChipBox,
   XFactRow, XFactTile, XCopyChip, XCopyBlock, XCopyFrame, XQrCard, XPopover,
@@ -614,11 +614,11 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
             <XRowLink icon="doc" label="Журнал панели" />
             <XRowLink icon="database" label="Резервная копия" />
           </div>
-          <div class="kit__stack" style="max-width: 236px">
+          <XNav label="Меню" style="max-width: 236px">
             <XNavItem icon="dashboard" label="Дашборд" to="/kit" />
             <XNavItem icon="sliders" label="Настройки" />
             <XNavItem icon="logout" label="Выход" danger />
-          </div>
+          </XNav>
         </div>
         <div class="kit__variant">
           <h3 class="kit__h3">Список действий</h3>

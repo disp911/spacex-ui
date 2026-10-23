@@ -5,18 +5,20 @@ export interface Thumb {
   left: number
   right: number
   top: number
+  bottom: number
   height: number
-  ahead: 'left' | 'right' | null
+  ahead: 'left' | 'right' | 'up' | 'down' | null
 }
 
 /**
  * One highlight that travels to the chosen item of a group (segments, tabs,
- * pages) instead of jumping. The thumb is placed in the box's own coordinates:
- * the box is its positioned parent. On a change the leading edge gets
- * x-slide--left or x-slide--right (kit.css), so the thumb stretches on the way
- * and settles with a little spring; a resize moves it without animation.
+ * pages, a side menu) instead of jumping. The thumb is placed in the box's own
+ * coordinates: the box is its positioned parent. On a change the leading edge
+ * gets x-slide--left/right, or x-slide--up/down for a column (kit.css), so the
+ * thumb stretches on the way and settles with a little spring; a resize moves
+ * it without animation.
  */
-export function useSlidingThumb(box: Ref<HTMLElement | null>, selector: string, changes: WatchSource[]) {
+export function useSlidingThumb(box: Ref<HTMLElement | null>, selector: string, changes: WatchSource[], axis: 'x' | 'y' = 'x') {
   const thumb = ref<Thumb | null>(null)
 
   function place(animate: boolean) {
@@ -27,11 +29,17 @@ export function useSlidingThumb(box: Ref<HTMLElement | null>, selector: string, 
       return
     }
     const left = el.offsetLeft
-    // From the box's inner edge, as an absolute child is placed; in a scrolling strip it may lie past it.
-    const right = root.clientWidth - el.offsetLeft - el.offsetWidth
+    const top = el.offsetTop
+    // From the box's inner edges, as an absolute child is placed; in a scrolling strip it may lie past them.
+    const right = root.clientWidth - left - el.offsetWidth
+    const bottom = root.clientHeight - top - el.offsetHeight
     const was = thumb.value
-    const ahead = animate && was ? (left > was.left ? 'right' : left < was.left ? 'left' : null) : null
-    thumb.value = { left, right, top: el.offsetTop, height: el.offsetHeight, ahead }
+    let ahead: Thumb['ahead'] = null
+    if (animate && was) {
+      if (axis === 'x') ahead = left > was.left ? 'right' : left < was.left ? 'left' : null
+      else ahead = top > was.top ? 'down' : top < was.top ? 'up' : null
+    }
+    thumb.value = { left, right, top, bottom, height: el.offsetHeight, ahead }
   }
 
   let observer: ResizeObserver | null = null

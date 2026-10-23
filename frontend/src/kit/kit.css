@@ -185,6 +185,14 @@
   transition: left var(--t-enter) var(--ease-out), right var(--t-sheet) var(--ease-spring);
 }
 
+.x-slide--down {
+  transition: bottom var(--t-enter) var(--ease-out), top var(--t-sheet) var(--ease-spring);
+}
+
+.x-slide--up {
+  transition: top var(--t-enter) var(--ease-out), bottom var(--t-sheet) var(--ease-spring);
+}
+
 /* Menus, lists and popovers open out of their button: the origin is set where the button is. */
 .x-popup-enter-active {
   transition: opacity var(--t-popup) var(--ease-out), transform var(--t-popup) var(--ease-out);

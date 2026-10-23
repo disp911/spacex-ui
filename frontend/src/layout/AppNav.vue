@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { XNavItem } from '../kit'
+import { XNav, XNavItem } from '../kit'
 import { sections } from '../router'
 import { useSession } from '../stores/session'
 
@@ -10,7 +10,7 @@ const session = useSession()
 </script>
 
 <template>
-  <nav class="nav" :aria-label="t('nav.main')">
+  <XNav :label="t('nav.main')">
     <XNavItem
       v-for="s in sections"
       :key="s.name"
@@ -19,17 +19,11 @@ const session = useSession()
       :label="t(s.titleKey)"
       @click="$emit('navigate')"
     />
-  </nav>
+  </XNav>
   <XNavItem icon="logout" :label="t('nav.logout')" danger class="nav__logout" @click="session.logout()" />
 </template>
 
 <style scoped>
-.nav {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
 .nav__logout {
   align-self: end;
 }

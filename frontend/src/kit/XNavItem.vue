@@ -22,7 +22,9 @@ defineProps<{ icon: IconName; label: string; to?: RouteLocationRaw; danger?: boo
 </template>
 
 <style scoped>
+/* Over XNav's thumb, which carries the current item's tint. */
 .x-nav-item {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -59,7 +61,6 @@ defineProps<{ icon: IconName; label: string; to?: RouteLocationRaw; danger?: boo
 }
 
 .x-nav-item.is-current {
-  background: var(--acc-soft);
   color: var(--acc);
   font-weight: 500;
 }
