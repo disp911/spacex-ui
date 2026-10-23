@@ -74,7 +74,7 @@ const skeleton = [62, 48, 71, 55, 38, 66, 52, 44, 69, 58, 41, 63]
 </script>
 
 <template>
-  <XModal v-model:open="open" :title="t('dashboard.panelLog')" size="xl" flush full>
+  <XModal v-model:open="open" :title="t('dashboard.panelLog')" size="wide" flush full>
     <template #subtitle>
       {{ t('dashboard.logLines', { n: count }) }} · <span class="mono">journalctl -u x-ui</span>
     </template>
@@ -167,7 +167,8 @@ const skeleton = [62, 48, 71, 55, 38, 66, 52, 44, 69, 58, 41, 63]
   display: flex;
   flex: 1;
   min-width: 0;
-  height: 400px;
+  /* The window as tall as the connection log's, 629px: it fits a 730px laptop window. */
+  height: 482px;
   padding: 4px 2px 4px 0;
   border: 1px solid var(--line);
   border-radius: var(--r-12);
