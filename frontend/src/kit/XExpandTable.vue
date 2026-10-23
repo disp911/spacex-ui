@@ -245,8 +245,9 @@ const canOpen = (row: T) => props.expandable?.(row) ?? false
   filter: none;
 }
 
+/* As far from the open row, which is tinted, as from the next one. */
 .x-expand__inner {
-  margin: 2px 14px 12px;
+  margin: 12px 14px;
   /* A hovered last row keeps to the rounded corners; popups are teleported, so nothing else is cut. */
   overflow: clip;
   border: 1px solid var(--div);
@@ -284,6 +285,6 @@ const canOpen = (row: T) => props.expandable?.(row) ?? false
 }
 
 .x-expand--phone .x-expand__inner {
-  margin: 0 8px 10px;
+  margin: 10px 8px;
 }
 </style>
