@@ -1,5 +1,5 @@
 <script setup lang="ts" generic="T extends OptionValue">
-import { nextTick, onMounted, ref, watch } from 'vue'
+import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import XIcon from './XIcon.vue'
 import type { IconName } from './icons'
 import type { OptionValue } from './types'
@@ -30,6 +30,36 @@ function reveal() {
 onMounted(reveal)
 watch(model, () => nextTick(reveal))
 
+/*
+ * The chosen option's background is one thumb that travels between options.
+ * Its leading edge moves first and the trailing one follows, so on the way it
+ * stretches and at the end it settles with a little spring: liquid, not a jump.
+ */
+const thumb = ref<{ left: number; right: number; ahead: 'left' | 'right' | null } | null>(null)
+
+function place(animate: boolean) {
+  const box = root.value
+  const el = box?.querySelector<HTMLElement>('.is-selected')
+  if (!box || !el) {
+    thumb.value = null
+    return
+  }
+  const left = el.offsetLeft
+  // Measured from the box's inner edge, as the thumb is placed; in a scrolling strip it may lie past it.
+  const right = box.clientWidth - el.offsetLeft - el.offsetWidth
+  const was = thumb.value
+  thumb.value = { left, right, ahead: animate && was ? (left > was.left ? 'right' : left < was.left ? 'left' : null) : null }
+}
+
+let observer: ResizeObserver | null = null
+onMounted(() => {
+  place(false)
+  observer = new ResizeObserver(() => place(false))
+  if (root.value) observer.observe(root.value)
+})
+onBeforeUnmount(() => observer?.disconnect())
+watch([model, () => props.options], () => nextTick(() => place(true)), { deep: true })
+
 function onKeydown(e: KeyboardEvent) {
   const dir = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1 : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 0
   if (!dir) return
@@ -49,6 +79,12 @@ function onKeydown(e: KeyboardEvent) {
 
 <template>
   <div ref="root" role="radiogroup" :aria-label="label" :class="['x-seg', { 'x-seg--block': block, 'x-seg--scroll': scroll, 'is-disabled': disabled }]" @keydown="onKeydown">
+    <span
+      v-if="thumb"
+      :class="['x-seg__thumb', thumb.ahead && `x-seg__thumb--${thumb.ahead}`]"
+      :style="{ left: `${thumb.left}px`, right: `${thumb.right}px` }"
+      aria-hidden="true"
+    />
     <button
       v-for="o in options"
       :key="String(o.value)"
@@ -71,6 +107,7 @@ function onKeydown(e: KeyboardEvent) {
 
 <style scoped>
 .x-seg {
+  position: relative;
   display: inline-flex;
   align-items: stretch;
   gap: 2px;
@@ -102,7 +139,28 @@ function onKeydown(e: KeyboardEvent) {
   min-width: 0;
 }
 
+/* Under the options; set to the chosen one's box. */
+.x-seg__thumb {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  border-radius: var(--r-8);
+  background: var(--seg);
+  box-shadow: var(--shadow-seg);
+  pointer-events: none;
+}
+
+/* Moving right the right edge leads, moving left the left one: */
+.x-seg__thumb--right {
+  transition: right var(--t-enter) var(--ease-out), left var(--t-sheet) var(--ease-spring);
+}
+
+.x-seg__thumb--left {
+  transition: left var(--t-enter) var(--ease-out), right var(--t-sheet) var(--ease-spring);
+}
+
 .x-seg__item {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -158,10 +216,8 @@ function onKeydown(e: KeyboardEvent) {
 }
 
 .x-seg__item.is-selected {
-  background: var(--seg);
   color: var(--fg);
   font-weight: 600;
-  box-shadow: var(--shadow-seg);
 }
 
 .x-seg__item--icon.is-selected {
