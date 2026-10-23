@@ -13,8 +13,8 @@ export interface ExpandColumn {
   muted?: 'soft' | 'none'
   /** Label and content at the end of the cell, e.g. a button at the row's right; or in its middle, e.g. a short number. */
   align?: 'end' | 'center'
-  /** The cell starts with inline buttons: the label stands over the first icon, not the button's edge. */
-  icons?: boolean
+  /** What the column holds is plain to see, e.g. a menu or a switch: the label is read out but not shown. */
+  quiet?: boolean
 }
 
 /**
@@ -81,9 +81,9 @@ const canOpen = (row: T) => props.expandable?.(row) ?? false
       <span
         v-for="c in columns"
         :key="c.key"
-        :class="{ 'is-end': c.align === 'end', 'is-center': c.align === 'center', 'is-icons': c.icons }"
+        :class="{ 'is-end': c.align === 'end', 'is-center': c.align === 'center' }"
         role="columnheader"
-      >{{ c.label }}</span>
+      ><span :class="{ 'sr-only': c.quiet }">{{ c.label }}</span></span>
     </div>
 
     <div v-for="(row, i) in rows" :key="rowKey(row, i)" class="x-expand__item">
@@ -215,10 +215,6 @@ const canOpen = (row: T) => props.expandable?.(row) ?? false
 
 .x-expand__chevron.is-open {
   transform: rotate(90deg);
-}
-
-.x-expand__head .is-icons {
-  padding-left: var(--inline-inset);
 }
 
 .x-expand__head .is-end {

@@ -9,8 +9,8 @@ export interface InnerColumn {
   size?: string
   /** Label and content at the end of the cell, e.g. a button at the row's right. */
   align?: 'end'
-  /** The cell starts with inline buttons: the label stands over the first icon, not the button's edge. */
-  icons?: boolean
+  /** What the column holds is plain to see, e.g. a menu or a switch: the label is read out but not shown. */
+  quiet?: boolean
 }
 
 /**
@@ -34,7 +34,7 @@ const template = computed(() => columns.value.map((c) => c.size ?? 'minmax(0, 1f
 <template>
   <div :class="['x-inner', { 'x-inner--phone': phone }]" role="table">
     <div class="x-inner__head x-caps" role="row">
-      <span v-for="c in columns" :key="c.key" :class="{ 'is-end': c.align === 'end', 'is-icons': c.icons }" role="columnheader">{{ c.label }}</span>
+      <span v-for="c in columns" :key="c.key" :class="{ 'is-end': c.align === 'end' }" role="columnheader"><span :class="{ 'sr-only': c.quiet }">{{ c.label }}</span></span>
     </div>
     <div v-for="(row, i) in rows" :key="rowKey(row, i)" class="x-inner__row" role="row">
       <div v-for="c in columns" :key="c.key" :class="['x-inner__cell', { 'is-end': c.align === 'end' }]" role="cell">
@@ -61,10 +61,6 @@ const template = computed(() => columns.value.map((c) => c.size ?? 'minmax(0, 1f
 .x-inner__head {
   padding: 9px 12px;
   white-space: nowrap;
-}
-
-.x-inner__head .is-icons {
-  padding-left: var(--inline-inset);
 }
 
 .x-inner__head .is-end {

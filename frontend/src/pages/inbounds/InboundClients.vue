@@ -45,8 +45,8 @@ const sizes = computed(() => pageSizes(store.defaults?.pageSize || 25, shown.val
 // --- Rows --------------------------------------------------------------------------
 
 const columns = computed<InnerColumn[]>(() => [
-  { key: 'menu', label: t('inbounds.colMenu'), size: '148px', icons: true },
-  { key: 'enable', label: t('inbounds.colEnable'), size: '58px' },
+  { key: 'menu', label: t('inbounds.colMenu'), size: '148px', quiet: true },
+  { key: 'enable', label: t('inbounds.colEnable'), size: '58px', quiet: true },
   { key: 'online', label: t('inbounds.colOnline'), size: '72px' },
   { key: 'client', label: t('inbounds.colClient') },
   { key: 'traffic', label: t('inbounds.colTraffic'), size: '210px' },
@@ -54,7 +54,7 @@ const columns = computed<InnerColumn[]>(() => [
   { key: 'expiry', label: t('inbounds.colExpiry'), size: '172px' },
 ])
 const phoneColumns = computed<InnerColumn[]>(() => [
-  { key: 'menu', label: t('inbounds.colMenu'), size: '40px' },
+  { key: 'menu', label: t('inbounds.colMenu'), size: '40px', quiet: true },
   { key: 'client', label: t('inbounds.colClient') },
   { key: 'info', label: t('inbounds.colInfo'), size: '52px', align: 'end' },
 ])

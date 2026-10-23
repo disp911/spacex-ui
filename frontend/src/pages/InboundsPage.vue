@@ -116,8 +116,8 @@ const sizes = computed(() => pageSizes(store.defaults?.pageSize || 25, shown.val
 
 const columns = computed<ExpandColumn[]>(() => [
   { key: 'id', label: 'ID', size: '24px', align: 'center' },
-  { key: 'menu', label: t('inbounds.colMenu'), size: '28px', muted: 'none', icons: true },
-  { key: 'enable', label: t('inbounds.colEnable'), size: '52px', muted: 'none' },
+  { key: 'menu', label: t('inbounds.colMenu'), size: '28px', muted: 'none', quiet: true },
+  { key: 'enable', label: t('inbounds.colEnable'), size: '52px', muted: 'none', quiet: true },
   { key: 'remark', label: t('inbounds.colRemark'), size: 'minmax(0, 1.6fr)', muted: 'soft' },
   { key: 'port', label: t('inbounds.colPort'), size: '56px' },
   { key: 'protocol', label: t('inbounds.colProtocol'), size: 'minmax(0, 1.15fr)' },
@@ -127,7 +127,7 @@ const columns = computed<ExpandColumn[]>(() => [
   { key: 'expiry', label: t('inbounds.colExpiry'), size: '128px' },
 ])
 const phoneColumns = computed<ExpandColumn[]>(() => [
-  { key: 'menu', label: t('inbounds.colMenu'), size: '44px', muted: 'none' },
+  { key: 'menu', label: t('inbounds.colMenu'), size: '44px', muted: 'none', quiet: true },
   { key: 'remark', label: t('inbounds.colRemark'), muted: 'none' },
   { key: 'info', label: t('inbounds.colInfo'), size: '76px', align: 'end', muted: 'none' },
 ])
