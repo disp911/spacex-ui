@@ -27,7 +27,7 @@ defineProps<{ icon: IconName; label: string }>()
   margin: 0 -12px;
   padding: 0 12px;
   border: 0;
-  border-radius: var(--r-10);
+  border-radius: var(--ctl-r);
   background: transparent;
   color: var(--fg2);
   font: 400 var(--ctl-fs) / 1 var(--font-sans);

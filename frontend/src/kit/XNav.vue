@@ -35,7 +35,7 @@ const thumb = useSlidingThumb(root, '.is-current', [() => route.fullPath], 'y')
 
 .x-nav__thumb {
   position: absolute;
-  border-radius: var(--r-10);
+  border-radius: var(--ctl-r);
   background: var(--acc-soft);
   pointer-events: none;
 }

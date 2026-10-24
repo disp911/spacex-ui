@@ -16,7 +16,7 @@ withDefaults(defineProps<{ accent?: boolean }>(), {})
   min-width: var(--counter-h);
   height: var(--counter-h);
   padding: 0 4px;
-  border-radius: var(--r-4);
+  border-radius: var(--counter-r);
   background: var(--chip);
   color: var(--mut);
   font: 600 var(--fs-10) / 1 var(--font-mono);

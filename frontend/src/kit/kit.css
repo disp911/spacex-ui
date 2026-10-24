@@ -70,7 +70,7 @@
   padding: 4px;
   overflow-y: auto;
   border: 1px solid var(--line);
-  border-radius: var(--r-12);
+  border-radius: var(--pop-r);
   background: var(--dlg);
   box-shadow: var(--shadow-pop);
   font: 500 var(--ctl-fs) / var(--lh-tight) var(--font-sans);
@@ -87,7 +87,7 @@
   min-height: var(--menu-item-h);
   padding: 0 var(--item-px);
   border: 0;
-  border-radius: var(--r-8);
+  border-radius: var(--pop-item-r);
   background: transparent;
   color: var(--fg2);
   font: inherit;
@@ -229,7 +229,7 @@
   height: var(--chip-h);
   padding: 0 4px 0 8px;
   border: 1px solid var(--chip-line);
-  border-radius: var(--r-6);
+  border-radius: var(--chip-r);
   background: var(--chip);
   color: var(--fg2);
   font: 500 var(--fs-11) / 1 var(--font-sans);
@@ -329,7 +329,7 @@
 @media (max-width: 767px) {
   .x-ctl-lg {
     --ctl-h: 48px;
-    --ctl-r: var(--r-10);
+    --ctl-r: var(--r-12);
   }
 }
 

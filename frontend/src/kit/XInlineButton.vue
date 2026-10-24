@@ -65,7 +65,7 @@ withDefaults(
   height: var(--inline-btn);
   padding: 0;
   border: 0;
-  border-radius: var(--r-8);
+  border-radius: var(--ctl-sm-r);
   background: transparent;
   color: var(--dim);
   outline: none;

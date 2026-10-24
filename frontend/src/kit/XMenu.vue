@@ -256,7 +256,7 @@ function choose(item: MenuItem) {
 
 .x-menu--sheet .x-popup-item {
   --item-px: 12px;
-  border-radius: var(--r-10);
+  border-radius: var(--pop-item-r);
 }
 
 .x-menu--sheet .x-menu__check {

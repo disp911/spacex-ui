@@ -44,7 +44,7 @@ onBeforeUnmount(() => clearTimeout(timer))
   height: var(--chip-h);
   padding: 0;
   border: 0;
-  border-radius: var(--r-6);
+  border-radius: var(--chip-r);
   background: var(--ok-bg);
   color: var(--acc);
   cursor: pointer;

@@ -118,7 +118,7 @@ function onKeydown(e: KeyboardEvent) {
   position: absolute;
   top: 2px;
   bottom: 2px;
-  border-radius: var(--r-8);
+  border-radius: var(--ctl-sm-r);
   background: var(--seg);
   box-shadow: var(--shadow-seg);
   pointer-events: none;
@@ -132,7 +132,7 @@ function onKeydown(e: KeyboardEvent) {
   gap: 6px;
   padding: 0 12px;
   border: 0;
-  border-radius: var(--r-8);
+  border-radius: var(--ctl-sm-r);
   background: transparent;
   color: var(--mut);
   font: 500 var(--fs-12) / 1 var(--font-sans);

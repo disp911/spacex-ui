@@ -46,7 +46,7 @@ function toggle(e: MouseEvent) {
   padding: 10px 12px 12px 14px;
   overflow: auto;
   border: 1px solid var(--line);
-  border-radius: var(--r-12);
+  border-radius: var(--pop-r);
   background: var(--dlg);
   box-shadow: var(--shadow-pop);
 }

@@ -66,8 +66,13 @@
   --check: 16px;
   --check-r: var(--r-4);
   --chip-h: 22px;
+  --chip-r: var(--r-6);
   --badge-h: 20px;
   --counter-h: 16px;
+  --counter-r: var(--r-4);
+  /* Menus and popovers, and the items inside them (the box's radius less its 4px padding). */
+  --pop-r: var(--r-12);
+  --pop-item-r: var(--r-8);
   --icon-s: 12px;
   --icon-m: 14px;
   --icon-l: 16px;
@@ -314,7 +319,9 @@
 /*
  * Phones: sized as iOS apps are, 48px controls and list items and 17px text.
  * The type scale moves up as a whole, so --fs-N is N px on desktop only;
- * icons grow by --icon-k (XIcon).
+ * icons grow by --icon-k (XIcon). Radii follow the sizes on the scale's
+ * rule (28 to 8, 34 and 38 to 10, 44 and 48 to 12), an inner part's radius
+ * being its box's less the padding between them.
  */
 @media (max-width: 767px) {
   :root {
@@ -328,9 +335,10 @@
     --fs-20: 22px;
     --fs-24: 28px;
     --ctl-h: 48px;
-    --ctl-r: var(--r-10);
+    --ctl-r: var(--r-12);
     --ctl-fs: var(--fs-14);
     --ctl-sm-h: 36px;
+    --ctl-sm-r: var(--r-10);
     --btn-icon: 20px;
     --input-fs: var(--fs-14);
     --menu-item-h: 48px;
@@ -340,8 +348,12 @@
     --check: 24px;
     --check-r: var(--r-6);
     --chip-h: 28px;
+    --chip-r: var(--r-8);
     --badge-h: 24px;
     --counter-h: 20px;
+    --counter-r: var(--r-6);
+    --pop-r: var(--r-16);
+    --pop-item-r: var(--r-12);
     --icon-k: 1.2;
     --icon-s: 14px;
     --icon-m: 17px;

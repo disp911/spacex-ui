@@ -32,7 +32,7 @@ defineProps<{ icon: IconName; label: string; to?: RouteLocationRaw; danger?: boo
   height: var(--sidebar-item-h);
   padding: 0 12px;
   border: 0;
-  border-radius: var(--r-10);
+  border-radius: var(--ctl-r);
   background: transparent;
   color: var(--mut);
   font: 400 var(--fs-13) / 1 var(--font-sans);

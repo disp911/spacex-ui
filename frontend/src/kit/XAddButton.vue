@@ -21,7 +21,7 @@ defineProps<{ label: string }>()
   height: 22px;
   padding: 0;
   border: 1px dashed var(--acc);
-  border-radius: var(--r-6);
+  border-radius: var(--chip-r);
   background: transparent;
   color: var(--acc);
   outline: none;

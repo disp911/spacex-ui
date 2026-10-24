@@ -355,7 +355,7 @@ function rowStyle(k: number) {
 .x-grid__grip {
   width: 22px;
   height: var(--inline-btn);
-  border-radius: var(--r-8);
+  border-radius: var(--ctl-sm-r);
   color: var(--faint);
   cursor: grab;
   touch-action: none;
@@ -364,7 +364,7 @@ function rowStyle(k: number) {
 .x-grid__more {
   width: var(--inline-btn);
   height: var(--inline-btn);
-  border-radius: var(--r-8);
+  border-radius: var(--ctl-sm-r);
   color: var(--dim);
 }
 

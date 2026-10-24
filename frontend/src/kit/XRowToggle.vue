@@ -29,7 +29,7 @@ defineEmits<{ toggle: [] }>()
   min-height: 48px;
   padding: 6px 8px 6px 6px;
   border: 0;
-  border-radius: var(--r-10);
+  border-radius: var(--ctl-r);
   background: transparent;
   color: inherit;
   text-align: left;
