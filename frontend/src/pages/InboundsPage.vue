@@ -646,7 +646,8 @@ const clientFilter = computed<Filter>(() => (mode.value === 'filter' ? filter.va
 }
 
 .inbounds__facts {
-  width: 276px;
+  /* A phone's popover: wide enough for phone type, short of the screen's edges. */
+  width: min(320px, calc(100vw - 56px));
 }
 
 .inbounds__pager {
@@ -654,13 +655,10 @@ const clientFilter = computed<Filter>(() => (mode.value === 'filter' ? filter.va
 }
 
 @media (max-width: 767px) {
+  /* One a row: at phone type sizes two side by side cut their labels and figures. */
   .inbounds__stats {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 14px 12px;
-  }
-
-  .inbounds__clients {
-    grid-column: 1 / -1;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
   }
 }
 </style>

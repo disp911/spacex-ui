@@ -140,19 +140,20 @@ defineProps<{ rows: { label: string; value?: string; key?: string }[]; plain?: b
     border-radius: 0;
   }
 
+  /* Label columns as wide as phone type needs. */
   .x-kv--plain .x-kv__row {
-    grid-template-columns: 104px minmax(0, 1fr);
+    grid-template-columns: 120px minmax(0, 1fr);
     gap: var(--sp-10);
   }
 
   .x-kv--columns .x-kv__row {
-    grid-template-columns: 128px minmax(0, 1fr);
+    grid-template-columns: 144px minmax(0, 1fr);
     gap: 0;
   }
 
   .x-kv--columns .x-kv__label,
   .x-kv--columns .x-kv__value {
-    min-height: 40px;
+    min-height: var(--menu-item-h);
     padding-inline: var(--sp-12);
   }
 }

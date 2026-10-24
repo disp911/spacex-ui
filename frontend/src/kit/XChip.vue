@@ -62,6 +62,7 @@ const props = withDefaults(
 
 .x-chip--truncate {
   flex: 0 1 auto;
+  min-width: 0;
   max-width: min(300px, 100%);
 }
 

@@ -64,4 +64,17 @@ defineProps<{ icon: IconName; label: string; value?: string }>()
   white-space: nowrap;
   text-overflow: ellipsis;
 }
+
+/* Phones stack them one a row, so a label needs no room for a second line; the square grows with its icon. */
+@media (max-width: 767px) {
+  .x-sum__icon {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--r-10);
+  }
+
+  .x-sum__label {
+    min-height: 0;
+  }
+}
 </style>

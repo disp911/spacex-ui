@@ -132,7 +132,14 @@ const { t } = useI18n()
 
 @media (max-width: 767px) {
   .x-settings__head {
+    min-height: var(--menu-item-h);
     padding: 6px 16px;
+  }
+
+  /* A long title takes a second line rather than losing its end. */
+  .x-settings__title {
+    white-space: normal;
+    text-wrap: balance;
   }
 
   .x-settings__body--padded {

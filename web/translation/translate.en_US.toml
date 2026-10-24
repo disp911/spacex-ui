@@ -497,6 +497,7 @@
 "dnsLog" = "DNS Log"
 "dnsLogDesc" = "Whether to enable DNS query logs"
 "secReset" = "Reset to Default"
+"secResetCta" = "Reset"
 "template" = "Advanced Xray Configuration Template"
 "templateDesc" = "The final Xray config file will be generated based on this template."
 "partAll" = "All"

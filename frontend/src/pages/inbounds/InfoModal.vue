@@ -348,5 +348,14 @@ const accounts = computed<Json[]>(() => (Array.isArray(s.value.accounts) && (pro
   .info {
     gap: var(--sp-14);
   }
+
+  /* Two a line, the expiry across: a date and time do not fit a third of a phone. */
+  .info__tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .info__tiles > :last-child {
+    grid-column: 1 / -1;
+  }
 }
 </style>

@@ -382,7 +382,7 @@ async function download() {
     display: none;
   }
 
-  /* Refresh, search and the download square on the first line, then date, client and types side by side. */
+  /* Refresh, search and the download square on the first line, then the date, client and types filters. */
   .xlog-bar {
     padding: 10px 14px;
   }
@@ -400,8 +400,9 @@ async function download() {
     order: -1;
   }
 
+  /* Two a line at phone type sizes: date and client, then types across. */
   .xlog-filter {
-    flex: 1;
+    flex: 1 1 calc(50% - 4px);
     min-width: 0;
     max-width: none;
   }

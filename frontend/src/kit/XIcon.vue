@@ -8,6 +8,7 @@ withDefaults(defineProps<{ name: IconName; size?: number; stroke?: number }>(), 
   <!-- eslint-disable-next-line vue/no-v-html -- static icon markup from icons.ts -->
   <svg
     class="x-icon"
+    :style="{ '--x-icon': `${size}px` }"
     :width="size"
     :height="size"
     viewBox="0 0 16 16"
@@ -22,8 +23,11 @@ withDefaults(defineProps<{ name: IconName; size?: number; stroke?: number }>(), 
 </template>
 
 <style scoped>
+/* Its size grows by --icon-k on phones, to whole pixels; a part that sizes its icons itself (buttons) still wins. */
 .x-icon {
   display: block;
   flex: none;
+  width: round(calc(var(--x-icon) * var(--icon-k)), 1px);
+  height: round(calc(var(--x-icon) * var(--icon-k)), 1px);
 }
 </style>

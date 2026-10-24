@@ -248,6 +248,12 @@ const dark = computed({
     padding: var(--sp-12) var(--sp-12) var(--sp-12) var(--sp-16);
   }
 
+  /* The client's id goes under the title when both do not fit. */
+  .sub__title {
+    flex-wrap: wrap;
+    row-gap: var(--sp-4);
+  }
+
   .sub__body {
     padding: var(--sp-16) var(--sp-14) var(--sp-20);
   }

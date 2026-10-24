@@ -71,13 +71,16 @@
   --icon-s: 12px;
   --icon-m: 14px;
   --icon-l: 16px;
+  /* How much every icon grows: 1 on desktop, more on phones. */
+  --icon-k: 1;
   /* Square icon buttons and icon squares: the regular control size, also inside .x-ctl-lg */
   --btn-sq: var(--ctl-h);
   --btn-sq-r: var(--ctl-r);
   /* Icon in a regular button and in the squares */
   --btn-icon: 16px;
-  /* Room around the icon of an inline button (28px box, 14px icon): a column label over such buttons starts this far in, over the icon. */
-  --inline-inset: 7px;
+  /* An inline button's box (28px, 36px on phones), and the room around its 14px icon: a column label over such buttons starts this far in, over the icon. */
+  --inline-btn: 28px;
+  --inline-inset: calc((var(--inline-btn) - var(--icon-m)) / 2);
 
   /* Motion */
   /* A pressed control gives a little: buttons, chips, then small icon buttons and boxes more. */
@@ -308,20 +311,41 @@
   --lift: 0 14px 34px rgba(16, 20, 28, .18);
 }
 
-/* Phones: 38px controls and list items, 16px inputs so iOS does not zoom; control text stays 13px as on desktop. */
+/*
+ * Phones: sized as iOS apps are, 48px controls and list items and 17px text.
+ * The type scale moves up as a whole, so --fs-N is N px on desktop only;
+ * icons grow by --icon-k (XIcon).
+ */
 @media (max-width: 767px) {
   :root {
-    --ctl-h: 38px;
+    --fs-10: 12px;
+    --fs-11: 13px;
+    --fs-12: 14px;
+    --fs-13: 16px;
+    --fs-14: 17px;
+    --fs-16: 18px;
+    --fs-18: 20px;
+    --fs-20: 22px;
+    --fs-24: 28px;
+    --ctl-h: 48px;
     --ctl-r: var(--r-10);
-    --ctl-sm-h: 30px;
-    --btn-icon: 18px;
-    --input-fs: var(--fs-16);
-    --menu-item-h: 38px;
-    --sidebar-item-h: 38px;
-    --switch-w: 44px;
-    --switch-h: 26px;
-    --check: 20px;
+    --ctl-fs: var(--fs-14);
+    --ctl-sm-h: 36px;
+    --btn-icon: 20px;
+    --input-fs: var(--fs-14);
+    --menu-item-h: 48px;
+    --sidebar-item-h: 48px;
+    --switch-w: 51px;
+    --switch-h: 31px;
+    --check: 24px;
     --check-r: var(--r-6);
-    --chip-h: 24px;
+    --chip-h: 28px;
+    --badge-h: 24px;
+    --counter-h: 20px;
+    --icon-k: 1.2;
+    --icon-s: 14px;
+    --icon-m: 17px;
+    --icon-l: 19px;
+    --inline-btn: 36px;
   }
 }

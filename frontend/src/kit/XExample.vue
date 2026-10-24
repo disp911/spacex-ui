@@ -39,4 +39,13 @@ defineProps<{ label: string; value: string }>()
   white-space: pre;
   text-overflow: ellipsis;
 }
+
+/* A value with no room beside the label goes under it. */
+@media (max-width: 767px) {
+  .x-example {
+    flex-wrap: wrap;
+    row-gap: var(--sp-2);
+    padding-block: var(--sp-6);
+  }
+}
 </style>

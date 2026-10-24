@@ -99,7 +99,7 @@ async function reset() {
     </XSettingsSection>
 
     <XSettingsSection v-model:open="open.reset" :title="t('xray.secReset')" padded>
-      <XButton variant="danger" icon="reset" :loading="resetting" @click="reset">{{ t('xray.secReset') }}</XButton>
+      <XButton variant="danger" icon="reset" :loading="resetting" @click="reset">{{ t('xray.secResetCta') }}</XButton>
     </XSettingsSection>
   </div>
 </template>

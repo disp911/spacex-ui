@@ -395,7 +395,9 @@ onBeforeUnmount(() => {
     min-height: 0;
   }
 
+  /* Buttons too long to share a line each take a line of their own. */
   .x-modal__foot {
+    flex-wrap: wrap;
     padding-bottom: calc(12px + env(safe-area-inset-bottom));
   }
 

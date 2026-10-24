@@ -39,4 +39,12 @@ defineProps<{ label: string }>()
 .x-add:focus-visible {
   box-shadow: 0 0 0 3px var(--acc-ring);
 }
+
+/* A finger's size on phones. */
+@media (max-width: 767px) {
+  .x-add {
+    width: 28px;
+    height: 28px;
+  }
+}
 </style>

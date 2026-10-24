@@ -481,12 +481,15 @@ const dash = '—'
   .area-manage { order: 6; }
   .area-system { order: 7; }
 
+  /* Two rows of two, each figure under its total: four in a row leave no room for a speed. */
   .net-figures {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr);
   }
 
-  .net-figures__pair {
-    display: contents;
+  /* The three load figures need the whole width. */
+  .system {
+    flex-direction: column;
+    gap: 16px;
   }
 
   .tile__total {

@@ -392,7 +392,8 @@ async function confirmed(request: Promise<unknown>) {
 }
 
 .clients__info {
-  width: 268px;
+  /* A phone's popover: wide enough for phone type, short of the screen's edges. */
+  width: min(320px, calc(100vw - 56px));
 }
 
 .clients__label {
@@ -407,6 +408,7 @@ async function confirmed(request: Promise<unknown>) {
   margin-top: 8px;
   color: var(--mut);
   font: 400 var(--fs-12) / var(--lh-tight) var(--font-mono);
+  white-space: nowrap;
 }
 
 .clients__end {

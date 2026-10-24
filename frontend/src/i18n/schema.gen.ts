@@ -408,6 +408,7 @@ export interface MessageSchema {
     "dnsLog": string
     "dnsLogDesc": string
     "secReset": string
+    "secResetCta": string
     "template": string
     "templateDesc": string
     "partAll": string

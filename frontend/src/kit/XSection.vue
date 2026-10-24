@@ -159,9 +159,20 @@ const id = useId()
 }
 
 @media (max-width: 767px) {
+  /* A title and its control too wide for one line: the control moves under, to the right. */
+  .x-section__bar {
+    flex-wrap: wrap;
+  }
+
   .x-section__head {
+    flex: 1 0 auto;
+    width: auto;
     height: var(--ctl-h);
     font-size: var(--fs-14);
+  }
+
+  .x-section__meta {
+    margin-left: auto;
   }
 
   .x-section__body {

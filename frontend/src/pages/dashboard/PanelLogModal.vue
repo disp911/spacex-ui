@@ -218,11 +218,11 @@ const skeleton = [62, 48, 71, 55, 38, 66, 52, 44, 69, 58, 41, 63]
 }
 
 @media (max-width: 767px) {
-  /* As in the mockup: no level label on phones; the row scrolls sideways. */
+  /* No level label on phones; at phone type sizes the tools take two lines, as in the Xray log. */
   .log-bar {
-    gap: 6px;
+    flex-wrap: wrap;
+    gap: 8px;
     padding: 10px 14px;
-    overflow-x: auto;
   }
 
   .log-bar > * {

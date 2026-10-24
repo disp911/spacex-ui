@@ -211,7 +211,7 @@ async function restart() {
           {{ saving ? t('settings.saving') : t('settings.save') }}
         </XButton>
         <XButton variant="primary" icon="refresh" :disabled="!canRestart" :pending="ready && !!dirty" :loading="restarting" @click="restart">
-          {{ t('xray.restart') }}
+          {{ t('settings.restartShort') }}
         </XButton>
         <XProcessError v-if="result" v-model:open="resultOpen" :title="t('xray.startError')" :text="result" />
       </XActionBar>

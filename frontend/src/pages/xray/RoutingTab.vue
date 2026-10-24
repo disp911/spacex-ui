@@ -64,7 +64,7 @@ function saveRule(rule: Rule) {
   <div class="xray-tab">
     <div class="xray-tab__tools">
       <XButton variant="primary" icon="plus" class="xray-tab__main" @click="create">{{ t('xray.ruleAdd') }}</XButton>
-      <XButton icon="globe" @click="geoOpen = true">{{ t('xray.geoFiles') }}</XButton>
+      <XButton icon="globe" phone-icon-only @click="geoOpen = true">{{ t('xray.geoFiles') }}</XButton>
     </div>
 
     <XGridTable
