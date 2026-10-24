@@ -4,9 +4,10 @@ import XStatusDot from './XStatusDot.vue'
 import type { RowTone } from './XDataTable.vue'
 
 /**
- * One log record as a card, for phones where a table does not fit: a dot and
- * the title with the time on top; a name, a detail and a badge below. Tinted
- * by tone like XDataTable rows. loading draws grey bars instead.
+ * One log record as a card, for phones where a table does not fit: the time
+ * and the badge on top; a dot and the title below, with a name and a detail
+ * at the right. Tinted by tone like XDataTable rows. loading draws grey bars
+ * instead.
  */
 defineProps<{
   title?: string
@@ -26,14 +27,14 @@ defineProps<{
   </div>
   <div v-else :class="['x-record', tone && `x-record--${tone}`]">
     <div class="x-record__top">
-      <XStatusDot size="sm" :color="tone ? `var(--${tone === 'err' ? 'err' : 'upload'})` : 'var(--faint)'" />
-      <span class="x-record__title">{{ title }}</span>
-      <span v-if="time" class="x-record__time">{{ time }}</span>
+      <span class="x-record__time">{{ time }}</span>
+      <XBadge v-if="badge" kind="outline" mono :tone="tone">{{ badge }}</XBadge>
     </div>
     <div class="x-record__bottom">
+      <XStatusDot size="sm" :color="tone ? `var(--${tone === 'err' ? 'err' : 'upload'})` : 'var(--faint)'" />
+      <span class="x-record__title">{{ title }}</span>
       <span v-if="name" class="x-record__name">{{ name }}</span>
       <span class="x-record__detail">{{ detail }}</span>
-      <XBadge v-if="badge" kind="outline" mono :tone="tone">{{ badge }}</XBadge>
     </div>
   </div>
 </template>
@@ -71,7 +72,7 @@ defineProps<{
 }
 
 .x-record__title {
-  flex: 1;
+  flex: 0 1 auto;
   min-width: 0;
   overflow: hidden;
   font: 500 var(--fs-13) / var(--lh-tight) var(--font-mono);
@@ -80,13 +81,15 @@ defineProps<{
 }
 
 .x-record__time {
-  flex: none;
+  flex: 1;
   color: var(--dim);
   font: 400 var(--fs-11) / var(--lh-tight) var(--font-mono);
 }
 
+/* Name and detail keep to the right in what the title leaves: the detail gives way first, the name stays. */
 .x-record__name {
   flex: none;
+  margin-left: auto;
   max-width: 120px;
   overflow: hidden;
   color: var(--fg2);
@@ -96,7 +99,7 @@ defineProps<{
 }
 
 .x-record__detail {
-  flex: 1;
+  flex: 0 1000 auto;
   min-width: 0;
   overflow: hidden;
   color: var(--dim);
