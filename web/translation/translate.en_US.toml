@@ -99,6 +99,7 @@
 "notFoundHint" = "The address may be mistyped, or the page was removed."
 "toDashboard" = "Go to the dashboard"
 "screenDraft" = "This screen is under construction."
+"transportType" = "Transport type"
 
 [nav]
 "main" = "Main menu"

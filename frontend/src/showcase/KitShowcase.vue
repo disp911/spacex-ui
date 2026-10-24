@@ -822,12 +822,14 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
           </XPlainTable>
           <XPlainTable :columns="plainColumns" :rows="noPlainRows" :row-key="(r) => r.ext" />
         </XSection>
-        <XPartHead title="Транспорт">
-          <XSelect v-model="demoNet" :options="[{ value: 'tcp', label: 'TCP (RAW)' }, { value: 'xhttp', label: 'XHTTP' }]" />
-        </XPartHead>
-        <XPartHead title="Безопасность" wide>
+        <XPartHead title="Транспорт" />
+        <XFieldGrid>
+          <XField v-slot="a" label="Тип транспорта"><XSelect v-bind="a" v-model="demoNet" :options="[{ value: 'tcp', label: 'TCP (RAW)' }, { value: 'xhttp', label: 'XHTTP' }]" /></XField>
+        </XFieldGrid>
+        <XPartHead title="Безопасность" />
+        <XFieldGrid>
           <XSegmented v-model="demoSec" :options="[{ value: 'none', label: 'Пусто' }, { value: 'reality', label: 'Reality' }, { value: 'tls', label: 'TLS' }]" label="Безопасность" block />
-        </XPartHead>
+        </XFieldGrid>
         <XFieldGrid top>
           <XField v-slot="a" label="Short IDs (сетка top)"><XTextarea v-bind="a" v-model="demoShortIds" mono :rows="4" /></XField>
           <XField v-slot="a" label="SpiderX"><XInput v-bind="a" model-value="/" mono /></XField>

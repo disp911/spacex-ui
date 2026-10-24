@@ -5,7 +5,7 @@ import { XField, XFieldGrid, XInput, XMultiSelect, XSection, XSegmented, XSelect
 import type { Outbound } from './model'
 import { alpns, canReality, defaultReality, defaultTls, fingerprints } from './outbound'
 
-/** The security of the outbound window: none, TLS or Reality in the card's head, and its settings. */
+/** The security of the outbound window: none, TLS or Reality first in the card, then its settings. */
 const props = defineProps<{ o: Outbound }>()
 const { t } = useI18n()
 const open = ref(true)
@@ -48,13 +48,11 @@ const alpnOptions = alpns.map((a) => ({ value: a, label: a }))
 
 <template>
   <XSection v-model:open="open" :title="t('xray.security')" card>
-    <template #meta>
-      <div class="security__kinds">
-        <XSegmented v-model="sec" :options="kinds" :label="t('xray.security')" block />
-      </div>
-    </template>
+    <XFieldGrid :cols="2">
+      <XSegmented v-model="sec" :options="kinds" :label="t('xray.security')" block />
+    </XFieldGrid>
 
-    <template v-if="sec === 'tls'" #default>
+    <template v-if="sec === 'tls'">
       <XFieldGrid :cols="2">
         <XField v-slot="a" label="SNI"><XInput v-bind="a" v-model="tls.serverName" mono /></XField>
         <XField v-slot="a" label="uTLS"><XSelect v-bind="a" :model-value="tls.fingerprint ?? ''" @update:model-value="tls.fingerprint = String($event)" :options="fingerprintOptions(true)" mono /></XField>
@@ -69,7 +67,7 @@ const alpnOptions = alpns.map((a) => ({ value: a, label: a }))
       </XFieldGrid>
     </template>
 
-    <template v-else-if="sec === 'reality'" #default>
+    <template v-else-if="sec === 'reality'">
       <XFieldGrid :cols="2">
         <XField v-slot="a" label="SNI"><XInput v-bind="a" v-model="reality.serverName" mono /></XField>
         <XField v-slot="a" label="uTLS"><XSelect v-bind="a" v-model="reality.fingerprint" :options="fingerprintOptions(false)" mono /></XField>
@@ -81,15 +79,3 @@ const alpnOptions = alpns.map((a) => ({ value: a, label: a }))
     </template>
   </XSection>
 </template>
-
-<style scoped>
-.security__kinds {
-  width: 250px;
-}
-
-@media (max-width: 767px) {
-  .security__kinds {
-    width: 190px;
-  }
-}
-</style>

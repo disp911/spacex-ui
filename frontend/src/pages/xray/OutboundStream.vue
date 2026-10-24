@@ -8,7 +8,7 @@ import type { Outbound } from './model'
 import { canFlow, defaultNetwork, defaultQuic, defaultXmux, items, networks, user, xhttpModes } from './outbound'
 import OutboundPackets from './OutboundPackets.vue'
 
-/** The transport of the outbound window: the network in the card's head, its settings, and the masks over it. */
+/** The transport of the outbound window: the network first in the card, its settings, and the masks over it. */
 const props = defineProps<{ o: Outbound }>()
 const { t } = useI18n()
 const open = ref(true)
@@ -182,11 +182,9 @@ const resolverHint = computed(() => t('xray.hintExample', { v: 'xxx+udp://8.8.8.
 
 <template>
   <XSection v-model:open="open" :title="t('xray.transport')" card>
-    <template #meta>
-      <div class="of-head-control">
-        <XSelect v-model="net" :options="netOptions" mono :aria-label="t('xray.transport')" />
-      </div>
-    </template>
+    <XFieldGrid :cols="2">
+      <XField v-slot="a" :label="t('common.transportType')"><XSelect v-bind="a" v-model="net" :options="netOptions" mono /></XField>
+    </XFieldGrid>
 
     <!-- TCP -->
     <template v-if="net === 'tcp'">
@@ -388,8 +386,10 @@ const resolverHint = computed(() => t('xray.hintExample', { v: 'xxx+udp://8.8.8.
 
     <!-- QUIC parameters -->
     <XSection v-if="quic" v-model:open="quicOpen" title="QUIC Params" card mono>
-      <template #meta><XSwitch v-model="quicOn" label="QUIC Params" /></template>
-      <template v-if="quicOn" #default>
+      <XFieldGrid :cols="2">
+        <XSwitch v-model="quicOn" boxed :label="t('inbounds.enable')" />
+      </XFieldGrid>
+      <template v-if="quicOn">
         <XFieldGrid :cols="2">
           <XField v-slot="a" label="Congestion"><XSelect v-bind="a" v-model="qp.congestion" :options="congestions" /></XField>
           <XSwitch v-model="qp.debug" boxed label="Debug" />
@@ -417,15 +417,3 @@ const resolverHint = computed(() => t('xray.hintExample', { v: 'xxx+udp://8.8.8.
     </XSection>
   </XSection>
 </template>
-
-<style scoped>
-.of-head-control {
-  width: 220px;
-}
-
-@media (max-width: 767px) {
-  .of-head-control {
-    width: 150px;
-  }
-}
-</style>

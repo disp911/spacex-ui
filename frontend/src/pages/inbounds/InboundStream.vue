@@ -80,9 +80,10 @@ const masqueradeTypes: Option[] = [
 </script>
 
 <template>
-  <XPartHead :title="t('inbounds.transport')">
-    <XSelect v-if="!hysteria" v-model="netModel" :options="networks" :aria-label="t('inbounds.transport')" />
-  </XPartHead>
+  <XPartHead :title="t('inbounds.transport')" />
+  <XFieldGrid v-if="!hysteria">
+    <XField v-slot="a" :label="t('common.transportType')"><XSelect v-bind="a" v-model="netModel" :options="networks" /></XField>
+  </XFieldGrid>
 
   <!-- TCP (RAW) -->
   <template v-if="net === 'tcp'">

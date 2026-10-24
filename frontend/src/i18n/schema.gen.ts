@@ -10,6 +10,7 @@ export interface MessageSchema {
     "notFoundHint": string
     "toDashboard": string
     "screenDraft": string
+    "transportType": string
   }
   "nav": {
     "main": string

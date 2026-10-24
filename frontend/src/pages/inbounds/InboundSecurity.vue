@@ -14,7 +14,7 @@ import {
 
 /**
  * The security part of window 11, as the old panel's TLS and Reality forms
- * had it: none, Reality or TLS in the head (Hysteria is always TLS); TLS with
+ * had it: none, Reality or TLS first (Hysteria is always TLS); TLS with
  * its certificates by path or content and ECH; Reality with its target, short
  * IDs and keys. Choosing Reality fetches a key pair at once (mockup 11a).
  */
@@ -131,9 +131,12 @@ function panelCert(c: Json) {
 <template>
   <template v-if="shown">
     <XPartHead v-if="hysteria" title="TLS" />
-    <XPartHead v-else :title="t('inbounds.security')" wide>
-      <XSegmented v-model="sec" :options="kinds" :label="t('inbounds.security')" block />
-    </XPartHead>
+    <template v-else>
+      <XPartHead :title="t('inbounds.security')" />
+      <XFieldGrid>
+        <XSegmented v-model="sec" :options="kinds" :label="t('inbounds.security')" block />
+      </XFieldGrid>
+    </template>
 
     <!-- TLS -->
     <template v-if="sec === 'tls'">
