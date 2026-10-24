@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import XIcon from './XIcon.vue'
 import XMenu, { type MenuItem } from './XMenu.vue'
@@ -7,9 +7,13 @@ import { useSlidingThumb } from './slidingThumb'
 
 /**
  * Pages of a list. With sizes, a choice of rows per page at the end; with
- * summary, phones show «Page 2 of 5» at the start in place of the compact count.
+ * summary, phones show «Page 2 of 5» at the start in place of the compact count;
+ * strip makes it, on phones, one line of every page number with the current one
+ * lit, e.g. at the end of a list where the line is free: a tap picks a page, a
+ * finger drawn along the line picks the one it is lifted on, and a line too
+ * long for the screen scrolls sideways with the current page in its middle.
  */
-const props = defineProps<{ pages: number; sizes?: number[]; summary?: boolean }>()
+const props = defineProps<{ pages: number; sizes?: number[]; summary?: boolean; strip?: boolean }>()
 const page = defineModel<number>({ default: 1 })
 const size = defineModel<number>('size', { default: 0 })
 const { t } = useI18n()
@@ -38,10 +42,59 @@ const thumb = useSlidingThumb(nav, '.x-pager__number.is-current', [page, items])
 function go(to: number) {
   page.value = Math.min(Math.max(to, 1), props.pages)
 }
+
+// --- Strip -------------------------------------------------------------------
+
+const line = ref<HTMLElement | null>(null)
+/** The page lit on the strip: the current one, or the one under a moving finger. */
+const lit = ref(page.value)
+watch(page, (p) => (lit.value = p))
+const stripThumb = useSlidingThumb(line, '.x-pager__cell.is-current', [lit, () => props.pages])
+
+// A line that fits is drawn along to pick; one too long scrolls instead.
+const fits = ref(true)
+let sizer: ResizeObserver | null = null
+const measure = () => (fits.value = !line.value || line.value.scrollWidth <= line.value.clientWidth + 1)
+onMounted(() => {
+  if (!line.value) return
+  sizer = new ResizeObserver(measure)
+  sizer.observe(line.value)
+  center(false)
+})
+onBeforeUnmount(() => sizer?.disconnect())
+
+function center(smooth = true) {
+  const box = line.value
+  const el = box?.querySelector<HTMLElement>('.x-pager__cell.is-current')
+  if (!box || !el || fits.value) return
+  box.scrollTo({ left: el.offsetLeft - (box.clientWidth - el.offsetWidth) / 2, behavior: smooth ? 'smooth' : 'auto' })
+}
+watch([page, () => props.pages], () => nextTick(() => (measure(), center())))
+
+let drawing = false
+let moved = false
+let startX = 0
+function drawStart(e: PointerEvent) {
+  drawing = true
+  moved = false
+  startX = e.clientX
+}
+function drawMove(e: PointerEvent) {
+  if (!drawing || !fits.value) return
+  if (Math.abs(e.clientX - startX) > 6) moved = true
+  if (!moved) return
+  const cell = document.elementFromPoint(e.clientX, e.clientY)?.closest<HTMLElement>('.x-pager__cell')
+  if (cell?.dataset.page) lit.value = Number(cell.dataset.page)
+}
+function drawEnd() {
+  if (!drawing) return
+  drawing = false
+  if (moved) go(lit.value)
+}
 </script>
 
 <template>
-  <nav ref="nav" :class="['x-pager', { 'x-pager--summary': summary }]" :aria-label="t('kit.pages')">
+  <nav ref="nav" :class="['x-pager', { 'x-pager--summary': summary, 'x-pager--strip': strip }]" :aria-label="t('kit.pages')">
     <span
       v-if="thumb"
       :class="['x-pager__thumb', thumb.ahead && `x-slide--${thumb.ahead}`]"
@@ -74,6 +127,33 @@ function go(to: number) {
         <XIcon name="caret" :size="12" :stroke="1.7" />
       </button>
     </XMenu>
+    <div
+      v-if="strip"
+      ref="line"
+      :class="['x-pager__line', { 'is-fit': fits }]"
+      @pointerdown="drawStart"
+      @pointermove="drawMove"
+      @pointerup="drawEnd"
+      @pointercancel="drawing = false"
+    >
+      <span
+        v-if="stripThumb"
+        :class="['x-pager__line-thumb', stripThumb.ahead && `x-slide--${stripThumb.ahead}`]"
+        :style="{ left: `${stripThumb.left}px`, right: `${stripThumb.right}px` }"
+        aria-hidden="true"
+      />
+      <button
+        v-for="n in pages"
+        :key="n"
+        type="button"
+        :data-page="n"
+        :class="['x-pager__cell', { 'is-current': n === lit }]"
+        :aria-current="n === page ? 'page' : undefined"
+        @click="go(n)"
+      >
+        {{ n }}
+      </button>
+    </div>
   </nav>
 </template>
 
@@ -203,6 +283,81 @@ function go(to: number) {
     min-width: var(--ctl-h);
     height: var(--ctl-h);
     border-radius: var(--ctl-r);
+  }
+
+  /* The strip takes the line in place of the steps and the count. */
+  .x-pager--strip {
+    width: 100%;
+  }
+
+  .x-pager--strip > :not(.x-pager__line) {
+    display: none;
+  }
+
+  .x-pager__line {
+    position: relative;
+    display: flex;
+    flex: 1;
+    gap: 2px;
+    min-width: 0;
+    height: var(--ctl-h);
+    padding: 2px;
+    overflow-x: auto;
+    border: 1px solid var(--field-line);
+    border-radius: var(--ctl-r);
+    background: var(--field);
+    scrollbar-width: none;
+    touch-action: pan-x;
+    user-select: none;
+  }
+
+  .x-pager__line::-webkit-scrollbar {
+    display: none;
+  }
+
+  .x-pager__line.is-fit {
+    touch-action: none;
+  }
+
+  /* Under the numbers, which are lifted above it, as in the desktop's chips. */
+  .x-pager__line-thumb {
+    position: absolute;
+    top: 2px;
+    bottom: 2px;
+    z-index: 1;
+    border-radius: var(--ctl-sm-r);
+    background: var(--acc);
+    pointer-events: none;
+  }
+
+  .x-pager__cell {
+    position: relative;
+    z-index: 2;
+    flex: 1 0 42px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--ctl-sm-r);
+    background: transparent;
+    color: var(--fg2);
+    font: 500 var(--fs-13) / 1 var(--font-mono);
+    outline: none;
+    transition: color var(--t-med);
+  }
+
+  .x-pager__cell:focus-visible {
+    box-shadow: inset 0 0 0 2px var(--acc-line);
+  }
+
+  .x-pager__cell.is-current {
+    color: var(--acc-ink);
+    font-weight: 600;
+  }
+}
+
+/* Desktop keeps its chips; the strip is a phone's. */
+@media (min-width: 768px) {
+  .x-pager__line {
+    display: none;
   }
 }
 </style>

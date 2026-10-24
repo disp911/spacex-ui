@@ -100,8 +100,12 @@ watch(query, () => {
 })
 onBeforeUnmount(() => clearTimeout(typing))
 
+// The phone cards scroll on their own; another page starts at their top.
+const cards = ref<HTMLElement | null>(null)
+
 function goTo(to: number) {
   page.value = to
+  cards.value?.scrollTo({ top: 0 })
   load()
 }
 
@@ -132,7 +136,7 @@ const clientItems = computed<MenuItem[]>(() => [
   ...(data.value?.clients ?? []).map((c) => ({ key: c, label: c, checked: c === client.value })),
 ])
 const kindItems = computed<MenuItem[]>(() => kinds.map((k) => ({ key: k.key, label: k.label, dot: k.dot, checked: shown[k.key] })))
-// Phones show the types filter as an icon square, a dot when it holds back rows.
+// Phones show the types filter as an icon square (a dot when it holds back rows) and page at the end of the cards.
 const phone = usePhone()
 const allKinds = computed(() => kinds.every((k) => shown[k.key]))
 const kindsLabel = computed(() => {
@@ -260,7 +264,7 @@ async function download() {
         </template>
       </XDataTable>
 
-      <div class="xlog-cards xlog-narrow">
+      <div ref="cards" class="xlog-cards xlog-narrow">
         <template v-if="loading">
           <XRecordCard v-for="n in 6" :key="n" loading />
         </template>
@@ -281,10 +285,14 @@ async function download() {
         </XEmpty>
         <XEmpty v-else-if="!data?.dates?.length" :title="t('dashboard.logEmpty')" />
         <XEmpty v-else :title="t('dashboard.xlogNothing')" :hint="t('dashboard.xlogNothingHint')" />
+        <!-- Phones page at the end of the cards, not in a bar under them. -->
+        <div v-if="!loading && rows.length && pages > 1" class="xlog-pages">
+          <XPager :model-value="page" :pages="pages" strip @update:model-value="goTo" />
+        </div>
       </div>
     </div>
 
-    <template #footer>
+    <template v-if="!phone" #footer>
       <div class="xlog-foot">
         <span class="xlog-range xlog-wide">{{ range }}</span>
         <XPager :model-value="page" :pages="pages" @update:model-value="goTo" />
@@ -434,8 +442,15 @@ async function download() {
     flex-direction: column;
     gap: 8px;
     min-height: 0;
-    padding: 12px 14px 14px;
+    /* The last card and the pages clear the home indicator, as the window's footer did. */
+    padding: 12px 14px calc(14px + env(safe-area-inset-bottom));
     overflow-y: auto;
+  }
+
+  .xlog-pages {
+    display: flex;
+    justify-content: center;
+    padding-top: 4px;
   }
 }
 </style>
