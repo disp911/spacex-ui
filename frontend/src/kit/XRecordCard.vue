@@ -5,9 +5,9 @@ import type { RowTone } from './XDataTable.vue'
 
 /**
  * One log record as a card, for phones where a table does not fit: the time
- * and the badge on top; a dot and the title below, with a name and a detail
- * at the right. Tinted by tone like XDataTable rows. loading draws grey bars
- * instead.
+ * on top with a name and a detail at the right; a dot and the title below,
+ * with the badge at the right. Tinted by tone like XDataTable rows. loading
+ * draws grey bars instead.
  */
 defineProps<{
   title?: string
@@ -28,13 +28,13 @@ defineProps<{
   <div v-else :class="['x-record', tone && `x-record--${tone}`]">
     <div class="x-record__top">
       <span class="x-record__time">{{ time }}</span>
-      <XBadge v-if="badge" kind="outline" mono :tone="tone">{{ badge }}</XBadge>
+      <span v-if="name" class="x-record__name">{{ name }}</span>
+      <span class="x-record__detail">{{ detail }}</span>
     </div>
     <div class="x-record__bottom">
       <XStatusDot size="sm" :color="tone ? `var(--${tone === 'err' ? 'err' : 'upload'})` : 'var(--faint)'" />
       <span class="x-record__title">{{ title }}</span>
-      <span v-if="name" class="x-record__name">{{ name }}</span>
-      <span class="x-record__detail">{{ detail }}</span>
+      <XBadge v-if="badge" kind="outline" mono :tone="tone">{{ badge }}</XBadge>
     </div>
   </div>
 </template>
@@ -72,7 +72,7 @@ defineProps<{
 }
 
 .x-record__title {
-  flex: 0 1 auto;
+  flex: 1;
   min-width: 0;
   overflow: hidden;
   font: 500 var(--fs-13) / var(--lh-tight) var(--font-mono);
@@ -81,12 +81,12 @@ defineProps<{
 }
 
 .x-record__time {
-  flex: 1;
+  flex: none;
   color: var(--dim);
   font: 400 var(--fs-11) / var(--lh-tight) var(--font-mono);
 }
 
-/* Name and detail keep to the right in what the title leaves: the detail gives way first, the name stays. */
+/* Name and detail keep to the right of the time. */
 .x-record__name {
   flex: none;
   margin-left: auto;
@@ -99,7 +99,7 @@ defineProps<{
 }
 
 .x-record__detail {
-  flex: 0 1000 auto;
+  flex: 0 1 auto;
   min-width: 0;
   overflow: hidden;
   color: var(--dim);
