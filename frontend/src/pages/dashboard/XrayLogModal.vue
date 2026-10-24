@@ -295,7 +295,7 @@ async function download() {
     <template v-if="!phone" #footer>
       <div class="xlog-foot">
         <span class="xlog-range xlog-wide">{{ range }}</span>
-        <XPager :model-value="page" :pages="pages" @update:model-value="goTo" />
+        <XPager :model-value="page" :pages="pages" strip @update:model-value="goTo" />
       </div>
     </template>
   </XModal>

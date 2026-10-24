@@ -8,10 +8,10 @@ import { useSlidingThumb } from './slidingThumb'
 /**
  * Pages of a list. With sizes, a choice of rows per page at the end; with
  * summary, phones show «Page 2 of 5» at the start in place of the compact count;
- * strip makes it, on phones, one line of every page number with the current one
- * lit, e.g. at the end of a list where the line is free: a tap picks a page, a
- * finger drawn along the line picks the one it is lifted on, and a line too
- * long for the screen scrolls sideways with the current page in its middle.
+ * strip makes it one line of every page number with the current one lit, the
+ * whole width on phones: a tap picks a page, a finger or the mouse drawn along
+ * the line picks the one it is let go on, and a line too long for its place
+ * scrolls sideways with the current page in its middle.
  */
 const props = defineProps<{ pages: number; sizes?: number[]; summary?: boolean; strip?: boolean }>()
 const page = defineModel<number>({ default: 1 })
@@ -285,79 +285,87 @@ function drawEnd() {
     border-radius: var(--ctl-r);
   }
 
-  /* The strip takes the line in place of the steps and the count. */
+  /* On phones the strip takes the whole line, its numbers sharing it. */
   .x-pager--strip {
     width: 100%;
   }
 
-  .x-pager--strip > :not(.x-pager__line) {
-    display: none;
-  }
-
-  .x-pager__line {
-    position: relative;
-    display: flex;
+  .x-pager--strip .x-pager__line {
     flex: 1;
-    gap: 2px;
-    min-width: 0;
-    height: var(--ctl-h);
-    padding: 2px;
-    overflow-x: auto;
-    border: 1px solid var(--field-line);
-    border-radius: var(--ctl-r);
-    background: var(--field);
-    scrollbar-width: none;
-    touch-action: pan-x;
-    user-select: none;
-  }
-
-  .x-pager__line::-webkit-scrollbar {
-    display: none;
-  }
-
-  .x-pager__line.is-fit {
-    touch-action: none;
-  }
-
-  /* Under the numbers, which are lifted above it, as in the desktop's chips. */
-  .x-pager__line-thumb {
-    position: absolute;
-    top: 2px;
-    bottom: 2px;
-    z-index: 1;
-    border-radius: var(--ctl-sm-r);
-    background: var(--acc);
-    pointer-events: none;
-  }
-
-  .x-pager__cell {
-    position: relative;
-    z-index: 2;
-    flex: 1 0 42px;
-    padding: 0;
-    border: 0;
-    border-radius: var(--ctl-sm-r);
-    background: transparent;
-    color: var(--fg2);
-    font: 500 var(--fs-13) / 1 var(--font-mono);
-    outline: none;
-    transition: color var(--t-med);
-  }
-
-  .x-pager__cell:focus-visible {
-    box-shadow: inset 0 0 0 2px var(--acc-line);
-  }
-
-  .x-pager__cell.is-current {
-    color: var(--acc-ink);
-    font-weight: 600;
   }
 }
 
-/* Desktop keeps its chips; the strip is a phone's. */
-@media (min-width: 768px) {
-  .x-pager__line {
-    display: none;
-  }
+/* The strip: the line of numbers stands in for the steps, the chips and the count. */
+.x-pager--strip {
+  min-width: 0;
+}
+
+.x-pager--strip > :not(.x-pager__line) {
+  display: none;
+}
+
+.x-pager__line {
+  position: relative;
+  display: flex;
+  flex: 0 1 auto;
+  gap: 2px;
+  min-width: 0;
+  height: var(--ctl-h);
+  padding: 2px;
+  overflow-x: auto;
+  border: 1px solid var(--field-line);
+  border-radius: var(--ctl-r);
+  background: var(--field);
+  scrollbar-width: none;
+  touch-action: pan-x;
+  user-select: none;
+}
+
+.x-pager__line::-webkit-scrollbar {
+  display: none;
+}
+
+.x-pager__line.is-fit {
+  touch-action: none;
+}
+
+/* Under the numbers, which are lifted above it, as in the chips. */
+.x-pager__line-thumb {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  z-index: 1;
+  border-radius: var(--ctl-sm-r);
+  background: var(--acc);
+  pointer-events: none;
+}
+
+/* A number is at least a square of the line's inner height. */
+.x-pager__cell {
+  position: relative;
+  z-index: 2;
+  flex: 1 0 auto;
+  min-width: calc(var(--ctl-h) - 6px);
+  padding: 0 8px;
+  border: 0;
+  border-radius: var(--ctl-sm-r);
+  background: transparent;
+  color: var(--fg2);
+  font: 500 var(--fs-13) / 1 var(--font-mono);
+  outline: none;
+  transition: color var(--t-med);
+}
+
+.x-pager__cell:hover:not(.is-current) {
+  color: var(--fg);
+}
+
+.x-pager__cell:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--acc-line);
+}
+
+.x-pager__cell.is-current {
+  color: var(--acc-ink);
+  font-weight: 600;
 }
 </style>
