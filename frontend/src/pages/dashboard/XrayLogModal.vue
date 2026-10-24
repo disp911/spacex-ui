@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { api, ApiError, saveFile } from '../../api'
 import { formatNumber } from '../../i18n/format'
 import {
-  toast, XButton, XCheckbox, XDataTable, XEmpty, XInput, XMenu, XModal, XPager, XRecordCard, XStatusDot,
+  toast, usePhone, XButton, XCheckbox, XDataTable, XEmpty, XInput, XMenu, XModal, XPager, XRecordCard, XStatusDot,
   type MenuItem, type RowTone, type TableColumn,
 } from '../../kit'
 
@@ -132,6 +132,9 @@ const clientItems = computed<MenuItem[]>(() => [
   ...(data.value?.clients ?? []).map((c) => ({ key: c, label: c, checked: c === client.value })),
 ])
 const kindItems = computed<MenuItem[]>(() => kinds.map((k) => ({ key: k.key, label: k.label, dot: k.dot, checked: shown[k.key] })))
+// Phones show the types filter as an icon square, a dot when it holds back rows.
+const phone = usePhone()
+const allKinds = computed(() => kinds.every((k) => shown[k.key]))
 const kindsLabel = computed(() => {
   const on = kinds.filter((k) => shown[k.key])
   if (on.length === kinds.length) return t('dashboard.xlogAllTypes')
@@ -215,7 +218,17 @@ async function download() {
       <XInput v-model="query" icon="search" clearable mono :placeholder="t('dashboard.xlogSearch')" class="xlog-search" />
 
       <XMenu v-slot="{ props }" :items="kindItems" :title="t('dashboard.xlogTypes')" placement="bottom-start" sheet multiple @select="shown[$event as Kind] = !shown[$event as Kind]">
-        <XButton v-bind="props" :label="`${t('dashboard.xlogTypes')}: ${kindsLabel}`" caret class="xlog-filter xlog-types">{{ kindsLabel }}</XButton>
+        <XButton
+          v-bind="props"
+          :label="`${t('dashboard.xlogTypes')}: ${kindsLabel}`"
+          :icon="phone ? 'filter' : undefined"
+          :caret="!phone"
+          :dot="phone && !allKinds"
+          phone-icon-only
+          class="xlog-filter xlog-types xlog-icon"
+        >
+          {{ kindsLabel }}
+        </XButton>
       </XMenu>
 
       <XCheckbox v-for="k in kinds" :key="k.key" v-model="shown[k.key]" boxed :tone="k.tone" class="xlog-check">{{ k.label }}</XCheckbox>
@@ -382,7 +395,7 @@ async function download() {
     display: none;
   }
 
-  /* Refresh, search and the download square on the first line, then the date, client and types filters. */
+  /* Refresh, search and the download square on the first line, then date, client and the types square. */
   .xlog-bar {
     padding: 10px 14px;
   }
@@ -400,11 +413,15 @@ async function download() {
     order: -1;
   }
 
-  /* Two a line at phone type sizes: date and client, then types across. */
+  /* Date and client share the line, the types square keeps to its right; a long value ends in an ellipsis. */
   .xlog-filter {
-    flex: 1 1 calc(50% - 4px);
+    flex: 1;
     min-width: 0;
     max-width: none;
+  }
+
+  .xlog-icon {
+    flex: none;
   }
 
   .xlog-area {
