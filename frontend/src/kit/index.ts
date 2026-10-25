@@ -104,6 +104,7 @@ export { toast } from './toast'
 export { copyText } from './clipboard'
 export { checkJson, type JsonIssue } from './jsonCheck'
 export { usePhone } from './media'
+export { useEdgeFade } from './edgeFade'
 export type { IconName } from './icons'
 export type { Option, OptionValue, Tone } from './types'
 

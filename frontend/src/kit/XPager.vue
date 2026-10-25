@@ -3,6 +3,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import XIcon from './XIcon.vue'
 import XMenu, { type MenuItem } from './XMenu.vue'
+import { useEdgeFade } from './edgeFade'
 import { useSlidingThumb } from './slidingThumb'
 
 /**
@@ -34,16 +35,10 @@ const thumb = useSlidingThumb(line, '.x-pager__cell.is-current', [lit, () => pro
 // A line that fits is drawn along to pick; one too long scrolls instead.
 const fits = ref(true)
 let sizer: ResizeObserver | null = null
-// Which edges have more numbers beyond them: those fade out.
-const more = ref({ left: false, right: false })
-function edges() {
-  const box = line.value
-  if (!box) return
-  more.value = { left: box.scrollLeft > 1, right: box.scrollLeft + box.clientWidth < box.scrollWidth - 1 }
-}
+const { classes: fade, update: updateFade } = useEdgeFade(line)
 const measure = () => {
   fits.value = !line.value || line.value.scrollWidth <= line.value.clientWidth + 1
-  edges()
+  updateFade()
 }
 onMounted(() => {
   if (!line.value) return
@@ -88,8 +83,7 @@ function drawEnd() {
     <div class="x-pager__line">
       <div
         ref="line"
-        :class="['x-pager__track', { 'is-fit': fits, 'has-left': more.left, 'has-right': more.right }]"
-        @scroll.passive="edges"
+        :class="['x-pager__track', fade, { 'is-fit': fits }]"
         @pointerdown="drawStart"
         @pointermove="drawMove"
         @pointerup="drawEnd"
@@ -144,8 +138,6 @@ function drawEnd() {
 }
 
 .x-pager__track {
-  --fade-l: 0px;
-  --fade-r: 0px;
   position: relative;
   display: flex;
   flex: 1;
@@ -156,7 +148,6 @@ function drawEnd() {
   scrollbar-width: none;
   touch-action: pan-x;
   user-select: none;
-  mask-image: linear-gradient(to right, transparent, #000 var(--fade-l), #000 calc(100% - var(--fade-r)), transparent);
 }
 
 .x-pager__track::-webkit-scrollbar {
@@ -165,14 +156,6 @@ function drawEnd() {
 
 .x-pager__track.is-fit {
   touch-action: none;
-}
-
-.x-pager__track.has-left {
-  --fade-l: 32px;
-}
-
-.x-pager__track.has-right {
-  --fade-r: 32px;
 }
 
 /* Under the numbers, which are lifted above it. */

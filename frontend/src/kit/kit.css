@@ -193,6 +193,20 @@
   transition: top var(--t-enter) var(--ease-out), bottom var(--t-sheet) var(--ease-spring);
 }
 
+/* A sideways strip with more beyond an edge fades out there (edgeFade.ts). */
+.x-fade-start,
+.x-fade-end {
+  mask-image: linear-gradient(to right, transparent, #000 var(--fade-start, 0px), #000 calc(100% - var(--fade-end, 0px)), transparent);
+}
+
+.x-fade-start {
+  --fade-start: 32px;
+}
+
+.x-fade-end {
+  --fade-end: 32px;
+}
+
 /* Menus, lists and popovers open out of their button: the origin is set where the button is. */
 .x-popup-enter-active {
   transition: opacity var(--t-popup) var(--ease-out), transform var(--t-popup) var(--ease-out);

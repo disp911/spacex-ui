@@ -1,5 +1,6 @@
 <script setup lang="ts" generic="K extends string">
 import { nextTick, onMounted, ref, watch } from 'vue'
+import { useEdgeFade } from './edgeFade'
 import { useSlidingThumb } from './slidingThumb'
 
 export interface TabItem<K extends string = string> {
@@ -13,7 +14,7 @@ export interface TabItem<K extends string = string> {
  * Page tabs. On wide screens labels sit on a line with an accent ink under the
  * current one; on phones they are pills in a strip that scrolls sideways.
  */
-defineProps<{
+const props = defineProps<{
   items: TabItem<K>[]
   label?: string
   /** While the page loads: the tabs show but do not switch. */
@@ -24,6 +25,9 @@ const model = defineModel<K>({ required: true })
 const strip = ref<HTMLElement | null>(null)
 // The accent ink travels to the current tab like liquid.
 const ink = useSlidingThumb(strip, '.is-current', [model])
+// A strip that scrolls fades out at an edge with more tabs beyond it.
+const { classes: fade, update: updateFade } = useEdgeFade(strip)
+watch(() => props.items, () => nextTick(updateFade), { deep: true })
 
 // In a strip that scrolls the current tab stays in sight.
 function reveal() {
@@ -45,7 +49,7 @@ function onKeydown(e: KeyboardEvent, items: TabItem<K>[]) {
 
 <template>
   <div class="x-tabs">
-    <div ref="strip" class="x-tabs__strip" role="tablist" :aria-label="label" @keydown="onKeydown($event, items)">
+    <div ref="strip" :class="['x-tabs__strip', fade]" role="tablist" :aria-label="label" @keydown="onKeydown($event, items)">
       <button
         v-for="tab in items"
         :key="tab.key"
@@ -185,28 +189,20 @@ function onKeydown(e: KeyboardEvent, items: TabItem<K>[]) {
 
 /*
  * Phones: the same labels and ink in a strip that scrolls sideways, fading out
- * at the right edge. A scrolling box clips its border, so the line is drawn
- * inside it and the ink sits on it.
+ * at an edge with more tabs beyond it. The fade is a mask on the strip, so the
+ * line is drawn under it by the frame and stays whole; the ink sits on it.
  */
 @media (max-width: 767px) {
-  .x-tabs::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 1px;
-    width: 28px;
-    background: linear-gradient(90deg, transparent, var(--bg));
-    pointer-events: none;
+  .x-tabs {
+    box-shadow: inset 0 -1px var(--div);
   }
 
   .x-tabs__strip {
     padding: 0 14px;
     overflow-x: auto;
     /* The current tab scrolls into view clear of the fade. */
-    scroll-padding-inline: 28px;
+    scroll-padding-inline: 32px;
     border-bottom: 0;
-    box-shadow: inset 0 -1px var(--div);
   }
 
   .x-tabs__tab {
