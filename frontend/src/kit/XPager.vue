@@ -9,8 +9,9 @@ import { useSlidingThumb } from './slidingThumb'
  * Pages of a list: one line of every page number with the current one lit,
  * the whole width on phones. A tap or click picks a page; a finger or the
  * mouse drawn along the line picks the one it is let go on; a line too long
- * for its place scrolls sideways with the current page in its middle. With
- * sizes, a choice of rows per page follows it.
+ * for its place scrolls sideways with the current page in its middle, its
+ * numbers fading out at an edge that has more beyond it. With sizes, a choice
+ * of rows per page follows it.
  */
 const props = defineProps<{ pages: number; sizes?: number[] }>()
 const page = defineModel<number>({ default: 1 })
@@ -33,12 +34,22 @@ const thumb = useSlidingThumb(line, '.x-pager__cell.is-current', [lit, () => pro
 // A line that fits is drawn along to pick; one too long scrolls instead.
 const fits = ref(true)
 let sizer: ResizeObserver | null = null
-const measure = () => (fits.value = !line.value || line.value.scrollWidth <= line.value.clientWidth + 1)
+// Which edges have more numbers beyond them: those fade out.
+const more = ref({ left: false, right: false })
+function edges() {
+  const box = line.value
+  if (!box) return
+  more.value = { left: box.scrollLeft > 1, right: box.scrollLeft + box.clientWidth < box.scrollWidth - 1 }
+}
+const measure = () => {
+  fits.value = !line.value || line.value.scrollWidth <= line.value.clientWidth + 1
+  edges()
+}
 onMounted(() => {
   if (!line.value) return
-  sizer = new ResizeObserver(measure)
+  // Measured once laid out, and again on a resize: the current page comes back to the middle.
+  sizer = new ResizeObserver(() => (measure(), center(false)))
   sizer.observe(line.value)
-  center(false)
 })
 onBeforeUnmount(() => sizer?.disconnect())
 
@@ -74,31 +85,34 @@ function drawEnd() {
 
 <template>
   <nav class="x-pager" :aria-label="t('kit.pages')">
-    <div
-      ref="line"
-      :class="['x-pager__line', { 'is-fit': fits }]"
-      @pointerdown="drawStart"
-      @pointermove="drawMove"
-      @pointerup="drawEnd"
-      @pointercancel="drawing = false"
-    >
-      <span
-        v-if="thumb"
-        :class="['x-pager__thumb', thumb.ahead && `x-slide--${thumb.ahead}`]"
-        :style="{ left: `${thumb.left}px`, right: `${thumb.right}px` }"
-        aria-hidden="true"
-      />
-      <button
-        v-for="n in pages"
-        :key="n"
-        type="button"
-        :data-page="n"
-        :class="['x-pager__cell', { 'is-current': n === lit }]"
-        :aria-current="n === page ? 'page' : undefined"
-        @click="go(n)"
+    <div class="x-pager__line">
+      <div
+        ref="line"
+        :class="['x-pager__track', { 'is-fit': fits, 'has-left': more.left, 'has-right': more.right }]"
+        @scroll.passive="edges"
+        @pointerdown="drawStart"
+        @pointermove="drawMove"
+        @pointerup="drawEnd"
+        @pointercancel="drawing = false"
       >
-        {{ n }}
-      </button>
+        <span
+          v-if="thumb"
+          :class="['x-pager__thumb', thumb.ahead && `x-slide--${thumb.ahead}`]"
+          :style="{ left: `${thumb.left}px`, right: `${thumb.right}px` }"
+          aria-hidden="true"
+        />
+        <button
+          v-for="n in pages"
+          :key="n"
+          type="button"
+          :data-page="n"
+          :class="['x-pager__cell', { 'is-current': n === lit }]"
+          :aria-current="n === page ? 'page' : undefined"
+          @click="go(n)"
+        >
+          {{ n }}
+        </button>
+      </div>
     </div>
     <XMenu v-if="sizes?.length" v-slot="{ props: trigger }" :items="sizeItems" placement="bottom-end" @select="(size = Number($event)), (page = 1)">
       <button type="button" class="x-pager__size" v-bind="trigger">
@@ -117,36 +131,55 @@ function drawEnd() {
   min-width: 0;
 }
 
+/* The frame; the numbers scroll inside it, so the fade never dims the frame. */
 .x-pager__line {
-  position: relative;
   display: flex;
   flex: 0 1 auto;
-  gap: 2px;
   min-width: 0;
   height: var(--ctl-h);
   padding: 2px;
-  overflow-x: auto;
   border: 1px solid var(--field-line);
   border-radius: var(--ctl-r);
   background: var(--field);
+}
+
+.x-pager__track {
+  --fade-l: 0px;
+  --fade-r: 0px;
+  position: relative;
+  display: flex;
+  flex: 1;
+  gap: 2px;
+  min-width: 0;
+  overflow-x: auto;
+  border-radius: var(--ctl-sm-r);
   scrollbar-width: none;
   touch-action: pan-x;
   user-select: none;
+  mask-image: linear-gradient(to right, transparent, #000 var(--fade-l), #000 calc(100% - var(--fade-r)), transparent);
 }
 
-.x-pager__line::-webkit-scrollbar {
+.x-pager__track::-webkit-scrollbar {
   display: none;
 }
 
-.x-pager__line.is-fit {
+.x-pager__track.is-fit {
   touch-action: none;
+}
+
+.x-pager__track.has-left {
+  --fade-l: 32px;
+}
+
+.x-pager__track.has-right {
+  --fade-r: 32px;
 }
 
 /* Under the numbers, which are lifted above it. */
 .x-pager__thumb {
   position: absolute;
-  top: 2px;
-  bottom: 2px;
+  top: 0;
+  bottom: 0;
   z-index: 1;
   border-radius: var(--ctl-sm-r);
   background: var(--acc);

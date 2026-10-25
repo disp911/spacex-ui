@@ -553,7 +553,7 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
             />
           </div>
           <XPager v-model="page" :pages="3" />
-          <XPager v-model="page" :pages="12" />
+          <XPager v-model="page" :pages="45" />
         </div>
         <div class="kit__variant">
           <h3 class="kit__h3">Notice</h3>
