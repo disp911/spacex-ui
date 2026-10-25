@@ -843,8 +843,6 @@ export interface MessageSchema {
     "cancel": string
     "remove": string
     "pages": string
-    "previousPage": string
-    "nextPage": string
     "modified": string
     "errors": string
     "unfold": string
@@ -868,7 +866,6 @@ export interface MessageSchema {
     "delayMs": string
     "testFailed": string
     "perPage": string
-    "pageOf": string
     "expand": string
     "comment": string
     "copy": string

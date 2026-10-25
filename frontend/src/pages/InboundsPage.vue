@@ -549,7 +549,7 @@ const clientFilter = computed<Filter>(() => (mode.value === 'filter' ? filter.va
           <XEmpty icon="inbox" :title="t('inbounds.noData')" tab />
         </template>
         <template v-if="shown.length > 25" #foot>
-          <XPager v-model="page" v-model:size="size" :pages="pages" :sizes="sizes" summary class="inbounds__pager" />
+          <XPager v-model="page" v-model:size="size" :pages="pages" :sizes="sizes" class="inbounds__pager" />
         </template>
       </XExpandTable>
     </template>

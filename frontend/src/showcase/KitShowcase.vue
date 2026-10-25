@@ -552,8 +552,8 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
               :options="[{ value: 'search', label: 'Поиск', icon: 'search' }, { value: 'filter', label: 'Фильтр', icon: 'filter' }]"
             />
           </div>
+          <XPager v-model="page" :pages="3" />
           <XPager v-model="page" :pages="12" />
-          <XPager v-model="page" :pages="12" strip />
         </div>
         <div class="kit__variant">
           <h3 class="kit__h3">Notice</h3>
@@ -1020,7 +1020,7 @@ const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 56]
               <template #phone-email="{ row }"><XMark :text="row.email" query="ali" /></template>
             </XInnerTable>
           </template>
-          <template #foot><XPager v-model="demoInbPage" v-model:size="demoInbSize" :pages="3" :sizes="[25, 50, 70]" summary /></template>
+          <template #foot><XPager v-model="demoInbPage" v-model:size="demoInbSize" :pages="3" :sizes="[25, 50, 70]" /></template>
         </XExpandTable>
       </div>
     </XCard>

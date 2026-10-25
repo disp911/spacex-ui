@@ -303,7 +303,7 @@ async function confirmed(request: Promise<unknown>) {
     </template>
 
     <template v-if="shown.length > (store.defaults?.pageSize || 25)" #foot>
-      <XPager v-model="page" v-model:size="size" :pages="pages" :sizes="sizes" summary class="clients__pager" />
+      <XPager v-model="page" v-model:size="size" :pages="pages" :sizes="sizes" class="clients__pager" />
     </template>
   </XInnerTable>
 </template>

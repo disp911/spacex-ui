@@ -287,7 +287,7 @@ async function download() {
         <XEmpty v-else :title="t('dashboard.xlogNothing')" :hint="t('dashboard.xlogNothingHint')" />
         <!-- Phones page at the end of the cards, not in a bar under them. -->
         <div v-if="!loading && rows.length && pages > 1" class="xlog-pages">
-          <XPager :model-value="page" :pages="pages" strip @update:model-value="goTo" />
+          <XPager :model-value="page" :pages="pages" @update:model-value="goTo" />
         </div>
       </div>
     </div>
@@ -295,7 +295,7 @@ async function download() {
     <template v-if="!phone" #footer>
       <div class="xlog-foot">
         <span class="xlog-range xlog-wide">{{ range }}</span>
-        <XPager :model-value="page" :pages="pages" strip @update:model-value="goTo" />
+        <XPager :model-value="page" :pages="pages" @update:model-value="goTo" />
       </div>
     </template>
   </XModal>
