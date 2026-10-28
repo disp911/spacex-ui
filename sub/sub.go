@@ -47,6 +47,8 @@ type Server struct {
 
 	sub            *SUBController
 	settingService service.SettingService
+	// onSite is set while the website serves the subscriptions.
+	onSite bool
 
 	ctx    context.Context
 	cancel context.CancelFunc
@@ -218,6 +220,15 @@ func (s *Server) Start() (err error) {
 		return err
 	}
 
+	// With the website on port 443 the subscriptions are served there, at
+	// their paths, and the server's own port stays shut.
+	if webpkg.SiteRunning() {
+		webpkg.SetSubFront(engine, s.paths())
+		s.onSite = true
+		logger.Info("Sub server answering on the website")
+		return nil
+	}
+
 	certFile, err := s.settingService.GetSubCertFile()
 	if err != nil {
 		return err
@@ -270,9 +281,32 @@ func (s *Server) Start() (err error) {
 	return nil
 }
 
+// paths returns the paths the subscription server answers: the links and,
+// when they are on, the JSON and Clash formats.
+func (s *Server) paths() []string {
+	paths := []string{}
+	if p, err := s.settingService.GetSubPath(); err == nil {
+		paths = append(paths, p)
+	}
+	if on, _ := s.settingService.GetSubJsonEnable(); on {
+		if p, err := s.settingService.GetSubJsonPath(); err == nil {
+			paths = append(paths, p)
+		}
+	}
+	if on, _ := s.settingService.GetSubClashEnable(); on {
+		if p, err := s.settingService.GetSubClashPath(); err == nil {
+			paths = append(paths, p)
+		}
+	}
+	return paths
+}
+
 // Stop gracefully shuts down the subscription server and closes the listener.
 func (s *Server) Stop() error {
 	s.cancel()
+	if s.onSite {
+		webpkg.SetSubFront(nil, nil)
+	}
 
 	var err1 error
 	var err2 error

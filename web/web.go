@@ -25,6 +25,7 @@ import (
 	"github.com/disp911/spacex-ui/v2/web/network"
 	"github.com/disp911/spacex-ui/v2/web/service"
 	"github.com/disp911/spacex-ui/v2/web/session"
+	"github.com/disp911/spacex-ui/v2/web/site"
 	"github.com/disp911/spacex-ui/v2/web/spa"
 	"github.com/disp911/spacex-ui/v2/web/websocket"
 
@@ -67,6 +68,14 @@ type Server struct {
 	// decoyServer is the loopback site telemt shows WEB proxy requests that
 	// carry no valid credentials.
 	decoyServer *http.Server
+
+	// The website on port 443 and port 80 beside it, see startSite.
+	siteServer     *http.Server
+	redirectServer *http.Server
+	siteCerts      *site.Certs
+	siteTLS        *tls.Config
+	siteHandler    http.Handler
+	siteCheck      *site.Checker
 
 	index *controller.IndexController
 	panel *controller.XUIController
@@ -272,6 +281,13 @@ func (s *Server) startTask() {
 		s.cron.AddJob("@every 10s", job.NewXrayTrafficJob())
 	}()
 
+	// Look at the website from outside every hour, the first time once a
+	// certificate has had a moment to come
+	if s.siteCheck != nil {
+		time.AfterFunc(2*time.Minute, s.checkSite)
+		s.cron.AddFunc("@hourly", s.checkSite)
+	}
+
 	// check client ips from log file every 10 sec
 	s.cron.AddJob("@every 10s", job.NewCheckClientIpJob())
 
@@ -327,26 +343,68 @@ func (s *Server) Start() (err error) {
 		return err
 	}
 
+	// With the website on, the panel shares port 443 with it and keeps its
+	// own port only if asked; should the website fail to start, the panel
+	// opens on its own port as if it were off.
+	ownPort, httpsOn443 := true, false
+	if mode, _ := s.settingService.GetSiteMode(); mode != service.SiteOff {
+		if own, err := s.startSite(mode, engine); err != nil {
+			logger.Error("Website:", err, "- the panel opens on its own port")
+		} else {
+			ownPort, httpsOn443 = own, true
+		}
+	}
+	if ownPort {
+		listener, onPort443, err := s.listenPanel()
+		if err != nil {
+			return err
+		}
+		httpsOn443 = httpsOn443 || onPort443
+		s.listener = listener
+		handler := http.Handler(webProxyFront{panel: engine, route: service.TelemtWebRoute})
+		if s.siteHandler != nil {
+			handler = s.siteHandler
+		}
+		s.httpServer = &http.Server{Handler: handler}
+		go func() {
+			s.httpServer.Serve(listener)
+		}()
+	}
+
+	s.startWebDecoy(engine, httpsOn443)
+	s.startTask()
+
+	return nil
+}
+
+// listenPanel opens the panel's own port: with the website on, with the
+// website's certificate; otherwise HTTPS with the panel's certificate if it
+// has one, plain HTTP if not. It reports whether that is HTTPS on port 443.
+func (s *Server) listenPanel() (net.Listener, bool, error) {
+	if s.siteTLS != nil {
+		listener, err := s.listenOwnPort()
+		return listener, false, err
+	}
 	certFile, err := s.settingService.GetCertFile()
 	if err != nil {
-		return err
+		return nil, false, err
 	}
 	keyFile, err := s.settingService.GetKeyFile()
 	if err != nil {
-		return err
+		return nil, false, err
 	}
 	listen, err := s.settingService.GetListen()
 	if err != nil {
-		return err
+		return nil, false, err
 	}
 	port, err := s.settingService.GetPort()
 	if err != nil {
-		return err
+		return nil, false, err
 	}
 	listenAddr := net.JoinHostPort(listen, strconv.Itoa(port))
 	listener, err := net.Listen("tcp", listenAddr)
 	if err != nil {
-		return err
+		return nil, false, err
 	}
 	httpsOn443 := false
 	if certFile != "" || keyFile != "" {
@@ -366,20 +424,7 @@ func (s *Server) Start() (err error) {
 	} else {
 		logger.Info("Web server running HTTP on", listener.Addr())
 	}
-	s.listener = listener
-
-	s.httpServer = &http.Server{
-		Handler: webProxyFront{panel: engine, route: service.TelemtWebRoute},
-	}
-
-	go func() {
-		s.httpServer.Serve(listener)
-	}()
-
-	s.startWebDecoy(engine, httpsOn443)
-	s.startTask()
-
-	return nil
+	return listener, httpsOn443, nil
 }
 
 // Stop gracefully shuts down the web server, stops Xray and cron jobs.
@@ -393,6 +438,7 @@ func (s *Server) Stop() error {
 	if s.decoyServer != nil {
 		_ = s.decoyServer.Close()
 	}
+	s.stopSite()
 	service.SetTelemtWebFront(0, false)
 	// Gracefully stop WebSocket hub
 	if s.wsHub != nil {

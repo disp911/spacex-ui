@@ -75,6 +75,12 @@ var defaultValueMap = map[string]string{
 	"restartXrayOnClientDisable":  "true",
 	"xrayOutboundTestUrl":         "https://www.google.com/generate_204",
 
+	// The website on port 443, see SiteMode.
+	"siteMode":      "",
+	"siteDomain":    "",
+	"siteEmail":     "",
+	"sitePanelPort": "false",
+
 	// LDAP defaults
 	"ldapEnable":            "false",
 	"ldapHost":              "",
@@ -396,6 +402,57 @@ func (s *SettingService) GetTimeLocation() (*time.Location, error) {
 		return location, nil
 	}
 	return location, nil
+}
+
+// Where the panel's website answers on port 443. SiteOff: it does not, and
+// the panel listens on its own port as set. SiteDirect: the panel itself
+// listens on 443. SiteReality: a REALITY inbound holds 443 and passes everyone
+// who is not a client on to the site's socket. In both the site is at the
+// root, the panel at its secret path and the subscriptions at theirs.
+const (
+	SiteOff     = ""
+	SiteDirect  = "direct"
+	SiteReality = "reality"
+)
+
+func (s *SettingService) GetSiteMode() (string, error) {
+	return s.getString("siteMode")
+}
+
+func (s *SettingService) SetSiteMode(mode string) error {
+	switch mode {
+	case SiteOff, SiteDirect, SiteReality:
+		return s.setString("siteMode", mode)
+	}
+	return common.NewErrorf("unknown site mode %q", mode)
+}
+
+func (s *SettingService) GetSiteDomain() (string, error) {
+	return s.getString("siteDomain")
+}
+
+func (s *SettingService) SetSiteDomain(domain string) error {
+	return s.setString("siteDomain", strings.ToLower(strings.TrimSpace(domain)))
+}
+
+// GetSiteEmail returns the address the certificate authorities know the
+// panel by; without it there is no second authority to fall back on.
+func (s *SettingService) GetSiteEmail() (string, error) {
+	return s.getString("siteEmail")
+}
+
+func (s *SettingService) SetSiteEmail(email string) error {
+	return s.setString("siteEmail", strings.TrimSpace(email))
+}
+
+// GetSitePanelPort reports whether the panel also keeps its own port while
+// a REALITY inbound holds 443: a way back in should REALITY break.
+func (s *SettingService) GetSitePanelPort() (bool, error) {
+	return s.getBool("sitePanelPort")
+}
+
+func (s *SettingService) SetSitePanelPort(open bool) error {
+	return s.setBool("sitePanelPort", open)
 }
 
 func (s *SettingService) GetSubEnable() (bool, error) {

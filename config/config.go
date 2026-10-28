@@ -100,6 +100,31 @@ func GetDBPath() string {
 	return fmt.Sprintf("%s/%s.db", GetDBFolderPath(), GetName())
 }
 
+// GetSiteFolder returns the folder of the administrator's own website, which
+// the panel shows on port 443 instead of the one it makes. It sits beside the
+// database, so an update, which replaces the panel's own folder, leaves it.
+func GetSiteFolder() string {
+	return filepath.Join(GetDBFolderPath(), "site")
+}
+
+// GetCertFolder returns the folder where the panel keeps the certificates it
+// obtains itself and its accounts with the certificate authorities.
+func GetCertFolder() string {
+	return filepath.Join(GetDBFolderPath(), "certs")
+}
+
+// GetSiteSocket returns the socket the website listens on when Xray holds
+// port 443: a REALITY inbound passes everyone who is not a client to it.
+func GetSiteSocket() string {
+	if s := os.Getenv("XUI_SITE_SOCKET"); s != "" {
+		return s
+	}
+	if runtime.GOOS == "windows" {
+		return filepath.Join(getBaseDir(), "site.sock")
+	}
+	return "/run/x-ui/site.sock"
+}
+
 // GetLogFolder returns the path to the log folder based on environment variables or platform defaults.
 func GetLogFolder() string {
 	logFolderPath := os.Getenv("XUI_LOG_FOLDER")

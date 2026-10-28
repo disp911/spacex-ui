@@ -1,0 +1,188 @@
+package site
+
+import (
+	"bytes"
+	"compress/gzip"
+	"io"
+	"net/http"
+	"net/http/httptest"
+	"strings"
+	"testing"
+	"testing/fstest"
+	"time"
+)
+
+var modTime = time.Date(2025, 3, 14, 9, 26, 53, 0, time.UTC)
+
+func testSite() fstest.MapFS {
+	long := strings.Repeat("<p>Lorem ipsum dolor sit amet.</p>\n", 40)
+	return fstest.MapFS{
+		"index.html":        {Data: []byte("<h1>Home</h1>" + long), ModTime: modTime},
+		"docs/index.html":   {Data: []byte("<h1>Docs</h1>"), ModTime: modTime},
+		"docs/intro.html":   {Data: []byte("<h1>Intro</h1>"), ModTime: modTime},
+		"logo.png":          {Data: bytes.Repeat([]byte{0x89, 'P', 'N', 'G'}, 300), ModTime: modTime},
+		"404.html":          {Data: []byte("<h1>Lost</h1>"), ModTime: modTime},
+		".git/config":       {Data: []byte("secret"), ModTime: modTime},
+		"empty/placeholder": {Data: []byte("x"), ModTime: modTime},
+	}
+}
+
+func get(t *testing.T, h http.Handler, method, target string, header map[string]string) *http.Response {
+	t.Helper()
+	req := httptest.NewRequest(method, target, nil)
+	for k, v := range header {
+		req.Header.Set(k, v)
+	}
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, req)
+	return rec.Result()
+}
+
+func body(t *testing.T, resp *http.Response) string {
+	t.Helper()
+	b, err := io.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return string(b)
+}
+
+func TestFilesServesPagesAndFolders(t *testing.T) {
+	h := Files(testSite())
+	cases := []struct {
+		path, want string
+	}{
+		{"/", "<h1>Home</h1>"},
+		{"/index.html", "<h1>Home</h1>"},
+		{"/docs/", "<h1>Docs</h1>"},
+		{"/docs/intro.html", "<h1>Intro</h1>"},
+	}
+	for _, c := range cases {
+		resp := get(t, h, http.MethodGet, c.path, nil)
+		if resp.StatusCode != http.StatusOK || !strings.HasPrefix(body(t, resp), c.want) {
+			t.Errorf("%s: got %d", c.path, resp.StatusCode)
+		}
+		if ct := resp.Header.Get("Content-Type"); ct != "text/html; charset=utf-8" {
+			t.Errorf("%s: Content-Type %q", c.path, ct)
+		}
+	}
+}
+
+func TestFilesRedirectsAFolderWithoutItsSlash(t *testing.T) {
+	resp := get(t, Files(testSite()), http.MethodGet, "/docs?v=2", nil)
+	if resp.StatusCode != http.StatusMovedPermanently || resp.Header.Get("Location") != "/docs/?v=2" {
+		t.Fatalf("got %d to %q", resp.StatusCode, resp.Header.Get("Location"))
+	}
+}
+
+func TestFilesAnswersMissingWithTheSitesOwnPage(t *testing.T) {
+	h := Files(testSite())
+	// A folder without an index is as missing as a file that is not there,
+	// and hidden files are never served.
+	for _, p := range []string{"/nope", "/docs/nope.html", "/empty/", "/.git/config", "/docs/../.git/config"} {
+		resp := get(t, h, http.MethodGet, p, nil)
+		if resp.StatusCode != http.StatusNotFound || body(t, resp) != "<h1>Lost</h1>" {
+			t.Errorf("%s: got %d", p, resp.StatusCode)
+		}
+	}
+}
+
+func TestFilesAnswersMissingPlainlyWithoutAPage(t *testing.T) {
+	fsys := testSite()
+	delete(fsys, "404.html")
+	resp := get(t, Files(fsys), http.MethodGet, "/nope", nil)
+	if b := body(t, resp); resp.StatusCode != http.StatusNotFound || !strings.Contains(b, "404 Not Found") {
+		t.Fatalf("got %d %q", resp.StatusCode, b)
+	}
+}
+
+func TestFilesRefusesOtherMethods(t *testing.T) {
+	for _, m := range []string{http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodOptions} {
+		resp := get(t, Files(testSite()), m, "/", nil)
+		if resp.StatusCode != http.StatusMethodNotAllowed || resp.Header.Get("Allow") != "GET, HEAD" {
+			t.Errorf("%s: got %d, Allow %q", m, resp.StatusCode, resp.Header.Get("Allow"))
+		}
+	}
+}
+
+func TestFilesHeadHasNoBody(t *testing.T) {
+	resp := get(t, Files(testSite()), http.MethodHead, "/docs/intro.html", nil)
+	if resp.StatusCode != http.StatusOK || body(t, resp) != "" || resp.Header.Get("Content-Length") != "14" {
+		t.Fatalf("got %d, length %q", resp.StatusCode, resp.Header.Get("Content-Length"))
+	}
+}
+
+func TestFilesRevisitsGetNotModified(t *testing.T) {
+	h := Files(testSite())
+	first := get(t, h, http.MethodGet, "/logo.png", nil)
+	etag := first.Header.Get("ETag")
+	if etag != `"67d3f65d-4b0"` {
+		t.Fatalf("ETag %q", etag)
+	}
+	if lm := first.Header.Get("Last-Modified"); lm != "Fri, 14 Mar 2025 09:26:53 GMT" {
+		t.Fatalf("Last-Modified %q", lm)
+	}
+	if resp := get(t, h, http.MethodGet, "/logo.png", map[string]string{"If-None-Match": etag}); resp.StatusCode != http.StatusNotModified {
+		t.Errorf("If-None-Match: got %d", resp.StatusCode)
+	}
+	if resp := get(t, h, http.MethodGet, "/logo.png", map[string]string{"If-Modified-Since": "Fri, 14 Mar 2025 09:26:53 GMT"}); resp.StatusCode != http.StatusNotModified {
+		t.Errorf("If-Modified-Since: got %d", resp.StatusCode)
+	}
+}
+
+func TestFilesServesRanges(t *testing.T) {
+	resp := get(t, Files(testSite()), http.MethodGet, "/logo.png", map[string]string{"Range": "bytes=4-7", "Accept-Encoding": "gzip"})
+	if resp.StatusCode != http.StatusPartialContent || body(t, resp) != "\x89PNG" || resp.Header.Get("Content-Encoding") != "" {
+		t.Fatalf("got %d", resp.StatusCode)
+	}
+}
+
+func TestFilesCompressesTextForGzipClients(t *testing.T) {
+	h := Files(testSite())
+	resp := get(t, h, http.MethodGet, "/", map[string]string{"Accept-Encoding": "gzip, deflate, br"})
+	if resp.Header.Get("Content-Encoding") != "gzip" || resp.Header.Get("Vary") != "Accept-Encoding" {
+		t.Fatalf("headers %v", resp.Header)
+	}
+	if !strings.HasPrefix(resp.Header.Get("ETag"), `W/"`) {
+		t.Errorf("ETag %q is not weak", resp.Header.Get("ETag"))
+	}
+	zr, err := gzip.NewReader(resp.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+	plain, _ := io.ReadAll(zr)
+	if !strings.HasPrefix(string(plain), "<h1>Home</h1>") {
+		t.Errorf("unpacked %q", plain[:20])
+	}
+
+	// Pictures and small pages go as they are, and so does everything for
+	// a client that takes no gzip.
+	for _, c := range []struct{ path, enc string }{{"/logo.png", "gzip"}, {"/docs/intro.html", "gzip"}, {"/", ""}, {"/", "gzip;q=0"}} {
+		resp := get(t, h, http.MethodGet, c.path, map[string]string{"Accept-Encoding": c.enc})
+		if resp.Header.Get("Content-Encoding") != "" {
+			t.Errorf("%s with %q: compressed", c.path, c.enc)
+		}
+	}
+}
+
+func TestFilesSendsNoServerHeader(t *testing.T) {
+	resp := get(t, Files(testSite()), http.MethodGet, "/", nil)
+	if s := resp.Header.Get("Server"); s != "" {
+		t.Fatalf("Server %q", s)
+	}
+}
+
+func TestSourcePrefersTheAdministratorsSite(t *testing.T) {
+	made := Placeholder([]byte("made"), modTime)
+	dir := t.TempDir()
+	if got := Source(dir, made); got == nil {
+		t.Fatal("nil")
+	} else if _, ok := got.(fstest.MapFS); !ok {
+		t.Fatal("an empty folder replaced the made site")
+	}
+	writeFile(t, dir+"/index.html", "own")
+	resp := get(t, Files(Source(dir, made)), http.MethodGet, "/", nil)
+	if b := body(t, resp); b != "own" {
+		t.Fatalf("got %q", b)
+	}
+}

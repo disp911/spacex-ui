@@ -3,6 +3,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -257,6 +258,70 @@ func updateSetting(port int, username string, password string, webBasePath strin
 	return nil
 }
 
+// updateSite sets where the website on port 443 runs and for which domain,
+// then prints what is set. Empty values are left as they are.
+func updateSite(mode, domain, email, panelPort string) error {
+	err := database.InitDB(config.GetDBPath())
+	if err != nil {
+		fmt.Println("Database initialization failed:", err)
+		return err
+	}
+	settingService := service.SettingService{}
+	if domain != "" {
+		if err := settingService.SetSiteDomain(domain); err != nil {
+			fmt.Println("Failed to set the website domain:", err)
+			return err
+		}
+	}
+	if email != "" {
+		if email == "-" {
+			email = ""
+		}
+		if err := settingService.SetSiteEmail(email); err != nil {
+			fmt.Println("Failed to set the certificate email:", err)
+			return err
+		}
+	}
+	if panelPort != "" {
+		if err := settingService.SetSitePanelPort(panelPort == "true"); err != nil {
+			fmt.Println("Failed to set the panel port:", err)
+			return err
+		}
+	}
+	if mode != "" {
+		if mode == "off" {
+			mode = service.SiteOff
+		}
+		if mode != service.SiteOff {
+			if d, _ := settingService.GetSiteDomain(); d == "" {
+				fmt.Println("Set the website domain first: -domain")
+				return errors.New("no website domain")
+			}
+			if p, _ := settingService.GetBasePath(); p == "/" {
+				fmt.Println("The panel needs a secret path to share port 443 with the website: setting -webBasePath")
+				return errors.New("no secret path")
+			}
+		}
+		if err := settingService.SetSiteMode(mode); err != nil {
+			fmt.Println("Failed to set the website mode:", err)
+			return err
+		}
+	}
+	mode, _ = settingService.GetSiteMode()
+	if mode == service.SiteOff {
+		mode = "off"
+	}
+	domain, _ = settingService.GetSiteDomain()
+	email, _ = settingService.GetSiteEmail()
+	open, _ := settingService.GetSitePanelPort()
+	fmt.Println("website mode:", mode)
+	fmt.Println("website domain:", domain)
+	fmt.Println("certificate email:", email)
+	fmt.Println("panel port behind REALITY:", open)
+	fmt.Println("website socket:", config.GetSiteSocket())
+	return nil
+}
+
 // updateCert updates the SSL certificate files for the panel.
 func updateCert(publicKey string, privateKey string) {
 	err := database.InitDB(config.GetDBPath())
@@ -384,6 +449,13 @@ func main() {
 	settingCmd.StringVar(&webCertFile, "webCert", "", "Set path to public key file for panel")
 	settingCmd.StringVar(&webKeyFile, "webCertKey", "", "Set path to private key file for panel")
 
+	siteCmd := flag.NewFlagSet("site", flag.ExitOnError)
+	var siteMode, siteDomain, siteEmail, sitePanelPort string
+	siteCmd.StringVar(&siteMode, "mode", "", "Where the website answers on port 443: direct, reality or off")
+	siteCmd.StringVar(&siteDomain, "domain", "", "Set the website domain")
+	siteCmd.StringVar(&siteEmail, "email", "", "Set the email for certificates, - to clear it")
+	siteCmd.StringVar(&sitePanelPort, "panelPort", "", "Keep the panel's own port open behind REALITY: true or false")
+
 	oldUsage := flag.Usage
 	flag.Usage = func() {
 		oldUsage()
@@ -392,6 +464,7 @@ func main() {
 		fmt.Println("    run            run web panel")
 		fmt.Println("    migrate        migrate form other/old x-ui")
 		fmt.Println("    setting        set settings")
+		fmt.Println("    site           set the website on port 443")
 	}
 
 	flag.Parse()
@@ -433,6 +506,14 @@ func main() {
 		}
 		if getCert {
 			GetCertificate(getCert)
+		}
+	case "site":
+		if err := siteCmd.Parse(os.Args[2:]); err != nil {
+			fmt.Println(err)
+			return
+		}
+		if updateSite(siteMode, siteDomain, siteEmail, sitePanelPort) != nil {
+			os.Exit(1)
 		}
 	case "cert":
 		err := settingCmd.Parse(os.Args[2:])
