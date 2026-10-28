@@ -143,6 +143,7 @@ const certSources = computed(() => [
   { value: false, label: t('inbounds.certificateContent') },
 ])
 
+/** The panel's certificate files: the admin's own, or the copy of the one it obtains for its website. */
 function panelCert(c: Json) {
   c.certificateFile = store.defaults?.defaultCert ?? ''
   c.keyFile = store.defaults?.defaultKey ?? ''
@@ -215,7 +216,9 @@ function panelCert(c: Json) {
             </XField>
           </XFieldGrid>
           <XButtonRow v-if="c.useFile">
-            <XButton size="sm" @click="panelCert(c)">{{ t('inbounds.setDefaultCert') }}</XButton>
+            <XButton size="sm" :disabled="!store.defaults?.defaultCert" :title="store.defaults?.defaultCert ? undefined : t('inbounds.noPanelCert')" @click="panelCert(c)">
+              {{ t('inbounds.setDefaultCert') }}
+            </XButton>
           </XButtonRow>
           <XFieldGrid :cols="3">
             <XSwitch v-model="c.oneTimeLoading" boxed label="One Time Loading" />

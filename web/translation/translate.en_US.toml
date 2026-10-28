@@ -885,6 +885,7 @@
 "certificateContent" = "File Content"
 "publicKey" = "Public Key"
 "privateKey" = "Private Key"
+"noPanelCert" = "The panel has no certificate yet: it comes once the panel obtains one for its website, or set your own files on the Website tab."
 "setDefaultCert" = "Set Cert from Panel"
 "enabled" = "Enabled"
 "sniffingHelp" = "It is recommended to keep the default"

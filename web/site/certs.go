@@ -1,6 +1,7 @@
 package site
 
 import (
+	"bytes"
 	"context"
 	"crypto/ecdsa"
 	"crypto/elliptic"
@@ -17,6 +18,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -37,6 +39,7 @@ import (
 // and 443 reaches the site like any other visitor (TLSConfig).
 type Certs struct {
 	domain string
+	folder string
 	cache  *certmagic.Cache
 	cfg    *certmagic.Config
 	le     *certmagic.ACMEIssuer
@@ -65,7 +68,7 @@ type CertStatus struct {
 // folder. Without email there is no second authority.
 func NewCerts(folder, domain, email string) *Certs {
 	domain = strings.Trim(domain, "[]")
-	c := &Certs{domain: domain}
+	c := &Certs{domain: domain, folder: folder}
 	var cfg *certmagic.Config
 	c.cache = certmagic.NewCache(certmagic.CacheOptions{
 		GetConfigForCert: func(certmagic.Certificate) (*certmagic.Config, error) { return cfg, nil },
@@ -103,7 +106,103 @@ func NewCerts(folder, domain, email string) *Certs {
 // Start loads the certificate from storage, or obtains one in the
 // background, and keeps it renewed until Stop.
 func (c *Certs) Start(ctx context.Context) error {
-	return c.cfg.ManageAsync(ctx, []string{c.domain})
+	if err := c.cfg.ManageAsync(ctx, []string{c.domain}); err != nil {
+		return err
+	}
+	// A certificate kept from before is in memory now; one to obtain is
+	// copied when it comes (onEvent).
+	c.copyCached()
+	return nil
+}
+
+// Copies are where Xray, or anything else, finds the certificate the panel
+// keeps for its website: CopyFiles in folder, rewritten whenever a new one
+// is obtained, so a reader that reloads its files (Xray does every hour)
+// follows the renewals. They are never removed: a configuration that names
+// them keeps working with the last certificate.
+const (
+	copyCert = "site.crt"
+	copyKey  = "site.key"
+)
+
+// CopyFiles are the copy of the certificate and its key in folder, or ""
+// while there is none.
+func CopyFiles(folder string) (cert, key string) {
+	cert, key = filepath.Join(folder, copyCert), filepath.Join(folder, copyKey)
+	if _, err := os.Stat(cert); err != nil {
+		return "", ""
+	}
+	if _, err := os.Stat(key); err != nil {
+		return "", ""
+	}
+	return cert, key
+}
+
+// copyCached writes the copy from the certificate in memory with the latest
+// expiry.
+func (c *Certs) copyCached() {
+	var best certmagic.Certificate
+	for _, cert := range c.cache.AllMatchingCertificates(c.domain) {
+		if cert.Leaf != nil && (best.Leaf == nil || cert.Leaf.NotAfter.After(best.Leaf.NotAfter)) {
+			best = cert
+		}
+	}
+	if best.Leaf == nil {
+		return
+	}
+	var chain []byte
+	for _, der := range best.Certificate.Certificate {
+		chain = append(chain, pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: der})...)
+	}
+	der, err := x509.MarshalPKCS8PrivateKey(best.PrivateKey)
+	if err != nil {
+		return
+	}
+	c.writeCopy(chain, pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: der}))
+}
+
+// copyStored writes the copy from the files certmagic stored at the keys.
+func (c *Certs) copyStored(certKey, keyKey string) {
+	chain, err := os.ReadFile(filepath.Join(c.folder, filepath.FromSlash(certKey)))
+	if err != nil {
+		return
+	}
+	key, err := os.ReadFile(filepath.Join(c.folder, filepath.FromSlash(keyKey)))
+	if err != nil {
+		return
+	}
+	c.writeCopy(chain, key)
+}
+
+// writeCopy replaces the copy, the key first and each file whole, so a
+// reader never takes a certificate with the key of another.
+func (c *Certs) writeCopy(chain, key []byte) {
+	if old, err := os.ReadFile(filepath.Join(c.folder, copyCert)); err == nil && bytes.Equal(old, chain) {
+		return
+	}
+	if replaceFile(filepath.Join(c.folder, copyKey), key, 0o600) == nil {
+		replaceFile(filepath.Join(c.folder, copyCert), chain, 0o644)
+	}
+}
+
+func replaceFile(name string, data []byte, perm os.FileMode) error {
+	tmp, err := os.CreateTemp(filepath.Dir(name), ".copy-*")
+	if err != nil {
+		return err
+	}
+	defer os.Remove(tmp.Name())
+	if _, err := tmp.Write(data); err != nil {
+		tmp.Close()
+		return err
+	}
+	if err := tmp.Chmod(perm); err != nil {
+		tmp.Close()
+		return err
+	}
+	if err := tmp.Close(); err != nil {
+		return err
+	}
+	return os.Rename(tmp.Name(), name)
 }
 
 // Stop ends the renewals.
@@ -134,6 +233,7 @@ func (c *Certs) Renew(ctx context.Context) error {
 		}
 	}
 	c.cache.Remove(stale)
+	c.copyCached()
 	return nil
 }
 
@@ -261,6 +361,9 @@ func (c *Certs) onEvent(_ context.Context, event string, data map[string]any) er
 		c.mu.Lock()
 		c.failed, c.at = "", time.Time{}
 		c.mu.Unlock()
+		certKey, _ := data["certificate_path"].(string)
+		keyKey, _ := data["private_key_path"].(string)
+		c.copyStored(certKey, keyKey)
 	}
 	return nil
 }

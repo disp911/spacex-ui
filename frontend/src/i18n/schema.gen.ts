@@ -796,6 +796,7 @@ export interface MessageSchema {
     "certificateContent": string
     "publicKey": string
     "privateKey": string
+    "noPanelCert": string
     "setDefaultCert": string
     "enabled": string
     "sniffingHelp": string

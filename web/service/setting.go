@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/disp911/spacex-ui/v2/config"
 	"github.com/disp911/spacex-ui/v2/database"
 	"github.com/disp911/spacex-ui/v2/database/model"
 	"github.com/disp911/spacex-ui/v2/logger"
@@ -20,6 +21,7 @@ import (
 	"github.com/disp911/spacex-ui/v2/util/random"
 	"github.com/disp911/spacex-ui/v2/util/reflect_util"
 	"github.com/disp911/spacex-ui/v2/web/entity"
+	"github.com/disp911/spacex-ui/v2/web/site"
 	"github.com/disp911/spacex-ui/v2/xray"
 )
 
@@ -795,14 +797,28 @@ func extractHostname(host string) string {
 	return "[" + h + "]"
 }
 
+// InboundCertFiles is the panel's certificate as an inbound takes it from
+// files: the administrator's own, or else the copy of the one the panel
+// obtains for its website; "" while there is neither.
+func (s *SettingService) InboundCertFiles() (cert, key string, err error) {
+	if cert, err = s.GetCertFile(); err != nil || cert != "" {
+		if err == nil {
+			key, err = s.GetKeyFile()
+		}
+		return
+	}
+	cert, key = site.CopyFiles(config.GetCertFolder())
+	return cert, key, nil
+}
+
 func (s *SettingService) GetDefaultSettings(host string) (any, error) {
 	type settingFunc func() (any, error)
 	settings := map[string]settingFunc{
 		"expireDiff":     func() (any, error) { return s.GetExpireDiff() },
 		"trafficDiff":    func() (any, error) { return s.GetTrafficDiff() },
 		"pageSize":       func() (any, error) { return s.GetPageSize() },
-		"defaultCert":    func() (any, error) { return s.GetCertFile() },
-		"defaultKey":     func() (any, error) { return s.GetKeyFile() },
+		"defaultCert":    func() (any, error) { cert, _, err := s.InboundCertFiles(); return cert, err },
+		"defaultKey":     func() (any, error) { _, key, err := s.InboundCertFiles(); return key, err },
 		"subEnable":      func() (any, error) { return s.GetSubEnable() },
 		"subJsonEnable":  func() (any, error) { return s.GetSubJsonEnable() },
 		"subClashEnable": func() (any, error) { return s.GetSubClashEnable() },
