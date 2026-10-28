@@ -10,15 +10,17 @@ function isIp(host: string) {
   return /^(\d{1,3}\.){3}\d{1,3}$/.test(h) || (h.includes(':') && /^[\da-f:.]+$/i.test(h))
 }
 
-/** The panel's root at url with the base path, and this page there. */
-function placesAt(url: URL, basePath: string) {
+/** The panel's root at url with the base path, and this page there, at the tab given. */
+function placesAt(url: URL, basePath: string, tab?: string) {
   let base = basePath.replace(/^\//, '')
   if (base && !base.endsWith('/')) base += '/'
   url.pathname = `/${base}`
   url.search = ''
   url.hash = ''
   const panel = url.toString()
-  return { panel, page: new URL(`${config.mount.slice(config.base.length)}settings`, panel).toString() }
+  const page = new URL(`${config.mount.slice(config.base.length)}settings`, panel)
+  if (tab) page.searchParams.set('tab', tab)
+  return { panel, page: page.toString() }
 }
 
 /**
@@ -58,7 +60,7 @@ export function addressAfterSite(s: SiteSettings, port: number, basePath: string
       url.port = String(port)
     }
   }
-  return placesAt(url, basePath)
+  return placesAt(url, basePath, 'site')
 }
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
