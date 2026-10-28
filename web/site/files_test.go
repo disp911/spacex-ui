@@ -91,7 +91,8 @@ func TestFilesAnswersMissingPlainlyWithoutAPage(t *testing.T) {
 	fsys := testSite()
 	delete(fsys, "404.html")
 	resp := get(t, Files(fsys), http.MethodGet, "/nope", nil)
-	if b := body(t, resp); resp.StatusCode != http.StatusNotFound || !strings.Contains(b, "404 Not Found") {
+	// Caddy's file server without an error page: the status and nothing more.
+	if b := body(t, resp); resp.StatusCode != http.StatusNotFound || b != "" {
 		t.Fatalf("got %d %q", resp.StatusCode, b)
 	}
 }
@@ -101,6 +102,10 @@ func TestFilesRefusesOtherMethods(t *testing.T) {
 		resp := get(t, Files(testSite()), m, "/", nil)
 		if resp.StatusCode != http.StatusMethodNotAllowed || resp.Header.Get("Allow") != "GET, HEAD" {
 			t.Errorf("%s: got %d, Allow %q", m, resp.StatusCode, resp.Header.Get("Allow"))
+		}
+		// Caddy's file server says no more than the status.
+		if b := body(t, resp); b != "" || resp.Header.Get("Content-Type") != "" {
+			t.Errorf("%s: body %q, type %q", m, b, resp.Header.Get("Content-Type"))
 		}
 	}
 }
@@ -116,7 +121,7 @@ func TestFilesRevisitsGetNotModified(t *testing.T) {
 	h := Files(testSite())
 	first := get(t, h, http.MethodGet, "/logo.png", nil)
 	etag := first.Header.Get("ETag")
-	if etag != `"67d3f65d-4b0"` {
+	if etag != `"d8fvrbx09k3kxc"` {
 		t.Fatalf("ETag %q", etag)
 	}
 	if lm := first.Header.Get("Last-Modified"); lm != "Fri, 14 Mar 2025 09:26:53 GMT" {
@@ -143,8 +148,14 @@ func TestFilesCompressesTextForGzipClients(t *testing.T) {
 	if resp.Header.Get("Content-Encoding") != "gzip" || resp.Header.Get("Vary") != "Accept-Encoding" {
 		t.Fatalf("headers %v", resp.Header)
 	}
-	if !strings.HasPrefix(resp.Header.Get("ETag"), `W/"`) {
-		t.Errorf("ETag %q is not weak", resp.Header.Get("ETag"))
+	if etag := resp.Header.Get("ETag"); !strings.HasSuffix(etag, `-gzip"`) {
+		t.Errorf("ETag %q does not name the encoding", etag)
+	}
+	if resp.Header.Get("Accept-Ranges") != "" {
+		t.Errorf("ranges offered of a compressed body")
+	}
+	if again := get(t, h, http.MethodGet, "/", map[string]string{"Accept-Encoding": "gzip", "If-None-Match": resp.Header.Get("ETag")}); again.StatusCode != http.StatusNotModified {
+		t.Errorf("revisit: got %d", again.StatusCode)
 	}
 	zr, err := gzip.NewReader(resp.Body)
 	if err != nil {

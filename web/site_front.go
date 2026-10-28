@@ -99,7 +99,19 @@ func siteRedirect(domain string) http.Handler {
 		if host == "" {
 			host = domain
 		}
-		http.Redirect(w, r, "https://"+host+r.URL.RequestURI(), http.StatusMovedPermanently)
+		// As Caddy's automatic HTTPS: 308, no body, the connection closed.
+		w.Header().Set("Location", "https://"+host+r.URL.RequestURI())
+		w.Header().Set("Connection", "close")
+		w.WriteHeader(http.StatusPermanentRedirect)
+	})
+}
+
+// asCaddy names the server in every answer as Caddy does: the website's TLS
+// and HTTP/2 are those of Caddy, the Go server it is built on.
+func asCaddy(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Server", "Caddy")
+		h.ServeHTTP(w, r)
 	})
 }
 
@@ -146,7 +158,7 @@ func (s *Server) startReality(panel http.Handler) (ownPort bool, err error) {
 		return false, err
 	}
 	s.siteFront = siteFront{basePath: basePath, panel: panel, site: pages}
-	s.siteHandler = webProxyFront{panel: s.siteFront, route: service.TelemtWebRoute}
+	s.siteHandler = asCaddy(webProxyFront{panel: s.siteFront, route: service.TelemtWebRoute})
 	s.siteServer = &http.Server{
 		Handler:           s.siteHandler,
 		ReadHeaderTimeout: 60 * time.Second,
@@ -160,7 +172,7 @@ func (s *Server) startReality(panel http.Handler) (ownPort bool, err error) {
 		logger.Warning("Website: port 80 is not available, certificates are checked over 443 only:", err)
 	} else {
 		s.redirectServer = &http.Server{
-			Handler:           certs.HTTPChallenge(siteRedirect(domain)),
+			Handler:           asCaddy(certs.HTTPChallenge(siteRedirect(domain))),
 			ReadHeaderTimeout: 60 * time.Second,
 			ErrorLog:          quietLog,
 		}
@@ -255,7 +267,7 @@ func (s *Server) startOwnPort(panel http.Handler) (net.Listener, bool, error) {
 		return nil, false, err
 	}
 	s.siteFront = siteFront{basePath: basePath, panel: panel, site: pages}
-	s.siteHandler = webProxyFront{panel: s.siteFront, route: service.TelemtWebRoute}
+	s.siteHandler = asCaddy(webProxyFront{panel: s.siteFront, route: service.TelemtWebRoute})
 	service.SetSiteStatus(&service.SiteState{Scheme: scheme, Host: host, Certs: s.siteCerts, Checker: s.siteCheck})
 	siteRunning.Store(true)
 	return ln, tlsConf != nil && port == 443, nil

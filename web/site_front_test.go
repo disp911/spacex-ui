@@ -76,7 +76,7 @@ func TestSiteRedirect(t *testing.T) {
 		req.Host = c.host
 		rec := httptest.NewRecorder()
 		siteRedirect("fallback.org").ServeHTTP(rec, req)
-		if rec.Code != http.StatusMovedPermanently || rec.Header().Get("Location") != c.want {
+		if rec.Code != http.StatusPermanentRedirect || rec.Header().Get("Location") != c.want {
 			t.Errorf("%s%s: %d to %q", c.host, c.uri, rec.Code, rec.Header().Get("Location"))
 		}
 	}
@@ -194,5 +194,14 @@ func TestSiteSocketTakesTheAddressFromXray(t *testing.T) {
 	}
 	if got := ask(""); strings.HasPrefix(got, "203.0.113.7") {
 		t.Fatalf("without a header the visitor is %q", got)
+	}
+}
+
+func TestSiteAnswersAsCaddy(t *testing.T) {
+	rec := httptest.NewRecorder()
+	asCaddy(siteRedirect("example.com")).ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "http://example.com/docs/?a=1", nil))
+	h := rec.Header()
+	if rec.Code != http.StatusPermanentRedirect || h.Get("Location") != "https://example.com/docs/?a=1" || h.Get("Server") != "Caddy" || rec.Body.Len() != 0 {
+		t.Fatalf("%d %v %q", rec.Code, h, rec.Body)
 	}
 }

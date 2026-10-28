@@ -75,9 +75,6 @@ func NewCerts(folder, domain, email string) *Certs {
 		Storage: &certmagic.FileStorage{Path: folder},
 		Logger:  zap.NewNop(),
 		OnEvent: c.onEvent,
-		// A visitor naming no server, as one opening an address does, gets
-		// the certificate all the same.
-		DefaultServerName: domain,
 	})
 	le := certmagic.ACMEIssuer{
 		CA:     certmagic.LetsEncryptProductionCA,
@@ -89,6 +86,10 @@ func NewCerts(folder, domain, email string) *Certs {
 	if net.ParseIP(domain) != nil {
 		// Let's Encrypt certifies addresses only in its short-lived profile.
 		le.Profile = "shortlived"
+		// A visitor opening an address names no server and gets the
+		// certificate all the same. A domain's is not handed out without
+		// its name, as Caddy refuses such a visitor.
+		cfg.DefaultServerName = domain
 	}
 	c.le = certmagic.NewACMEIssuer(cfg, le)
 	cfg.Issuers = []certmagic.Issuer{c.le}

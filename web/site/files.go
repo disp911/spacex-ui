@@ -8,12 +8,12 @@ package site
 import (
 	"bytes"
 	"compress/gzip"
-	"fmt"
 	"io/fs"
 	"mime"
 	"net/http"
 	"os"
 	"path"
+	"strconv"
 	"strings"
 	"sync"
 )
@@ -88,16 +88,28 @@ func (h *files) serve(w http.ResponseWriter, r *http.Request, name string, info 
 	}
 	header := w.Header()
 	header.Set("Content-Type", contentType(name))
-	// The ETag a static server makes: modification time and size in hex.
-	etag := fmt.Sprintf(`"%x-%x"`, info.ModTime().Unix(), info.Size())
+	// The ETag Caddy's file server makes: modification time in nanoseconds
+	// and size, in base 36.
+	etag := `"` + strconv.FormatInt(info.ModTime().UnixNano(), 36) + strconv.FormatInt(info.Size(), 36) + `"`
 	if compressible(name) && len(body) > 512 && r.Header.Get("Range") == "" && acceptsGzip(r) {
 		header.Add("Vary", "Accept-Encoding")
+		// As Caddy's encoder: the encoding in the ETag, and no ranges of
+		// the compressed body.
+		etag = strings.TrimSuffix(etag, `"`) + `-gzip"`
 		body = h.gzipped(name, etag, body)
 		header.Set("Content-Encoding", "gzip")
-		etag = "W/" + etag
+		w = noRanges{w}
 	}
 	header.Set("ETag", etag)
 	http.ServeContent(w, r, "", info.ModTime(), bytes.NewReader(body))
+}
+
+// noRanges drops the Accept-Ranges http.ServeContent adds.
+type noRanges struct{ http.ResponseWriter }
+
+func (w noRanges) WriteHeader(code int) {
+	w.Header().Del("Accept-Ranges")
+	w.ResponseWriter.WriteHeader(code)
 }
 
 func (h *files) gzipped(name, etag string, body []byte) []byte {
@@ -113,18 +125,17 @@ func (h *files) gzipped(name, etag string, body []byte) []byte {
 	return buf.Bytes()
 }
 
-// status answers with an error page: the site's own 404.html for 404 if it
-// has one, a plain page otherwise.
+// status answers with an error: the site's own 404.html for 404 if it has
+// one, and otherwise no body at all, as Caddy's file server answers.
 func (h *files) status(w http.ResponseWriter, r *http.Request, code int) {
-	body := []byte(fmt.Sprintf("<html>\r\n<head><title>%d %s</title></head>\r\n<body>\r\n<center><h1>%d %s</h1></center>\r\n</body>\r\n</html>\r\n",
-		code, http.StatusText(code), code, http.StatusText(code)))
+	var body []byte
 	if code == http.StatusNotFound {
 		if page, err := fs.ReadFile(h.fsys, "404.html"); err == nil {
 			body = page
+			w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		}
 	}
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	w.Header().Set("Content-Length", fmt.Sprint(len(body)))
+	w.Header().Set("Content-Length", strconv.Itoa(len(body)))
 	w.WriteHeader(code)
 	if r.Method != http.MethodHead {
 		w.Write(body)
