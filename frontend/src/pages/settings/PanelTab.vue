@@ -10,10 +10,9 @@ import { panelAddress, type SettingKey } from './model'
 const { t } = useI18n()
 const f = useSettingsForm()
 
-const open = reactive({ general: true, certs: true, clients: true })
+const open = reactive({ general: true, clients: true })
 const sections = {
   general: ['webListen', 'webDomain', 'webPort', 'webBasePath', 'sessionMaxAge'],
-  certs: ['webCertFile', 'webKeyFile'],
   clients: ['restartXrayOnClientDisable', 'externalTrafficInformEnable', 'externalTrafficInformURI'],
 } satisfies Record<string, SettingKey[]>
 
@@ -43,17 +42,6 @@ const moved = (k: SettingKey) => f.isDirty(k) && !f.error(k)
       </XSettingRow>
       <XSettingRow :title="t('settings.sessionMaxAge')" :description="t('settings.sessionMaxAgeDesc')" narrow :modified="f.isDirty('sessionMaxAge')" :error="f.error('sessionMaxAge')">
         <XNumber v-model="f.draft.sessionMaxAge" :unit="t('settings.unitMinutes')" :modified="f.isDirty('sessionMaxAge')" :invalid="!!f.error('sessionMaxAge')" />
-      </XSettingRow>
-    </XSettingsSection>
-
-    <XSettingsSection v-model:open="open.certs" :title="t('settings.secCerts')" :count="2" :modified="f.count(sections.certs).dirty" :errors="f.count(sections.certs).errors">
-      <XSettingRow :title="t('settings.webCertFile')" :description="t('settings.certPathDesc')" tall :modified="f.isDirty('webCertFile')" :error="f.error('webCertFile')">
-        <XTextarea v-model="f.draft.webCertFile" mono :grow="3" :modified="f.isDirty('webCertFile')" :invalid="!!f.error('webCertFile')" />
-        <template v-if="moved('webCertFile')" #note><AddressNote :address="address" /></template>
-      </XSettingRow>
-      <XSettingRow :title="t('settings.webKeyFile')" :description="t('settings.certPathDesc')" tall :modified="f.isDirty('webKeyFile')" :error="f.error('webKeyFile')">
-        <XTextarea v-model="f.draft.webKeyFile" mono :grow="3" :modified="f.isDirty('webKeyFile')" :invalid="!!f.error('webKeyFile')" />
-        <template v-if="moved('webKeyFile')" #note><AddressNote :address="address" /></template>
       </XSettingRow>
     </XSettingsSection>
 

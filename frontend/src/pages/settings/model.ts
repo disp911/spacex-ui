@@ -79,7 +79,7 @@ export interface AllSetting {
 
 export type SettingKey = keyof AllSetting
 
-export type TabKey = 'panel' | 'ui' | 'account' | 'ldap' | 'sub' | 'formats'
+export type TabKey = 'panel' | 'site' | 'ui' | 'account' | 'ldap' | 'sub' | 'formats'
 
 /** The tabs in order, with the settings each edits: its dot and the status line count changes and errors among them. */
 export const tabs: { key: TabKey; label: Text; keys: SettingKey[] }[] = [
@@ -87,10 +87,11 @@ export const tabs: { key: TabKey; label: Text; keys: SettingKey[] }[] = [
     key: 'panel',
     label: 'settings.tabPanel',
     keys: [
-      'webListen', 'webDomain', 'webPort', 'webBasePath', 'sessionMaxAge', 'webCertFile', 'webKeyFile',
+      'webListen', 'webDomain', 'webPort', 'webBasePath', 'sessionMaxAge',
       'restartXrayOnClientDisable', 'externalTrafficInformEnable', 'externalTrafficInformURI',
     ],
   },
+  { key: 'site', label: 'settings.tabSite', keys: [] },
   { key: 'ui', label: 'settings.tabUi', keys: ['pageSize', 'timeLocation', 'expireDiff', 'trafficDiff'] },
   { key: 'account', label: 'settings.tabAccount', keys: [] },
   {
@@ -130,7 +131,8 @@ function subPathOf(uri: string, path: string) {
 /** What the security banner warns about in the saved settings, as translation keys. */
 export function securityAlerts(s: AllSetting) {
   const alerts: Text[] = []
-  if (!s.webCertFile || !s.webKeyFile) alerts.push('settings.securityTls')
+  // The certificate may be the panel's own, obtained by itself: what counts is how this page came.
+  if (location.protocol !== 'https:') alerts.push('settings.securityTls')
   if (s.webPort === 2053) alerts.push('settings.securityPort')
   if (s.webBasePath === '/') alerts.push('settings.securityPath')
   if (s.subEnable && subPathOf(s.subURI, s.subPath) === '/sub/') alerts.push('settings.securitySubPath')
@@ -150,8 +152,6 @@ export const checks: Partial<Record<SettingKey, Check>> = {
   webPort: { min: 1, max: 65535 },
   webBasePath: { path: 'both' },
   sessionMaxAge: { min: 60 },
-  webCertFile: { path: 'start' },
-  webKeyFile: { path: 'start' },
   pageSize: { min: 0 },
   expireDiff: { min: 0 },
   trafficDiff: { min: 0 },
@@ -209,7 +209,6 @@ export function checkValue(c: Check, value: unknown): [Text, Record<string, numb
 
 /** The panel's address with these settings, as shown under the fields that make it up. */
 export function panelAddress(s: AllSetting) {
-  const scheme = s.webCertFile && s.webKeyFile ? 'https://' : 'http://'
   const host = s.webDomain || s.webListen || location.hostname
-  return `${scheme}${host}:${s.webPort}${s.webBasePath || '/'}`
+  return `${location.protocol}//${host}:${s.webPort}${s.webBasePath || '/'}`
 }

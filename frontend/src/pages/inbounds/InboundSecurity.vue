@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   toast, XAddButton, XButton, XButtonRow, XField, XFieldGrid, XInlineButton, XInput, XMultiSelect, XNestCard, XNumber, XPartHead, XSegmented, XSelect, XSwitch,
@@ -7,6 +7,7 @@ import {
 } from '../../kit'
 import { useInbounds } from '../../stores/inbounds'
 import { cause } from '../settings/form'
+import { loadSite, type SiteInfo } from '../settings/site'
 import {
   alpns, canReality, canTls, certUsages, cipherSuites, defaultCert, fingerprints, newEch, newMldsa65, newX25519, randomRealityTarget, randomShortIds,
   security, setSecurity, tlsVersions, type InboundForm,
@@ -103,6 +104,26 @@ function newTarget() {
   reality.value.target = target
   reality.value.serverNames = [sni]
 }
+
+// Behind REALITY the panel's own website can be the target: its socket, its domain as the SNI.
+const site = ref<SiteInfo | null>(null)
+onMounted(async () => {
+  try {
+    site.value = await loadSite()
+  } catch {
+    // no switch then
+  }
+})
+const ownSite = computed({
+  get: () => !!site.value?.socket && reality.value.target === site.value.socket,
+  set: (on: boolean) => {
+    if (!on || !site.value) return newTarget()
+    reality.value.target = site.value.socket
+    reality.value.serverNames = [site.value.domain]
+    // The site reads the visitor's address from the PROXY header, as on the panel's own inbound.
+    reality.value.xver = 1
+  },
+})
 
 // Typed as text and kept as typed; the lists are cleaned up on save.
 const serverNames = computed({
@@ -224,6 +245,7 @@ function panelCert(c: Json) {
     <template v-if="sec === 'reality'">
       <XFieldGrid :cols="3">
         <XSwitch v-model="reality.show" boxed label="Show" />
+        <XSwitch v-if="site?.socket" v-model="ownSite" boxed :label="t('inbounds.ownSite')" :help="t('inbounds.ownSiteHelp', { domain: site.domain })" />
       </XFieldGrid>
       <XFieldGrid>
         <XField v-slot="a" label="Xver">

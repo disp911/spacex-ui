@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"context"
 	"errors"
 	"time"
 
@@ -25,6 +26,7 @@ type SettingController struct {
 	settingService service.SettingService
 	userService    service.UserService
 	panelService   service.PanelService
+	siteService    service.SiteService
 }
 
 // NewSettingController creates a new SettingController and initializes its routes.
@@ -43,6 +45,9 @@ func (a *SettingController) initRouter(g *gin.RouterGroup) {
 	g.POST("/update", a.updateSetting)
 	g.POST("/updateUser", a.updateUser)
 	g.POST("/restartPanel", a.restartPanel)
+	g.POST("/site", a.getSite)
+	g.POST("/siteApply", a.applySite)
+	g.POST("/siteRenew", a.renewSiteCert)
 	g.GET("/getDefaultJsonConfig", a.getDefaultXrayConfig)
 }
 
@@ -110,6 +115,38 @@ func (a *SettingController) updateUser(c *gin.Context) {
 func (a *SettingController) restartPanel(c *gin.Context) {
 	err := a.panelService.RestartPanel(time.Second * 3)
 	jsonMsg(c, I18nWeb(c, "pages.settings.restartPanelSuccess"), err)
+}
+
+// getSite describes the website and its certificate.
+func (a *SettingController) getSite(c *gin.Context) {
+	info, err := a.siteService.Site(c.Request.Host)
+	if err != nil {
+		jsonMsg(c, I18nWeb(c, "pages.settings.toasts.getSettings"), err)
+		return
+	}
+	jsonObj(c, info, nil)
+}
+
+// applySite stores the website's settings; the panel takes them on restart.
+func (a *SettingController) applySite(c *gin.Context) {
+	set := service.SiteSettings{}
+	if err := c.ShouldBindJSON(&set); err != nil {
+		jsonMsg(c, I18nWeb(c, "pages.settings.toasts.modifySettings"), err)
+		return
+	}
+	jsonMsg(c, I18nWeb(c, "pages.settings.toasts.modifySettings"), a.siteService.ApplySite(set))
+}
+
+// renewSiteCert obtains a new certificate for the website now, waiting up to
+// two minutes for the authority, and describes the website after it.
+func (a *SettingController) renewSiteCert(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 2*time.Minute)
+	defer cancel()
+	if err := service.RenewSiteCert(ctx); err != nil {
+		jsonMsg(c, I18nWeb(c, "pages.settings.toasts.modifySettings"), err)
+		return
+	}
+	a.getSite(c)
 }
 
 // getDefaultXrayConfig retrieves the default Xray configuration.

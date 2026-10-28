@@ -38,6 +38,11 @@ export interface MessageSchema {
     "ping": string
   }
   "dashboard": {
+    "renewTitle": string
+    "certExpired": string
+    "siteTitle": string
+    "certTitle": string
+    "siteMore": string
     "httpTitle": string
     "httpText": string
     "telegram": string
@@ -162,6 +167,50 @@ export interface MessageSchema {
     "configCopyFailed": string
   }
   "settings": {
+    "siteDomainNeeded": string
+    "siteApplyTitle": string
+    "siteApplyText": string
+    "tabSite": string
+    "secSite": string
+    "siteLoadFailed": string
+    "siteMode": string
+    "siteModeReality": string
+    "siteModePort": string
+    "siteModeRealityDesc": string
+    "siteModePortDesc": string
+    "siteDomain": string
+    "siteDomainReality": string
+    "siteDomainPort": string
+    "siteEmail": string
+    "siteEmailHint": string
+    "sitePanelPort": string
+    "sitePanelPortHint": string
+    "siteCert": string
+    "siteCertAuto": string
+    "siteCertFiles": string
+    "siteCertFile": string
+    "siteKeyFile": string
+    "siteApplyHint": string
+    "siteApply": string
+    "siteApplied": string
+    "secSiteCert": string
+    "certName": string
+    "certIssuer": string
+    "certStopgap": string
+    "certUntil": string
+    "certCheck": string
+    "certCheckOk": string
+    "certCheckFail": string
+    "certCheckError": string
+    "certCheckNone": string
+    "certError": string
+    "certNone": string
+    "certAutoHint": string
+    "certRenew": string
+    "certObtain": string
+    "certRenewed": string
+    "certRenewFailed": string
+    "subOnSite": string
     "subtitle": string
     "sections": string
     "tabPanel": string
@@ -209,9 +258,6 @@ export interface MessageSchema {
     "pathBothDesc": string
     "sessionMaxAge": string
     "sessionMaxAgeDesc": string
-    "webCertFile": string
-    "webKeyFile": string
-    "certPathDesc": string
     "restartXray": string
     "restartXrayDesc": string
     "externalTraffic": string
@@ -586,6 +632,8 @@ export interface MessageSchema {
     "outTestError": string
   }
   "inbounds": {
+    "ownSite": string
+    "ownSiteHelp": string
     "title": string
     "statSentReceived": string
     "statTraffic": string

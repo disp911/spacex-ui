@@ -7,6 +7,7 @@ import { bytesParts, formatDuration, formatNumber, formatSpeed } from '../i18n/f
 import { toast, XButton, XIcon, XInlineButton, XNotice, XRowLink, XSkeletonText, XStatusDot } from '../kit'
 import AppPage from '../layout/AppPage.vue'
 import { useServerStatus } from '../stores/server'
+import { loadSite, siteTrouble, type SiteInfo } from './settings/site'
 import DashCard from './dashboard/DashCard.vue'
 import DashStat from './dashboard/DashStat.vue'
 import BackupModal from './dashboard/BackupModal.vue'
@@ -93,6 +94,18 @@ function write(key: string, value: string, storage: Storage) {
   }
 }
 
+// The website: no valid certificate, no answer from outside or a failed renewal is told here.
+const site = ref<SiteInfo | null>(null)
+onMounted(async () => {
+  try {
+    site.value = await loadSite()
+  } catch {
+    // nothing to tell
+  }
+})
+const trouble = computed(() => siteTrouble(site.value))
+const troubleTitles = { cert: 'dashboard.certTitle', check: 'dashboard.siteTitle', renew: 'dashboard.renewTitle' } as const
+
 const ip = (v?: string) => (!v || v === 'N/A' ? '—' : v)
 
 // --- Windows ----------------------------------------------------------------
@@ -127,8 +140,14 @@ const dash = '—'
         <template #host><span class="mono">{{ host }}</span></template>
       </i18n-t>
     </template>
-    <template v-if="insecure && !httpDismissed" #aside>
-      <XNotice tone="warn" :title="t('dashboard.httpTitle')" compact>
+    <template v-if="(insecure && !httpDismissed) || trouble" #aside>
+      <XNotice v-if="trouble" :tone="trouble.tone" :title="t(troubleTitles[trouble.kind])" compact>
+        {{ trouble.text || t('dashboard.certExpired') }}
+        <template #actions>
+          <XButton variant="ghost" icon="arrowRight" :label="t('dashboard.siteMore')" :to="{ name: 'settings', query: { tab: 'site' } }" />
+        </template>
+      </XNotice>
+      <XNotice v-else tone="warn" :title="t('dashboard.httpTitle')" compact>
         {{ t('dashboard.httpText') }}
         <template #actions>
           <XButton variant="ghost" icon="close" :label="t('kit.close')" @click="dismissHttp" />

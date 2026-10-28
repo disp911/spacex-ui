@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, provide, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRoute } from 'vue-router'
 import { api } from '../api'
 import {
   toast, XActionBar, XBusyOverlay, XButton, XCard, XConfirm, XEmpty, XNotice, XSettingsSkeleton, XStatusText, XTabs, type TabItem,
@@ -10,6 +11,7 @@ import { cause, formKey } from './settings/form'
 import { securityAlerts, settingErrors, tabs, type AllSetting, type SettingKey, type TabKey, type Text } from './settings/model'
 import { addressAfterRestart, waitForPanel } from './settings/restart'
 import PanelTab from './settings/PanelTab.vue'
+import SiteTab from './settings/SiteTab.vue'
 import UiTab from './settings/UiTab.vue'
 import AccountTab from './settings/AccountTab.vue'
 import LdapTab from './settings/LdapTab.vue'
@@ -81,6 +83,7 @@ provide(formKey, {
     Object.assign(saved.value, patch)
     Object.assign(draft.value, patch)
   },
+  restart: (address) => restart(address),
 })
 
 const status = computed(() => {
@@ -92,7 +95,9 @@ const status = computed(() => {
 
 // --- Tabs -------------------------------------------------------------------
 
-const tab = ref<TabKey>('panel')
+// A link may name the tab to open, e.g. ?tab=site from the dashboard's warning.
+const asked = useRoute().query.tab
+const tab = ref<TabKey>(tabs.find((item) => item.key === asked)?.key ?? 'panel')
 /** Formats has something to set only while JSON or Clash subscriptions are on. */
 const formats = computed(() => !!draft.value && (draft.value.subJsonEnable || draft.value.subClashEnable))
 const tabItems = computed<TabItem<TabKey>[]>(() =>
@@ -145,13 +150,13 @@ const restarting = ref(false)
 const restarted = ref(false)
 const progress = ref(0)
 
-async function restart() {
+async function restart(address?: { panel: string; page: string }) {
   if (!saved.value) return
   confirming.value = false
   restarted.value = false
   progress.value = 0
   restarting.value = true
-  const { panel, page } = addressAfterRestart(saved.value)
+  const { panel, page } = address ?? addressAfterRestart(saved.value)
   try {
     await api.post('panel/setting/restartPanel')
   } catch (e) {
@@ -203,6 +208,7 @@ async function restart() {
     </XCard>
     <div v-else :key="tab" class="x-tab-panel">
       <PanelTab v-if="tab === 'panel'" />
+      <SiteTab v-else-if="tab === 'site'" />
       <UiTab v-else-if="tab === 'ui'" />
       <AccountTab v-else-if="tab === 'account'" />
       <LdapTab v-else-if="tab === 'ldap'" />
@@ -223,7 +229,7 @@ async function restart() {
     </template>
   </AppPage>
 
-  <XConfirm v-model:open="confirming" icon="refresh" :title="t('settings.restart')" :cta="t('settings.restartYes')" @confirm="restart">
+  <XConfirm v-model:open="confirming" icon="refresh" :title="t('settings.restart')" :cta="t('settings.restartYes')" @confirm="restart()">
     {{ t('settings.restartText') }}
   </XConfirm>
   <XBusyOverlay :open="restarting" :title="t('settings.restart')" :text="t(restarted ? 'settings.restartDone' : 'settings.restartWait')" :progress="progress" />

@@ -20,6 +20,11 @@ export interface SettingsForm {
    * e.g. two-factor authentication. Throws the server's refusal.
    */
   applyNow(patch: Partial<AllSetting>): Promise<void>
+  /**
+   * Restarts the panel as the page's own button does, without asking, and
+   * goes on at the address given, e.g. where the website's settings put it.
+   */
+  restart(address?: { panel: string; page: string }): void
 }
 
 export const formKey: InjectionKey<SettingsForm> = Symbol('settings form')

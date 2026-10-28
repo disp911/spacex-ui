@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { computed, reactive } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
-  XExample, XInput, XNumber, XOrderToggles, XSelect, XSettingDivider, XSettingRow, XSettingsSection, XSwitch, XTextarea,
+  XExample, XInput, XNotice, XNumber, XOrderToggles, XSelect, XSettingDivider, XSettingRow, XSettingsSection, XSwitch, XTextarea,
 } from '../../kit'
 import { useSettingsForm } from './form'
 import type { SettingKey } from './model'
+import { loadSite } from './site'
 
 /** The subscription service: where it listens, what clients see in their apps, its certificate. */
 const { t } = useI18n()
@@ -37,12 +38,25 @@ const separator = computed({
   get: () => (f.draft.remarkModel.length > 1 ? f.draft.remarkModel.charAt(0) : '-'),
   set: (s: string | null) => (f.draft.remarkModel = (s ?? '-') + f.draft.remarkModel.slice(1)),
 })
+// While the website runs, the subscriptions are served at its address: their own port, domain and certificate rest.
+const siteUrl = ref('')
+onMounted(async () => {
+  try {
+    siteUrl.value = (await loadSite()).url
+  } catch {
+    // the fields stay as they are
+  }
+})
+
 const sample = computed(() => '#' + order.value.map((p) => parts.find((x) => x.value === p)?.label).join(separator.value))
 </script>
 
 <template>
   <div class="settings-tab">
-    <XSettingsSection v-model:open="open.general" :title="t('settings.secGeneral')" :count="9" :modified="f.count(sections.general).dirty" :errors="f.count(sections.general).errors">
+    <XNotice v-if="siteUrl" tone="info">
+      <i18n-t scope="global" keypath="settings.subOnSite"><template #url><code>{{ siteUrl }}</code></template></i18n-t>
+    </XNotice>
+    <XSettingsSection v-model:open="open.general" :title="t('settings.secGeneral')" :count="siteUrl ? 6 : 9" :modified="f.count(sections.general).dirty" :errors="f.count(sections.general).errors">
       <XSettingRow :title="t('settings.remarkModel')" :description="t('settings.remarkModelDesc')" tall :modified="f.isDirty('remarkModel')">
         <div class="remark">
           <XExample :label="t('settings.remarkSample')" :value="sample" />
@@ -63,13 +77,13 @@ const sample = computed(() => '#' + order.value.map((p) => parts.find((x) => x.v
       <XSettingRow :title="t('settings.subClash')" :description="t('settings.subClashDesc')" inline :modified="f.isDirty('subClashEnable')">
         <XSwitch v-model="f.draft.subClashEnable" :label="t('settings.subClash')" :modified="f.isDirty('subClashEnable')" />
       </XSettingRow>
-      <XSettingRow :title="t('settings.subListen')" :description="t('settings.subListenDesc')" :modified="f.isDirty('subListen')">
+      <XSettingRow v-if="!siteUrl" :title="t('settings.subListen')" :description="t('settings.subListenDesc')" :modified="f.isDirty('subListen')">
         <XInput v-model="f.draft.subListen" mono :modified="f.isDirty('subListen')" />
       </XSettingRow>
-      <XSettingRow :title="t('settings.subDomain')" :description="t('settings.subDomainDesc')" :modified="f.isDirty('subDomain')">
+      <XSettingRow v-if="!siteUrl" :title="t('settings.subDomain')" :description="t('settings.subDomainDesc')" :modified="f.isDirty('subDomain')">
         <XInput v-model="f.draft.subDomain" mono :modified="f.isDirty('subDomain')" />
       </XSettingRow>
-      <XSettingRow :title="t('settings.subPort')" :description="t('settings.subPortDesc')" narrow :modified="f.isDirty('subPort')" :error="f.error('subPort')">
+      <XSettingRow v-if="!siteUrl" :title="t('settings.subPort')" :description="t('settings.subPortDesc')" narrow :modified="f.isDirty('subPort')" :error="f.error('subPort')">
         <XNumber v-model="f.draft.subPort" :modified="f.isDirty('subPort')" :invalid="!!f.error('subPort')" />
       </XSettingRow>
       <XSettingRow :title="t('settings.subPath')" :description="t('settings.subPathDesc')" :modified="f.isDirty('subPath')" :error="f.error('subPath')">
@@ -109,7 +123,7 @@ const sample = computed(() => '#' + order.value.map((p) => parts.find((x) => x.v
       </XSettingRow>
     </XSettingsSection>
 
-    <XSettingsSection v-model:open="open.certs" :title="t('settings.secCerts')" :count="2" :modified="f.count(sections.certs).dirty" :errors="f.count(sections.certs).errors">
+    <XSettingsSection v-if="!siteUrl" v-model:open="open.certs" :title="t('settings.secCerts')" :count="2" :modified="f.count(sections.certs).dirty" :errors="f.count(sections.certs).errors">
       <XSettingRow :title="t('settings.subCertFile')" tall :modified="f.isDirty('subCertFile')" :error="f.error('subCertFile')">
         <XTextarea v-model="f.draft.subCertFile" mono :grow="3" :modified="f.isDirty('subCertFile')" :invalid="!!f.error('subCertFile')" />
       </XSettingRow>

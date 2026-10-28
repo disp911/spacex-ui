@@ -1,8 +1,10 @@
 package service
 
 import (
+	"context"
 	"sync"
 
+	"github.com/disp911/spacex-ui/v2/util/common"
 	"github.com/disp911/spacex-ui/v2/web/site"
 )
 
@@ -13,6 +15,8 @@ type SiteState struct {
 	// empty when the panel knows no name of its own and a visitor's has to
 	// do.
 	Scheme, Host string
+	// Reality is true while the website is behind REALITY, on its socket.
+	Reality bool
 	// Certs is nil when the panel does not obtain the certificate itself.
 	Certs *site.Certs
 	// Checker is nil when nothing looks at the site from outside.
@@ -61,4 +65,23 @@ func GetSiteStatus() (cert site.CertStatus, check site.CheckResult, managed bool
 		check = state.Checker.Last()
 	}
 	return state.Certs.Status(), check, true
+}
+
+// SiteBehindReality reports whether the running website is behind REALITY.
+func SiteBehindReality() bool {
+	siteStatus.Lock()
+	defer siteStatus.Unlock()
+	return siteStatus.state != nil && siteStatus.state.Reality
+}
+
+// RenewSiteCert obtains a new certificate for the website now and waits for
+// the authority's answer.
+func RenewSiteCert(ctx context.Context) error {
+	siteStatus.Lock()
+	state := siteStatus.state
+	siteStatus.Unlock()
+	if state == nil || state.Certs == nil {
+		return common.NewError("the panel obtains no certificate for the website")
+	}
+	return state.Certs.Renew(ctx)
 }

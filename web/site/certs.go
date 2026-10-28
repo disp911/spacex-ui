@@ -9,12 +9,14 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/json"
+	"encoding/pem"
 	"errors"
 	"fmt"
 	"math/big"
 	"net"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -108,9 +110,30 @@ func (c *Certs) Stop() {
 	c.cache.Stop()
 }
 
-// Renew obtains a new certificate now, even if the one served is fresh.
+// Renew obtains a new certificate now, even if the one served is fresh, and
+// serves it from the next handshake on. It waits for the authority's answer,
+// a first certificate included, and reports its failure.
 func (c *Certs) Renew(ctx context.Context) error {
-	return c.cfg.RenewCertAsync(ctx, c.domain, true)
+	old := c.cache.AllMatchingCertificates(c.domain)
+	if err := c.cfg.RenewCertSync(ctx, c.domain, true); err != nil {
+		c.mu.Lock()
+		c.failed, c.at = err.Error(), time.Now()
+		c.mu.Unlock()
+		return err
+	}
+	// The renewal is in storage; the handshakes take certificates from memory.
+	fresh, err := c.cfg.CacheManagedCertificate(ctx, c.domain)
+	if err != nil {
+		return err
+	}
+	var stale []string
+	for _, cert := range old {
+		if cert.Hash() != fresh.Hash() {
+			stale = append(stale, cert.Hash())
+		}
+	}
+	c.cache.Remove(stale)
+	return nil
 }
 
 // TLSConfig serves the certificate over HTTP/2 and HTTP/1.1 and answers the
@@ -193,6 +216,31 @@ func (c *Certs) Status() CertStatus {
 	s.Error, s.ErrorAt = c.failed, c.at
 	c.mu.Unlock()
 	return s
+}
+
+// FileStatus describes the certificate in an administrator's file: the name
+// it is for, who issued it and until when.
+func FileStatus(certFile string) (CertStatus, error) {
+	data, err := os.ReadFile(certFile)
+	if err != nil {
+		return CertStatus{}, err
+	}
+	block, _ := pem.Decode(data)
+	if block == nil || block.Type != "CERTIFICATE" {
+		return CertStatus{}, fmt.Errorf("%s holds no PEM certificate", certFile)
+	}
+	leaf, err := x509.ParseCertificate(block.Bytes)
+	if err != nil {
+		return CertStatus{}, err
+	}
+	s := CertStatus{Domain: leaf.Subject.CommonName, Issuer: issuerName(leaf), NotAfter: leaf.NotAfter}
+	switch {
+	case len(leaf.DNSNames) > 0:
+		s.Domain = leaf.DNSNames[0]
+	case len(leaf.IPAddresses) > 0:
+		s.Domain = leaf.IPAddresses[0].String()
+	}
+	return s, nil
 }
 
 func issuerName(leaf *x509.Certificate) string {

@@ -171,7 +171,7 @@ func (s *Server) startReality(panel http.Handler) (ownPort bool, err error) {
 	s.siteTLS = certs.TLSConfig()
 	s.siteCheck = &site.Checker{}
 	s.siteName, s.siteAddr = domain, net.JoinHostPort(domain, "443")
-	service.SetSiteStatus(&service.SiteState{Scheme: "https", Host: domain, Certs: certs, Checker: s.siteCheck})
+	service.SetSiteStatus(&service.SiteState{Scheme: "https", Host: domain, Reality: true, Certs: certs, Checker: s.siteCheck})
 	siteRunning.Store(true)
 
 	return s.settingService.GetSitePanelPort()
