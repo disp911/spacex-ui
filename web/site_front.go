@@ -23,8 +23,8 @@ import (
 
 // siteFront answers on the site's listeners: the panel's secret path is the
 // panel's, the subscription paths are the subscription server's, and every
-// other path is the website's. A path is matched as a whole first segment
-// or more, so "/sub" does not take "/subscribe".
+// other path is the website's. A path is matched as whole segments, so
+// "/sub/" does not take "/subscribe".
 type siteFront struct {
 	basePath string
 	panel    http.Handler
@@ -48,13 +48,15 @@ func (f siteFront) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	f.site.ServeHTTP(w, r)
 }
 
-// underPath reports whether p is prefix, a folder path ending in "/", or
-// lies under it; the folder asked for without its slash counts too.
+// underPath reports whether p lies under prefix, a folder path ending in
+// "/". The folder asked for without its slash is the website's, as any
+// unknown path is: answering it otherwise would show that something is
+// there.
 func underPath(p, prefix string) bool {
-	if prefix == "" || prefix == "/" {
+	if !strings.HasSuffix(prefix, "/") || prefix == "/" {
 		return false
 	}
-	return strings.HasPrefix(p, prefix) || p == strings.TrimSuffix(prefix, "/")
+	return strings.HasPrefix(p, prefix)
 }
 
 type subRoute struct {

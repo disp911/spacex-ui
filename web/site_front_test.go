@@ -33,7 +33,7 @@ func TestSiteFrontRoutesByPath(t *testing.T) {
 		"/":                    "site",
 		"/docs/intro.html":     "site",
 		"/s3cret/":             "panel",
-		"/s3cret":              "panel",
+		"/s3cret":              "site",
 		"/s3cret/panel/api/x":  "panel",
 		"/s3cretive":           "site",
 		"/sub/abc":             "sub",
@@ -45,8 +45,8 @@ func TestSiteFrontRoutesByPath(t *testing.T) {
 		"/s3cret/../sub/abc":   "panel",
 		"/favicon.ico":         "site",
 		"/robots.txt":          "site",
-		"/sub":                 "sub",
-		"/json":                "sub",
+		"/sub":                 "site",
+		"/json":                "site",
 		"/s3cret/assets/x.css": "panel",
 	} {
 		rec := httptest.NewRecorder()
