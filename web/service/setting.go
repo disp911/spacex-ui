@@ -84,6 +84,7 @@ var defaultValueMap = map[string]string{
 	"sitePanelPort": "false",
 	"siteSeed":      "",
 	"siteBorn":      "",
+	"siteInbound":   "0",
 
 	// LDAP defaults
 	"ldapEnable":            "false",
@@ -447,6 +448,16 @@ func (s *SettingService) GetSiteEmail() (string, error) {
 
 func (s *SettingService) SetSiteEmail(email string) error {
 	return s.setString("siteEmail", strings.TrimSpace(email))
+}
+
+// SiteSubDomain is the website's domain while the website runs and serves
+// the subscriptions on port 443 in place of their own port, else "".
+func (s *SettingService) SiteSubDomain() string {
+	if _, _, running := GetSiteStatus(); !running {
+		return ""
+	}
+	domain, _ := s.GetSiteDomain()
+	return domain
 }
 
 // GetSitePanelPort reports whether the panel also keeps its own port while
@@ -856,7 +867,9 @@ func (s *SettingService) GetDefaultSettings(host string) (any, error) {
 		} else {
 			subURI = "http://"
 		}
-		if (subPort == 443 && subTLS) || (subPort == 80 && !subTLS) {
+		if domain := s.SiteSubDomain(); domain != "" {
+			subURI = "https://" + domain
+		} else if (subPort == 443 && subTLS) || (subPort == 80 && !subTLS) {
 			subURI += subDomain
 		} else {
 			subURI += fmt.Sprintf("%s:%d", subDomain, subPort)

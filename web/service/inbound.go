@@ -221,6 +221,9 @@ func (s *InboundService) checkEmailExistForInbound(inbound *model.Inbound) (stri
 // then saves the inbound to the database and optionally adds it to the running Xray instance.
 // Returns the created inbound, whether Xray needs restart, and any error.
 func (s *InboundService) AddInbound(inbound *model.Inbound) (*model.Inbound, bool, error) {
+	if err := s.guardSite(nil, inbound); err != nil {
+		return inbound, false, err
+	}
 	exist, err := s.checkPortExist(inbound.Listen, inbound.Port, 0)
 	if err != nil {
 		return inbound, false, err
@@ -349,6 +352,11 @@ func (s *InboundService) AddInbound(inbound *model.Inbound) (*model.Inbound, boo
 // It removes the inbound from the database and the running Xray instance if active.
 // Returns whether Xray needs restart and any error.
 func (s *InboundService) DelInbound(id int) (bool, error) {
+	if old, err := s.GetInbound(id); err == nil {
+		if err := s.guardSite(old, nil); err != nil {
+			return false, err
+		}
+	}
 	db := database.GetDB()
 
 	var tag string
@@ -431,6 +439,11 @@ func (s *InboundService) SetInboundEnable(id int, enable bool) (bool, error) {
 	if inbound.Enable == enable {
 		return false, nil
 	}
+	next := *inbound
+	next.Enable = enable
+	if err := s.guardSite(inbound, &next); err != nil {
+		return false, err
+	}
 
 	db := database.GetDB()
 	if err := db.Model(model.Inbound{}).Where("id = ?", id).
@@ -491,6 +504,9 @@ func (s *InboundService) UpdateInbound(inbound *model.Inbound) (*model.Inbound, 
 
 	oldInbound, err := s.GetInbound(inbound.Id)
 	if err != nil {
+		return inbound, false, err
+	}
+	if err := s.guardSite(oldInbound, inbound); err != nil {
 		return inbound, false, err
 	}
 

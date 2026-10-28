@@ -3,7 +3,6 @@
 package main
 
 import (
-	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -14,6 +13,7 @@ import (
 
 	"github.com/disp911/spacex-ui/v2/config"
 	"github.com/disp911/spacex-ui/v2/database"
+	"github.com/disp911/spacex-ui/v2/database/model"
 	"github.com/disp911/spacex-ui/v2/logger"
 	"github.com/disp911/spacex-ui/v2/sub"
 	"github.com/disp911/spacex-ui/v2/util/crypto"
@@ -288,24 +288,24 @@ func updateSite(mode, domain, email, panelPort string) error {
 			return err
 		}
 	}
+	if current, _ := settingService.GetSiteMode(); mode == "" && domain != "" && current == service.SiteReality {
+		// The REALITY inbound takes the new domain as its server name.
+		mode = current
+	}
 	if mode != "" {
 		if mode == "off" {
 			mode = service.SiteOff
 		}
-		if mode != service.SiteOff {
-			if d, _ := settingService.GetSiteDomain(); d == "" {
-				fmt.Println("Set the website domain first: -domain")
-				return errors.New("no website domain")
-			}
-			if p, _ := settingService.GetBasePath(); p == "/" {
-				fmt.Println("The panel needs a secret path to share port 443 with the website: setting -webBasePath")
-				return errors.New("no secret path")
-			}
-		}
-		if err := settingService.SetSiteMode(mode); err != nil {
+		siteService := service.SiteService{}
+		ib, err := siteService.SwitchMode(mode)
+		if err != nil {
 			fmt.Println("Failed to set the website mode:", err)
 			return err
 		}
+		if ib != nil {
+			printSiteInbound(&siteService, ib)
+		}
+		fmt.Println("Restart the panel to apply the mode: x-ui restart")
 	}
 	mode, _ = settingService.GetSiteMode()
 	if mode == service.SiteOff {
@@ -320,6 +320,28 @@ func updateSite(mode, domain, email, panelPort string) error {
 	fmt.Println("panel port behind REALITY:", open)
 	fmt.Println("website socket:", config.GetSiteSocket())
 	return nil
+}
+
+// selfSteal puts the website behind a REALITY inbound of its own on port
+// 443, which passes whoever is not a client on to the website, and prints
+// how its first client connects.
+func selfSteal(domain, email string) error {
+	return updateSite(service.SiteReality, domain, email, "")
+}
+
+func printSiteInbound(siteService *service.SiteService, ib *model.Inbound) {
+	fmt.Printf("REALITY inbound %q (id %d) on port %d, target %s\n", ib.Remark, ib.Id, ib.Port, config.GetSiteSocket())
+	link, sub, err := siteService.FirstClientLinks(ib)
+	if err != nil {
+		fmt.Println("Failed to read the inbound's first client:", err)
+		return
+	}
+	if link != "" {
+		fmt.Println("client link:", link)
+	}
+	if sub != "" {
+		fmt.Println("subscription:", sub)
+	}
 }
 
 // updateCert updates the SSL certificate files for the panel.
@@ -456,6 +478,11 @@ func main() {
 	siteCmd.StringVar(&siteEmail, "email", "", "Set the email for certificates, - to clear it")
 	siteCmd.StringVar(&sitePanelPort, "panelPort", "", "Keep the panel's own port open behind REALITY: true or false")
 
+	selfStealCmd := flag.NewFlagSet("selfsteal", flag.ExitOnError)
+	var stealDomain, stealEmail string
+	selfStealCmd.StringVar(&stealDomain, "domain", "", "Set the website domain")
+	selfStealCmd.StringVar(&stealEmail, "email", "", "Set the email for certificates, - to clear it")
+
 	oldUsage := flag.Usage
 	flag.Usage = func() {
 		oldUsage()
@@ -465,6 +492,7 @@ func main() {
 		fmt.Println("    migrate        migrate form other/old x-ui")
 		fmt.Println("    setting        set settings")
 		fmt.Println("    site           set the website on port 443")
+		fmt.Println("    selfsteal      put the website behind a REALITY inbound on port 443")
 	}
 
 	flag.Parse()
@@ -513,6 +541,14 @@ func main() {
 			return
 		}
 		if updateSite(siteMode, siteDomain, siteEmail, sitePanelPort) != nil {
+			os.Exit(1)
+		}
+	case "selfsteal":
+		if err := selfStealCmd.Parse(os.Args[2:]); err != nil {
+			fmt.Println(err)
+			return
+		}
+		if selfSteal(stealDomain, stealEmail) != nil {
 			os.Exit(1)
 		}
 	case "cert":

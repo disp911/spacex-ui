@@ -1375,6 +1375,9 @@ func (s *SubService) BuildURLs(scheme, hostWithPort, subPath, subJsonPath, subCl
 
 // getBaseSchemeAndHost determines the base scheme and host from settings or falls back to request values
 func (s *SubService) getBaseSchemeAndHost(requestScheme, requestHostWithPort string) (string, string) {
+	if domain := s.settingService.SiteSubDomain(); domain != "" {
+		return "https", domain
+	}
 	subDomain, err := s.settingService.GetSubDomain()
 	if err != nil || subDomain == "" {
 		return requestScheme, requestHostWithPort
