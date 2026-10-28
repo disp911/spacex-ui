@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"net"
 	"os"
 	"os/signal"
 	"syscall"
@@ -268,6 +269,9 @@ func updateSite(mode, domain, email, panelPort string) error {
 	}
 	settingService := service.SettingService{}
 	if domain != "" {
+		if domain == "-" {
+			domain = ""
+		}
 		if err := settingService.SetSiteDomain(domain); err != nil {
 			fmt.Println("Failed to set the website domain:", err)
 			return err
@@ -293,8 +297,8 @@ func updateSite(mode, domain, email, panelPort string) error {
 		mode = current
 	}
 	if mode != "" {
-		if mode == "off" {
-			mode = service.SiteOff
+		if mode == "port" {
+			mode = service.SitePort
 		}
 		siteService := service.SiteService{}
 		ib, err := siteService.SwitchMode(mode)
@@ -308,17 +312,31 @@ func updateSite(mode, domain, email, panelPort string) error {
 		fmt.Println("Restart the panel to apply the mode: x-ui restart")
 	}
 	mode, _ = settingService.GetSiteMode()
-	if mode == service.SiteOff {
-		mode = "off"
+	if mode == service.SitePort {
+		mode = "port"
 	}
 	domain, _ = settingService.GetSiteDomain()
 	email, _ = settingService.GetSiteEmail()
 	open, _ := settingService.GetSitePanelPort()
 	fmt.Println("website mode:", mode)
-	fmt.Println("website domain:", domain)
+	fmt.Println("website name:", domain)
 	fmt.Println("certificate email:", email)
 	fmt.Println("panel port behind REALITY:", open)
 	fmt.Println("website socket:", config.GetSiteSocket())
+	return nil
+}
+
+// lookupSite prints the addresses a name resolves to, one a line, so the
+// installer can tell whether a domain points at this server.
+func lookupSite(name string) error {
+	addrs, err := net.LookupIP(name)
+	if err != nil {
+		fmt.Println("Failed to look up", name+":", err)
+		return err
+	}
+	for _, a := range addrs {
+		fmt.Println(a)
+	}
 	return nil
 }
 
@@ -472,9 +490,10 @@ func main() {
 	settingCmd.StringVar(&webKeyFile, "webCertKey", "", "Set path to private key file for panel")
 
 	siteCmd := flag.NewFlagSet("site", flag.ExitOnError)
-	var siteMode, siteDomain, siteEmail, sitePanelPort string
-	siteCmd.StringVar(&siteMode, "mode", "", "Where the website answers on port 443: direct, reality or off")
-	siteCmd.StringVar(&siteDomain, "domain", "", "Set the website domain")
+	var siteMode, siteDomain, siteEmail, sitePanelPort, siteLookup string
+	siteCmd.StringVar(&siteMode, "mode", "", "Where the panel and its website answer: reality (443 behind REALITY) or port (the panel's own port)")
+	siteCmd.StringVar(&siteDomain, "domain", "", "Set the domain or IP address the panel gets its certificate for, - to clear it")
+	siteCmd.StringVar(&siteLookup, "lookup", "", "Print the addresses a domain resolves to")
 	siteCmd.StringVar(&siteEmail, "email", "", "Set the email for certificates, - to clear it")
 	siteCmd.StringVar(&sitePanelPort, "panelPort", "", "Keep the panel's own port open behind REALITY: true or false")
 
@@ -491,7 +510,7 @@ func main() {
 		fmt.Println("    run            run web panel")
 		fmt.Println("    migrate        migrate form other/old x-ui")
 		fmt.Println("    setting        set settings")
-		fmt.Println("    site           set the website on port 443")
+		fmt.Println("    site           set where the panel and its website answer")
 		fmt.Println("    selfsteal      put the website behind a REALITY inbound on port 443")
 	}
 
@@ -538,6 +557,12 @@ func main() {
 	case "site":
 		if err := siteCmd.Parse(os.Args[2:]); err != nil {
 			fmt.Println(err)
+			return
+		}
+		if siteLookup != "" {
+			if lookupSite(siteLookup) != nil {
+				os.Exit(1)
+			}
 			return
 		}
 		if updateSite(siteMode, siteDomain, siteEmail, sitePanelPort) != nil {

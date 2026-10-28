@@ -6,30 +6,59 @@ import (
 	"github.com/disp911/spacex-ui/v2/web/site"
 )
 
-// siteStatus is what the running website reports of itself: its
-// certificate and the last look at it from outside.
-var siteStatus struct {
-	sync.Mutex
-	certs   *site.Certs
-	checker *site.Checker
+// SiteState is what the running website reports of itself.
+type SiteState struct {
+	// Scheme and Host are where the website and the subscriptions are
+	// found, such as https and example.com or 203.0.113.7:8443. Host is
+	// empty when the panel knows no name of its own and a visitor's has to
+	// do.
+	Scheme, Host string
+	// Certs is nil when the panel does not obtain the certificate itself.
+	Certs *site.Certs
+	// Checker is nil when nothing looks at the site from outside.
+	Checker *site.Checker
 }
 
-// SetSiteStatus records the running website's certificates and checks; nil
-// when the website stops.
-func SetSiteStatus(certs *site.Certs, checker *site.Checker) {
+var siteStatus struct {
+	sync.Mutex
+	state *SiteState
+}
+
+// SetSiteStatus records the running website; nil when it stops.
+func SetSiteStatus(state *SiteState) {
 	siteStatus.Lock()
-	siteStatus.certs, siteStatus.checker = certs, checker
+	siteStatus.state = state
 	siteStatus.Unlock()
+}
+
+// SiteBase is where the website is found, such as https://example.com,
+// seen from a request to host; "" while there is no website. The
+// subscriptions are served there, at their paths, in place of their own
+// port.
+func SiteBase(host string) string {
+	siteStatus.Lock()
+	defer siteStatus.Unlock()
+	state := siteStatus.state
+	if state == nil {
+		return ""
+	}
+	if state.Host != "" {
+		host = state.Host
+	}
+	return state.Scheme + "://" + host
 }
 
 // GetSiteStatus describes the website's certificate and the last check of
-// it; running is false while there is no website.
-func GetSiteStatus() (cert site.CertStatus, check site.CheckResult, running bool) {
+// it; managed is false while the panel obtains no certificate itself.
+func GetSiteStatus() (cert site.CertStatus, check site.CheckResult, managed bool) {
 	siteStatus.Lock()
-	certs, checker := siteStatus.certs, siteStatus.checker
+	state := siteStatus.state
 	siteStatus.Unlock()
-	if certs == nil {
+	if state == nil || state.Certs == nil {
 		return cert, check, false
 	}
-	return certs.Status(), checker.Last(), true
+	if state.Checker != nil {
+		check = state.Checker.Last()
+	}
+	return state.Certs.Status(), check, true
 }

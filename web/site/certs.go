@@ -2,11 +2,17 @@ package site
 
 import (
 	"context"
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rand"
 	"crypto/tls"
 	"crypto/x509"
+	"crypto/x509/pkix"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math/big"
+	"net"
 	"net/http"
 	"net/url"
 	"strings"
@@ -21,9 +27,12 @@ import (
 // Certs obtains and renews the site's certificate on its own, with no
 // script beside the panel: from Let's Encrypt, and from ZeroSSL should that
 // fail and an email be known. A renewed certificate is served from the next
-// handshake on, with nothing restarted. The authorities check the domain
-// either over port 80 (HTTPChallenge) or over port 443 by TLS (TLSConfig);
-// behind REALITY the latter reaches the site like any other visitor.
+// handshake on, with nothing restarted. The name is a domain or an IP
+// address; Let's Encrypt gives an address a certificate of some six days,
+// renewed every few. The authorities check the name over port 80 or over
+// port 443 by TLS. Where the panel holds neither, the check opens the port
+// for its few seconds; behind REALITY port 80 answers it (HTTPChallenge)
+// and 443 reaches the site like any other visitor (TLSConfig).
 type Certs struct {
 	domain string
 	cache  *certmagic.Cache
@@ -33,6 +42,9 @@ type Certs struct {
 	mu     sync.Mutex
 	failed string
 	at     time.Time
+
+	stopgap     sync.Once
+	stopgapCert *tls.Certificate
 }
 
 // CertStatus is what the panel shows of the certificate.
@@ -50,6 +62,7 @@ type CertStatus struct {
 // NewCerts manages the certificate of domain, keeping it and the accounts in
 // folder. Without email there is no second authority.
 func NewCerts(folder, domain, email string) *Certs {
+	domain = strings.Trim(domain, "[]")
 	c := &Certs{domain: domain}
 	var cfg *certmagic.Config
 	c.cache = certmagic.NewCache(certmagic.CacheOptions{
@@ -60,14 +73,22 @@ func NewCerts(folder, domain, email string) *Certs {
 		Storage: &certmagic.FileStorage{Path: folder},
 		Logger:  zap.NewNop(),
 		OnEvent: c.onEvent,
+		// A visitor naming no server, as one opening an address does, gets
+		// the certificate all the same.
+		DefaultServerName: domain,
 	})
-	c.le = certmagic.NewACMEIssuer(cfg, certmagic.ACMEIssuer{
+	le := certmagic.ACMEIssuer{
 		CA:     certmagic.LetsEncryptProductionCA,
 		TestCA: certmagic.LetsEncryptStagingCA,
 		Email:  email,
 		Agreed: true,
 		Logger: zap.NewNop(),
-	})
+	}
+	if net.ParseIP(domain) != nil {
+		// Let's Encrypt certifies addresses only in its short-lived profile.
+		le.Profile = "shortlived"
+	}
+	c.le = certmagic.NewACMEIssuer(cfg, le)
 	cfg.Issuers = []certmagic.Issuer{c.le}
 	if email != "" {
 		cfg.Issuers = append(cfg.Issuers, &zeroSSL{cfg: cfg, email: email, eabURL: zeroSSLEABURL})
@@ -93,12 +114,64 @@ func (c *Certs) Renew(ctx context.Context) error {
 }
 
 // TLSConfig serves the certificate over HTTP/2 and HTTP/1.1 and answers the
-// authorities' TLS check.
+// authorities' TLS check. Until there is a certificate a self-signed one
+// stands in, so the panel can be opened past the browser's warning.
 func (c *Certs) TLSConfig() *tls.Config {
 	t := c.cfg.TLSConfig()
 	t.MinVersion = tls.VersionTLS12
 	t.NextProtos = append([]string{"h2", "http/1.1"}, t.NextProtos...)
+	get := t.GetCertificate
+	t.GetCertificate = func(hello *tls.ClientHelloInfo) (*tls.Certificate, error) {
+		cert, err := get(hello)
+		if err == nil || c.Status().Issuer != "" {
+			return cert, err
+		}
+		return c.stopgapCertificate()
+	}
 	return t
+}
+
+// stopgapCertificate is the self-signed certificate served while there is
+// no other.
+func (c *Certs) stopgapCertificate() (*tls.Certificate, error) {
+	var err error
+	c.stopgap.Do(func() {
+		c.stopgapCert, err = selfSigned(c.domain)
+	})
+	if c.stopgapCert == nil && err == nil {
+		err = errors.New("no certificate yet")
+	}
+	return c.stopgapCert, err
+}
+
+func selfSigned(name string) (*tls.Certificate, error) {
+	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	if err != nil {
+		return nil, err
+	}
+	serial, err := rand.Int(rand.Reader, new(big.Int).Lsh(big.NewInt(1), 127))
+	if err != nil {
+		return nil, err
+	}
+	now := time.Now()
+	tmpl := &x509.Certificate{
+		SerialNumber: serial,
+		Subject:      pkix.Name{CommonName: name},
+		NotBefore:    now.Add(-time.Hour),
+		NotAfter:     now.AddDate(0, 0, 90),
+		KeyUsage:     x509.KeyUsageDigitalSignature,
+		ExtKeyUsage:  []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
+	}
+	if ip := net.ParseIP(name); ip != nil {
+		tmpl.IPAddresses = []net.IP{ip}
+	} else {
+		tmpl.DNSNames = []string{name}
+	}
+	der, err := x509.CreateCertificate(rand.Reader, tmpl, tmpl, &key.PublicKey, key)
+	if err != nil {
+		return nil, err
+	}
+	return &tls.Certificate{Certificate: [][]byte{der}, PrivateKey: key}, nil
 }
 
 // HTTPChallenge answers the authorities' check over port 80 and passes

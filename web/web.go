@@ -11,7 +11,6 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 
@@ -22,7 +21,6 @@ import (
 	"github.com/disp911/spacex-ui/v2/web/job"
 	"github.com/disp911/spacex-ui/v2/web/locale"
 	"github.com/disp911/spacex-ui/v2/web/middleware"
-	"github.com/disp911/spacex-ui/v2/web/network"
 	"github.com/disp911/spacex-ui/v2/web/service"
 	"github.com/disp911/spacex-ui/v2/web/session"
 	"github.com/disp911/spacex-ui/v2/web/site"
@@ -38,11 +36,6 @@ import (
 
 //go:embed translation/*
 var i18nFS embed.FS
-
-// decoyPage is shown for paths outside the base path, see frontendOrDecoy.
-//
-//go:embed decoy.html
-var decoyPage []byte
 
 // appFS holds the v3 frontend that Vite builds from frontend/ into web/app.
 // The directory keeps a .gitkeep, so the panel compiles before the first build.
@@ -69,13 +62,19 @@ type Server struct {
 	// carry no valid credentials.
 	decoyServer *http.Server
 
-	// The website on port 443 and port 80 beside it, see startSite.
+	// The website behind REALITY and port 80 beside it, see startReality.
 	siteServer     *http.Server
 	redirectServer *http.Server
-	siteCerts      *site.Certs
 	siteTLS        *tls.Config
-	siteHandler    http.Handler
-	siteCheck      *site.Checker
+	// What answers on the panel's listeners, and the same without the
+	// WEB proxies in front, see startReality and startOwnPort.
+	siteHandler http.Handler
+	siteFront   http.Handler
+	// The certificate the panel obtains itself, and the hourly look at
+	// the site from outside: under siteName, at siteAddr.
+	siteCerts          *site.Certs
+	siteCheck          *site.Checker
+	siteName, siteAddr string
 
 	index *controller.IndexController
 	panel *controller.XUIController
@@ -191,17 +190,12 @@ func (s *Server) initRouter() (*gin.Engine, error) {
 		c.JSON(http.StatusOK, gin.H{})
 	})
 
-	// Any request that doesn't match a registered route - most notably the
-	// bare domain root when basePath is a random secret path - renders a
-	// generic decoy page instead of a 404, so a passive scan of the domain
-	// looks like an ordinary, unrelated website rather than a panel that
-	// rejected the request. A small, barely visible link on that page leads
-	// back to the real login page at basePath.
-	//
-	// Under the base path the frontend answers instead: a page of the app or
-	// its files. The server's own endpoints under panel/ stay theirs.
+	// Under the base path a request no route took is the frontend's: a page
+	// of the app or its files; the server's own endpoints under panel/ stay
+	// theirs. Paths outside it are the website's (siteFront) and do not
+	// reach the panel.
 	engine.NoRoute(frontendOrDecoy(basePath, app, func(c *gin.Context) {
-		c.Data(http.StatusOK, "text/html; charset=utf-8", decoyPage)
+		c.AbortWithStatus(http.StatusNotFound)
 	}))
 
 	return engine, nil
@@ -343,88 +337,45 @@ func (s *Server) Start() (err error) {
 		return err
 	}
 
-	// With the website on, the panel shares port 443 with it and keeps its
-	// own port only if asked; should the website fail to start, the panel
-	// opens on its own port as if it were off.
+	// Behind REALITY the panel shares port 443 with its website and keeps
+	// its own port only if asked; should REALITY's side fail to start, the
+	// panel opens on its own port instead.
 	ownPort, httpsOn443 := true, false
-	if mode, _ := s.settingService.GetSiteMode(); mode != service.SiteOff {
-		if own, err := s.startSite(mode, engine); err != nil {
-			logger.Error("Website:", err, "- the panel opens on its own port")
+	if mode, _ := s.settingService.GetSiteMode(); mode == service.SiteReality {
+		if own, err := s.startReality(engine); err != nil {
+			logger.Error("Website behind REALITY:", err, "- the panel opens on its own port")
 		} else {
 			ownPort, httpsOn443 = own, true
 		}
 	}
 	if ownPort {
-		listener, onPort443, err := s.listenPanel()
+		var listener net.Listener
+		if s.siteTLS != nil {
+			listener, err = s.listenOwnPort()
+		} else {
+			var on443 bool
+			listener, on443, err = s.startOwnPort(engine)
+			httpsOn443 = on443
+		}
 		if err != nil {
 			return err
 		}
-		httpsOn443 = httpsOn443 || onPort443
 		s.listener = listener
-		handler := http.Handler(webProxyFront{panel: engine, route: service.TelemtWebRoute})
-		if s.siteHandler != nil {
-			handler = s.siteHandler
+		s.httpServer = &http.Server{
+			Handler:           s.siteHandler,
+			ReadHeaderTimeout: 60 * time.Second,
+			IdleTimeout:       75 * time.Second,
+			ErrorLog:          quietLog,
 		}
-		s.httpServer = &http.Server{Handler: handler}
 		go func() {
 			s.httpServer.Serve(listener)
 		}()
 	}
 
-	s.startWebDecoy(engine, httpsOn443)
+	s.startWebDecoy(s.siteFront, httpsOn443)
 	s.startTask()
 
 	return nil
-}
-
-// listenPanel opens the panel's own port: with the website on, with the
-// website's certificate; otherwise HTTPS with the panel's certificate if it
-// has one, plain HTTP if not. It reports whether that is HTTPS on port 443.
-func (s *Server) listenPanel() (net.Listener, bool, error) {
-	if s.siteTLS != nil {
-		listener, err := s.listenOwnPort()
-		return listener, false, err
-	}
-	certFile, err := s.settingService.GetCertFile()
-	if err != nil {
-		return nil, false, err
-	}
-	keyFile, err := s.settingService.GetKeyFile()
-	if err != nil {
-		return nil, false, err
-	}
-	listen, err := s.settingService.GetListen()
-	if err != nil {
-		return nil, false, err
-	}
-	port, err := s.settingService.GetPort()
-	if err != nil {
-		return nil, false, err
-	}
-	listenAddr := net.JoinHostPort(listen, strconv.Itoa(port))
-	listener, err := net.Listen("tcp", listenAddr)
-	if err != nil {
-		return nil, false, err
-	}
-	httpsOn443 := false
-	if certFile != "" || keyFile != "" {
-		cert, err := tls.LoadX509KeyPair(certFile, keyFile)
-		if err == nil {
-			httpsOn443 = port == 443
-			c := &tls.Config{
-				Certificates: []tls.Certificate{cert},
-			}
-			listener = network.NewAutoHttpsListener(listener)
-			listener = tls.NewListener(listener, c)
-			logger.Info("Web server running HTTPS on", listener.Addr())
-		} else {
-			logger.Error("Error loading certificates:", err)
-			logger.Info("Web server running HTTP on", listener.Addr())
-		}
-	} else {
-		logger.Info("Web server running HTTP on", listener.Addr())
-	}
-	return listener, httpsOn443, nil
 }
 
 // Stop gracefully shuts down the web server, stops Xray and cron jobs.

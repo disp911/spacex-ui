@@ -24,7 +24,7 @@ import (
 	"github.com/pires/go-proxyproto"
 )
 
-// siteFront answers on the site's listeners: the panel's secret path is the
+// siteFront answers on the website's listeners: the panel's secret path is the
 // panel's, the subscription paths are the subscription server's, and every
 // other path is the website's. A path is matched as whole segments, so
 // "/sub/" does not take "/subscribe".
@@ -107,12 +107,12 @@ func siteRedirect(domain string) http.Handler {
 // handshake fails, which a public port sees all day.
 var quietLog = log.New(io.Discard, "", 0)
 
-// startSite opens the website on port 443, directly or on the socket a
-// REALITY inbound passes visitors to, with the panel at its secret path,
-// plus port 80 for the authorities' checks and a redirect to HTTPS. The
-// panel's own port stays shut unless asked for behind REALITY. It reports
-// whether the panel's own port is still to be opened.
-func (s *Server) startSite(mode string, panel http.Handler) (ownPort bool, err error) {
+// startReality opens the website on the socket the REALITY inbound on 443
+// passes visitors to, with the panel at its secret path, plus port 80 for
+// the authorities' checks and a redirect to HTTPS. It reports whether the
+// panel's own port is to be opened as well, a way back in should REALITY
+// break.
+func (s *Server) startReality(panel http.Handler) (ownPort bool, err error) {
 	domain, err := s.settingService.GetSiteDomain()
 	if err != nil {
 		return false, err
@@ -134,39 +134,26 @@ func (s *Server) startSite(mode string, panel http.Handler) (ownPort bool, err e
 	if err := certs.Start(s.ctx); err != nil {
 		return false, err
 	}
-
-	var ln net.Listener
-	switch mode {
-	case service.SiteDirect:
-		ln, err = net.Listen("tcp", net.JoinHostPort(listen, "443"))
-	case service.SiteReality:
-		ln, err = siteSocket(config.GetSiteSocket())
-	default:
-		err = errSite("unknown site mode " + mode)
-	}
+	ln, err := siteSocket(config.GetSiteSocket())
 	if err != nil {
 		certs.Stop()
 		return false, err
 	}
-
 	pages, err := s.sitePages(domain)
 	if err != nil {
 		ln.Close()
 		certs.Stop()
 		return false, err
 	}
-	front := webProxyFront{
-		panel: siteFront{basePath: basePath, panel: panel, site: pages},
-		route: service.TelemtWebRoute,
-	}
+	s.siteFront = siteFront{basePath: basePath, panel: panel, site: pages}
+	s.siteHandler = webProxyFront{panel: s.siteFront, route: service.TelemtWebRoute}
 	s.siteServer = &http.Server{
-		Handler:           front,
+		Handler:           s.siteHandler,
 		ReadHeaderTimeout: 60 * time.Second,
 		IdleTimeout:       75 * time.Second,
 		ErrorLog:          quietLog,
 	}
-	tlsLn := tls.NewListener(ln, certs.TLSConfig())
-	go s.siteServer.Serve(tlsLn)
+	go s.siteServer.Serve(tls.NewListener(ln, certs.TLSConfig()))
 	logger.Info("Website running on", ln.Addr(), "for", domain)
 
 	if l80, err := net.Listen("tcp", net.JoinHostPort(listen, "80")); err != nil {
@@ -182,15 +169,96 @@ func (s *Server) startSite(mode string, panel http.Handler) (ownPort bool, err e
 
 	s.siteCerts = certs
 	s.siteTLS = certs.TLSConfig()
-	s.siteHandler = front
 	s.siteCheck = &site.Checker{}
-	service.SetSiteStatus(certs, s.siteCheck)
+	s.siteName, s.siteAddr = domain, net.JoinHostPort(domain, "443")
+	service.SetSiteStatus(&service.SiteState{Scheme: "https", Host: domain, Certs: certs, Checker: s.siteCheck})
 	siteRunning.Store(true)
 
-	if mode == service.SiteReality {
-		ownPort, _ = s.settingService.GetSitePanelPort()
+	return s.settingService.GetSitePanelPort()
+}
+
+// startOwnPort opens the panel on its own port with the website at the
+// root: HTTPS with the certificate the panel obtains for its name, or with
+// its certificate files, plain HTTP with neither. Without a secret path the
+// panel keeps the root to itself and there is no website. It reports
+// whether that is HTTPS on port 443.
+func (s *Server) startOwnPort(panel http.Handler) (net.Listener, bool, error) {
+	listen, err := s.settingService.GetListen()
+	if err != nil {
+		return nil, false, err
 	}
-	return ownPort, nil
+	port, err := s.settingService.GetPort()
+	if err != nil {
+		return nil, false, err
+	}
+	basePath, err := s.settingService.GetBasePath()
+	if err != nil {
+		return nil, false, err
+	}
+	name, _ := s.settingService.GetSiteDomain()
+	email, _ := s.settingService.GetSiteEmail()
+	certFile, _ := s.settingService.GetCertFile()
+	keyFile, _ := s.settingService.GetKeyFile()
+
+	ln, err := net.Listen("tcp", net.JoinHostPort(listen, strconv.Itoa(port)))
+	if err != nil {
+		return nil, false, err
+	}
+	var tlsConf *tls.Config
+	switch {
+	case certFile != "" || keyFile != "":
+		if cert, err := tls.LoadX509KeyPair(certFile, keyFile); err != nil {
+			logger.Error("Error loading certificates:", err)
+		} else {
+			tlsConf = &tls.Config{Certificates: []tls.Certificate{cert}, NextProtos: []string{"h2", "http/1.1"}}
+		}
+	case name != "":
+		certs := site.NewCerts(config.GetCertFolder(), name, email)
+		if err := certs.Start(s.ctx); err != nil {
+			logger.Error("Certificate for", name+":", err)
+		} else {
+			s.siteCerts = certs
+			s.siteCheck = &site.Checker{}
+			s.siteName, s.siteAddr = name, net.JoinHostPort(name, strconv.Itoa(port))
+			tlsConf = certs.TLSConfig()
+		}
+	}
+	scheme := "http"
+	if tlsConf != nil {
+		scheme = "https"
+		ln = tls.NewListener(network.NewAutoHttpsListener(ln), tlsConf)
+	}
+	logger.Info("Web server running", strings.ToUpper(scheme), "on", ln.Addr())
+
+	if basePath == "/" {
+		s.siteHandler = webProxyFront{panel: panel, route: service.TelemtWebRoute}
+		s.siteFront = panel
+		return ln, tlsConf != nil && port == 443, nil
+	}
+
+	// The name the site and the subscriptions go by, with the port unless
+	// it is the scheme's own.
+	host := name
+	if host != "" && !(port == 443 && scheme == "https" || port == 80 && scheme == "http") {
+		host = net.JoinHostPort(name, strconv.Itoa(port))
+	} else if strings.Contains(host, ":") {
+		host = "[" + host + "]"
+	}
+	shown := host
+	if shown == "" {
+		shown = "localhost"
+	}
+	pages, err := s.sitePages(shown)
+	if err != nil {
+		ln.Close()
+		s.stopSite()
+		return nil, false, err
+	}
+	s.siteFront = siteFront{basePath: basePath, panel: panel, site: pages}
+	s.siteHandler = webProxyFront{panel: s.siteFront, route: service.TelemtWebRoute}
+	service.SetSiteStatus(&service.SiteState{Scheme: scheme, Host: host, Certs: s.siteCerts, Checker: s.siteCheck})
+	siteRunning.Store(true)
+	return ln, tlsConf != nil && port == 443, nil
 }
 
 // siteSocket opens the socket a REALITY inbound passes visitors to. Only
@@ -246,13 +314,12 @@ func (s *Server) listenOwnPort() (net.Listener, error) {
 // checkSite looks at the website from outside and logs when it goes down or
 // comes back.
 func (s *Server) checkSite() {
-	domain, err := s.settingService.GetSiteDomain()
-	if err != nil || domain == "" || s.siteCheck == nil || s.ctx.Err() != nil {
+	if s.siteCheck == nil || s.ctx.Err() != nil {
 		return
 	}
 	ctx, cancel := context.WithTimeout(s.ctx, 30*time.Second)
 	defer cancel()
-	res := site.Check(ctx, domain, net.JoinHostPort(domain, "443"), nil)
+	res := site.Check(ctx, s.siteName, s.siteAddr, nil)
 	if !s.siteCheck.Record(res) {
 		return
 	}
@@ -273,8 +340,8 @@ func (s *Server) stopSite() {
 	}
 	if s.siteCerts != nil {
 		s.siteCerts.Stop()
-		service.SetSiteStatus(nil, nil)
 	}
+	service.SetSiteStatus(nil)
 }
 
 type errSite string

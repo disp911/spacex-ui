@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 )
@@ -19,7 +20,7 @@ type CheckResult struct {
 }
 
 // Check opens the site as a visitor does: a TLS connection to addr naming
-// domain, a certificate a browser trusts for it, and a page at the root.
+// domain, a domain or an IP address, a certificate a browser trusts for it, and a page at the root.
 // Behind REALITY this goes the way of anyone without a client's key, so it
 // fails when the inbound no longer passes visitors on as well as when the
 // site or its certificate is down. Nil roots are the system's.
@@ -37,7 +38,11 @@ func Check(ctx context.Context, domain, addr string, roots *x509.CertPool) Check
 		},
 		CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse },
 	}
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "https://"+domain+"/", nil)
+	host := domain
+	if strings.Contains(host, ":") {
+		host = "[" + host + "]"
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "https://"+host+"/", nil)
 	if err != nil {
 		res.Error = err.Error()
 		return res

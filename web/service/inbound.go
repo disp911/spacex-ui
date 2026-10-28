@@ -104,34 +104,43 @@ func (s *InboundService) GetInboundsByTrafficReset(period string) ([]*model.Inbo
 	return inbounds, nil
 }
 
-func (s *InboundService) checkPortExist(listen string, port int, ignoreId int) (bool, error) {
-	db := database.GetDB()
-	if listen == "" || listen == "0.0.0.0" || listen == "::" || listen == "::0" {
-		db = db.Model(model.Inbound{}).Where("port = ?", port)
-	} else {
-		db = db.Model(model.Inbound{}).
-			Where("port = ?", port).
-			Where(
-				db.Model(model.Inbound{}).Where(
-					"listen = ?", listen,
-				).Or(
-					"listen = \"\"",
-				).Or(
-					"listen = \"0.0.0.0\"",
-				).Or(
-					"listen = \"::\"",
-				).Or(
-					"listen = \"::0\""))
-	}
+// checkPortExist reports whether another inbound listens on the same port
+// over the same transport: one over TCP and one over UDP, such as REALITY
+// and Hysteria, may share a port number.
+func (s *InboundService) checkPortExist(inbound *model.Inbound, ignoreId int) (bool, error) {
+	db := database.GetDB().Model(model.Inbound{}).Where("port = ?", inbound.Port)
 	if ignoreId > 0 {
 		db = db.Where("id != ?", ignoreId)
 	}
-	var count int64
-	err := db.Count(&count).Error
-	if err != nil {
+	var others []*model.Inbound
+	if err := db.Find(&others).Error; err != nil {
 		return false, err
 	}
-	return count > 0, nil
+	tcp, udp := inboundNets(inbound)
+	for _, o := range others {
+		if !listensOverlap(inbound.Listen, o.Listen) {
+			continue
+		}
+		otcp, oudp := inboundNets(o)
+		if tcp && otcp || udp && oudp {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+// InboundTag is the tag of an inbound, made from where it listens. One over
+// UDP alone is told apart, so that it may share its port number with one
+// over TCP.
+func InboundTag(inbound *model.Inbound) string {
+	tag := fmt.Sprintf("inbound-%v", inbound.Port)
+	if inbound.Listen != "" && inbound.Listen != "0.0.0.0" && inbound.Listen != "::" && inbound.Listen != "::0" {
+		tag = fmt.Sprintf("inbound-%v:%v", inbound.Listen, inbound.Port)
+	}
+	if tcp, _ := inboundNets(inbound); !tcp {
+		tag += "-udp"
+	}
+	return tag
 }
 
 func (s *InboundService) GetClients(inbound *model.Inbound) ([]model.Client, error) {
@@ -224,7 +233,7 @@ func (s *InboundService) AddInbound(inbound *model.Inbound) (*model.Inbound, boo
 	if err := s.guardSite(nil, inbound); err != nil {
 		return inbound, false, err
 	}
-	exist, err := s.checkPortExist(inbound.Listen, inbound.Port, 0)
+	exist, err := s.checkPortExist(inbound, 0)
 	if err != nil {
 		return inbound, false, err
 	}
@@ -494,7 +503,7 @@ func (s *InboundService) SetInboundEnable(id int, enable bool) (bool, error) {
 // It validates changes, updates the database, and syncs with the running Xray instance.
 // Returns the updated inbound, whether Xray needs restart, and any error.
 func (s *InboundService) UpdateInbound(inbound *model.Inbound) (*model.Inbound, bool, error) {
-	exist, err := s.checkPortExist(inbound.Listen, inbound.Port, inbound.Id)
+	exist, err := s.checkPortExist(inbound, inbound.Id)
 	if err != nil {
 		return inbound, false, err
 	}
@@ -621,11 +630,7 @@ func (s *InboundService) UpdateInbound(inbound *model.Inbound) (*model.Inbound, 
 	oldInbound.Settings = inbound.Settings
 	oldInbound.StreamSettings = inbound.StreamSettings
 	oldInbound.Sniffing = inbound.Sniffing
-	if inbound.Listen == "" || inbound.Listen == "0.0.0.0" || inbound.Listen == "::" || inbound.Listen == "::0" {
-		oldInbound.Tag = fmt.Sprintf("inbound-%v", inbound.Port)
-	} else {
-		oldInbound.Tag = fmt.Sprintf("inbound-%v:%v", inbound.Listen, inbound.Port)
-	}
+	oldInbound.Tag = InboundTag(inbound)
 
 	needRestart := false
 	if !wasXray && !model.IsXrayProtocol(inbound.Protocol) {

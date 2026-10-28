@@ -136,23 +136,29 @@ func TestSwitchModeKeepsTheSiteInbound(t *testing.T) {
 	if err := inbounds.guardSite(ib, &renamed); err != nil {
 		t.Fatalf("a new remark is fine: %v", err)
 	}
-	if err := inbounds.guardSite(nil, &model.Inbound{Port: 443, Enable: true}); err == nil {
-		t.Fatal("no other inbound may take 443")
+	if err := inbounds.guardSite(nil, &model.Inbound{Port: 443, Enable: true, Protocol: model.VLESS}); err == nil {
+		t.Fatal("no other inbound may take TCP 443")
+	}
+	if err := inbounds.guardSite(nil, &model.Inbound{Port: 443, Enable: true, Protocol: model.Hysteria}); err != nil {
+		t.Fatalf("Hysteria on UDP 443 stays beside REALITY: %v", err)
+	}
+	if err := inbounds.guardSite(nil, &model.Inbound{Port: 2053, Enable: true, Protocol: model.Trojan}); err == nil {
+		t.Fatal("the panel's own port is the panel's")
 	}
 
-	// Without REALITY the inbound is kept, switched off, and 443 stays the website's.
-	if got, err := sites.SwitchMode(SiteDirect); err != nil || got != nil {
-		t.Fatalf("direct: %v %v", got, err)
+	// On its own port the panel keeps the inbound, switched off.
+	if got, err := sites.SwitchMode(SitePort); err != nil || got != nil {
+		t.Fatalf("own port: %v %v", got, err)
 	}
 	kept, err := sites.SiteInbound()
 	if err != nil || kept == nil || kept.Id != ib.Id || kept.Enable {
 		t.Fatalf("kept %+v %v", kept, err)
 	}
-	if _, err := inbounds.SetInboundEnable(ib.Id, true); err == nil {
-		t.Fatal("an inbound on 443 must not come on while the panel holds it")
-	}
 	if _, err := inbounds.DelInbound(ib.Id); err != nil {
 		t.Fatalf("switched off, the inbound may go: %v", err)
+	}
+	if err := inbounds.guardSite(nil, &model.Inbound{Port: 443, Enable: true, Protocol: model.VLESS}); err != nil {
+		t.Fatalf("on its own port the panel leaves 443 free: %v", err)
 	}
 
 	// Back behind REALITY a new inbound is made.
@@ -160,30 +166,81 @@ func TestSwitchModeKeepsTheSiteInbound(t *testing.T) {
 	if err != nil || again == nil || again.Id == ib.Id {
 		t.Fatalf("again %+v %v", again, err)
 	}
-
-	// Off: nothing guards 443 any more.
-	if _, err := sites.SwitchMode(SiteOff); err != nil {
-		t.Fatal(err)
-	}
-	if err := inbounds.guardSite(nil, &model.Inbound{Port: 443, Enable: true}); err != nil {
-		t.Fatalf("without the website 443 is free: %v", err)
-	}
 }
 
 func TestSwitchModeRefusesATakenPort(t *testing.T) {
 	siteTestDB(t)
+	db := database.GetDB()
 	other := &model.Inbound{Tag: "inbound-443", Port: 443, Protocol: model.Trojan, Remark: "old", Enable: true}
-	if err := database.GetDB().Create(other).Error; err != nil {
-		t.Fatal(err)
+	hysteria := &model.Inbound{Tag: "inbound-443-udp", Port: 443, Protocol: model.Hysteria, Remark: "h2", Enable: true}
+	for _, ib := range []*model.Inbound{other, hysteria} {
+		if err := db.Create(ib).Error; err != nil {
+			t.Fatal(err)
+		}
 	}
 	sites := SiteService{}
-	if _, err := sites.SwitchMode(SiteReality); err == nil || !strings.Contains(err.Error(), `"old"`) {
-		t.Fatalf("REALITY must not start beside another inbound on 443: %v", err)
+	if _, err := sites.SwitchMode(SiteReality); err == nil || !strings.Contains(err.Error(), `"old"`) || strings.Contains(err.Error(), `"h2"`) {
+		t.Fatalf("REALITY must not start beside another inbound on TCP 443, and only that one is named: %v", err)
 	}
-	if _, err := sites.SwitchMode(SiteDirect); err == nil {
-		t.Fatal("the panel must not take 443 from an inbound that is on")
-	}
-	if mode, _ := (&SettingService{}).GetSiteMode(); mode != SiteOff {
+	if mode, _ := (&SettingService{}).GetSiteMode(); mode != SitePort {
 		t.Fatalf("a refused switch must leave the mode, got %q", mode)
+	}
+	if err := db.Delete(other).Error; err != nil {
+		t.Fatal(err)
+	}
+	if _, err := sites.SwitchMode(SiteReality); err != nil {
+		t.Fatalf("Hysteria on UDP 443 does not stand in REALITY's way: %v", err)
+	}
+
+	panelPort := &model.Inbound{Tag: "inbound-2053", Port: 2053, Protocol: model.VLESS, Remark: "on the panel", Enable: true}
+	if err := db.Create(panelPort).Error; err != nil {
+		t.Fatal(err)
+	}
+	if _, err := sites.SwitchMode(SitePort); err == nil || !strings.Contains(err.Error(), "2053") {
+		t.Fatalf("the panel must not move onto a port an inbound holds: %v", err)
+	}
+}
+
+func TestPortsAreSharedByTCPAndUDP(t *testing.T) {
+	siteTestDB(t)
+	inbounds := InboundService{}
+	reality := &model.Inbound{Tag: "inbound-8443", Port: 8443, Protocol: model.VLESS, Enable: true,
+		StreamSettings: `{"network":"tcp","security":"reality"}`}
+	if err := database.GetDB().Create(reality).Error; err != nil {
+		t.Fatal(err)
+	}
+	for _, tc := range []struct {
+		ib    *model.Inbound
+		taken bool
+	}{
+		{&model.Inbound{Port: 8443, Protocol: model.Hysteria}, false},
+		{&model.Inbound{Port: 8443, Protocol: model.VMESS, StreamSettings: `{"network":"kcp"}`}, false},
+		{&model.Inbound{Port: 8443, Protocol: model.Trojan}, true},
+		{&model.Inbound{Port: 8443, Protocol: model.Shadowsocks, Settings: `{"network":"tcp,udp"}`}, true},
+		{&model.Inbound{Port: 8443, Protocol: model.Shadowsocks, Settings: `{"network":"udp"}`}, false},
+		{&model.Inbound{Port: 8443, Listen: "127.0.0.1", Protocol: model.Trojan}, true},
+		{&model.Inbound{Port: 8444, Protocol: model.Trojan}, false},
+	} {
+		taken, err := inbounds.checkPortExist(tc.ib, 0)
+		if err != nil || taken != tc.taken {
+			t.Errorf("%s %s on %d: taken %v, want %v (%v)", tc.ib.Protocol, tc.ib.Settings+tc.ib.StreamSettings, tc.ib.Port, taken, tc.taken, err)
+		}
+	}
+}
+
+func TestInboundTag(t *testing.T) {
+	for _, tc := range []struct {
+		ib   model.Inbound
+		want string
+	}{
+		{model.Inbound{Port: 443, Protocol: model.VLESS}, "inbound-443"},
+		{model.Inbound{Port: 443, Protocol: model.Hysteria}, "inbound-443-udp"},
+		{model.Inbound{Port: 443, Listen: "0.0.0.0", Protocol: model.WireGuard}, "inbound-443-udp"},
+		{model.Inbound{Port: 8443, Listen: "10.0.0.1", Protocol: model.Trojan}, "inbound-10.0.0.1:8443"},
+		{model.Inbound{Port: 1080, Protocol: model.Mixed, Settings: `{"udp":true}`}, "inbound-1080"},
+	} {
+		if got := InboundTag(&tc.ib); got != tc.want {
+			t.Errorf("%s on %s:%d: %s, want %s", tc.ib.Protocol, tc.ib.Listen, tc.ib.Port, got, tc.want)
+		}
 	}
 }

@@ -157,11 +157,7 @@ func (a *InboundController) addInbound(c *gin.Context) {
 	}
 	user := session.GetLoginUser(c)
 	inbound.UserId = user.Id
-	if inbound.Listen == "" || inbound.Listen == "0.0.0.0" || inbound.Listen == "::" || inbound.Listen == "::0" {
-		inbound.Tag = fmt.Sprintf("inbound-%v", inbound.Port)
-	} else {
-		inbound.Tag = fmt.Sprintf("inbound-%v:%v", inbound.Listen, inbound.Port)
-	}
+	inbound.Tag = service.InboundTag(inbound)
 
 	inbound, needRestart, err := a.inboundService.AddInbound(inbound)
 	if err != nil {
@@ -494,11 +490,7 @@ func (a *InboundController) importInbound(c *gin.Context) {
 	user := session.GetLoginUser(c)
 	inbound.Id = 0
 	inbound.UserId = user.Id
-	if inbound.Listen == "" || inbound.Listen == "0.0.0.0" || inbound.Listen == "::" || inbound.Listen == "::0" {
-		inbound.Tag = fmt.Sprintf("inbound-%v", inbound.Port)
-	} else {
-		inbound.Tag = fmt.Sprintf("inbound-%v:%v", inbound.Listen, inbound.Port)
-	}
+	inbound.Tag = service.InboundTag(inbound)
 
 	for index := range inbound.ClientStats {
 		inbound.ClientStats[index].Id = 0

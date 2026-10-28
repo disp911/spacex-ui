@@ -409,14 +409,13 @@ func (s *SettingService) GetTimeLocation() (*time.Location, error) {
 	return location, nil
 }
 
-// Where the panel's website answers on port 443. SiteOff: it does not, and
-// the panel listens on its own port as set. SiteDirect: the panel itself
-// listens on 443. SiteReality: a REALITY inbound holds 443 and passes everyone
-// who is not a client on to the site's socket. In both the site is at the
-// root, the panel at its secret path and the subscriptions at theirs.
+// Where the panel and its website answer. SitePort: on the panel's own
+// port, which may be any. SiteReality: on 443, where a REALITY inbound
+// passes everyone who is not a client on to the site's socket. In both the
+// site is at the root, the panel at its secret path and the subscriptions
+// at theirs.
 const (
-	SiteOff     = ""
-	SiteDirect  = "direct"
+	SitePort    = ""
 	SiteReality = "reality"
 )
 
@@ -426,12 +425,15 @@ func (s *SettingService) GetSiteMode() (string, error) {
 
 func (s *SettingService) SetSiteMode(mode string) error {
 	switch mode {
-	case SiteOff, SiteDirect, SiteReality:
+	case SitePort, SiteReality:
 		return s.setString("siteMode", mode)
 	}
 	return common.NewErrorf("unknown site mode %q", mode)
 }
 
+// GetSiteDomain returns the name the website and the panel answer to, a
+// domain or an IP address, for which the panel obtains the certificate;
+// empty on its own port when the panel has none of its own.
 func (s *SettingService) GetSiteDomain() (string, error) {
 	return s.getString("siteDomain")
 }
@@ -448,16 +450,6 @@ func (s *SettingService) GetSiteEmail() (string, error) {
 
 func (s *SettingService) SetSiteEmail(email string) error {
 	return s.setString("siteEmail", strings.TrimSpace(email))
-}
-
-// SiteSubDomain is the website's domain while the website runs and serves
-// the subscriptions on port 443 in place of their own port, else "".
-func (s *SettingService) SiteSubDomain() string {
-	if _, _, running := GetSiteStatus(); !running {
-		return ""
-	}
-	domain, _ := s.GetSiteDomain()
-	return domain
 }
 
 // GetSitePanelPort reports whether the panel also keeps its own port while
@@ -867,8 +859,8 @@ func (s *SettingService) GetDefaultSettings(host string) (any, error) {
 		} else {
 			subURI = "http://"
 		}
-		if domain := s.SiteSubDomain(); domain != "" {
-			subURI = "https://" + domain
+		if base := SiteBase(host); base != "" {
+			subURI = base
 		} else if (subPort == 443 && subTLS) || (subPort == 80 && !subTLS) {
 			subURI += subDomain
 		} else {

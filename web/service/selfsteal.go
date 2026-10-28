@@ -22,12 +22,12 @@ import (
 	"github.com/disp911/spacex-ui/v2/util/random"
 )
 
-// SiteService switches where the website on port 443 answers. Behind
-// REALITY the panel keeps an inbound of its own for it, the site inbound:
+// SiteService switches where the panel and its website answer. Behind
+// REALITY the panel keeps an inbound of its own for them, the site inbound:
 // VLESS REALITY on 443 whose target is the website's socket, so whoever is
-// not a client gets the website itself ("selfsteal"). The inbound is kept
-// switched off while the website runs any other way, so its clients keep
-// their keys for when it comes back.
+// not a client gets the website itself ("selfsteal"). On the panel's own
+// port the inbound is kept switched off, so its clients keep their keys for
+// when REALITY comes back.
 type SiteService struct {
 	settingService SettingService
 	inboundService InboundService
@@ -38,22 +38,26 @@ type SiteService struct {
 // takes the mode on its next start. The site inbound is returned while the
 // mode is SiteReality.
 func (s *SiteService) SwitchMode(mode string) (*model.Inbound, error) {
-	if mode != SiteOff && mode != SiteDirect && mode != SiteReality {
+	if mode != SitePort && mode != SiteReality {
 		return nil, common.NewErrorf("unknown website mode %q", mode)
 	}
 	domain, err := s.settingService.GetSiteDomain()
 	if err != nil {
 		return nil, err
 	}
-	if mode != SiteOff {
-		if domain == "" {
-			return nil, common.NewError("no domain is set for the website")
+	port, err := s.settingService.GetPort()
+	if err != nil {
+		return nil, err
+	}
+	if mode == SiteReality {
+		if domain == "" || net.ParseIP(domain) != nil {
+			return nil, common.NewError("REALITY needs a domain name for the website, not an IP address")
 		}
 		if p, _ := s.settingService.GetBasePath(); p == "/" {
 			return nil, common.NewError("the panel needs a secret path to share port 443 with the website")
 		}
-		if p, _ := s.settingService.GetPort(); p == 443 {
-			return nil, common.NewError("the panel's own port is 443, which the website takes: set another one first")
+		if port == 443 {
+			return nil, common.NewError("the panel's own port is 443, which REALITY takes: set another one first")
 		}
 	}
 
@@ -61,9 +65,8 @@ func (s *SiteService) SwitchMode(mode string) (*model.Inbound, error) {
 	if err != nil {
 		return nil, err
 	}
-	switch mode {
-	case SiteReality:
-		if err := s.free443(ib, false); err != nil {
+	if mode == SiteReality {
+		if err := s.tcpFree(443, ib, false); err != nil {
 			return nil, err
 		}
 		if ib == nil {
@@ -74,12 +77,10 @@ func (s *SiteService) SwitchMode(mode string) (*model.Inbound, error) {
 		if err != nil {
 			return nil, err
 		}
-	case SiteDirect:
-		if err := s.free443(ib, true); err != nil {
+	} else {
+		if err := s.tcpFree(port, ib, true); err != nil {
 			return nil, err
 		}
-		fallthrough
-	default:
 		if ib != nil && ib.Enable && ib.Port == 443 {
 			if err := database.GetDB().Model(model.Inbound{}).Where("id = ?", ib.Id).Update("enable", false).Error; err != nil {
 				return nil, err
@@ -111,11 +112,12 @@ func (s *SiteService) SiteInbound() (*model.Inbound, error) {
 	return list[0], nil
 }
 
-// free443 makes sure no other inbound holds port 443: a switched-on one
+// tcpFree makes sure no other inbound holds the TCP port: a switched-on one
 // would keep the website from it, and with REALITY in front a switched-off
-// one could not be edited or switched on without breaking it.
-func (s *SiteService) free443(own *model.Inbound, enabledOnly bool) error {
-	q := database.GetDB().Model(model.Inbound{}).Where("port = ?", 443)
+// one could not be edited or switched on without breaking it. Inbounds over
+// UDP, such as Hysteria on 443, stay beside the website.
+func (s *SiteService) tcpFree(port int, own *model.Inbound, enabledOnly bool) error {
+	q := database.GetDB().Model(model.Inbound{}).Where("port = ?", port)
 	if own != nil {
 		q = q.Where("id != ?", own.Id)
 	}
@@ -126,14 +128,16 @@ func (s *SiteService) free443(own *model.Inbound, enabledOnly bool) error {
 	if err := q.Find(&others).Error; err != nil {
 		return err
 	}
-	if len(others) == 0 {
+	var names []string
+	for _, o := range others {
+		if tcp, _ := inboundNets(o); tcp {
+			names = append(names, fmt.Sprintf("%q (id %d)", o.Remark, o.Id))
+		}
+	}
+	if len(names) == 0 {
 		return nil
 	}
-	names := make([]string, 0, len(others))
-	for _, o := range others {
-		names = append(names, fmt.Sprintf("%q (id %d)", o.Remark, o.Id))
-	}
-	return common.NewErrorf("port 443 is taken by inbound %s: move it to another port first", strings.Join(names, ", "))
+	return common.NewErrorf("TCP port %d is taken by inbound %s: move it to another port first", port, strings.Join(names, ", "))
 }
 
 func (s *SiteService) makeInbound(domain string) (*model.Inbound, error) {
@@ -213,10 +217,7 @@ func (s *SiteService) fitInbound(ib *model.Inbound, domain string) error {
 	}
 	ib.Enable = true
 	ib.Port = 443
-	ib.Tag = "inbound-443"
-	if ib.Listen != "" && ib.Listen != "0.0.0.0" && ib.Listen != "::" && ib.Listen != "::0" {
-		ib.Tag = fmt.Sprintf("inbound-%v:443", ib.Listen)
-	}
+	ib.Tag = InboundTag(ib)
 	return database.GetDB().Save(ib).Error
 }
 
@@ -426,37 +427,84 @@ func siteTarget(ib *model.Inbound) bool {
 	return target == config.GetSiteSocket()
 }
 
-// guardSite refuses a change that would take port 443 from the website: no
-// other inbound may hold it while the website runs, and behind REALITY the
-// site inbound carries the website and the panel itself, so it stays on,
-// on 443, and without limits that would one day switch it off. old is nil
-// for a new inbound and next is nil for a deleted one.
+// guardSite refuses a change that would take a port from the panel or its
+// website. Behind REALITY TCP 443 is the website's, and the site inbound
+// carries the website and the panel itself, so it stays on, on 443, and
+// without limits that would one day switch it off. The panel's own port is
+// the panel's in either mode. Inbounds over UDP share both. old is nil for
+// a new inbound and next is nil for a deleted one.
 func (s *InboundService) guardSite(old, next *model.Inbound) error {
 	settings := SettingService{}
 	mode, err := settings.GetSiteMode()
-	if err != nil || mode == SiteOff {
+	if err != nil {
 		return err
 	}
-	siteId := 0
 	if mode == SiteReality {
-		siteId, _ = settings.getInt("siteInbound")
-	}
-	if old != nil && siteId != 0 && old.Id == siteId {
-		const how = "Switch the website to another mode first: x-ui site -mode direct"
-		switch {
-		case next == nil:
-			return common.NewError("This inbound carries the website and the panel on port 443 and cannot be deleted. " + how)
-		case !next.Enable:
-			return common.NewError("This inbound carries the website and the panel on port 443 and cannot be switched off. " + how)
-		case next.Port != 443 || next.Listen != old.Listen || !siteTarget(next):
-			return common.NewError("This inbound carries the website and the panel on port 443: its port, address, protocol, security and target stay as they are. " + how)
-		case next.Total != 0 || next.ExpiryTime != 0:
-			return common.NewError("This inbound carries the website and the panel on port 443 and takes no traffic limit or expiry date: they would switch it off.")
+		siteId, _ := settings.getInt("siteInbound")
+		if old != nil && siteId != 0 && old.Id == siteId {
+			const how = "Move the panel to its own port first: x-ui site -mode port"
+			switch {
+			case next == nil:
+				return common.NewError("This inbound carries the website and the panel on port 443 and cannot be deleted. " + how)
+			case !next.Enable:
+				return common.NewError("This inbound carries the website and the panel on port 443 and cannot be switched off. " + how)
+			case next.Port != 443 || next.Listen != old.Listen || !siteTarget(next):
+				return common.NewError("This inbound carries the website and the panel on port 443: its port, address, protocol, security and target stay as they are. " + how)
+			case next.Total != 0 || next.ExpiryTime != 0:
+				return common.NewError("This inbound carries the website and the panel on port 443 and takes no traffic limit or expiry date: they would switch it off.")
+			}
+			return nil
 		}
+	}
+	if next == nil || !next.Enable {
 		return nil
 	}
-	if next != nil && next.Enable && next.Port == 443 {
-		return common.NewError("Port 443 belongs to the panel's website. Switch the website off first: x-ui site -mode off")
+	if tcp, _ := inboundNets(next); !tcp {
+		return nil
+	}
+	if mode == SiteReality && next.Port == 443 {
+		return common.NewError("TCP port 443 belongs to the panel's website behind REALITY. Inbounds over UDP, such as Hysteria, may use 443.")
+	}
+	port, _ := settings.GetPort()
+	listen, _ := settings.GetListen()
+	if next.Port == port && listensOverlap(next.Listen, listen) {
+		return common.NewErrorf("TCP port %d is the panel's own. Inbounds over UDP, such as Hysteria, may use it.", port)
 	}
 	return nil
+}
+
+// inboundNets reports whether an inbound listens over TCP, UDP or both.
+func inboundNets(ib *model.Inbound) (tcp, udp bool) {
+	switch ib.Protocol {
+	case model.Hysteria, model.Hysteria2, model.WireGuard:
+		return false, true
+	case model.Shadowsocks, model.Tunnel, model.Mixed:
+		var settings struct {
+			Network string `json:"network"`
+			UDP     bool   `json:"udp"`
+		}
+		json.Unmarshal([]byte(ib.Settings), &settings)
+		if ib.Protocol == model.Mixed {
+			return true, settings.UDP
+		}
+		if settings.Network == "" {
+			return true, ib.Protocol == model.Shadowsocks
+		}
+		return strings.Contains(settings.Network, "tcp"), strings.Contains(settings.Network, "udp")
+	}
+	var stream struct {
+		Network string `json:"network"`
+	}
+	json.Unmarshal([]byte(ib.StreamSettings), &stream)
+	if stream.Network == "kcp" || stream.Network == "hysteria" {
+		return false, true
+	}
+	return true, false
+}
+
+// listensOverlap reports whether two listen addresses share a socket: the
+// same address, or either of them every address.
+func listensOverlap(a, b string) bool {
+	any := func(l string) bool { return l == "" || l == "0.0.0.0" || l == "::" || l == "::0" }
+	return any(a) || any(b) || a == b
 }
