@@ -106,13 +106,7 @@ func NewCerts(folder, domain, email string) *Certs {
 // Start loads the certificate from storage, or obtains one in the
 // background, and keeps it renewed until Stop.
 func (c *Certs) Start(ctx context.Context) error {
-	if err := c.cfg.ManageAsync(ctx, []string{c.domain}); err != nil {
-		return err
-	}
-	// A certificate kept from before is in memory now; one to obtain is
-	// copied when it comes (onEvent).
-	c.copyCached()
-	return nil
+	return c.cfg.ManageAsync(ctx, []string{c.domain})
 }
 
 // Copies are where Xray, or anything else, finds the certificate the panel
@@ -233,7 +227,6 @@ func (c *Certs) Renew(ctx context.Context) error {
 		}
 	}
 	c.cache.Remove(stale)
-	c.copyCached()
 	return nil
 }
 
@@ -357,6 +350,9 @@ func (c *Certs) onEvent(_ context.Context, event string, data map[string]any) er
 		c.mu.Lock()
 		c.failed, c.at = fmt.Sprint(data["error"]), time.Now()
 		c.mu.Unlock()
+	case "cached_managed_cert":
+		// One kept from before, loaded at the start in the background.
+		c.copyCached()
 	case "cert_obtained":
 		c.mu.Lock()
 		c.failed, c.at = "", time.Time{}
