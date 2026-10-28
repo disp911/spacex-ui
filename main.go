@@ -182,10 +182,15 @@ func showSetting(show bool) {
 		}
 
 		fmt.Println("current panel settings as follows:")
-		if certFile == "" || keyFile == "" {
+		mode, _ := settingService.GetSiteMode()
+		name, _ := settingService.GetSiteDomain()
+		switch {
+		case certFile != "" && keyFile != "":
+			fmt.Println("Panel is secure with SSL: certificate files")
+		case mode == service.SiteReality || name != "":
+			fmt.Println("Panel is secure with SSL: a certificate it obtains for", name)
+		default:
 			fmt.Println("Warning: Panel is not secure with SSL")
-		} else {
-			fmt.Println("Panel is secure with SSL")
 		}
 
 		hasDefaultCredential := func() bool {

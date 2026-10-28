@@ -289,43 +289,7 @@ check_config() {
     fi
     LOGI "${info}"
 
-    local existing_webBasePath=$(echo "$info" | grep -Eo 'webBasePath: .+' | awk '{print $2}')
-    local existing_port=$(echo "$info" | grep -Eo 'port: .+' | awk '{print $2}')
-    local existing_cert=$(${xui_folder}/x-ui setting -getCert true | grep 'cert:' | awk -F': ' '{print $2}' | tr -d '[:space:]')
-    local server_ip=$(curl -s --max-time 3 https://api.ipify.org)
-    if [ -z "$server_ip" ]; then
-        server_ip=$(curl -s --max-time 3 https://4.ident.me)
-    fi
-
-    if [[ -n "$existing_cert" ]]; then
-        local domain=$(basename "$(dirname "$existing_cert")")
-
-        if [[ "$domain" =~ ^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]; then
-            echo -e "${green}Access URL: https://${domain}:${existing_port}${existing_webBasePath}${plain}"
-        else
-            echo -e "${green}Access URL: https://${server_ip}:${existing_port}${existing_webBasePath}${plain}"
-        fi
-    else
-        echo -e "${red}⚠ WARNING: No SSL certificate configured!${plain}"
-        echo -e "${yellow}You can get a Let's Encrypt certificate for your IP address (valid ~6 days, auto-renews).${plain}"
-        read -rp "Generate SSL certificate for IP now? [y/N]: " gen_ssl
-        if [[ "$gen_ssl" == "y" || "$gen_ssl" == "Y" ]]; then
-            stop > /dev/null 2>&1
-            ssl_cert_issue_for_ip
-            if [[ $? -eq 0 ]]; then
-                echo -e "${green}Access URL: https://${server_ip}:${existing_port}${existing_webBasePath}${plain}"
-                # ssl_cert_issue_for_ip already restarts the panel, but ensure it's running
-                start > /dev/null 2>&1
-            else
-                LOGE "IP certificate setup failed."
-                echo -e "${yellow}You can try again via option 19 (SSL Certificate Management).${plain}"
-                start > /dev/null 2>&1
-            fi
-        else
-            echo -e "${yellow}Access URL: http://${server_ip}:${existing_port}${existing_webBasePath}${plain}"
-            echo -e "${yellow}For security, please configure SSL certificate using option 19 (SSL Certificate Management)${plain}"
-        fi
-    fi
+    site_status
 }
 
 set_port() {
@@ -991,668 +955,332 @@ update_geo() {
     before_show_menu
 }
 
-install_acme() {
-    # Check if acme.sh is already installed
-    if command -v ~/.acme.sh/acme.sh &> /dev/null; then
-        LOGI "acme.sh is already installed."
-        return 0
+# --- Website, panel address and certificate ---------------------------------
+# The panel runs one of two ways: behind VLESS REALITY on 443 (selfsteal),
+# where its website, the panel at the secret path and the subscriptions share
+# 443 with the VPN; or on a port of its own with the same website at the
+# root, leaving 443 free. The panel obtains its certificate itself.
+
+# site_value prints a value `x-ui site` shows, such as "website mode".
+site_value() {
+    ${xui_folder}/x-ui site 2> /dev/null | sed -n "s/^$1: //p"
+}
+
+# server_ips prints this server's public IPv4 and IPv6 addresses, those found.
+server_ips() {
+    local ip
+    for url in https://api4.ipify.org https://ipv4.icanhazip.com https://4.ident.me; do
+        ip=$(curl -4 -s --max-time 3 "$url" 2> /dev/null | tr -d '[:space:]')
+        is_ipv4 "$ip" && echo "$ip" && break
+    done
+    for url in https://api6.ipify.org https://ipv6.icanhazip.com https://6.ident.me; do
+        ip=$(curl -6 -s --max-time 3 "$url" 2> /dev/null | tr -d '[:space:]')
+        is_ipv6 "$ip" && echo "$ip" && break
+    done
+}
+
+# port_owner names what listens on a TCP port other than the panel and its
+# Xray, as "name pid", or prints nothing.
+port_owner() {
+    command -v ss > /dev/null 2>&1 || return 0
+    ss -ltnpH "sport = :$1" 2> /dev/null \
+        | grep -o '(("[^"]*",pid=[0-9]*' | sed 's/(("//; s/",pid=/ /' \
+        | grep -Ev '^(x-ui|xray-linux-[a-z0-9]*) ' | head -1
+}
+
+# service_of prints the systemd unit a process runs in, if any.
+service_of() {
+    command -v systemctl > /dev/null 2>&1 || return 0
+    systemctl status "$1" 2> /dev/null | head -1 | grep -o '[^ ]*\.service' | head -1
+}
+
+# free_port_443 makes sure nothing else holds TCP 443 for REALITY. It
+# returns 0 when 443 is free, 2 when the panel should go on its own port
+# instead, 1 to give up.
+free_port_443() {
+    local owner name pid unit choice
+    owner=$(port_owner 443)
+    [[ -z "$owner" ]] && return 0
+    name=${owner% *}
+    pid=${owner#* }
+    unit=$(service_of "$pid")
+    echo -e "${yellow}TCP port 443 is taken by ${name} (pid ${pid}${unit:+, ${unit}}).${plain}"
+    echo -e "${green}1.${plain} Stop ${unit:-it} and keep it from starting again"
+    echo -e "${green}2.${plain} Put the panel on a port of its own instead, leaving ${name} on 443"
+    echo -e "${green}0.${plain} Quit"
+    read -rp "Choose an option [default 0]: " choice
+    case "$choice" in
+        1)
+            if [[ -n "$unit" ]]; then
+                systemctl disable --now "$unit" > /dev/null 2>&1
+            else
+                kill "$pid" 2> /dev/null
+            fi
+            sleep 2
+            if [[ -n "$(port_owner 443)" ]]; then
+                LOGE "Port 443 is still taken."
+                return 1
+            fi
+            LOGI "Port 443 is free now."
+            return 0
+            ;;
+        2) return 2 ;;
+        *) return 1 ;;
+    esac
+}
+
+# ask_domain asks for a domain and checks it points at this server; with
+# "optional" an empty answer is fine. It sets SITE_NAME.
+ask_domain() {
+    local optional="$1" ips addrs choice
+    ips=$(server_ips)
+    while true; do
+        if [[ -n "$optional" ]]; then
+            read -rp "Domain of the panel (leave empty to use the IP address): " SITE_NAME
+        else
+            read -rp "Domain of the website and the panel (its A/AAAA record points at this server): " SITE_NAME
+        fi
+        SITE_NAME=$(echo "${SITE_NAME}" | tr -d '[:space:]' | tr 'A-Z' 'a-z')
+        [[ -z "$SITE_NAME" && -n "$optional" ]] && return 0
+        if ! is_domain "$SITE_NAME"; then
+            LOGE "\"${SITE_NAME}\" is not a domain name."
+            continue
+        fi
+        addrs=$(${xui_folder}/x-ui site -lookup "$SITE_NAME" 2> /dev/null)
+        if [[ -n "$ips" ]] && echo "$addrs" | grep -qxF -f <(echo "$ips"); then
+            LOGI "${SITE_NAME} points at this server."
+            return 0
+        fi
+        echo -e "${yellow}${SITE_NAME} does not point at this server yet.${plain}"
+        echo -e "  ${SITE_NAME}: $(echo ${addrs:-no address})"
+        echo -e "  this server: $(echo ${ips:-not found})"
+        echo -e "${yellow}The certificate is checked at the domain's address, so it fails until the record points here.${plain}"
+        echo -e "${green}1.${plain} Enter another domain"
+        echo -e "${green}2.${plain} Go on with ${SITE_NAME} (the record has just been changed)"
+        read -rp "Choose an option [default 1]: " choice
+        [[ "$choice" == "2" ]] && return 0
+    done
+}
+
+# ask_email asks for the optional certificate email. It sets SITE_EMAIL to
+# the address, or to "-" to clear it.
+ask_email() {
+    read -rp "Email for the certificate authorities (optional; with it ZeroSSL stands by should Let's Encrypt fail): " SITE_EMAIL
+    SITE_EMAIL=$(echo "${SITE_EMAIL}" | tr -d '[:space:]')
+    [[ -z "$SITE_EMAIL" ]] && SITE_EMAIL="-"
+}
+
+# warn_port_80 tells what a busy port 80 means for the certificate.
+warn_port_80() {
+    local owner
+    owner=$(port_owner 80)
+    [[ -z "$owner" ]] && return 0
+    echo -e "${yellow}Port 80 is taken by ${owner% *}: the certificate is checked over 443 only.${plain}"
+    return 1
+}
+
+# setup_selfsteal puts the website and the panel on 443 behind REALITY.
+# It returns 2 when the administrator chose the panel's own port instead.
+setup_selfsteal() {
+    if [[ "$(${xui_folder}/x-ui setting -show true | grep -Eo '^port: .+' | awk '{print $2}')" == "443" ]]; then
+        # REALITY takes 443; the panel keeps a port of its own, shut unless opened.
+        ${xui_folder}/x-ui setting -port "$(shuf -i 1024-62000 -n 1)" > /dev/null
     fi
-
-    LOGI "Installing acme.sh..."
-    cd ~ || return 1 # Ensure you can change to the home directory
-
-    curl -s https://get.acme.sh | sh
-    if [ $? -ne 0 ]; then
-        LOGE "Installation of acme.sh failed."
+    free_port_443
+    case $? in
+        1) return 1 ;;
+        2) return 2 ;;
+    esac
+    ask_domain
+    warn_port_80
+    ask_email
+    local out
+    out=$(${xui_folder}/x-ui selfsteal -domain "$SITE_NAME" -email "$SITE_EMAIL" 2>&1)
+    if [[ $? -ne 0 ]]; then
+        echo "$out"
+        LOGE "The website could not be put behind REALITY."
         return 1
-    else
-        LOGI "Installation of acme.sh succeeded."
     fi
-
+    SITE_CLIENT=$(echo "$out" | grep -E '^(client link|subscription):')
+    LOGI "The website, the panel and the subscriptions will answer on 443 behind REALITY."
     return 0
 }
 
-ssl_cert_issue_main() {
-    echo -e "${green}\t1.${plain} Get SSL (Domain)"
-    echo -e "${green}\t2.${plain} Revoke"
-    echo -e "${green}\t3.${plain} Force Renew"
-    echo -e "${green}\t4.${plain} Show Existing Domains"
-    echo -e "${green}\t5.${plain} Set Cert paths for the panel"
-    echo -e "${green}\t6.${plain} Get SSL for IP Address (6-day cert, auto-renews)"
-    echo -e "${green}\t0.${plain} Back to Main Menu"
-
-    read -rp "Choose an option: " choice
-    case "$choice" in
-        0)
-            show_menu
-            ;;
-        1)
-            ssl_cert_issue
-            ssl_cert_issue_main
-            ;;
-        2)
-            local domains=$(find /root/cert/ -mindepth 1 -maxdepth 1 -type d -exec basename {} \;)
-            if [ -z "$domains" ]; then
-                echo "No certificates found to revoke."
-            else
-                echo "Existing domains:"
-                echo "$domains"
-                read -rp "Please enter a domain from the list to revoke the certificate: " domain
-                if echo "$domains" | grep -qw "$domain"; then
-                    ~/.acme.sh/acme.sh --revoke -d ${domain}
-                    LOGI "Certificate revoked for domain: $domain"
-                else
-                    echo "Invalid domain entered."
-                fi
-            fi
-            ssl_cert_issue_main
-            ;;
-        3)
-            local domains=$(find /root/cert/ -mindepth 1 -maxdepth 1 -type d -exec basename {} \;)
-            if [ -z "$domains" ]; then
-                echo "No certificates found to renew."
-            else
-                echo "Existing domains:"
-                echo "$domains"
-                read -rp "Please enter a domain from the list to renew the SSL certificate: " domain
-                if echo "$domains" | grep -qw "$domain"; then
-                    ~/.acme.sh/acme.sh --renew -d ${domain} --force
-                    LOGI "Certificate forcefully renewed for domain: $domain"
-                else
-                    echo "Invalid domain entered."
-                fi
-            fi
-            ssl_cert_issue_main
-            ;;
-        4)
-            local domains=$(find /root/cert/ -mindepth 1 -maxdepth 1 -type d -exec basename {} \;)
-            if [ -z "$domains" ]; then
-                echo "No certificates found."
-            else
-                echo "Existing domains and their paths:"
-                for domain in $domains; do
-                    local cert_path="/root/cert/${domain}/fullchain.pem"
-                    local key_path="/root/cert/${domain}/privkey.pem"
-                    if [[ -f "${cert_path}" && -f "${key_path}" ]]; then
-                        echo -e "Domain: ${domain}"
-                        echo -e "\tCertificate Path: ${cert_path}"
-                        echo -e "\tPrivate Key Path: ${key_path}"
-                    else
-                        echo -e "Domain: ${domain} - Certificate or Key missing."
-                    fi
-                done
-            fi
-            ssl_cert_issue_main
-            ;;
-        5)
-            local domains=$(find /root/cert/ -mindepth 1 -maxdepth 1 -type d -exec basename {} \;)
-            if [ -z "$domains" ]; then
-                echo "No certificates found."
-            else
-                echo "Available domains:"
-                echo "$domains"
-                read -rp "Please choose a domain to set the panel paths: " domain
-
-                if echo "$domains" | grep -qw "$domain"; then
-                    local webCertFile="/root/cert/${domain}/fullchain.pem"
-                    local webKeyFile="/root/cert/${domain}/privkey.pem"
-
-                    if [[ -f "${webCertFile}" && -f "${webKeyFile}" ]]; then
-                        ${xui_folder}/x-ui cert -webCert "$webCertFile" -webCertKey "$webKeyFile"
-                        echo "Panel paths set for domain: $domain"
-                        echo "  - Certificate File: $webCertFile"
-                        echo "  - Private Key File: $webKeyFile"
-                        restart
-                    else
-                        echo "Certificate or private key not found for domain: $domain."
-                    fi
-                else
-                    echo "Invalid domain entered."
-                fi
-            fi
-            ssl_cert_issue_main
-            ;;
-        6)
-            echo -e "${yellow}Let's Encrypt SSL Certificate for IP Address${plain}"
-            echo -e "This will obtain a certificate for your server's IP using the shortlived profile."
-            echo -e "${yellow}Certificate valid for ~6 days, auto-renews via acme.sh cron job.${plain}"
-            echo -e "${yellow}Port 80 must be open and accessible from the internet.${plain}"
-            confirm "Do you want to proceed?" "y"
-            if [[ $? == 0 ]]; then
-                ssl_cert_issue_for_ip
-            fi
-            ssl_cert_issue_main
-            ;;
-
-        *)
-            echo -e "${red}Invalid option. Please select a valid number.${plain}\n"
-            ssl_cert_issue_main
-            ;;
-    esac
-}
-
-ssl_cert_issue_for_ip() {
-    LOGI "Starting automatic SSL certificate generation for server IP..."
-    LOGI "Using Let's Encrypt shortlived profile (~6 days validity, auto-renews)"
-
-    local existing_webBasePath=$(${xui_folder}/x-ui setting -show true | grep -Eo 'webBasePath: .+' | awk '{print $2}')
-    local existing_port=$(${xui_folder}/x-ui setting -show true | grep -Eo 'port: .+' | awk '{print $2}')
-
-    # Get server IP
-    local server_ip=$(curl -s --max-time 3 https://api.ipify.org)
-    if [ -z "$server_ip" ]; then
-        server_ip=$(curl -s --max-time 3 https://4.ident.me)
-    fi
-
-    if [ -z "$server_ip" ]; then
-        LOGE "Failed to get server IP address"
-        return 1
-    fi
-
-    LOGI "Server IP detected: ${server_ip}"
-
-    # Ask for optional IPv6
-    local ipv6_addr=""
-    read -rp "Do you have an IPv6 address to include? (leave empty to skip): " ipv6_addr
-    ipv6_addr="${ipv6_addr// /}" # Trim whitespace
-
-    # check for acme.sh first
-    if ! command -v ~/.acme.sh/acme.sh &> /dev/null; then
-        LOGI "acme.sh not found, installing..."
-        install_acme
-        if [ $? -ne 0 ]; then
-            LOGE "Failed to install acme.sh"
-            return 1
-        fi
-    fi
-
-    # install socat
-    case "${release}" in
-        ubuntu | debian | armbian)
-            apt-get update > /dev/null 2>&1 && apt-get install socat -y > /dev/null 2>&1
-            ;;
-        fedora | amzn | virtuozzo | rhel | almalinux | rocky | ol)
-            dnf -y update > /dev/null 2>&1 && dnf -y install socat > /dev/null 2>&1
-            ;;
-        centos)
-            if [[ "${VERSION_ID}" =~ ^7 ]]; then
-                yum -y update > /dev/null 2>&1 && yum -y install socat > /dev/null 2>&1
-            else
-                dnf -y update > /dev/null 2>&1 && dnf -y install socat > /dev/null 2>&1
-            fi
-            ;;
-        arch | manjaro | parch)
-            pacman -Sy --noconfirm socat > /dev/null 2>&1
-            ;;
-        opensuse-tumbleweed | opensuse-leap)
-            zypper refresh > /dev/null 2>&1 && zypper -q install -y socat > /dev/null 2>&1
-            ;;
-        alpine)
-            apk add socat curl openssl > /dev/null 2>&1
-            ;;
-        *)
-            LOGW "Unsupported OS for automatic socat installation"
-            ;;
-    esac
-
-    # Create certificate directory
-    certPath="/root/cert/ip"
-    mkdir -p "$certPath"
-
-    # Build domain arguments
-    local domain_args="-d ${server_ip}"
-    if [[ -n "$ipv6_addr" ]] && is_ipv6 "$ipv6_addr"; then
-        domain_args="${domain_args} -d ${ipv6_addr}"
-        LOGI "Including IPv6 address: ${ipv6_addr}"
-    fi
-
-    # Choose port for HTTP-01 listener (default 80, allow override)
-    local WebPort=""
-    read -rp "Port to use for ACME HTTP-01 listener (default 80): " WebPort
-    WebPort="${WebPort:-80}"
-    if ! [[ "${WebPort}" =~ ^[0-9]+$ ]] || ((WebPort < 1 || WebPort > 65535)); then
-        LOGE "Invalid port provided. Falling back to 80."
-        WebPort=80
-    fi
-    LOGI "Using port ${WebPort} to issue certificate for IP: ${server_ip}"
-    if [[ "${WebPort}" -ne 80 ]]; then
-        LOGI "Reminder: Let's Encrypt still reaches port 80; forward external port 80 to ${WebPort} for validation."
-    fi
-
+# setup_own_port puts the panel and its website on a port of its own.
+setup_own_port() {
+    local port current choice cert key
+    current=$(${xui_folder}/x-ui setting -show true | grep -Eo '^port: .+' | awk '{print $2}')
     while true; do
-        if is_port_in_use "${WebPort}"; then
-            LOGI "Port ${WebPort} is currently in use."
-
-            local alt_port=""
-            read -rp "Enter another port for acme.sh standalone listener (leave empty to abort): " alt_port
-            alt_port="${alt_port// /}"
-            if [[ -z "${alt_port}" ]]; then
-                LOGE "Port ${WebPort} is busy; cannot proceed with issuance."
-                return 1
-            fi
-            if ! [[ "${alt_port}" =~ ^[0-9]+$ ]] || ((alt_port < 1 || alt_port > 65535)); then
-                LOGE "Invalid port provided."
-                return 1
-            fi
-            WebPort="${alt_port}"
-            continue
-        else
-            LOGI "Port ${WebPort} is free and ready for standalone validation."
-            break
-        fi
-    done
-
-    # Reload command - restarts panel after renewal
-    local reloadCmd="systemctl restart x-ui 2>/dev/null || rc-service x-ui restart 2>/dev/null"
-
-    # issue the certificate for IP with shortlived profile
-    ~/.acme.sh/acme.sh --set-default-ca --server letsencrypt --force
-    ~/.acme.sh/acme.sh --issue \
-        ${domain_args} \
-        --standalone \
-        --server letsencrypt \
-        --certificate-profile shortlived \
-        --days 6 \
-        --httpport ${WebPort} \
-        --force
-
-    if [ $? -ne 0 ]; then
-        LOGE "Failed to issue certificate for IP: ${server_ip}"
-        LOGE "Make sure port ${WebPort} is open and the server is accessible from the internet"
-        # Cleanup acme.sh data for both IPv4 and IPv6 if specified
-        rm -rf ~/.acme.sh/${server_ip} 2> /dev/null
-        [[ -n "$ipv6_addr" ]] && rm -rf ~/.acme.sh/${ipv6_addr} 2> /dev/null
-        rm -rf ${certPath} 2> /dev/null
-        return 1
-    else
-        LOGI "Certificate issued successfully for IP: ${server_ip}"
-    fi
-
-    # Install the certificate
-    # Note: acme.sh may report "Reload error" and exit non-zero if reloadcmd fails,
-    # but the cert files are still installed. We check for files instead of exit code.
-    ~/.acme.sh/acme.sh --installcert -d ${server_ip} \
-        --key-file "${certPath}/privkey.pem" \
-        --fullchain-file "${certPath}/fullchain.pem" \
-        --reloadcmd "${reloadCmd}" 2>&1 || true
-
-    # Verify certificate files exist (don't rely on exit code - reloadcmd failure causes non-zero)
-    if [[ ! -f "${certPath}/fullchain.pem" || ! -f "${certPath}/privkey.pem" ]]; then
-        LOGE "Certificate files not found after installation"
-        # Cleanup acme.sh data for both IPv4 and IPv6 if specified
-        rm -rf ~/.acme.sh/${server_ip} 2> /dev/null
-        [[ -n "$ipv6_addr" ]] && rm -rf ~/.acme.sh/${ipv6_addr} 2> /dev/null
-        rm -rf ${certPath} 2> /dev/null
-        return 1
-    fi
-
-    LOGI "Certificate files installed successfully"
-
-    # enable auto-renew
-    ~/.acme.sh/acme.sh --upgrade --auto-upgrade > /dev/null 2>&1
-    chmod 600 $certPath/privkey.pem 2> /dev/null
-    chmod 644 $certPath/fullchain.pem 2> /dev/null
-
-    # Set certificate paths for the panel
-    local webCertFile="${certPath}/fullchain.pem"
-    local webKeyFile="${certPath}/privkey.pem"
-
-    if [[ -f "$webCertFile" && -f "$webKeyFile" ]]; then
-        ${xui_folder}/x-ui cert -webCert "$webCertFile" -webCertKey "$webKeyFile"
-        LOGI "Certificate configured for panel"
-        LOGI "  - Certificate File: $webCertFile"
-        LOGI "  - Private Key File: $webKeyFile"
-        LOGI "  - Validity: ~6 days (auto-renews via acme.sh cron)"
-        echo -e "${green}Access URL: https://${server_ip}:${existing_port}${existing_webBasePath}${plain}"
-        LOGI "Panel will restart to apply SSL certificate..."
-        restart
-        return 0
-    else
-        LOGE "Certificate files not found after installation"
-        return 1
-    fi
-}
-
-ssl_cert_issue() {
-    local existing_webBasePath=$(${xui_folder}/x-ui setting -show true | grep -Eo 'webBasePath: .+' | awk '{print $2}')
-    local existing_port=$(${xui_folder}/x-ui setting -show true | grep -Eo 'port: .+' | awk '{print $2}')
-    # check for acme.sh first
-    if ! command -v ~/.acme.sh/acme.sh &> /dev/null; then
-        echo "acme.sh could not be found. we will install it"
-        install_acme
-        if [ $? -ne 0 ]; then
-            LOGE "install acme failed, please check logs"
-            exit 1
-        fi
-    fi
-
-    # install socat
-    case "${release}" in
-        ubuntu | debian | armbian)
-            apt-get update > /dev/null 2>&1 && apt-get install socat -y > /dev/null 2>&1
-            ;;
-        fedora | amzn | virtuozzo | rhel | almalinux | rocky | ol)
-            dnf -y update > /dev/null 2>&1 && dnf -y install socat > /dev/null 2>&1
-            ;;
-        centos)
-            if [[ "${VERSION_ID}" =~ ^7 ]]; then
-                yum -y update > /dev/null 2>&1 && yum -y install socat > /dev/null 2>&1
-            else
-                dnf -y update > /dev/null 2>&1 && dnf -y install socat > /dev/null 2>&1
-            fi
-            ;;
-        arch | manjaro | parch)
-            pacman -Sy --noconfirm socat > /dev/null 2>&1
-            ;;
-        opensuse-tumbleweed | opensuse-leap)
-            zypper refresh > /dev/null 2>&1 && zypper -q install -y socat > /dev/null 2>&1
-            ;;
-        alpine)
-            apk add socat curl openssl > /dev/null 2>&1
-            ;;
-        *)
-            LOGW "Unsupported OS for automatic socat installation"
-            ;;
-    esac
-    if [ $? -ne 0 ]; then
-        LOGE "install socat failed, please check logs"
-        exit 1
-    else
-        LOGI "install socat succeed..."
-    fi
-
-    # get the domain here, and we need to verify it
-    local domain=""
-    while true; do
-        read -rp "Please enter your domain name: " domain
-        domain="${domain// /}" # Trim whitespace
-
-        if [[ -z "$domain" ]]; then
-            LOGE "Domain name cannot be empty. Please try again."
+        read -rp "Port of the panel [default ${current}]: " port
+        port=${port:-$current}
+        if ! [[ "$port" =~ ^[0-9]+$ ]] || ((port < 1 || port > 65535)); then
+            LOGE "A port is a number from 1 to 65535."
             continue
         fi
-
-        if ! is_domain "$domain"; then
-            LOGE "Invalid domain format: ${domain}. Please enter a valid domain name."
+        if [[ -n "$(port_owner "$port")" ]]; then
+            LOGE "Port ${port} is taken by $(port_owner "$port" | cut -d' ' -f1)."
             continue
         fi
-
         break
     done
-    LOGD "Your domain is: ${domain}, checking it..."
-    SSL_ISSUED_DOMAIN="${domain}"
-
-    # detect existing certificate and reuse it if present
-    local cert_exists=0
-    if ~/.acme.sh/acme.sh --list 2> /dev/null | awk '{print $1}' | grep -Fxq "${domain}"; then
-        cert_exists=1
-        local certInfo=$(~/.acme.sh/acme.sh --list 2> /dev/null | grep -F "${domain}")
-        LOGI "Existing certificate found for ${domain}, will reuse it."
-        [[ -n "${certInfo}" ]] && LOGI "${certInfo}"
-    else
-        LOGI "Your domain is ready for issuing certificates now..."
-    fi
-
-    # create a directory for the certificate
-    certPath="/root/cert/${domain}"
-    if [ ! -d "$certPath" ]; then
-        mkdir -p "$certPath"
-    else
-        rm -rf "$certPath"
-        mkdir -p "$certPath"
-    fi
-
-    # get the port number for the standalone server
-    local WebPort=80
-    read -rp "Please choose which port to use (default is 80): " WebPort
-    if [[ ${WebPort} -gt 65535 || ${WebPort} -lt 1 ]]; then
-        LOGE "Your input ${WebPort} is invalid, will use default port 80."
-        WebPort=80
-    fi
-    LOGI "Will use port: ${WebPort} to issue certificates. Please make sure this port is open."
-
-    if [[ ${cert_exists} -eq 0 ]]; then
-        # issue the certificate
-        ~/.acme.sh/acme.sh --set-default-ca --server letsencrypt --force
-        ~/.acme.sh/acme.sh --issue -d ${domain} --listen-v6 --standalone --httpport ${WebPort} --force
-        if [ $? -ne 0 ]; then
-            LOGE "Issuing certificate failed, please check logs."
-            rm -rf ~/.acme.sh/${domain}
-            exit 1
+    ask_domain optional
+    if [[ -z "$SITE_NAME" ]]; then
+        SITE_NAME=$(server_ips | head -1)
+        if [[ -z "$SITE_NAME" ]]; then
+            LOGE "The server's public address was not found; enter a domain instead."
+            ask_domain
         else
-            LOGE "Issuing certificate succeeded, installing certificates..."
+            echo -e "${yellow}The panel gets a certificate for ${SITE_NAME}: Let's Encrypt gives an address one for six days, renewed every few days over port 80 or 443.${plain}"
         fi
-    else
-        LOGI "Using existing certificate, installing certificates..."
     fi
+    echo -e "${green}1.${plain} The panel obtains the certificate itself"
+    echo -e "${green}2.${plain} Certificate files of my own"
+    read -rp "Choose an option [default 1]: " choice
+    if [[ "$choice" == "2" ]]; then
+        while true; do
+            read -rp "Certificate file (fullchain): " cert
+            read -rp "Private key file: " key
+            [[ -s "$cert" && -s "$key" ]] && break
+            LOGE "Both files must exist and not be empty."
+        done
+        SITE_EMAIL="-"
+    else
+        cert=""
+        if [[ -n "$(port_owner 80)" && -n "$(port_owner 443)" ]]; then
+            echo -e "${yellow}Ports 80 and 443 are both taken: the authorities cannot check this server, and the panel serves a self-signed certificate until one of them is free.${plain}"
+        fi
+        ask_email
+    fi
+    ${xui_folder}/x-ui setting -port "$port" > /dev/null
+    if [[ -n "$cert" ]]; then
+        ${xui_folder}/x-ui cert -webCert "$cert" -webCertKey "$key" > /dev/null
+    else
+        ${xui_folder}/x-ui cert -reset > /dev/null
+    fi
+    local out
+    out=$(${xui_folder}/x-ui site -mode port -domain "$SITE_NAME" -email "$SITE_EMAIL" 2>&1)
+    if [[ $? -ne 0 ]]; then
+        echo "$out"
+        LOGE "The panel could not be put on port ${port}."
+        return 1
+    fi
+    SITE_CLIENT=""
+    LOGI "The website, the panel and the subscriptions will answer on port ${port}."
+    return 0
+}
 
-    reloadCmd="x-ui restart"
-
-    LOGI "Default --reloadcmd for ACME is: ${yellow}x-ui restart"
-    LOGI "This command will run on every certificate issue and renew."
-    read -rp "Would you like to modify --reloadcmd for ACME? (y/n): " setReloadcmd
-    if [[ "$setReloadcmd" == "y" || "$setReloadcmd" == "Y" ]]; then
-        echo -e "\n${green}\t1.${plain} Preset: systemctl reload nginx ; x-ui restart"
-        echo -e "${green}\t2.${plain} Input your own command"
-        echo -e "${green}\t0.${plain} Keep default reloadcmd"
-        read -rp "Choose an option: " choice
-        case "$choice" in
-            1)
-                LOGI "Reloadcmd is: systemctl reload nginx ; x-ui restart"
-                reloadCmd="systemctl reload nginx ; x-ui restart"
-                ;;
-            2)
-                LOGD "It's recommended to put x-ui restart at the end, so it won't raise an error if other services fails"
-                read -rp "Please enter your reloadcmd (example: systemctl reload nginx ; x-ui restart): " reloadCmd
-                LOGI "Your reloadcmd is: ${reloadCmd}"
-                ;;
-            *)
-                LOGI "Keep default reloadcmd"
-                ;;
+# site_setup asks how the panel is to be reached and sets it up. It changes
+# the settings only; the caller restarts the panel.
+site_setup() {
+    local choice
+    echo -e "${green}How is the panel to be reached?${plain}"
+    echo -e "${green}1.${plain} Website and panel on 443 behind VLESS REALITY (selfsteal; needs a domain)"
+    echo -e "${green}2.${plain} Website and panel on a port of your choice (with a domain or the IP address)"
+    read -rp "Choose an option [default 1]: " choice
+    if [[ "$choice" != "2" ]]; then
+        setup_selfsteal
+        case $? in
+            0) return 0 ;;
+            1) return 1 ;;
         esac
     fi
+    setup_own_port
+}
 
-    # install the certificate
-    local installOutput=""
-    installOutput=$(~/.acme.sh/acme.sh --installcert -d ${domain} \
-        --key-file /root/cert/${domain}/privkey.pem \
-        --fullchain-file /root/cert/${domain}/fullchain.pem --reloadcmd "${reloadCmd}" 2>&1)
-    local installRc=$?
-    echo "${installOutput}"
-
-    local installWroteFiles=0
-    if echo "${installOutput}" | grep -q "Installing key to:" && echo "${installOutput}" | grep -q "Installing full chain to:"; then
-        installWroteFiles=1
-    fi
-
-    if [[ -f "/root/cert/${domain}/privkey.pem" && -f "/root/cert/${domain}/fullchain.pem" && (${installRc} -eq 0 || ${installWroteFiles} -eq 1) ]]; then
-        LOGI "Installing certificate succeeded, enabling auto renew..."
+# site_url prints the panel's address from the settings.
+site_url() {
+    local mode name port path
+    mode=$(site_value "website mode")
+    name=$(site_value "website name")
+    port=$(${xui_folder}/x-ui setting -show true | grep -Eo '^port: .+' | awk '{print $2}')
+    path=$(${xui_folder}/x-ui setting -show true | grep -Eo '^webBasePath: .+' | awk '{print $2}')
+    is_ipv6 "$name" && name="[${name}]"
+    if [[ "$mode" == "reality" ]]; then
+        echo "https://${name}${path}"
+    elif [[ -z "$name" ]]; then
+        echo "http(s)://<server address>:${port}${path}"
+    elif [[ "$port" == "443" ]]; then
+        echo "https://${name}${path}"
     else
-        LOGE "Installing certificate failed, exiting."
-        if [[ ${cert_exists} -eq 0 ]]; then
-            rm -rf ~/.acme.sh/${domain}
-        fi
-        exit 1
-    fi
-
-    # enable auto-renew
-    ~/.acme.sh/acme.sh --upgrade --auto-upgrade
-    if [ $? -ne 0 ]; then
-        LOGE "Auto renew failed, certificate details:"
-        ls -lah cert/*
-        chmod 600 $certPath/privkey.pem
-        chmod 644 $certPath/fullchain.pem
-        exit 1
-    else
-        LOGI "Auto renew succeeded, certificate details:"
-        ls -lah cert/*
-        chmod 600 $certPath/privkey.pem
-        chmod 644 $certPath/fullchain.pem
-    fi
-
-    # Prompt user to set panel paths after successful certificate installation
-    read -rp "Would you like to set this certificate for the panel? (y/n): " setPanel
-    if [[ "$setPanel" == "y" || "$setPanel" == "Y" ]]; then
-        local webCertFile="/root/cert/${domain}/fullchain.pem"
-        local webKeyFile="/root/cert/${domain}/privkey.pem"
-
-        if [[ -f "$webCertFile" && -f "$webKeyFile" ]]; then
-            ${xui_folder}/x-ui cert -webCert "$webCertFile" -webCertKey "$webKeyFile"
-            LOGI "Panel paths set for domain: $domain"
-            LOGI "  - Certificate File: $webCertFile"
-            LOGI "  - Private Key File: $webKeyFile"
-            echo -e "${green}Access URL: https://${domain}:${existing_port}${existing_webBasePath}${plain}"
-            restart
-        else
-            LOGE "Error: Certificate or private key file not found for domain: $domain."
-        fi
-    else
-        LOGI "Skipping panel path setting."
+        echo "https://${name}:${port}${path}"
     fi
 }
 
-ssl_cert_issue_CF() {
-    local existing_webBasePath=$(${xui_folder}/x-ui setting -show true | grep -Eo 'webBasePath: .+' | awk '{print $2}')
-    local existing_port=$(${xui_folder}/x-ui setting -show true | grep -Eo 'port: .+' | awk '{print $2}')
-    LOGI "****** Instructions for Use ******"
-    LOGI "Follow the steps below to complete the process:"
-    LOGI "1. Cloudflare Registered E-mail."
-    LOGI "2. Cloudflare Global API Key."
-    LOGI "3. The Domain Name."
-    LOGI "4. Once the certificate is issued, you will be prompted to set the certificate for the panel (optional)."
-    LOGI "5. The script also supports automatic renewal of the SSL certificate after installation."
-
-    confirm "Do you confirm the information and wish to proceed? [y/n]" "y"
-
-    if [ $? -eq 0 ]; then
-        # Check for acme.sh first
-        if ! command -v ~/.acme.sh/acme.sh &> /dev/null; then
-            echo "acme.sh could not be found. We will install it."
-            install_acme
-            if [ $? -ne 0 ]; then
-                LOGE "Install acme failed, please check logs."
-                exit 1
-            fi
-        fi
-
-        CF_Domain=""
-
-        LOGD "Please set a domain name:"
-        read -rp "Input your domain here: " CF_Domain
-        LOGD "Your domain name is set to: ${CF_Domain}"
-
-        # Set up Cloudflare API details
-        CF_GlobalKey=""
-        CF_AccountEmail=""
-        LOGD "Please set the API key:"
-        read -rp "Input your key here: " CF_GlobalKey
-        LOGD "Your API key is: ${CF_GlobalKey}"
-
-        LOGD "Please set up registered email:"
-        read -rp "Input your email here: " CF_AccountEmail
-        LOGD "Your registered email address is: ${CF_AccountEmail}"
-
-        # Set the default CA to Let's Encrypt
-        ~/.acme.sh/acme.sh --set-default-ca --server letsencrypt --force
-        if [ $? -ne 0 ]; then
-            LOGE "Default CA, Let'sEncrypt fail, script exiting..."
-            exit 1
-        fi
-
-        export CF_Key="${CF_GlobalKey}"
-        export CF_Email="${CF_AccountEmail}"
-
-        # Issue the certificate using Cloudflare DNS
-        ~/.acme.sh/acme.sh --issue --dns dns_cf -d ${CF_Domain} -d *.${CF_Domain} --log --force
-        if [ $? -ne 0 ]; then
-            LOGE "Certificate issuance failed, script exiting..."
-            exit 1
+# site_status prints where the panel is and whether its certificate is
+# trusted yet; with "wait" it gives the certificate a minute and a half.
+site_status() {
+    local url tries=1 code
+    url=$(site_url)
+    [[ "$1" == "wait" ]] && tries=18
+    if [[ "$url" == https://* ]]; then
+        for ((i = 0; i < tries; i++)); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 "$url")
+            [[ "$code" != "000" ]] && break
+            ((i + 1 < tries)) && sleep 5
+        done
+        if [[ "$code" != "000" ]]; then
+            LOGI "The panel answers with a trusted certificate."
+        elif [[ "$(curl -sk -o /dev/null -w '%{http_code}' --max-time 5 "$url")" != "000" ]]; then
+            echo -e "${yellow}The panel answers with a temporary self-signed certificate, so the browser warns; it keeps trying to get a real one (see: x-ui log).${plain}"
         else
-            LOGI "Certificate issued successfully, Installing..."
+            LOGE "The panel does not answer at ${url} yet (see: x-ui log)."
         fi
-
-        # Install the certificate
-        certPath="/root/cert/${CF_Domain}"
-        if [ -d "$certPath" ]; then
-            rm -rf ${certPath}
-        fi
-
-        mkdir -p ${certPath}
-        if [ $? -ne 0 ]; then
-            LOGE "Failed to create directory: ${certPath}"
-            exit 1
-        fi
-
-        reloadCmd="x-ui restart"
-
-        LOGI "Default --reloadcmd for ACME is: ${yellow}x-ui restart"
-        LOGI "This command will run on every certificate issue and renew."
-        read -rp "Would you like to modify --reloadcmd for ACME? (y/n): " setReloadcmd
-        if [[ "$setReloadcmd" == "y" || "$setReloadcmd" == "Y" ]]; then
-            echo -e "\n${green}\t1.${plain} Preset: systemctl reload nginx ; x-ui restart"
-            echo -e "${green}\t2.${plain} Input your own command"
-            echo -e "${green}\t0.${plain} Keep default reloadcmd"
-            read -rp "Choose an option: " choice
-            case "$choice" in
-                1)
-                    LOGI "Reloadcmd is: systemctl reload nginx ; x-ui restart"
-                    reloadCmd="systemctl reload nginx ; x-ui restart"
-                    ;;
-                2)
-                    LOGD "It's recommended to put x-ui restart at the end, so it won't raise an error if other services fails"
-                    read -rp "Please enter your reloadcmd (example: systemctl reload nginx ; x-ui restart): " reloadCmd
-                    LOGI "Your reloadcmd is: ${reloadCmd}"
-                    ;;
-                *)
-                    LOGI "Keep default reloadcmd"
-                    ;;
-            esac
-        fi
-        ~/.acme.sh/acme.sh --installcert -d ${CF_Domain} -d *.${CF_Domain} \
-            --key-file ${certPath}/privkey.pem \
-            --fullchain-file ${certPath}/fullchain.pem --reloadcmd "${reloadCmd}"
-
-        if [ $? -ne 0 ]; then
-            LOGE "Certificate installation failed, script exiting..."
-            exit 1
-        else
-            LOGI "Certificate installed successfully, Turning on automatic updates..."
-        fi
-
-        # Enable auto-update
-        ~/.acme.sh/acme.sh --upgrade --auto-upgrade
-        if [ $? -ne 0 ]; then
-            LOGE "Auto update setup failed, script exiting..."
-            exit 1
-        else
-            LOGI "The certificate is installed and auto-renewal is turned on. Specific information is as follows:"
-            ls -lah ${certPath}/*
-            chmod 600 ${certPath}/privkey.pem
-            chmod 644 ${certPath}/fullchain.pem
-        fi
-
-        # Prompt user to set panel paths after successful certificate installation
-        read -rp "Would you like to set this certificate for the panel? (y/n): " setPanel
-        if [[ "$setPanel" == "y" || "$setPanel" == "Y" ]]; then
-            local webCertFile="${certPath}/fullchain.pem"
-            local webKeyFile="${certPath}/privkey.pem"
-
-            if [[ -f "$webCertFile" && -f "$webKeyFile" ]]; then
-                ${xui_folder}/x-ui cert -webCert "$webCertFile" -webCertKey "$webKeyFile"
-                LOGI "Panel paths set for domain: $CF_Domain"
-                LOGI "  - Certificate File: $webCertFile"
-                LOGI "  - Private Key File: $webKeyFile"
-                echo -e "${green}Access URL: https://${CF_Domain}:${existing_port}${existing_webBasePath}${plain}"
-                restart
-            else
-                LOGE "Error: Certificate or private key file not found for domain: $CF_Domain."
-            fi
-        else
-            LOGI "Skipping panel path setting."
-        fi
-    else
-        show_menu
     fi
+    echo -e "${green}Access URL: ${url}${plain}"
+}
+
+# site_menu is the menu of the website, the panel's address and certificate.
+site_menu() {
+    local mode open
+    mode=$(site_value "website mode")
+    echo -e "${green}Website and certificate${plain}"
+    echo -e "  mode: ${mode}, name: $(site_value "website name")"
+    echo -e "${green}\t1.${plain} Show the panel's address"
+    echo -e "${green}\t2.${plain} Set up again: REALITY on 443 or a port of its own"
+    echo -e "${green}\t3.${plain} Change the certificate email"
+    if [[ "$mode" == "reality" ]]; then
+        open=$(site_value "panel port behind REALITY")
+        if [[ "$open" == "true" ]]; then
+            echo -e "${green}\t4.${plain} Close the panel's own port again"
+        else
+            echo -e "${green}\t4.${plain} Open the panel's own port too (a way in should REALITY break)"
+        fi
+    fi
+    echo -e "${green}\t0.${plain} Back to Main Menu"
+    read -rp "Choose an option: " choice
+    case "$choice" in
+        1)
+            site_status
+            site_menu
+            ;;
+        2)
+            if site_setup; then
+                restart 0
+                site_status wait
+                [[ -n "$SITE_CLIENT" ]] && echo "$SITE_CLIENT"
+            fi
+            site_menu
+            ;;
+        3)
+            ask_email
+            ${xui_folder}/x-ui site -email "$SITE_EMAIL" > /dev/null
+            restart 0
+            site_menu
+            ;;
+        4)
+            if [[ "$mode" == "reality" ]]; then
+                if [[ "$open" == "true" ]]; then
+                    ${xui_folder}/x-ui site -panelPort false > /dev/null
+                else
+                    ${xui_folder}/x-ui site -panelPort true > /dev/null
+                    LOGI "The panel opens on its own port too: https://$(site_value "website name"):$(${xui_folder}/x-ui setting -show true | grep -Eo '^port: .+' | awk '{print $2}')$(${xui_folder}/x-ui setting -show true | grep -Eo '^webBasePath: .+' | awk '{print $2}')"
+                fi
+                restart 0
+            fi
+            site_menu
+            ;;
+        *) show_menu ;;
+    esac
 }
 
 run_speedtest() {
@@ -2197,6 +1825,7 @@ show_usage() {
 |  ${blue}x-ui restart-xray${plain}          - Restart Xray                     │
 │  ${blue}x-ui status${plain}                - Current Status                   │
 │  ${blue}x-ui settings${plain}              - Current Settings                 │
+│  ${blue}x-ui site${plain}                  - Website & Certificate            │
 │  ${blue}x-ui enable${plain}                - Enable Autostart on OS Startup   │
 │  ${blue}x-ui disable${plain}               - Disable Autostart on OS Startup  │
 │  ${blue}x-ui log${plain}                   - Check logs                       │
@@ -2237,19 +1866,18 @@ show_menu() {
 │  ${green}17.${plain} Enable Autostart                          │
 │  ${green}18.${plain} Disable Autostart                         │
 │────────────────────────────────────────────────│
-│  ${green}19.${plain} SSL Certificate Management                │
-│  ${green}20.${plain} Cloudflare SSL Certificate                │
-│  ${green}21.${plain} IP Limit Management                       │
-│  ${green}22.${plain} Firewall Management                       │
-│  ${green}23.${plain} SSH Port Forwarding Management            │
+│  ${green}19.${plain} Website & Certificate                     │
+│  ${green}20.${plain} IP Limit Management                       │
+│  ${green}21.${plain} Firewall Management                       │
+│  ${green}22.${plain} SSH Port Forwarding Management            │
 │────────────────────────────────────────────────│
-│  ${green}24.${plain} Enable BBR                                │
-│  ${green}25.${plain} Update Geo Files                          │
-│  ${green}26.${plain} Speedtest by Ookla                        │
+│  ${green}23.${plain} Enable BBR                                │
+│  ${green}24.${plain} Update Geo Files                          │
+│  ${green}25.${plain} Speedtest by Ookla                        │
 ╚────────────────────────────────────────────────╝
 "
     show_status
-    echo && read -rp "Please enter your selection [0-26]: " num
+    echo && read -rp "Please enter your selection [0-25]: " num
 
     case "${num}" in
         0)
@@ -2310,31 +1938,28 @@ show_menu() {
             check_install && disable
             ;;
         19)
-            ssl_cert_issue_main
+            check_install && site_menu
             ;;
         20)
-            ssl_cert_issue_CF
-            ;;
-        21)
             iplimit_main
             ;;
-        22)
+        21)
             firewall_menu
             ;;
-        23)
+        22)
             SSH_port_forwarding
             ;;
-        24)
+        23)
             bbr_menu
             ;;
-        25)
+        24)
             update_geo
             ;;
-        26)
+        25)
             run_speedtest
             ;;
         *)
-            LOGE "Please enter the correct number [0-26]"
+            LOGE "Please enter the correct number [0-25]"
             ;;
     esac
 }
@@ -2358,6 +1983,20 @@ if [[ $# > 0 ]]; then
             ;;
         "settings")
             check_install 0 && check_config 0
+            ;;
+        "site")
+            check_install 0 && site_menu
+            ;;
+        "site-setup")
+            # The installer's step: the settings only, the panel starts after;
+            # the REALITY client's links go to the file named, if any.
+            [[ -x ${xui_folder}/x-ui ]] || exit 1
+            site_setup || exit 1
+            [[ -n "$2" ]] && echo "$SITE_CLIENT" > "$2"
+            exit 0
+            ;;
+        "site-status")
+            check_install 0 && site_status "$2"
             ;;
         "enable")
             check_install 0 && enable 0
