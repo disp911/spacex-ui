@@ -45,7 +45,10 @@ func (c *AutoHttpsConn) readRequest() bool {
 		return false
 	}
 	resp := http.Response{
-		Header: http.Header{},
+		ProtoMajor: 1,
+		ProtoMinor: 1,
+		Header:     http.Header{},
+		Close:      true,
 	}
 	resp.StatusCode = http.StatusTemporaryRedirect
 	location := fmt.Sprintf("https://%v%v", request.Host, request.RequestURI)
