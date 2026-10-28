@@ -64,7 +64,7 @@ else
     echo "Failed to check the system OS, please contact the author!" >&2
     exit 1
 fi
-echo "The OS release is: $release"
+[[ "$1" == site-* ]] || echo "The OS release is: $release"
 
 os_version=""
 os_version=$(grep "^VERSION_ID" /etc/os-release | cut -d '=' -f2 | tr -d '"' | tr -d '.')
@@ -1992,7 +1992,7 @@ if [[ $# > 0 ]]; then
             # the REALITY client's links go to the file named, if any.
             [[ -x ${xui_folder}/x-ui ]] || exit 1
             site_setup || exit 1
-            [[ -n "$2" ]] && echo "$SITE_CLIENT" > "$2"
+            [[ -n "$2" && -n "$SITE_CLIENT" ]] && echo "$SITE_CLIENT" > "$2"
             exit 0
             ;;
         "site-status")

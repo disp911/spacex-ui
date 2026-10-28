@@ -357,4 +357,4 @@ update_x-ui() {
 echo -e "${green}Running...${plain}"
 install_base
 update_x-ui $1
-/usr/bin/x-ui site-status 2> /dev/null | grep -v '^The OS release'
+/usr/bin/x-ui site-status 2> /dev/null

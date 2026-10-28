@@ -149,7 +149,7 @@ show_access() {
     echo -e "${green}═══════════════════════════════════════════${plain}"
     echo -e "${green}     Panel Installation Complete!         ${plain}"
     echo -e "${green}═══════════════════════════════════════════${plain}"
-    /usr/bin/x-ui site-status wait 2> /dev/null | grep -v '^The OS release'
+    /usr/bin/x-ui site-status wait 2> /dev/null
     if [[ -n "${NEW_USERNAME}" ]]; then
         echo -e "${green}Username:    ${NEW_USERNAME}${plain}"
         echo -e "${green}Password:    ${NEW_PASSWORD}${plain}"
