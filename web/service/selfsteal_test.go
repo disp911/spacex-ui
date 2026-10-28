@@ -171,8 +171,8 @@ func TestSwitchModeKeepsTheSiteInbound(t *testing.T) {
 func TestSwitchModeRefusesATakenPort(t *testing.T) {
 	siteTestDB(t)
 	db := database.GetDB()
-	other := &model.Inbound{Tag: "inbound-443", Port: 443, Protocol: model.Trojan, Remark: "old", Enable: true}
-	hysteria := &model.Inbound{Tag: "inbound-443-udp", Port: 443, Protocol: model.Hysteria, Remark: "h2", Enable: true}
+	other := &model.Inbound{Tag: "inbound-443", Port: 443, Protocol: model.Trojan, Remark: "old", Enable: true, Settings: `{"clients":[]}`}
+	hysteria := &model.Inbound{Tag: "inbound-443-udp", Port: 443, Protocol: model.Hysteria, Remark: "h2", Enable: true, Settings: `{"clients":[]}`}
 	for _, ib := range []*model.Inbound{other, hysteria} {
 		if err := db.Create(ib).Error; err != nil {
 			t.Fatal(err)
