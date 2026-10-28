@@ -16,8 +16,6 @@ import (
 	"path"
 	"strings"
 	"sync"
-	"testing/fstest"
-	"time"
 )
 
 // Files serves a website from fsys: a file at its path, a folder by its
@@ -179,16 +177,24 @@ func acceptsGzip(r *http.Request) bool {
 }
 
 // Source returns the site to show: the administrator's own in dir when it
-// has an index.html, made otherwise.
-func Source(dir string, made fs.FS) fs.FS {
+// has an index.html, made otherwise, and whether it is their own.
+func Source(dir string, made fs.FS) (fs.FS, bool) {
 	own := os.DirFS(dir)
 	if info, err := fs.Stat(own, "index.html"); err == nil && info.Mode().IsRegular() {
-		return own
+		return own, true
 	}
-	return made
+	return made, false
 }
 
-// Placeholder is a one-page site shown until the panel makes a real one.
-func Placeholder(page []byte, modTime time.Time) fs.FS {
-	return fstest.MapFS{"index.html": {Data: page, Mode: 0o444, ModTime: modTime}}
+// Feedback answers a POST to path, where the made site's pages send «Was
+// this page helpful?», with 204 and keeps nothing; everything else goes to
+// next.
+func Feedback(path string, next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == path && r.Method == http.MethodPost {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
 }

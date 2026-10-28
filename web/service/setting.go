@@ -1,7 +1,9 @@
 package service
 
 import (
+	"crypto/rand"
 	_ "embed"
+	"encoding/binary"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -80,6 +82,8 @@ var defaultValueMap = map[string]string{
 	"siteDomain":    "",
 	"siteEmail":     "",
 	"sitePanelPort": "false",
+	"siteSeed":      "",
+	"siteBorn":      "",
 
 	// LDAP defaults
 	"ldapEnable":            "false",
@@ -453,6 +457,38 @@ func (s *SettingService) GetSitePanelPort() (bool, error) {
 
 func (s *SettingService) SetSitePanelPort(open bool) error {
 	return s.setBool("sitePanelPort", open)
+}
+
+// GetSiteSeed returns what the panel's own website is made from: a random
+// seed and when it was made, both kept in the database, so a restored backup
+// shows the same site. The first call makes them.
+func (s *SettingService) GetSiteSeed() (uint64, time.Time, error) {
+	seedText, err := s.getString("siteSeed")
+	if err != nil {
+		return 0, time.Time{}, err
+	}
+	bornText, err := s.getString("siteBorn")
+	if err != nil {
+		return 0, time.Time{}, err
+	}
+	seed, errSeed := strconv.ParseUint(seedText, 10, 64)
+	born, errBorn := strconv.ParseInt(bornText, 10, 64)
+	if errSeed == nil && errBorn == nil {
+		return seed, time.Unix(born, 0).UTC(), nil
+	}
+	var b [8]byte
+	if _, err := rand.Read(b[:]); err != nil {
+		return 0, time.Time{}, err
+	}
+	seed = binary.LittleEndian.Uint64(b[:])
+	now := time.Now().UTC().Truncate(time.Second)
+	if err := s.setString("siteSeed", strconv.FormatUint(seed, 10)); err != nil {
+		return 0, time.Time{}, err
+	}
+	if err := s.setString("siteBorn", strconv.FormatInt(now.Unix(), 10)); err != nil {
+		return 0, time.Time{}, err
+	}
+	return seed, now, nil
 }
 
 func (s *SettingService) GetSubEnable() (bool, error) {

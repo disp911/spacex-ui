@@ -19,6 +19,7 @@ import (
 	"github.com/disp911/spacex-ui/v2/web/network"
 	"github.com/disp911/spacex-ui/v2/web/service"
 	"github.com/disp911/spacex-ui/v2/web/site"
+	"github.com/disp911/spacex-ui/v2/web/site/docsite"
 )
 
 // siteFront answers on the site's listeners: the panel's secret path is the
@@ -152,9 +153,14 @@ func (s *Server) startSite(mode string, panel http.Handler) (ownPort bool, err e
 		return false, err
 	}
 
-	made := site.Placeholder(decoyPage, buildTime())
+	pages, err := s.sitePages(domain)
+	if err != nil {
+		ln.Close()
+		certs.Stop()
+		return false, err
+	}
 	front := webProxyFront{
-		panel: siteFront{basePath: basePath, panel: panel, site: site.Files(site.Source(config.GetSiteFolder(), made))},
+		panel: siteFront{basePath: basePath, panel: panel, site: pages},
 		route: service.TelemtWebRoute,
 	}
 	s.siteServer = &http.Server{
@@ -189,6 +195,22 @@ func (s *Server) startSite(mode string, panel http.Handler) (ownPort bool, err e
 		ownPort, _ = s.settingService.GetSitePanelPort()
 	}
 	return ownPort, nil
+}
+
+// sitePages is the website itself: the administrator's own from the site
+// folder, or else the documentation site the panel makes from the seed in
+// the database.
+func (s *Server) sitePages(domain string) (http.Handler, error) {
+	seed, born, err := s.settingService.GetSiteSeed()
+	if err != nil {
+		return nil, err
+	}
+	made := docsite.Make(seed, domain, born, time.Now())
+	fsys, own := site.Source(config.GetSiteFolder(), made)
+	if own {
+		return site.Files(fsys), nil
+	}
+	return site.Feedback(docsite.FeedbackPath, site.Files(fsys)), nil
 }
 
 // listenOwnPort opens the panel's own port while the website runs: the same
@@ -241,17 +263,6 @@ func (s *Server) stopSite() {
 		s.siteCerts.Stop()
 		service.SetSiteStatus(nil, nil)
 	}
-}
-
-// buildTime is when the panel's binary was written, the date the placeholder
-// site claims for its page.
-func buildTime() time.Time {
-	if exe, err := os.Executable(); err == nil {
-		if info, err := os.Stat(exe); err == nil {
-			return info.ModTime()
-		}
-	}
-	return time.Now()
 }
 
 type errSite string

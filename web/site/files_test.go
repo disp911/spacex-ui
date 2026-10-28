@@ -173,16 +173,33 @@ func TestFilesSendsNoServerHeader(t *testing.T) {
 }
 
 func TestSourcePrefersTheAdministratorsSite(t *testing.T) {
-	made := Placeholder([]byte("made"), modTime)
+	made := fstest.MapFS{"index.html": {Data: []byte("made"), ModTime: modTime}}
 	dir := t.TempDir()
-	if got := Source(dir, made); got == nil {
-		t.Fatal("nil")
-	} else if _, ok := got.(fstest.MapFS); !ok {
+	if got, own := Source(dir, made); own {
 		t.Fatal("an empty folder replaced the made site")
+	} else if _, ok := got.(fstest.MapFS); !ok {
+		t.Fatalf("got %T", got)
 	}
 	writeFile(t, dir+"/index.html", "own")
-	resp := get(t, Files(Source(dir, made)), http.MethodGet, "/", nil)
-	if b := body(t, resp); b != "own" {
-		t.Fatalf("got %q", b)
+	got, own := Source(dir, made)
+	if b := body(t, get(t, Files(got), http.MethodGet, "/", nil)); !own || b != "own" {
+		t.Fatalf("own %v, got %q", own, b)
+	}
+}
+
+func TestFeedbackKeepsNothing(t *testing.T) {
+	h := Feedback("/api/feedback", Files(testSite()))
+	req := httptest.NewRequest(http.MethodPost, "/api/feedback", strings.NewReader(`{"page":"/","helpful":true}`))
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, req)
+	if rec.Code != http.StatusNoContent || rec.Body.Len() != 0 {
+		t.Fatalf("POST: %d %q", rec.Code, rec.Body)
+	}
+	// Anything else at the path is the site's, as a GET of a missing page.
+	if resp := get(t, h, http.MethodGet, "/api/feedback", nil); resp.StatusCode != http.StatusNotFound {
+		t.Errorf("GET: %d", resp.StatusCode)
+	}
+	if resp := get(t, h, http.MethodPost, "/", nil); resp.StatusCode != http.StatusMethodNotAllowed {
+		t.Errorf("POST /: %d", resp.StatusCode)
 	}
 }
