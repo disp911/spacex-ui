@@ -20,6 +20,8 @@ import (
 	"github.com/disp911/spacex-ui/v2/web/service"
 	"github.com/disp911/spacex-ui/v2/web/site"
 	"github.com/disp911/spacex-ui/v2/web/site/docsite"
+
+	"github.com/pires/go-proxyproto"
 )
 
 // siteFront answers on the site's listeners: the panel's secret path is the
@@ -138,13 +140,7 @@ func (s *Server) startSite(mode string, panel http.Handler) (ownPort bool, err e
 	case service.SiteDirect:
 		ln, err = net.Listen("tcp", net.JoinHostPort(listen, "443"))
 	case service.SiteReality:
-		sock := config.GetSiteSocket()
-		os.MkdirAll(filepath.Dir(sock), 0o755)
-		os.Remove(sock)
-		ln, err = net.Listen("unix", sock)
-		if err == nil {
-			os.Chmod(sock, 0o600)
-		}
+		ln, err = siteSocket(config.GetSiteSocket())
 	default:
 		err = errSite("unknown site mode " + mode)
 	}
@@ -195,6 +191,22 @@ func (s *Server) startSite(mode string, panel http.Handler) (ownPort bool, err e
 		ownPort, _ = s.settingService.GetSitePanelPort()
 	}
 	return ownPort, nil
+}
+
+// siteSocket opens the socket a REALITY inbound passes visitors to. Only
+// root, and so only Xray, may connect, which makes the PROXY protocol header
+// Xray puts first (the inbound's xver) safe to believe: with it the website
+// and the panel see each visitor's own address. A connection without one
+// is taken as it comes.
+func siteSocket(sock string) (net.Listener, error) {
+	os.MkdirAll(filepath.Dir(sock), 0o755)
+	os.Remove(sock)
+	ln, err := net.Listen("unix", sock)
+	if err != nil {
+		return nil, err
+	}
+	os.Chmod(sock, 0o600)
+	return &proxyproto.Listener{Listener: ln, ReadHeaderTimeout: 10 * time.Second}, nil
 }
 
 // sitePages is the website itself: the administrator's own from the site

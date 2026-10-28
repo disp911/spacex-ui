@@ -184,8 +184,13 @@ func (s *SiteService) fitInbound(ib *model.Inbound, domain string) error {
 		return err
 	}
 	reality, _ := stream["realitySettings"].(map[string]any)
-	names, _ := reality["serverNames"].([]any)
-	if !slices.Contains(names, any(domain)) {
+	changed := false
+	if xver, _ := reality["xver"].(float64); xver == 0 {
+		// Made before the website took the visitor's address from Xray.
+		reality["xver"] = 1
+		changed = true
+	}
+	if names, _ := reality["serverNames"].([]any); !slices.Contains(names, any(domain)) {
 		old := ""
 		if len(names) > 0 {
 			old, _ = names[0].(string)
@@ -197,6 +202,9 @@ func (s *SiteService) fitInbound(ib *model.Inbound, domain string) error {
 				p["dest"] = domain
 			}
 		}
+		changed = true
+	}
+	if changed {
 		out, err := json.MarshalIndent(stream, "", "  ")
 		if err != nil {
 			return err
@@ -236,8 +244,10 @@ func newSiteInbound(domain, socket string) (*model.Inbound, *model.Client, error
 		// Links name the domain, wherever the panel is opened from.
 		"externalProxy": []any{map[string]any{"forceTls": "same", "dest": domain, "port": 443, "remark": ""}},
 		"realitySettings": map[string]any{
-			"show":         false,
-			"xver":         0,
+			"show": false,
+			// The website learns each visitor's address from a PROXY
+			// protocol header.
+			"xver":         1,
 			"target":       socket,
 			"serverNames":  []string{domain},
 			"privateKey":   base64.RawURLEncoding.EncodeToString(key.Bytes()),

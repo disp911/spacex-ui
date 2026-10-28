@@ -13,8 +13,18 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// getRemoteIp extracts the real IP address from the request headers or remote address.
+// getRemoteIp is the visitor's address. X-Real-IP and X-Forwarded-For are
+// believed only from a proxy on this machine, such as nginx in front of the
+// panel: from anyone else they could name any address.
 func getRemoteIp(c *gin.Context) string {
+	peer, ok := extractTrustedIP(c.Request.RemoteAddr)
+	if !ok {
+		return "unknown"
+	}
+	if !netip.MustParseAddr(peer).IsLoopback() {
+		return peer
+	}
+
 	if ip, ok := extractTrustedIP(c.GetHeader("X-Real-IP")); ok {
 		return ip
 	}
@@ -27,11 +37,7 @@ func getRemoteIp(c *gin.Context) string {
 		}
 	}
 
-	if ip, ok := extractTrustedIP(c.Request.RemoteAddr); ok {
-		return ip
-	}
-
-	return "unknown"
+	return peer
 }
 
 func extractTrustedIP(value string) (string, bool) {

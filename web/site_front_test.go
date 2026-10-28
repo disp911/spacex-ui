@@ -14,6 +14,7 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -159,5 +160,39 @@ func TestSiteListenerSpeaksHTTP2(t *testing.T) {
 	line, _ := bufio.NewReader(conn).ReadString('\n')
 	if !strings.HasPrefix(line, "HTTP/1.0 400 Bad Request") {
 		t.Errorf("plain HTTP: %q", line)
+	}
+}
+
+func TestSiteSocketTakesTheAddressFromXray(t *testing.T) {
+	sock := filepath.Join(t.TempDir(), "site.sock")
+	ln, err := siteSocket(sock)
+	if err != nil {
+		t.Skip("no unix sockets here:", err)
+	}
+	srv := &http.Server{Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		io.WriteString(w, r.RemoteAddr)
+	})}
+	go srv.Serve(ln)
+	defer srv.Close()
+
+	ask := func(header string) string {
+		c, err := net.Dial("unix", sock)
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer c.Close()
+		io.WriteString(c, header+"GET / HTTP/1.1\r\nHost: docs.example.com\r\nConnection: close\r\n\r\n")
+		res, err := http.ReadResponse(bufio.NewReader(c), nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		body, _ := io.ReadAll(res.Body)
+		return string(body)
+	}
+	if got := ask("PROXY TCP4 203.0.113.7 198.51.100.1 51000 443\r\n"); got != "203.0.113.7:51000" {
+		t.Fatalf("with a header the visitor is %q", got)
+	}
+	if got := ask(""); strings.HasPrefix(got, "203.0.113.7") {
+		t.Fatalf("without a header the visitor is %q", got)
 	}
 }

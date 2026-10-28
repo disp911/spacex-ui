@@ -29,7 +29,7 @@ func TestSiteInboundIsWhatXrayTakes(t *testing.T) {
 		t.Fatalf("Xray refuses the stream settings: %v", err)
 	}
 	r := stream.REALITYSettings
-	if r.Type != "unix" || r.ServerNames[0] != "docs.example.com" || len(r.ShortIds) != 8 {
+	if r.Type != "unix" || r.Xver != 1 || r.ServerNames[0] != "docs.example.com" || len(r.ShortIds) != 8 {
 		t.Fatalf("target type %q, names %v, short ids %v", r.Type, r.ServerNames, r.ShortIds)
 	}
 	if r.LimitFallbackDownload.AfterBytes == 0 || r.LimitFallbackUpload.BytesPerSec == 0 {
