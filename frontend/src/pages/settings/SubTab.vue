@@ -53,7 +53,7 @@ const sample = computed(() => '#' + order.value.map((p) => parts.find((x) => x.v
 
 <template>
   <div class="settings-tab">
-    <XNotice v-if="siteUrl" tone="info">
+    <XNotice v-if="siteUrl && f.saved.subEnable" tone="info">
       <i18n-t scope="global" keypath="settings.subOnSite"><template #url><code>{{ siteUrl }}</code></template></i18n-t>
     </XNotice>
     <XSettingsSection v-model:open="open.general" :title="t('settings.secGeneral')" :count="siteUrl ? 6 : 9" :modified="f.count(sections.general).dirty" :errors="f.count(sections.general).errors">
