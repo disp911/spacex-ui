@@ -214,17 +214,7 @@ func (s *SiteService) fitInbound(ib *model.Inbound, domain string) error {
 		changed = true
 	}
 	if names, _ := reality["serverNames"].([]any); !slices.Contains(names, any(domain)) {
-		old := ""
-		if len(names) > 0 {
-			old, _ = names[0].(string)
-		}
 		reality["serverNames"] = []string{domain}
-		proxies, _ := stream["externalProxy"].([]any)
-		for _, p := range proxies {
-			if p, ok := p.(map[string]any); ok && p["dest"] == old {
-				p["dest"] = domain
-			}
-		}
 		changed = true
 	}
 	if changed {
@@ -261,8 +251,8 @@ func newSiteInbound(domain, socket string) (*model.Inbound, *model.Client, error
 	stream := map[string]any{
 		"network":  "tcp",
 		"security": "reality",
-		// Links name the domain, wherever the panel is opened from.
-		"externalProxy": []any{map[string]any{"forceTls": "same", "dest": domain, "port": 443, "remark": ""}},
+		// Links take the address the panel or the subscription is opened
+		// at: behind REALITY that is the domain on 443.
 		"realitySettings": map[string]any{
 			"show": false,
 			// The website learns each visitor's address from a PROXY
