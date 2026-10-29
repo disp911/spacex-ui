@@ -124,7 +124,6 @@ const outbound = computed<Outbound | null>(() => {
       secretKey: data.value.private_key,
       address: [a.v4 && `${a.v4}/32`, a.v6 && `${a.v6}/128`].filter(Boolean),
       reserved: base64Bytes(c.client_id),
-      domainStrategy: 'ForceIP',
       peers: [{ publicKey: peer.public_key, endpoint: peer.endpoint.host }],
       noKernelTun: false,
     },

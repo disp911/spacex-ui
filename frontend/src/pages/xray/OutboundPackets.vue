@@ -18,9 +18,10 @@ const types: Option[] = [
 
 function setType(item: Record<string, any>, type: string) {
   item.type = type
+  // Random bytes or given ones: Xray refuses an item with both.
   if (type === 'array') {
     item.rand = 0
-    item.packet = []
+    delete item.packet
   } else item.packet = ''
 }
 </script>

@@ -125,19 +125,6 @@ const accountList = ref<{ add: () => void } | null>(null)
 /** Port mapping is edited as rows, as the old panel did, so empty or repeated ports stay rows while typed. */
 const portMap = headerRows(() => (p.value === 'tunnel' ? props.f.settings : undefined), 'portMap')
 
-// --- TUN --------------------------------------------------------------------------------
-
-const mtu = (i: number) =>
-  computed({
-    get: () => (Array.isArray(s.value.mtu) ? (s.value.mtu[i] ?? null) : null),
-    set: (v: number | null) => {
-      if (!Array.isArray(s.value.mtu)) s.value.mtu = [1500, 1280]
-      s.value.mtu[i] = v ?? (i ? 1280 : 1500)
-    },
-  })
-const mtu4 = mtu(0)
-const mtu6 = mtu(1)
-
 // --- MTProto ------------------------------------------------------------------------------
 
 const web = computed(() => {
@@ -241,7 +228,6 @@ const webFrontOk = location.protocol === 'https:' && (location.port === '' || lo
         <XField v-slot="a" :label="t('inbounds.network')">
           <XSelect v-bind="a" v-model="s.network" :options="networkOptions" mono />
         </XField>
-        <XSwitch v-model="s.ivCheck" boxed label="ivCheck" />
       </XFieldGrid>
     </template>
 
@@ -356,11 +342,8 @@ const webFrontOk = location.protocol === 'https:' && (location.port === '' || lo
         <XField v-slot="a" :label="t('inbounds.tunUserLevel')" :help="t('inbounds.tunUserLevelDesc')">
           <XNumber v-bind="a" v-model="s.userLevel" block :min="0" placeholder="0" />
         </XField>
-        <XField v-slot="a" label="MTU IPv4" :help="t('inbounds.tunMtuDesc')">
-          <XNumber v-bind="a" v-model="mtu4" block :min="1" :max="9000" placeholder="1500" />
-        </XField>
-        <XField v-slot="a" label="MTU IPv6">
-          <XNumber v-bind="a" v-model="mtu6" block :min="1" :max="9000" placeholder="1280" />
+        <XField v-slot="a" label="MTU" :help="t('inbounds.tunMtuDesc')">
+          <XNumber v-bind="a" v-model="s.mtu" block :min="1" :max="9000" placeholder="1500" />
         </XField>
         <XField v-slot="a" label="Gateway">
           <XTagInput v-bind="a" v-model="s.gateway" mono placeholder="IPv4/IPv6 gateway" />

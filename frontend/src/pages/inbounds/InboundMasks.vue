@@ -31,7 +31,7 @@ const tcpMasks = computed(() => ['tcp', 'httpupgrade', 'ws', 'grpc', 'xhttp'].in
 const udpMasks = computed(() => canUdpMask(props.f))
 const hysteria = computed(() => props.f.protocol === 'hysteria')
 
-const packetItem = () => ({ delay: 0, rand: 0, randRange: '0-255', type: 'array', packet: [] })
+const packetItem = () => ({ delay: 0, rand: 0, randRange: '0-255', type: 'array' })
 
 const tcpTypes: Option[] = [
   { value: 'fragment', label: 'Fragment' },
@@ -153,7 +153,7 @@ const setTables = (m: Json, v: string) => (m.settings.customTables = v.split(','
             <XField v-if="m.type === 'noise'" v-slot="a" label="Reset"><XNumber v-bind="a" block v-model="m.settings.reset" :min="0" /></XField>
           </XFieldGrid>
           <template v-if="m.type === 'noise'">
-            <XListHead title="Noise" add @add="m.settings.noise.push({ rand: '1-8192', randRange: '0-255', type: 'array', packet: [], delay: '10-20' })">
+            <XListHead title="Noise" add @add="m.settings.noise.push({ rand: '1-8192', randRange: '0-255', type: 'array', delay: '10-20' })">
               <OutboundPackets :items="m.settings.noise" with-delay removable />
             </XListHead>
           </template>

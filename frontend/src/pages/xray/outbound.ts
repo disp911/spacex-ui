@@ -24,7 +24,6 @@ export const flows = ['xtls-rprx-vision', 'xtls-rprx-vision-udp443']
 export const fingerprints = ['chrome', 'firefox', 'safari', 'ios', 'android', 'edge', '360', 'qq', 'random', 'randomized', 'randomizednoalpn', 'unsafe']
 export const alpns = ['h3', 'h2', 'http/1.1']
 export const domainStrategies = ['AsIs', 'UseIP', 'UseIPv4', 'UseIPv6', 'UseIPv6v4', 'UseIPv4v6', 'ForceIP', 'ForceIPv6v4', 'ForceIPv6', 'ForceIPv4v6', 'ForceIPv4']
-export const wireguardStrategies = ['ForceIP', 'ForceIPv4', 'ForceIPv4v6', 'ForceIPv6', 'ForceIPv6v4']
 export const vmessSecurities = ['aes-128-gcm', 'chacha20-poly1305', 'auto']
 export const xhttpModes = ['auto', 'packet-up', 'stream-up', 'stream-one']
 export const addressPortStrategies = ['none', 'srvportonly', 'srvaddressonly', 'srvportandaddress', 'txtportonly', 'txtaddressonly', 'txtportandaddress']
@@ -116,7 +115,7 @@ export function defaultSettings(protocol: string): Json {
     case 'http':
       return { servers: [{ address: '', port: 1080, users: [] }] }
     case 'wireguard':
-      return { mtu: 1420, secretKey: '', address: [], workers: 2, peers: [defaultPeer()], noKernelTun: false }
+      return { mtu: 1420, secretKey: '', address: [], peers: [defaultPeer()], noKernelTun: false }
     case 'hysteria':
       return { address: '', port: 443, version: 2 }
     default:
@@ -168,7 +167,7 @@ export const defaultSockopt = () => ({
   addressPortStrategy: 'none',
 })
 export const defaultMux = () => ({ enabled: true, concurrency: 8, xudpConcurrency: 16, xudpProxyUDP443: 'reject' })
-export const defaultFragment = () => ({ packets: '1-3', length: '', interval: '', maxSplit: '' })
+export const defaultFragment = () => ({ packets: '1-3', length: '100-200', interval: '', maxSplit: '' })
 export const defaultNoise = () => ({ type: 'rand', packet: '10-20', delay: '10-16', applyTo: 'ip' })
 export const defaultFinalRule = () => ({ action: 'block', network: '', port: '', ip: [], blockDelay: '' })
 export const defaultDnsRule = () => ({ action: 'direct', qType: '', domain: '' })
@@ -243,7 +242,6 @@ export function finalize(input: Outbound): Outbound {
   }
   if (o.protocol === 'freedom') for (const k of ['domainStrategy', 'redirect', 'fragment', 'noises', 'finalRules']) if (empty(s[k])) delete s[k]
   if (o.protocol === 'wireguard') {
-    if (!wireguardStrategies.includes(s.domainStrategy)) delete s.domainStrategy
     if (empty(s.reserved)) delete s.reserved
     for (const p of s.peers ?? []) if (empty(p.preSharedKey)) delete p.preSharedKey
   }
@@ -372,7 +370,7 @@ function fromParamLink(link: string): Outbound | null {
       return {
         tag,
         protocol: 'shadowsocks',
-        settings: { servers: [{ address, port, password: pass.join(':'), method, uot: true }] },
+        settings: { servers: [{ address, port, password: pass.join(':'), method }] },
         streamSettings: st,
       }
     }

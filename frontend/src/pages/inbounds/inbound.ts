@@ -199,7 +199,7 @@ export function defaultSettings(protocol: Protocol): Json {
       return { clients: [newClient('trojan')], fallbacks: [] }
     case 'shadowsocks': {
       const method = '2022-blake3-aes-256-gcm'
-      return { method, password: ssPassword(method), network: 'tcp,udp', clients: [newClient('shadowsocks', method)], ivCheck: false }
+      return { method, password: ssPassword(method), network: 'tcp,udp', clients: [newClient('shadowsocks', method)] }
     }
     case 'hysteria':
       return { version: 2, clients: [newClient('hysteria')] }
@@ -214,7 +214,7 @@ export function defaultSettings(protocol: Protocol): Json {
     case 'wireguard':
       return { mtu: 1420, secretKey: wireguardKeys().privateKey, peers: [newPeer(0)], noKernelTun: false }
     case 'tun':
-      return { name: 'xray0', mtu: [1500, 1280], gateway: [], dns: [], userLevel: 0, autoSystemRoutingTable: [], autoOutboundsInterface: 'auto' }
+      return { name: 'xray0', mtu: 1500, gateway: [], dns: [], userLevel: 0, autoSystemRoutingTable: [], autoOutboundsInterface: 'auto' }
     default:
       return {}
   }
@@ -381,7 +381,7 @@ export const defaultSockopt = () => ({
 export function defaultTcpMask(type = 'fragment'): Json {
   switch (type) {
     case 'fragment':
-      return { type, settings: { packets: 'tlshello', length: '', delay: '', maxSplit: '' } }
+      return { type, settings: { packets: 'tlshello', length: '100-200', delay: '', maxSplit: '' } }
     case 'sudoku':
       return { type, settings: { password: '', ascii: '', customTable: '', customTables: [], paddingMin: 0, paddingMax: 0 } }
     case 'header-custom':

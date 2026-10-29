@@ -639,7 +639,6 @@
 "privateKey" = "Private key"
 "publicKey" = "Public key"
 "newKey" = "Make a new key"
-"domainStrategy" = "Domain strategy"
 "endpoint" = "Endpoint"
 "psk" = "Pre-shared key"
 "peer" = "Peer {n}"

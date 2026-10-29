@@ -75,10 +75,10 @@ const tcpMasks = computed(() => ['tcp', 'raw', 'httpupgrade', 'ws', 'grpc', 'xht
 const udpMasks = computed(() => net.value === 'kcp' || props.o.protocol === 'hysteria')
 const quic = computed(() => net.value === 'xhttp' || props.o.protocol === 'hysteria')
 
-const packetItem = () => ({ delay: 0, rand: 0, randRange: '0-255', type: 'array', packet: [] })
+const packetItem = () => ({ delay: 0, rand: 0, randRange: '0-255', type: 'array' })
 
 function tcpMaskSettings(type: string) {
-  if (type === 'fragment') return { packets: 'tlshello', length: '', delay: '', maxSplit: '' }
+  if (type === 'fragment') return { packets: 'tlshello', length: '100-200', delay: '', maxSplit: '' }
   if (type === 'sudoku') return { password: '', ascii: '', customTable: '', customTables: [], paddingMin: 0, paddingMax: 0 }
   return { clients: [], servers: [] }
 }

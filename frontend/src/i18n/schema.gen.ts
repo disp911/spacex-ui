@@ -550,7 +550,6 @@ export interface MessageSchema {
     "privateKey": string
     "publicKey": string
     "newKey": string
-    "domainStrategy": string
     "endpoint": string
     "psk": string
     "peer": string

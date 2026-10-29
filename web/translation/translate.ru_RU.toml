@@ -639,7 +639,6 @@
 "privateKey" = "Приватный ключ"
 "publicKey" = "Публичный ключ"
 "newKey" = "Создать новый ключ"
-"domainStrategy" = "Стратегия домена"
 "endpoint" = "Конечная точка"
 "psk" = "Общий ключ"
 "peer" = "Peer {n}"

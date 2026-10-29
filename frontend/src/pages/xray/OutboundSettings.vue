@@ -8,7 +8,7 @@ import { wireguardKeys } from '../../wireguard'
 import type { Outbound } from './model'
 import {
   canFlow, canVisionSeed, defaultDnsRule, defaultFinalRule, defaultFragment, defaultNoise, defaultPeer, domainStrategies, flows, hasUser, server, ssMethods, user,
-  items, vmessSecurities, wireguardStrategies,
+  items, vmessSecurities,
 } from './outbound'
 
 /** The part of the outbound window that belongs to its protocol, in a card titled with it. */
@@ -148,12 +148,6 @@ const remove = (list: unknown[], i: number) => list.splice(i, 1)
       </XField>
       <XField v-if="o.protocol === 'shadowsocks'" v-slot="a" :label="t('xray.ssMethod')">
         <XSelect v-bind="a" v-model="srv.method" :options="list(ssMethods)" mono />
-      </XField>
-    </XFieldGrid>
-    <XFieldGrid :cols="2" v-if="o.protocol === 'shadowsocks'">
-      <XSwitch v-model="srv.uot" boxed label="UDP over TCP" />
-      <XField v-slot="a" label="UoTVersion">
-        <XNumber v-bind="a" block v-model="srv.UoTVersion" :min="1" :max="2" />
       </XField>
     </XFieldGrid>
 
@@ -303,15 +297,9 @@ const remove = (list: unknown[], i: number) => list.splice(i, 1)
           <XInput v-bind="a" :model-value="publicKey" mono readonly />
         </XField>
       </XFieldGrid>
-      <XFieldGrid :cols="3">
-        <XField v-slot="a" :label="t('xray.domainStrategy')">
-          <XSelect v-bind="a" :model-value="s.domainStrategy ?? ''" :options="list(wireguardStrategies, true)" @update:model-value="s.domainStrategy = String($event)" mono />
-        </XField>
+      <XFieldGrid :cols="2">
         <XField v-slot="a" label="MTU">
           <XNumber v-bind="a" block v-model="s.mtu" :min="0" />
-        </XField>
-        <XField v-slot="a" label="Workers">
-          <XNumber v-bind="a" block v-model="s.workers" :min="0" />
         </XField>
       </XFieldGrid>
       <XFieldGrid :cols="2">
