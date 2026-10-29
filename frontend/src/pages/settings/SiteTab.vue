@@ -37,7 +37,8 @@ const certSource = ref<'auto' | 'files'>('auto')
 
 // The mode is set on the server only: moving the panel from here could leave the admin outside it.
 const reality = computed(() => site.value?.mode === 'reality')
-const modeText = computed(() => (reality.value ? t('settings.siteModeReality') : t('settings.siteModePort', { port: site.value?.port })))
+/** The port the website and the panel answer on: 443 behind REALITY, the panel's own otherwise. */
+const sitePort = computed(() => String(reality.value ? 443 : (site.value?.port ?? '')))
 const sources = computed(() => [
   { value: 'auto' as const, label: t('settings.siteCertAuto') },
   { value: 'files' as const, label: t('settings.siteCertFiles') },
@@ -134,7 +135,7 @@ async function renew() {
         <XEmpty v-else-if="failed" tone="err" icon="alert" :title="t('settings.siteLoadFailed')" />
         <XFieldGrid v-else top>
           <XField v-slot="a" :label="t('settings.siteMode')" class="x-wide">
-            <XInput v-bind="a" :model-value="modeText" readonly />
+            <XInput v-bind="a" :model-value="sitePort" mono readonly />
           </XField>
           <XFieldNote tone="info" class="x-wide">
             {{ reality ? t('settings.siteModeRealityDesc') : t('settings.siteModePortDesc', { port: site?.port }) }}

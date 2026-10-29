@@ -174,8 +174,6 @@ export interface MessageSchema {
     "secSite": string
     "siteLoadFailed": string
     "siteMode": string
-    "siteModeReality": string
-    "siteModePort": string
     "siteModeWhere": string
     "siteModeRealityDesc": string
     "siteModePortDesc": string

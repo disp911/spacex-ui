@@ -263,8 +263,6 @@
 "secSite" = "Website and panel access"
 "siteLoadFailed" = "Could not get the website's state."
 "siteMode" = "Port"
-"siteModeReality" = "Behind REALITY on 443"
-"siteModePort" = "On the panel's port {port}"
 "siteModeWhere" = "The mode is changed on the server: {menu}."
 "siteModeRealityDesc" = "Xray holds port 443: clients with the REALITY key get the VPN, everyone else sees the website. The panel and subscriptions open there too, at their own paths."
 "siteModePortDesc" = "The website, the panel and subscriptions run on the panel's port {port}. Without the secret path a visitor sees the website."
