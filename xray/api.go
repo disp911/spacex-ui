@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"math"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/disp911/spacex-ui/v2/logger"
@@ -63,6 +64,21 @@ func getOptionalUserString(user map[string]any, key string) (string, error) {
 	}
 
 	return strValue, nil
+}
+
+// shadowsocksCipherType is the core's cipher for a classic Shadowsocks method.
+func shadowsocksCipherType(cipher string) shadowsocks.CipherType {
+	switch strings.ToLower(cipher) {
+	case "aes-128-gcm", "aead_aes_128_gcm":
+		return shadowsocks.CipherType_AES_128_GCM
+	case "aes-256-gcm", "aead_aes_256_gcm":
+		return shadowsocks.CipherType_AES_256_GCM
+	case "chacha20-poly1305", "chacha20-ietf-poly1305", "aead_chacha20_poly1305":
+		return shadowsocks.CipherType_CHACHA20_POLY1305
+	case "xchacha20-poly1305", "xchacha20-ietf-poly1305", "aead_xchacha20_poly1305":
+		return shadowsocks.CipherType_XCHACHA20_POLY1305
+	}
+	return shadowsocks.CipherType_UNKNOWN
 }
 
 // Init connects to the Xray API server and initializes handler and stats service clients.
@@ -206,27 +222,22 @@ func (x *XrayAPI) AddUser(Protocol string, inboundTag string, user map[string]an
 			return err
 		}
 
-		var ssCipherType shadowsocks.CipherType
-		switch cipher {
-		case "chacha20-poly1305", "chacha20-ietf-poly1305":
-			ssCipherType = shadowsocks.CipherType_CHACHA20_POLY1305
-		case "xchacha20-poly1305", "xchacha20-ietf-poly1305":
-			ssCipherType = shadowsocks.CipherType_XCHACHA20_POLY1305
-		default:
-			ssCipherType = shadowsocks.CipherType_NONE
-		}
-
-		if ssCipherType != shadowsocks.CipherType_NONE {
-			account = serial.ToTypedMessage(&shadowsocks.Account{
-				Password:   password,
-				CipherType: ssCipherType,
+		// The cipher is the inbound's method: a 2022 one makes a multi-user
+		// SS2022 inbound, whose users carry only their key.
+		if strings.HasPrefix(strings.ToLower(cipher), "2022-blake3-") {
+			account = serial.ToTypedMessage(&shadowsocks_2022.Account{
+				Key: password,
 			})
-		} else {
-			account = serial.ToTypedMessage(&shadowsocks_2022.ServerConfig{
-				Key:   password,
-				Email: userEmail,
-			})
+			break
 		}
+		ssCipherType := shadowsocksCipherType(cipher)
+		if ssCipherType == shadowsocks.CipherType_UNKNOWN {
+			return common.NewErrorf("shadowsocks: unknown cipher %q", cipher)
+		}
+		account = serial.ToTypedMessage(&shadowsocks.Account{
+			Password:   password,
+			CipherType: ssCipherType,
+		})
 	case "hysteria", "hysteria2":
 		auth, err := getRequiredUserString(user, "auth")
 		if err != nil {

@@ -283,7 +283,12 @@ func siteSocket(sock string) (net.Listener, error) {
 		return nil, err
 	}
 	os.Chmod(sock, 0o600)
-	return &proxyproto.Listener{Listener: ln, ReadHeaderTimeout: 10 * time.Second}, nil
+	return &proxyproto.Listener{
+		Listener:          ln,
+		ReadHeaderTimeout: 10 * time.Second,
+		// The library requires the header unless told otherwise.
+		ConnPolicy: func(proxyproto.ConnPolicyOptions) (proxyproto.Policy, error) { return proxyproto.USE, nil },
+	}, nil
 }
 
 // sitePages is the website itself: the administrator's own from the site
