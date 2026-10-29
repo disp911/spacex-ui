@@ -43,7 +43,7 @@ onMounted(async () => {
         <XInput v-model="f.draft.webDomain" mono :modified="f.isDirty('webDomain')" />
         <template v-if="moved('webDomain')" #note><AddressNote :address="address" /></template>
       </XSettingRow>
-      <XSettingRow v-if="reality" :title="t('settings.webPort')" :description="t('settings.webPortReality')" narrow>
+      <XSettingRow v-if="reality" :title="t('settings.webPort')" :description="t('settings.webPortDesc')" narrow>
         <XNumber :model-value="443" readonly />
       </XSettingRow>
       <XSettingRow v-else :title="t('settings.webPort')" :description="t('settings.webPortDesc')" narrow :modified="f.isDirty('webPort')" :error="f.error('webPort')">

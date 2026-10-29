@@ -251,7 +251,6 @@ export interface MessageSchema {
     "webDomainDesc": string
     "webPort": string
     "webPortDesc": string
-    "webPortReality": string
     "webBasePath": string
     "pathBothDesc": string
     "sessionMaxAge": string

@@ -340,7 +340,6 @@
 "webDomainDesc" = "The domain name for the web panel. Leave blank to listen on all domains and IPs."
 "webPort" = "Listen Port"
 "webPortDesc" = "The port number for the web panel"
-"webPortReality" = "The panel answers on 443 behind REALITY with its website. The mode is set on the Website tab."
 "webBasePath" = "URI Path"
 "pathBothDesc" = "Begins with '/' and ends with '/'"
 "sessionMaxAge" = "Session Duration"
