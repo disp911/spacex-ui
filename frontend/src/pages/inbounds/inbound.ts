@@ -42,7 +42,7 @@ export const cipherSuites = [
 export const certUsages = ['encipherment', 'verify', 'issue']
 export const sniffingTargets = ['http', 'tls', 'quic', 'fakedns']
 export const tcpCongestions = ['bbr', 'cubic', 'reno']
-export const vmessSecurities = ['aes-128-gcm', 'chacha20-poly1305', 'auto', 'none', 'zero']
+export const vmessSecurities = ['aes-128-gcm', 'chacha20-poly1305', 'auto']
 export const trafficResets = ['never', 'hourly', 'daily', 'weekly', 'monthly']
 export const networks = [
   { value: 'tcp', label: 'TCP (RAW)' },
