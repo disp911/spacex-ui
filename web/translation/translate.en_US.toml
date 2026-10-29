@@ -287,7 +287,7 @@
 "certCheckNone" = "Not checked yet"
 "certError" = "Obtaining failed"
 "certNone" = "No certificate: the panel and the website open over http."
-"certAutoHint" = "Renewed by itself, without restarting the panel."
+"certAutoHint" = "Automatic renewal is on."
 "certRenew" = "Renew now"
 "certObtain" = "Obtain now"
 "certRenewed" = "Certificate renewed"
