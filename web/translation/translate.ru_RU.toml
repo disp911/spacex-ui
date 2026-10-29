@@ -262,7 +262,7 @@
 "tabSite" = "Сайт"
 "secSite" = "Сайт и доступ к панели"
 "siteLoadFailed" = "Не удалось получить состояние сайта."
-"siteMode" = "Где работает сайт"
+"siteMode" = "Порт"
 "siteModeReality" = "За REALITY на 443"
 "siteModePort" = "На порту панели {port}"
 "siteModeWhere" = "Режим меняется на сервере: {menu}."

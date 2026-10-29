@@ -262,7 +262,7 @@
 "tabSite" = "Website"
 "secSite" = "Website and panel access"
 "siteLoadFailed" = "Could not get the website's state."
-"siteMode" = "Where the website runs"
+"siteMode" = "Port"
 "siteModeReality" = "Behind REALITY on 443"
 "siteModePort" = "On the panel's port {port}"
 "siteModeWhere" = "The mode is changed on the server: {menu}."
