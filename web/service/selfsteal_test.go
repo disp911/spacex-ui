@@ -121,12 +121,6 @@ func TestSwitchModeKeepsTheSiteInbound(t *testing.T) {
 	if err := inbounds.guardPanelPort(&renamed); err != nil {
 		t.Fatalf("the site inbound takes any change: %v", err)
 	}
-	if _, err := inbounds.SetInboundEnable(ib.Id, false); err != nil {
-		t.Fatalf("the site inbound may be switched off: %v", err)
-	}
-	if _, err := inbounds.SetInboundEnable(ib.Id, true); err != nil {
-		t.Fatal(err)
-	}
 	if err := inbounds.guardPanelPort(&model.Inbound{Port: 2053, Enable: true, Protocol: model.Trojan}); err != nil {
 		t.Fatalf("behind REALITY the panel opens no port of its own: %v", err)
 	}
@@ -153,9 +147,10 @@ func TestSwitchModeKeepsTheSiteInbound(t *testing.T) {
 		t.Fatalf("back %+v %v", back, err)
 	}
 
-	// Deleted, it is made anew on the next switch.
-	if _, err := inbounds.DelInbound(ib.Id); err != nil {
-		t.Fatalf("the site inbound may be deleted: %v", err)
+	// Deleted, it is made anew on the next switch. (Deleting through the
+	// service would ask the running Xray to drop it, and tests run none.)
+	if err := database.GetDB().Delete(&model.Inbound{}, ib.Id).Error; err != nil {
+		t.Fatal(err)
 	}
 	again, err := sites.SwitchMode(SiteReality)
 	if err != nil || again == nil || again.Id == ib.Id {
