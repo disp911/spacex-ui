@@ -994,9 +994,9 @@ service_of() {
     systemctl status "$1" 2> /dev/null | head -1 | grep -o '[^ ]*\.service' | head -1
 }
 
-# free_port_443 makes sure nothing else holds TCP 443 for REALITY. It
-# returns 0 when 443 is free, 2 when the panel should go on its own port
-# instead, 1 to give up.
+# free_port_443 makes sure nothing else holds TCP 443 for REALITY: it offers
+# to stop what does. It returns 0 when 443 is free, and 2 when it stays taken
+# and the panel goes on a port of its own instead.
 free_port_443() {
     local owner name pid unit choice
     owner=$(port_owner 443)
@@ -1005,28 +1005,22 @@ free_port_443() {
     pid=${owner#* }
     unit=$(service_of "$pid")
     echo -e "${yellow}TCP port 443 is taken by ${name} (pid ${pid}${unit:+, ${unit}}).${plain}"
-    echo -e "${green}1.${plain} Stop ${unit:-it} and keep it from starting again"
-    echo -e "${green}2.${plain} Put the panel on a port of its own instead, leaving ${name} on 443"
-    echo -e "${green}0.${plain} Quit"
-    read -rp "Choose an option [default 0]: " choice
-    case "$choice" in
-        1)
-            if [[ -n "$unit" ]]; then
-                systemctl disable --now "$unit" > /dev/null 2>&1
-            else
-                kill "$pid" 2> /dev/null
-            fi
-            sleep 2
-            if [[ -n "$(port_owner 443)" ]]; then
-                LOGE "Port 443 is still taken."
-                return 1
-            fi
-            LOGI "Port 443 is free now."
-            return 0
-            ;;
-        2) return 2 ;;
-        *) return 1 ;;
-    esac
+    echo -e "${green}1.${plain} Free port 443: stop ${unit:-${name}} and keep it from starting again"
+    echo -e "${green}2.${plain} Leave ${name} on 443 and put the website and the panel on a port of your choice"
+    read -rp "Choose an option [default 2]: " choice
+    [[ "$choice" == "1" ]] || return 2
+    if [[ -n "$unit" ]]; then
+        systemctl disable --now "$unit" > /dev/null 2>&1
+    else
+        kill "$pid" 2> /dev/null
+    fi
+    sleep 2
+    if [[ -n "$(port_owner 443)" ]]; then
+        LOGE "Port 443 is still taken; the website and the panel go on a port of your choice."
+        return 2
+    fi
+    LOGI "Port 443 is free now."
+    return 0
 }
 
 # ask_domain asks for a domain and checks it points at this server; with
@@ -1071,8 +1065,6 @@ warn_port_80() {
     return 1
 }
 
-# setup_selfsteal puts the website and the panel on 443 behind REALITY.
-# It returns 2 when the administrator chose the panel's own port instead.
 # ask_port asks for the panel's own port, the current one by default, and
 # sets it. With "reality" the port is the one the panel keeps shut behind
 # REALITY, a way in to open from the menu, and may be neither 443 nor 80,
@@ -1108,12 +1100,10 @@ ask_port() {
     SITE_PORT=$port
 }
 
+# setup_selfsteal puts the website and the panel on 443 behind REALITY.
+# It returns 2 when 443 stays taken and the panel goes on a port of its own.
 setup_selfsteal() {
-    free_port_443
-    case $? in
-        1) return 1 ;;
-        2) return 2 ;;
-    esac
+    free_port_443 || return 2
     ask_port reality
     ask_domain
     warn_port_80
