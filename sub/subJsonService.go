@@ -337,6 +337,9 @@ func (s *SubJsonService) genVless(inbound *model.Inbound, streamSettings json_ut
 	outbound.Tag = "proxy"
 	if s.mux != "" {
 		outbound.Mux = json_util.RawMessage(s.mux)
+		if strings.HasPrefix(client.Flow, "xtls-rprx-vision") {
+			outbound.Mux = muxForVision(s.mux)
+		}
 	}
 	outbound.StreamSettings = streamSettings
 
@@ -476,4 +479,22 @@ type ServerSetting struct {
 	Port     int    `json:"port"`
 	Flow     string `json:"flow,omitempty"`
 	Method   string `json:"method,omitempty"`
+}
+
+// muxForVision fits the mux of a client with Vision: its server takes only
+// UDP (XUDP) inside mux and breaks the whole mux connection on a TCP
+// stream, so TCP is left out of mux (concurrency -1) and goes by Vision.
+func muxForVision(mux string) json_util.RawMessage {
+	var m map[string]any
+	if err := json.Unmarshal([]byte(mux), &m); err != nil {
+		return json_util.RawMessage(mux)
+	}
+	if on, _ := m["enabled"].(bool); on {
+		m["concurrency"] = -1
+	}
+	out, err := json.Marshal(m)
+	if err != nil {
+		return json_util.RawMessage(mux)
+	}
+	return out
 }
