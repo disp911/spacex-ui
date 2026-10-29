@@ -685,16 +685,22 @@ func (s *ServerService) downloadXRay(version string) (string, error) {
 }
 
 func (s *ServerService) UpdateXray(version string) error {
-	// 1. Stop xray before doing anything
-	if err := s.StopXrayService(); err != nil {
-		logger.Warning("failed to stop xray before update:", err)
-	}
-
-	// 2. Download the zip
-	zipFileName, err := s.downloadXRay(version)
+	zipFileName, err := s.DownloadXray(version)
 	if err != nil {
 		return err
 	}
+	return s.InstallXray(zipFileName)
+}
+
+// DownloadXray fetches the release archive of the version while Xray keeps
+// running, and returns where it is.
+func (s *ServerService) DownloadXray(version string) (string, error) {
+	return s.downloadXRay(version)
+}
+
+// InstallXray puts the Xray binary of a downloaded release archive in place
+// of the running one and restarts Xray; the archive is removed.
+func (s *ServerService) InstallXray(zipFileName string) error {
 	defer os.Remove(zipFileName)
 
 	zipFile, err := os.Open(zipFileName)
@@ -712,7 +718,7 @@ func (s *ServerService) UpdateXray(version string) error {
 		return err
 	}
 
-	// 3. Helper to extract files
+	// Helper to extract files
 	copyZipFile := func(zipName string, fileName string) error {
 		zipFile, err := reader.Open(zipName)
 		if err != nil {
@@ -730,7 +736,10 @@ func (s *ServerService) UpdateXray(version string) error {
 		return err
 	}
 
-	// 4. Extract correct binary
+	// Xray stops only now, with the new binary at hand.
+	if err := s.StopXrayService(); err != nil {
+		logger.Warning("failed to stop xray before update:", err)
+	}
 	if runtime.GOOS == "windows" {
 		targetBinary := filepath.Join("bin", "xray-windows-amd64.exe")
 		err = copyZipFile("xray.exe", targetBinary)
@@ -738,10 +747,11 @@ func (s *ServerService) UpdateXray(version string) error {
 		err = copyZipFile("xray", xray.GetBinaryPath())
 	}
 	if err != nil {
+		// Back on with whatever binary is there, rather than left stopped.
+		s.xrayService.RestartXray(true)
 		return err
 	}
 
-	// 5. Restart xray
 	if err := s.xrayService.RestartXray(true); err != nil {
 		logger.Error("start xray failed:", err)
 		return err

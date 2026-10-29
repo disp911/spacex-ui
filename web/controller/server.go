@@ -154,8 +154,32 @@ func (a *ServerController) getPanelUpdateInfo(c *gin.Context) {
 // installXray installs or updates Xray to the specified version.
 func (a *ServerController) installXray(c *gin.Context) {
 	version := c.Param("version")
-	err := a.serverService.UpdateXray(version)
-	jsonMsg(c, I18nWeb(c, "pages.index.xraySwitchVersionPopover"), err)
+	if !service.SiteBehindReality() {
+		err := a.serverService.UpdateXray(version)
+		jsonMsg(c, I18nWeb(c, "pages.index.xraySwitchVersionPopover"), err)
+		return
+	}
+	zipFileName, err := a.serverService.DownloadXray(version)
+	if err != nil {
+		jsonMsg(c, I18nWeb(c, "pages.index.xraySwitchVersionPopover"), err)
+		return
+	}
+	jsonMsg(c, I18nWeb(c, "pages.index.xraySwitchVersionPopover"), nil)
+	afterAnswer(func() {
+		if err := a.serverService.InstallXray(zipFileName); err != nil {
+			websocket.BroadcastXrayState("error", err.Error())
+		}
+	})
+}
+
+// afterAnswer runs f a moment after the answer has gone out. Behind REALITY
+// the panel is reached through Xray, so stopping Xray drops the very
+// request that asked for it: such a request is answered first.
+func afterAnswer(f func()) {
+	go func() {
+		time.Sleep(time.Second)
+		f()
+	}()
 }
 
 // updatePanel starts a panel self-update to the latest release.
@@ -198,6 +222,17 @@ func (a *ServerController) stopXrayService(c *gin.Context) {
 
 // restartXrayService restarts the Xray service.
 func (a *ServerController) restartXrayService(c *gin.Context) {
+	if service.SiteBehindReality() {
+		jsonMsg(c, I18nWeb(c, "pages.xray.restartSuccess"), nil)
+		afterAnswer(func() {
+			if err := a.serverService.RestartXrayService(); err != nil {
+				websocket.BroadcastXrayState("error", err.Error())
+				return
+			}
+			websocket.BroadcastXrayState("running", "")
+		})
+		return
+	}
 	err := a.serverService.RestartXrayService()
 	if err != nil {
 		jsonMsg(c, I18nWeb(c, "pages.xray.restartError"), err)
