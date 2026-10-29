@@ -699,7 +699,6 @@
 "hintExample" = "например, {v}"
 "hintDefault" = "{v} — по умолчанию"
 "hintPortHop" = "например, 1145-1919 или 11,13,15-17"
-"hintBrutal" = "0 (режим BBR), например 100 mbps"
 "hintObfs" = "Пароль обфускации"
 "hintMkcp" = "Пусто — исходный mKCP, задано — AES-128-GCM"
 "hintBinary" = "двоичные данные"

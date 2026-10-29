@@ -141,20 +141,8 @@ export function defaultNetwork(net: string): Json {
     case 'xhttp':
       return { path: '/', host: '', mode: 'auto', noGRPCHeader: false, scMinPostsIntervalMs: '30' }
     case 'hysteria':
-      return {
-        version: 2,
-        auth: '',
-        congestion: '',
-        up: '0',
-        down: '0',
-        initStreamReceiveWindow: 8388608,
-        maxStreamReceiveWindow: 8388608,
-        initConnectionReceiveWindow: 20971520,
-        maxConnectionReceiveWindow: 20971520,
-        maxIdleTimeout: 30,
-        keepAlivePeriod: 2,
-        disablePathMTUDiscovery: false,
-      }
+      // Congestion, speeds and windows are QUIC params, a hop range a UDP mask.
+      return { version: 2, auth: '' }
     default:
       return {}
   }
@@ -396,26 +384,9 @@ function fromParamLink(link: string): Outbound | null {
 function fromHysteria(link: string): Outbound | null {
   const m = link.match(/^hysteria2?:\/\/([^@]+)@([^:?#]+):(\d+)([^#]*)(#.*)?$/)
   if (!m) return null
-  const [, password, address, portText, params, hash] = m
-  const p = new URLSearchParams(params)
+  const [, password, address, portText, , hash] = m
   const hy = defaultNetwork('hysteria')
   hy.auth = decodeURIComponent(password!)
-  hy.congestion = p.get('congestion') ?? ''
-  hy.up = p.get('up') ?? '0'
-  hy.down = p.get('down') ?? '0'
-  const hop = p.get('udphopPort')
-  if (hop) {
-    const one = p.get('udphopInterval')
-    hy.udphop = {
-      port: hop,
-      intervalMin: Number(one ?? p.get('udphopIntervalMin') ?? 30),
-      intervalMax: Number(one ?? p.get('udphopIntervalMax') ?? 30),
-    }
-  }
-  for (const k of ['initStreamReceiveWindow', 'maxStreamReceiveWindow', 'initConnectionReceiveWindow', 'maxConnectionReceiveWindow', 'maxIdleTimeout', 'keepAlivePeriod']) {
-    if (p.has(k)) hy[k] = Number(p.get(k))
-  }
-  if (p.has('disablePathMTUDiscovery')) hy.disablePathMTUDiscovery = p.get('disablePathMTUDiscovery') === 'true'
   const port = Number(portText)
   return {
     tag: hash ? decodeURIComponent(hash.slice(1)) : `out-hysteria-${port}`,

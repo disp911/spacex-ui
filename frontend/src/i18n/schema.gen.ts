@@ -610,7 +610,6 @@ export interface MessageSchema {
     "hintExample": string
     "hintDefault": string
     "hintPortHop": string
-    "hintBrutal": string
     "hintObfs": string
     "hintMkcp": string
     "hintBinary": string

@@ -64,13 +64,6 @@ const xmuxOn = computed({
   set: (on: boolean) => (ns.value.xmux = on ? defaultXmux() : undefined),
 })
 
-// --- Hysteria: UDP hop ------------------------------------------------------------------
-
-const hopPort = computed({
-  get: () => ns.value.udphop?.port ?? '',
-  set: (v: string) => (ns.value.udphop = v ? { intervalMin: 30, intervalMax: 30, ...(ns.value.udphop ?? {}), port: v } : undefined),
-})
-
 // --- Masks ------------------------------------------------------------------------------
 
 const fm = computed(() => {
@@ -104,9 +97,18 @@ function udpMaskSettings(type: string) {
       return { client: [], server: [] }
     case 'noise':
       return { reset: 0, noise: [] }
+    case 'udphop':
+      return { mode: 'intervalRemote', remotePorts: '', interval: '5-10' }
     default:
       return {}
   }
+}
+
+/** The core takes a UDP hop only as the last UDP mask, the one at the socket. */
+function keepHopLast() {
+  const udp: Record<string, any>[] = fm.value.udp ?? []
+  const hops = udp.filter((m) => m.type === 'udphop')
+  if (hops.length) fm.value.udp = [...udp.filter((m) => m.type !== 'udphop'), ...hops]
 }
 
 function setTcpType(m: Record<string, any>, type: string) {
@@ -119,11 +121,13 @@ function setUdpType(m: Record<string, any>, type: string) {
   m.settings = udpMaskSettings(type)
   // xDNS rides in small packets: mKCP's MTU follows it, as on the old panel.
   if (net.value === 'kcp') ns.value.mtu = type === 'xdns' ? 900 : 1350
+  keepHopLast()
 }
 
 function addUdpMask() {
   const type = props.o.protocol === 'hysteria' ? 'salamander' : 'mkcp-legacy'
   ;(fm.value.udp ??= []).push({ type, settings: udpMaskSettings(type) })
+  keepHopLast()
 }
 
 const tcpTypes: Option[] = [
@@ -133,7 +137,10 @@ const tcpTypes: Option[] = [
 ]
 const udpTypes = computed<Option[]>(() =>
   props.o.protocol === 'hysteria'
-    ? [{ value: 'salamander', label: 'Salamander (Hysteria2)' }]
+    ? [
+        { value: 'salamander', label: 'Salamander (Hysteria2)' },
+        { value: 'udphop', label: 'UDP Hop' },
+      ]
     : [
         { value: 'mkcp-legacy', label: 'mKCP' },
         { value: 'xdns', label: 'xDNS' },
@@ -165,10 +172,6 @@ const quicOn = computed({
 })
 const qp = computed(() => fm.value.quicParams ?? {})
 const quicOpen = ref(true)
-const hopOn = computed({
-  get: () => !!qp.value.udpHop,
-  set: (on: boolean) => (qp.value.udpHop = on ? { ports: '20000-50000', interval: '5-10' } : undefined),
-})
 
 /** Sudoku's custom tables are one text in the field, a list in the JSON. */
 const tablesText = (m: Record<string, any>) => (Array.isArray(m.settings.customTables) ? m.settings.customTables.join(',') : '')
@@ -261,27 +264,6 @@ const resolverHint = computed(() => t('xray.hintExample', { v: '8.8.8.8:53' }))
     <template v-if="net === 'hysteria'">
       <XFieldGrid :cols="2">
         <XField v-slot="a" label="Auth Password"><XInput v-bind="a" v-model="ns.auth" mono /></XField>
-        <XField v-slot="a" label="Congestion">
-          <XSelect v-bind="a" v-model="ns.congestion" :options="[{ value: '', label: 'BBR (Auto)' }, { value: 'brutal', label: 'Brutal' }]" />
-        </XField>
-        <XField v-slot="a" label="Upload Speed"><XInput v-bind="a" v-model="ns.up" mono :placeholder="t('xray.hintBrutal')" /></XField>
-        <XField v-slot="a" label="Download Speed"><XInput v-bind="a" v-model="ns.down" mono :placeholder="t('xray.hintBrutal')" /></XField>
-      </XFieldGrid>
-      <XFieldGrid :cols="3">
-        <XField v-slot="a" label="UDP Hop Port"><XInput v-bind="a" v-model="hopPort" mono :placeholder="t('xray.hintPortHop')" /></XField>
-        <template v-if="ns.udphop">
-          <XField v-slot="a" label="UDP Hop Interval Min (s)"><XNumber v-bind="a" block v-model="ns.udphop.intervalMin" :min="5" /></XField>
-          <XField v-slot="a" label="UDP Hop Interval Max (s)"><XNumber v-bind="a" block v-model="ns.udphop.intervalMax" :min="5" /></XField>
-        </template>
-      </XFieldGrid>
-      <XFieldGrid :cols="2">
-        <XField v-slot="a" label="Init Stream Receive"><XNumber v-bind="a" block v-model="ns.initStreamReceiveWindow" :min="16384" /></XField>
-        <XField v-slot="a" label="Max Stream Receive"><XNumber v-bind="a" block v-model="ns.maxStreamReceiveWindow" :min="16384" /></XField>
-        <XField v-slot="a" label="Init Connection Receive"><XNumber v-bind="a" block v-model="ns.initConnectionReceiveWindow" :min="16384" /></XField>
-        <XField v-slot="a" label="Max Connection Receive"><XNumber v-bind="a" block v-model="ns.maxConnectionReceiveWindow" :min="16384" /></XField>
-        <XField v-slot="a" label="Max Idle Timeout (s)"><XNumber v-bind="a" block v-model="ns.maxIdleTimeout" :min="4" :max="120" /></XField>
-        <XField v-slot="a" label="Keep Alive Period (s)"><XNumber v-bind="a" block v-model="ns.keepAlivePeriod" :min="2" :max="60" /></XField>
-        <XSwitch v-model="ns.disablePathMTUDiscovery" boxed label="Disable Path MTU Dis" />
       </XFieldGrid>
     </template>
 
@@ -370,6 +352,10 @@ const resolverHint = computed(() => t('xray.hintExample', { v: '8.8.8.8:53' }))
                 <XSwitch v-model="m.settings.dgram" boxed label="DGRAM" />
               </template>
               <XField v-if="m.type === 'noise'" v-slot="a" label="Reset"><XNumber v-bind="a" block v-model="m.settings.reset" :min="0" /></XField>
+              <template v-if="m.type === 'udphop'">
+                <XField v-slot="a" label="Ports"><XInput v-bind="a" v-model="m.settings.remotePorts" mono :placeholder="t('xray.hintPortHop')" /></XField>
+                <XField v-slot="a" label="Interval (s)"><XInput v-bind="a" v-model="m.settings.interval" mono /></XField>
+              </template>
             </XFieldGrid>
             <template v-if="m.type === 'noise'">
               <XListHead title="Noise" add @add="m.settings.noise.push({ ...packetItem(), delay: '' })">
@@ -402,11 +388,6 @@ const resolverHint = computed(() => t('xray.hintExample', { v: '8.8.8.8:53' }))
             <XField v-slot="a" label="Brutal Up"><XInput v-bind="a" v-model="qp.brutalUp" mono placeholder="65537" /></XField>
             <XField v-slot="a" label="Brutal Down"><XInput v-bind="a" v-model="qp.brutalDown" mono placeholder="65537" /></XField>
           </template>
-          <XSwitch v-model="hopOn" boxed label="UDP Hop" />
-        </XFieldGrid>
-        <XFieldGrid :cols="2" v-if="qp.udpHop">
-          <XField v-slot="a" label="Hop Ports"><XInput v-bind="a" v-model="qp.udpHop.ports" mono :placeholder="t('xray.hintExample', { v: '20000-50000' })" /></XField>
-          <XField v-slot="a" label="Hop Interval (s)"><XInput v-bind="a" v-model="qp.udpHop.interval" mono /></XField>
         </XFieldGrid>
         <XFieldGrid :cols="2">
           <XField v-slot="a" label="Max Idle Timeout (s)"><XNumber v-bind="a" block v-model="qp.maxIdleTimeout" :min="4" :max="120" /></XField>

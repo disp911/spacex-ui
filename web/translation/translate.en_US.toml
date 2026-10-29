@@ -699,7 +699,6 @@
 "hintExample" = "e.g. {v}"
 "hintDefault" = "{v} = default"
 "hintPortHop" = "e.g., 1145-1919 or 11,13,15-17"
-"hintBrutal" = "0 (BBR mode), e.g., 100 mbps"
 "hintObfs" = "Obfuscation password"
 "hintMkcp" = "Empty: mKCP original, set: AES-128-GCM"
 "hintBinary" = "binary data"
