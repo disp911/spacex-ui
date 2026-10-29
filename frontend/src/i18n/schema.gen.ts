@@ -176,6 +176,7 @@ export interface MessageSchema {
     "siteMode": string
     "siteModeReality": string
     "siteModePort": string
+    "siteModeWhere": string
     "siteModeRealityDesc": string
     "siteModePortDesc": string
     "siteDomain": string

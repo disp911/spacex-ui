@@ -6,11 +6,11 @@ import (
 )
 
 func TestApplySiteChecksWhatItIsGiven(t *testing.T) {
+	siteTestDB(t)
 	sites := SiteService{}
 	for _, set := range []SiteSettings{
-		{Mode: "direct", Domain: "docs.example.com"},
-		{Mode: SitePort, Domain: "not a domain"},
-		{Mode: SitePort, Domain: "docs.example.com", CertFile: "/nowhere/cert.pem", KeyFile: "/nowhere/key.pem"},
+		{Domain: "not a domain"},
+		{Domain: "docs.example.com", CertFile: "/nowhere/cert.pem", KeyFile: "/nowhere/key.pem"},
 	} {
 		if err := sites.ApplySite(set); err == nil {
 			t.Errorf("%+v was taken", set)
@@ -18,14 +18,35 @@ func TestApplySiteChecksWhatItIsGiven(t *testing.T) {
 	}
 }
 
-func TestApplySiteKeepsNothingWhenRefused(t *testing.T) {
+func TestApplySiteKeepsTheModeAndNothingRefused(t *testing.T) {
 	siteTestDB(t)
 	sites := SiteService{}
 	settings := SettingService{}
 
-	// REALITY wants a domain name: the address is refused, and the domain
-	// stays as it was.
-	err := sites.ApplySite(SiteSettings{Mode: SiteReality, Domain: "203.0.113.7"})
+	// On its own port any name or address will do, and the mode stays.
+	if err := sites.ApplySite(SiteSettings{Domain: "203.0.113.7"}); err != nil {
+		t.Fatal(err)
+	}
+	if mode, _ := settings.GetSiteMode(); mode != SitePort {
+		t.Fatalf("mode %q", mode)
+	}
+	if err := sites.ApplySite(SiteSettings{Domain: " Docs.Example.com "}); err != nil {
+		t.Fatal(err)
+	}
+
+	// Behind REALITY the site inbound takes a new domain; an address is
+	// refused and the domain stays as it was.
+	if _, err := sites.SwitchMode(SiteReality); err != nil {
+		t.Fatal(err)
+	}
+	if err := sites.ApplySite(SiteSettings{Domain: "vpn.example.com"}); err != nil {
+		t.Fatal(err)
+	}
+	ib, _ := sites.SiteInbound()
+	if ib == nil || !ib.Enable || !strings.Contains(ib.StreamSettings, `"vpn.example.com"`) {
+		t.Fatalf("site inbound %+v", ib)
+	}
+	err := sites.ApplySite(SiteSettings{Domain: "203.0.113.7"})
 	if err == nil || !strings.Contains(err.Error(), "domain name") {
 		t.Fatalf("err %v", err)
 	}
@@ -33,30 +54,8 @@ func TestApplySiteKeepsNothingWhenRefused(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if set.Domain != "docs.example.com" || set.Mode != SitePort {
-		t.Fatalf("kept %+v", set)
-	}
-
-	if err := sites.ApplySite(SiteSettings{Mode: SiteReality, Domain: " Docs.Example.com "}); err != nil {
-		t.Fatal(err)
-	}
-	set, _ = sites.siteSettings()
-	if set.Mode != SiteReality || set.Domain != "docs.example.com" {
-		t.Fatalf("applied %+v", set)
-	}
-	if ib, _ := sites.SiteInbound(); ib == nil || !ib.Enable {
-		t.Fatalf("site inbound %+v", ib)
-	}
-
-	// Back on the panel's own port, by IP: the inbound rests.
-	if err := sites.ApplySite(SiteSettings{Mode: SitePort, Domain: "203.0.113.7"}); err != nil {
-		t.Fatal(err)
-	}
-	if mode, _ := settings.GetSiteMode(); mode != SitePort {
-		t.Fatalf("mode %q", mode)
-	}
-	if ib, _ := sites.SiteInbound(); ib == nil || ib.Enable {
-		t.Fatalf("site inbound %+v", ib)
+	if mode, _ := settings.GetSiteMode(); set.Domain != "vpn.example.com" || mode != SiteReality {
+		t.Fatalf("kept %+v in %q", set, mode)
 	}
 }
 

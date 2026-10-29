@@ -31,16 +31,13 @@ onMounted(async () => {
 
 // --- Mode and domain ------------------------------------------------------------
 
-const pick = (s: SiteSettings): SiteSettings => ({
-  mode: s.mode, domain: s.domain, certFile: s.certFile, keyFile: s.keyFile,
-})
-const form = reactive<SiteSettings>({ mode: '', domain: '', certFile: '', keyFile: '' })
+const pick = (s: SiteSettings): SiteSettings => ({ domain: s.domain, certFile: s.certFile, keyFile: s.keyFile })
+const form = reactive<SiteSettings>({ domain: '', certFile: '', keyFile: '' })
 const certSource = ref<'auto' | 'files'>('auto')
 
-const modes = computed(() => [
-  { value: 'reality' as const, label: t('settings.siteModeReality') },
-  { value: '' as const, label: t('settings.siteModePort') },
-])
+// The mode is set on the server only: moving the panel from here could leave the admin outside it.
+const reality = computed(() => site.value?.mode === 'reality')
+const modeText = computed(() => (reality.value ? t('settings.siteModeReality') : t('settings.siteModePort', { port: site.value?.port })))
 const sources = computed(() => [
   { value: 'auto' as const, label: t('settings.siteCertAuto') },
   { value: 'files' as const, label: t('settings.siteCertFiles') },
@@ -48,7 +45,7 @@ const sources = computed(() => [
 
 /** What is sent: behind REALITY the files stay as they are; obtaining automatically clears them. */
 const settings = computed<SiteSettings>(() => {
-  if (form.mode === 'reality') return { ...form, certFile: site.value?.certFile ?? '', keyFile: site.value?.keyFile ?? '' }
+  if (reality.value) return { ...form, certFile: site.value?.certFile ?? '', keyFile: site.value?.keyFile ?? '' }
   return certSource.value === 'files' ? { ...form } : { ...form, certFile: '', keyFile: '' }
 })
 const changed = computed(() => {
@@ -60,7 +57,7 @@ const changed = computed(() => {
 
 const isIp = (s: string) => /^[\d.]+$/.test(s) || s.includes(':')
 const errors = computed(() => ({
-  domain: form.mode === 'reality' && (!form.domain || isIp(form.domain)) ? t('settings.siteDomainNeeded') : undefined,
+  domain: reality.value && (!form.domain || isIp(form.domain)) ? t('settings.siteDomainNeeded') : undefined,
   certFile: settings.value.certFile || settings.value.keyFile ? path(settings.value.certFile) : undefined,
   keyFile: settings.value.certFile || settings.value.keyFile ? path(settings.value.keyFile) : undefined,
 }))
@@ -71,7 +68,7 @@ const valid = computed(() => !Object.values(errors.value).some(Boolean))
 const confirming = ref(false)
 const applying = ref(false)
 const failure = ref('')
-const address = computed(() => addressAfterSite(settings.value, site.value?.port ?? 0, f.saved.webBasePath))
+const address = computed(() => addressAfterSite(settings.value, site.value?.mode ?? '', site.value?.port ?? 0, f.saved.webBasePath))
 async function apply() {
   applying.value = true
   failure.value = ''
@@ -131,21 +128,22 @@ async function renew() {
 
 <template>
   <div class="settings-tab">
-    <XSettingsSection v-model:open="open.mode" :title="t('settings.secSite')" :count="form.mode === 'reality' ? 2 : 3">
+    <XSettingsSection v-model:open="open.mode" :title="t('settings.secSite')" :count="reality ? 2 : 3">
       <XSettingBlock>
         <XSkeletonText v-if="!site && !failed" width="60%" />
         <XEmpty v-else-if="failed" tone="err" icon="alert" :title="t('settings.siteLoadFailed')" />
         <XFieldGrid v-else top>
           <XField v-slot="a" :label="t('settings.siteMode')" class="x-wide">
-            <XSegmented v-bind="a" v-model="form.mode" :options="modes" block />
+            <XInput v-bind="a" :model-value="modeText" readonly />
           </XField>
           <XFieldNote tone="info" class="x-wide">
-            {{ form.mode === 'reality' ? t('settings.siteModeRealityDesc') : t('settings.siteModePortDesc', { port: site?.port }) }}
+            {{ reality ? t('settings.siteModeRealityDesc') : t('settings.siteModePortDesc', { port: site?.port }) }}
+            <i18n-t scope="global" keypath="settings.siteModeWhere"><template #menu><code>x-ui → 19</code></template></i18n-t>
           </XFieldNote>
-          <XField v-slot="a" :label="t('settings.siteDomain')" :hint="form.mode === 'reality' ? t('settings.siteDomainReality') : t('settings.siteDomainPort')" :error="errors.domain">
+          <XField v-slot="a" :label="t('settings.siteDomain')" :hint="reality ? t('settings.siteDomainReality') : t('settings.siteDomainPort')" :error="errors.domain">
             <XInput v-bind="a" v-model.trim="form.domain" mono placeholder="example.com" :invalid="!!errors.domain" />
           </XField>
-          <template v-if="form.mode === ''">
+          <template v-if="!reality">
             <XField v-slot="a" :label="t('settings.siteCert')" class="x-wide">
               <XSegmented v-bind="a" v-model="certSource" :options="sources" block />
             </XField>

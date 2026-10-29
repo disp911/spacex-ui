@@ -11,9 +11,10 @@ import (
 	"github.com/disp911/spacex-ui/v2/web/site"
 )
 
-// SiteSettings is what the panel's settings page sets of the website.
+// SiteSettings is what the panel's settings page sets of the website. The
+// mode is set on the server only (x-ui site, the menu): moving the panel
+// from the browser could leave the administrator outside it.
 type SiteSettings struct {
-	Mode   string `json:"mode"`
 	Domain string `json:"domain"`
 	// CertFile and KeyFile are the administrator's certificate on the
 	// panel's own port; empty, the panel obtains one for Domain itself.
@@ -26,6 +27,7 @@ type SiteSettings struct {
 // what the running panel makes of them.
 type SiteInfo struct {
 	SiteSettings
+	Mode string `json:"mode"`
 	// Port is the panel's own port.
 	Port int `json:"port"`
 	// URL is where the website, the panel and the subscriptions are found,
@@ -48,20 +50,22 @@ type SiteCert struct {
 // hostName is a domain name such as example.com or xn--e1afmkfd.xn--p1ai.
 var hostName = regexp.MustCompile(`^([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9-]{2,63}$`)
 
-// ApplySite stores the settings and puts the website in their mode, as
-// SwitchMode does; the panel takes them on its next start. Nothing is kept
-// when they are refused.
+// ApplySite stores the settings and fits the website's mode to them, as
+// SwitchMode does: behind REALITY the site inbound takes the new domain.
+// The panel takes them on its next start. Nothing is kept when they are
+// refused.
 func (s *SiteService) ApplySite(set SiteSettings) error {
 	set.Domain = strings.ToLower(strings.TrimSpace(set.Domain))
 	set.CertFile = strings.TrimSpace(set.CertFile)
 	set.KeyFile = strings.TrimSpace(set.KeyFile)
-	if set.Mode != SitePort && set.Mode != SiteReality {
-		return common.NewErrorf("unknown website mode %q", set.Mode)
+	mode, err := s.settingService.GetSiteMode()
+	if err != nil {
+		return err
 	}
 	if set.Domain != "" && net.ParseIP(strings.Trim(set.Domain, "[]")) == nil && !hostName.MatchString(set.Domain) {
 		return common.NewErrorf("%q is neither a domain name nor an IP address", set.Domain)
 	}
-	files := set.Mode == SitePort
+	files := mode == SitePort
 	if files && (set.CertFile != "" || set.KeyFile != "") {
 		if _, err := tls.LoadX509KeyPair(set.CertFile, set.KeyFile); err != nil {
 			return common.NewErrorf("the certificate files do not make a pair: %v", err)
@@ -75,7 +79,7 @@ func (s *SiteService) ApplySite(set SiteSettings) error {
 	if err := s.storeSite(set, files); err != nil {
 		return err
 	}
-	if _, err := s.SwitchMode(set.Mode); err != nil {
+	if _, err := s.SwitchMode(mode); err != nil {
 		if back := s.storeSite(was, true); back != nil {
 			return common.Combine(err, back)
 		}
@@ -98,9 +102,6 @@ func (s *SiteService) storeSite(set SiteSettings, files bool) error {
 }
 
 func (s *SiteService) siteSettings() (set SiteSettings, err error) {
-	if set.Mode, err = s.settingService.GetSiteMode(); err != nil {
-		return
-	}
 	if set.Domain, err = s.settingService.GetSiteDomain(); err != nil {
 		return
 	}
@@ -121,7 +122,11 @@ func (s *SiteService) Site(host string) (*SiteInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	info := &SiteInfo{SiteSettings: set, Port: port, URL: SiteBase(host)}
+	mode, err := s.settingService.GetSiteMode()
+	if err != nil {
+		return nil, err
+	}
+	info := &SiteInfo{SiteSettings: set, Mode: mode, Port: port, URL: SiteBase(host)}
 	if info.URL == "" {
 		return info, nil
 	}

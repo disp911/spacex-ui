@@ -6,9 +6,8 @@ import { api } from '../../api'
 /** reality: Xray holds port 443 and passes visitors without a key to the site; '' : the site is on the panel's own port. */
 export type SiteMode = '' | 'reality'
 
-/** What the website tab sets; POST panel/setting/siteApply takes it. */
+/** What the website tab sets; POST panel/setting/siteApply takes it. The mode is set on the server only. */
 export interface SiteSettings {
-  mode: SiteMode
   domain: string
   /** On the panel's own port: the admin's certificate; empty, the panel obtains one for the domain. */
   certFile: string
@@ -34,6 +33,7 @@ export interface SiteCheck {
 }
 
 export interface SiteInfo extends SiteSettings {
+  mode: SiteMode
   /** The panel's own port. */
   port: number
   /** Where the site, the panel and the subscriptions are found, e.g. https://example.com; empty while there is no site. */

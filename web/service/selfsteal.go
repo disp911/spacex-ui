@@ -23,11 +23,12 @@ import (
 )
 
 // SiteService switches where the panel and its website answer. Behind
-// REALITY the panel keeps an inbound of its own for them, the site inbound:
-// VLESS REALITY on 443 whose target is the website's socket, so whoever is
-// not a client gets the website itself ("selfsteal"). On the panel's own
-// port the inbound is kept switched off, so its clients keep their keys for
-// when REALITY comes back.
+// REALITY an inbound on 443 whose target is the website's socket carries
+// them, the site inbound: whoever is not a client gets the website itself
+// ("selfsteal"). It is an ordinary inbound the administrator may change or
+// delete; the panel finds it by its target. On the panel's own port the
+// socket is shut, so the inbounds aimed at it are switched off, and their
+// clients keep their keys for when REALITY comes back.
 type SiteService struct {
 	settingService SettingService
 	inboundService InboundService
@@ -63,7 +64,11 @@ func (s *SiteService) SwitchMode(mode string) (*model.Inbound, error) {
 		return nil, err
 	}
 	if mode == SiteReality {
-		if err := s.tcpFree(443, ib, false); err != nil {
+		var skip []int
+		if ib != nil {
+			skip = []int{ib.Id}
+		}
+		if err := s.tcpFree(443, skip, false); err != nil {
 			return nil, err
 		}
 		if ib == nil {
@@ -75,11 +80,15 @@ func (s *SiteService) SwitchMode(mode string) (*model.Inbound, error) {
 			return nil, err
 		}
 	} else {
-		if err := s.tcpFree(port, ib, true); err != nil {
+		aimed, err := s.socketInbounds()
+		if err != nil {
 			return nil, err
 		}
-		if ib != nil && ib.Enable && ib.Port == 443 {
-			if err := database.GetDB().Model(model.Inbound{}).Where("id = ?", ib.Id).Update("enable", false).Error; err != nil {
+		if err := s.tcpFree(port, aimed, true); err != nil {
+			return nil, err
+		}
+		if len(aimed) > 0 {
+			if err := database.GetDB().Model(model.Inbound{}).Where("id IN ?", aimed).Update("enable", false).Error; err != nil {
 				return nil, err
 			}
 		}
@@ -91,32 +100,45 @@ func (s *SiteService) SwitchMode(mode string) (*model.Inbound, error) {
 	return ib, nil
 }
 
-// SiteInbound is the inbound the panel made for the website, or nil when
-// there is none. One made into an inbound of another kind while the website
-// ran without it is the administrator's now and no longer counts.
+// SiteInbound is the inbound on port 443 whose target is the website's
+// socket, a switched-on one first; nil when there is none.
 func (s *SiteService) SiteInbound() (*model.Inbound, error) {
-	id, err := s.settingService.getInt("siteInbound")
-	if err != nil || id == 0 {
-		return nil, err
-	}
 	var list []*model.Inbound
-	if err := database.GetDB().Model(model.Inbound{}).Where("id = ?", id).Find(&list).Error; err != nil {
+	if err := database.GetDB().Model(model.Inbound{}).Where("port = ?", 443).Order("enable DESC, id").Find(&list).Error; err != nil {
 		return nil, err
 	}
-	if len(list) == 0 || !siteTarget(list[0]) {
-		return nil, nil
+	for _, ib := range list {
+		if tcp, _ := inboundNets(ib); tcp && siteTarget(ib) {
+			return ib, nil
+		}
 	}
-	return list[0], nil
+	return nil, nil
+}
+
+// socketInbounds are the switched-on inbounds whose target is the website's
+// socket, on any port.
+func (s *SiteService) socketInbounds() ([]int, error) {
+	var list []*model.Inbound
+	if err := database.GetDB().Model(model.Inbound{}).Where("enable = ?", true).Find(&list).Error; err != nil {
+		return nil, err
+	}
+	var ids []int
+	for _, ib := range list {
+		if siteTarget(ib) {
+			ids = append(ids, ib.Id)
+		}
+	}
+	return ids, nil
 }
 
 // tcpFree makes sure no other inbound holds the TCP port: a switched-on one
 // would keep the website from it, and with REALITY in front a switched-off
 // one could not be edited or switched on without breaking it. Inbounds over
 // UDP, such as Hysteria on 443, stay beside the website.
-func (s *SiteService) tcpFree(port int, own *model.Inbound, enabledOnly bool) error {
+func (s *SiteService) tcpFree(port int, skip []int, enabledOnly bool) error {
 	q := database.GetDB().Model(model.Inbound{}).Where("port = ?", port)
-	if own != nil {
-		q = q.Where("id != ?", own.Id)
+	if len(skip) > 0 {
+		q = q.Where("id NOT IN ?", skip)
 	}
 	if enabledOnly {
 		q = q.Where("enable = ?", true)
@@ -174,7 +196,7 @@ func (s *SiteService) makeInbound(domain string) (*model.Inbound, error) {
 	if err := tx.Commit().Error; err != nil {
 		return nil, err
 	}
-	return ib, s.settingService.setInt("siteInbound", ib.Id)
+	return ib, nil
 }
 
 // fitInbound switches the site inbound back on, on port 443 and for the
@@ -424,47 +446,19 @@ func siteTarget(ib *model.Inbound) bool {
 	return target == config.GetSiteSocket()
 }
 
-// guardSite refuses a change that would take a port from the panel or its
-// website. Behind REALITY TCP 443 is the website's, and the site inbound
-// carries the website and the panel itself, so it stays on, on 443, and
-// without limits that would one day switch it off. On its own port the
-// panel keeps that port; behind REALITY it opens none. Inbounds over UDP
-// share both. old is nil for
-// a new inbound and next is nil for a deleted one.
-func (s *InboundService) guardSite(old, next *model.Inbound) error {
-	settings := SettingService{}
-	mode, err := settings.GetSiteMode()
-	if err != nil {
-		return err
-	}
-	if mode == SiteReality {
-		siteId, _ := settings.getInt("siteInbound")
-		if old != nil && siteId != 0 && old.Id == siteId {
-			const how = "Move the panel to its own port first: x-ui site -mode port"
-			switch {
-			case next == nil:
-				return common.NewError("This inbound carries the website and the panel on port 443 and cannot be deleted. " + how)
-			case !next.Enable:
-				return common.NewError("This inbound carries the website and the panel on port 443 and cannot be switched off. " + how)
-			case next.Port != 443 || next.Listen != old.Listen || !siteTarget(next):
-				return common.NewError("This inbound carries the website and the panel on port 443: its port, address, protocol, security and target stay as they are. " + how)
-			case next.Total != 0 || next.ExpiryTime != 0:
-				return common.NewError("This inbound carries the website and the panel on port 443 and takes no traffic limit or expiry date: they would switch it off.")
-			}
-			return nil
-		}
-	}
-	if next == nil || !next.Enable {
+// guardPanelPort refuses an inbound that would take the port the panel
+// listens on: its own port, unless it is behind REALITY and opens none.
+// Inbounds over UDP share it.
+func (s *InboundService) guardPanelPort(next *model.Inbound) error {
+	if !next.Enable {
 		return nil
 	}
 	if tcp, _ := inboundNets(next); !tcp {
 		return nil
 	}
-	if mode == SiteReality && next.Port == 443 {
-		return common.NewError("TCP port 443 belongs to the panel's website behind REALITY. Inbounds over UDP, such as Hysteria, may use 443.")
-	}
-	if mode == SiteReality {
-		return nil
+	settings := SettingService{}
+	if mode, err := settings.GetSiteMode(); err != nil || mode == SiteReality {
+		return err
 	}
 	port, _ := settings.GetPort()
 	listen, _ := settings.GetListen()

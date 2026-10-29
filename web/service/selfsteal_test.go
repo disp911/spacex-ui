@@ -114,39 +114,25 @@ func TestSwitchModeKeepsTheSiteInbound(t *testing.T) {
 		t.Fatalf("subscription %s", sub)
 	}
 
-	// The site inbound stays on, on 443 and without limits.
-	if _, err := inbounds.DelInbound(ib.Id); err == nil {
-		t.Fatal("the site inbound must not be deleted behind REALITY")
-	}
-	if _, err := inbounds.SetInboundEnable(ib.Id, false); err == nil {
-		t.Fatal("the site inbound must not be switched off behind REALITY")
-	}
-	moved := *ib
-	moved.Port = 8443
-	if err := inbounds.guardSite(ib, &moved); err == nil {
-		t.Fatal("the site inbound must stay on 443")
-	}
-	limited := *ib
-	limited.ExpiryTime = 1
-	if err := inbounds.guardSite(ib, &limited); err == nil {
-		t.Fatal("the site inbound must not expire")
-	}
+	// It is an ordinary inbound: changed, switched off and on as any other.
 	renamed := *ib
 	renamed.Remark = "mine"
-	if err := inbounds.guardSite(ib, &renamed); err != nil {
-		t.Fatalf("a new remark is fine: %v", err)
+	renamed.ExpiryTime = 1
+	if err := inbounds.guardPanelPort(&renamed); err != nil {
+		t.Fatalf("the site inbound takes any change: %v", err)
 	}
-	if err := inbounds.guardSite(nil, &model.Inbound{Port: 443, Enable: true, Protocol: model.VLESS}); err == nil {
-		t.Fatal("no other inbound may take TCP 443")
+	if _, err := inbounds.SetInboundEnable(ib.Id, false); err != nil {
+		t.Fatalf("the site inbound may be switched off: %v", err)
 	}
-	if err := inbounds.guardSite(nil, &model.Inbound{Port: 443, Enable: true, Protocol: model.Hysteria}); err != nil {
-		t.Fatalf("Hysteria on UDP 443 stays beside REALITY: %v", err)
+	if _, err := inbounds.SetInboundEnable(ib.Id, true); err != nil {
+		t.Fatal(err)
 	}
-	if err := inbounds.guardSite(nil, &model.Inbound{Port: 2053, Enable: true, Protocol: model.Trojan}); err != nil {
+	if err := inbounds.guardPanelPort(&model.Inbound{Port: 2053, Enable: true, Protocol: model.Trojan}); err != nil {
 		t.Fatalf("behind REALITY the panel opens no port of its own: %v", err)
 	}
 
-	// On its own port the panel keeps the inbound, switched off.
+	// On its own port the socket is shut: the inbound is switched off, and
+	// found again by its target.
 	if got, err := sites.SwitchMode(SitePort); err != nil || got != nil {
 		t.Fatalf("own port: %v %v", got, err)
 	}
@@ -154,17 +140,23 @@ func TestSwitchModeKeepsTheSiteInbound(t *testing.T) {
 	if err != nil || kept == nil || kept.Id != ib.Id || kept.Enable {
 		t.Fatalf("kept %+v %v", kept, err)
 	}
-	if _, err := inbounds.DelInbound(ib.Id); err != nil {
-		t.Fatalf("switched off, the inbound may go: %v", err)
-	}
-	if err := inbounds.guardSite(nil, &model.Inbound{Port: 443, Enable: true, Protocol: model.VLESS}); err != nil {
-		t.Fatalf("on its own port the panel leaves 443 free: %v", err)
-	}
-	if err := inbounds.guardSite(nil, &model.Inbound{Port: 2053, Enable: true, Protocol: model.Trojan}); err == nil {
+	if err := inbounds.guardPanelPort(&model.Inbound{Port: 2053, Enable: true, Protocol: model.Trojan}); err == nil {
 		t.Fatal("on its own port the panel keeps that port")
 	}
+	if err := inbounds.guardPanelPort(&model.Inbound{Port: 2053, Enable: true, Protocol: model.Hysteria}); err != nil {
+		t.Fatalf("UDP shares the panel's port: %v", err)
+	}
 
-	// Back behind REALITY a new inbound is made.
+	// Back behind REALITY the same inbound comes back on.
+	back, err := sites.SwitchMode(SiteReality)
+	if err != nil || back == nil || back.Id != ib.Id || !back.Enable {
+		t.Fatalf("back %+v %v", back, err)
+	}
+
+	// Deleted, it is made anew on the next switch.
+	if _, err := inbounds.DelInbound(ib.Id); err != nil {
+		t.Fatalf("the site inbound may be deleted: %v", err)
+	}
 	again, err := sites.SwitchMode(SiteReality)
 	if err != nil || again == nil || again.Id == ib.Id {
 		t.Fatalf("again %+v %v", again, err)

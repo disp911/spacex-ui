@@ -80,11 +80,10 @@ var defaultValueMap = map[string]string{
 	"xrayOutboundTestUrl":         "https://www.google.com/generate_204",
 
 	// The website on port 443, see SiteMode.
-	"siteMode":    "",
-	"siteDomain":  "",
-	"siteSeed":    "",
-	"siteBorn":    "",
-	"siteInbound": "0",
+	"siteMode":   "",
+	"siteDomain": "",
+	"siteSeed":   "",
+	"siteBorn":   "",
 
 	// LDAP defaults
 	"ldapEnable":            "false",

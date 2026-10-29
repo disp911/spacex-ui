@@ -3,7 +3,7 @@
 
 import { config } from '../../config'
 import type { AllSetting } from './model'
-import type { SiteSettings } from './site'
+import type { SiteMode, SiteSettings } from './site'
 
 function isIp(host: string) {
   const h = host.replace(/^\[|\]$/g, '')
@@ -44,10 +44,10 @@ export function addressAfterRestart(s: AllSetting) {
  * it answers at the domain on 443. On its own port it answers at the
  * domain or IP set, over https when it has a certificate.
  */
-export function addressAfterSite(s: SiteSettings, port: number, basePath: string) {
+export function addressAfterSite(s: SiteSettings, mode: SiteMode, port: number, basePath: string) {
   const url = new URL(location.href)
   if (!import.meta.env.DEV) {
-    if (s.mode === 'reality') {
+    if (mode === 'reality') {
       url.protocol = 'https:'
       url.hostname = s.domain
       url.port = ''
