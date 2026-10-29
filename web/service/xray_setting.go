@@ -6,6 +6,7 @@ import (
 
 	"github.com/disp911/spacex-ui/v2/util/common"
 	"github.com/disp911/spacex-ui/v2/xray"
+	"github.com/xtls/xray-core/infra/conf"
 )
 
 // XraySettingService provides business logic for Xray configuration management.
@@ -35,6 +36,37 @@ func (s *XraySettingService) CheckXrayConfig(XrayTemplateConfig string) error {
 	err := json.Unmarshal([]byte(XrayTemplateConfig), xrayConfig)
 	if err != nil {
 		return common.NewError("xray template config invalid:", err)
+	}
+	return checkOutbounds(xrayConfig.OutboundConfigs)
+}
+
+// checkOutbounds builds the VLESS and Trojan outbounds as Xray does: it will
+// not start with one that goes to a public address unencrypted.
+func checkOutbounds(raw []byte) error {
+	if len(raw) == 0 {
+		return nil
+	}
+	var outbounds []json.RawMessage
+	if err := json.Unmarshal(raw, &outbounds); err != nil {
+		return common.NewError("xray template config invalid:", err)
+	}
+	for _, o := range outbounds {
+		var head struct {
+			Tag      string `json:"tag"`
+			Protocol string `json:"protocol"`
+		}
+		json.Unmarshal(o, &head)
+		if head.Protocol != "vless" && head.Protocol != "trojan" {
+			continue
+		}
+		var c conf.OutboundDetourConfig
+		err := json.Unmarshal(o, &c)
+		if err == nil {
+			_, err = c.Build()
+		}
+		if err != nil {
+			return common.NewErrorf("outbound %q: %v", head.Tag, err)
+		}
 	}
 	return nil
 }

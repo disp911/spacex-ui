@@ -203,3 +203,29 @@ func TestEnsureStatsRouting_AcceptsInboundTagAsString(t *testing.T) {
 		t.Fatalf("api rule with string-form inboundTag should hoist to front, got %q\nfull: %s", got, out)
 	}
 }
+
+func TestCheckOutboundsRefusesWhatXrayRefuses(t *testing.T) {
+	vless := func(address, stream string) string {
+		return `{"outbounds":[{"tag":"out","protocol":"vless","settings":{"vnext":[{"address":"` + address +
+			`","port":443,"users":[{"id":"27848739-7e62-4138-9fd3-098a63964b6b","encryption":"none"}]}]}` + stream + `}]}`
+	}
+	trojan := `{"outbounds":[{"tag":"tj","protocol":"trojan","settings":{"servers":[{"address":"203.0.113.5","port":443,"password":"x"}]}}]}`
+	tls := `,"streamSettings":{"network":"tcp","security":"tls","tlsSettings":{"serverName":"example.com"}}`
+	for _, c := range []struct {
+		name, config string
+		refused      bool
+	}{
+		{"vless to a public address", vless("203.0.113.5", ""), true},
+		{"vless to a public domain", vless("example.com", ""), true},
+		{"vless with TLS", vless("203.0.113.5", tls), false},
+		{"vless to a private address", vless("10.0.0.2", ""), false},
+		{"trojan without TLS", trojan, true},
+		{"no outbounds", `{"outbounds":[]}`, false},
+		{"others pass", `{"outbounds":[{"protocol":"freedom","settings":{}}]}`, false},
+	} {
+		err := new(XraySettingService).CheckXrayConfig(c.config)
+		if (err != nil) != c.refused {
+			t.Errorf("%s: refused %v, want %v (%v)", c.name, err != nil, c.refused, err)
+		}
+	}
+}
