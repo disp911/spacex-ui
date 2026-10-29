@@ -97,7 +97,7 @@ function udpMaskSettings(type: string) {
     case 'mkcp-legacy':
       return { header: '', value: '' }
     case 'xdns':
-      return { resolvers: [] }
+      return { domains: [{ names: [] }], resolvers: [{ addrs: [] }] }
     case 'xicmp':
       return { dgram: false, ips: [] }
     case 'header-custom':
@@ -177,7 +177,7 @@ const setTables = (m: Record<string, any>, v: string) => (m.settings.customTable
 const remove = (list: unknown[], i: number) => list.splice(i, 1)
 
 // In the script: vue-tsc misreads the // of a URL inside the template.
-const resolverHint = computed(() => t('xray.hintExample', { v: 'xxx+udp://8.8.8.8:53' }))
+const resolverHint = computed(() => t('xray.hintExample', { v: '8.8.8.8:53' }))
 </script>
 
 <template>
@@ -357,9 +357,14 @@ const resolverHint = computed(() => t('xray.hintExample', { v: 'xxx+udp://8.8.8.
                   <XInput v-bind="a" v-model="m.settings.value" mono :placeholder="t('xray.hintExample', { v: 'www.example.com' })" />
                 </XField>
               </template>
-              <XField v-if="m.type === 'xdns'" v-slot="a" label="Resolvers" class="x-wide">
-                <XTagInput v-bind="a" v-model="m.settings.resolvers" mono :placeholder="resolverHint" />
-              </XField>
+              <template v-if="m.type === 'xdns'">
+                <XField v-slot="a" label="Domains" class="x-wide">
+                  <XTagInput v-bind="a" v-model="m.settings.domains[0].names" mono :placeholder="t('xray.hintExample', { v: 'www.example.com' })" />
+                </XField>
+                <XField v-slot="a" label="Resolvers" class="x-wide">
+                  <XTagInput v-bind="a" v-model="m.settings.resolvers[0].addrs" mono :placeholder="resolverHint" />
+                </XField>
+              </template>
               <template v-if="m.type === 'xicmp'">
                 <XField v-slot="a" label="IPs"><XTagInput v-bind="a" v-model="m.settings.ips" mono :placeholder="t('xray.hintExample', { v: '1.2.3.4' })" /></XField>
                 <XSwitch v-model="m.settings.dgram" boxed label="DGRAM" />

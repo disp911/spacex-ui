@@ -148,7 +148,7 @@ const setTables = (m: Json, v: string) => (m.settings.customTables = v.split(','
               </XField>
             </template>
             <XField v-if="m.type === 'xdns'" v-slot="a" label="Domains" class="x-wide">
-              <XTagInput v-bind="a" v-model="m.settings.domains" mono :placeholder="t('xray.hintExample', { v: 'www.example.com' })" />
+              <XTagInput v-bind="a" v-model="m.settings.domains[0].names" mono :placeholder="t('xray.hintExample', { v: 'www.example.com' })" />
             </XField>
             <XField v-if="m.type === 'noise'" v-slot="a" label="Reset"><XNumber v-bind="a" block v-model="m.settings.reset" :min="0" /></XField>
           </XFieldGrid>

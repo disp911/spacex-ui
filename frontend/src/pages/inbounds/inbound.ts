@@ -398,7 +398,7 @@ export function defaultUdpMask(type = 'salamander'): Json {
     case 'mkcp-legacy':
       return { type, settings: { header: '', value: '' } }
     case 'xdns':
-      return { type, settings: { domains: [] } }
+      return { type, settings: { domains: [{ names: [] }] } }
     case 'header-custom':
       return { type, settings: { client: [], server: [] } }
     case 'noise':
