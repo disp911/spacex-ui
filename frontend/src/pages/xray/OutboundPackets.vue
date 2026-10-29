@@ -6,7 +6,13 @@ import { XField, XFieldGrid, XInlineButton, XInput, XNestCard, XNumber, XSelect,
  * Packets of a mask, e.g. Header Custom or Noise: random bytes of a length
  * (array) or bytes given as text, hex or base64, each with an optional delay.
  */
-const props = defineProps<{ items: Record<string, any>[]; withDelay?: boolean; removable?: boolean }>()
+const props = defineProps<{
+  items: Record<string, any>[]
+  withDelay?: boolean
+  /** Noise packets, whose Rand is a range such as 1-8192. */
+  noise?: boolean
+  removable?: boolean
+}>()
 const { t } = useI18n()
 
 const types: Option[] = [
@@ -41,7 +47,10 @@ function setType(item: Record<string, any>, type: string) {
         <XInput v-else v-bind="a" v-model="item.delay" mono placeholder="10-20" />
       </XField>
       <template v-if="item.type === 'array'">
-        <XField v-slot="a" label="Rand"><XNumber v-bind="a" block v-model="item.rand" :min="0" /></XField>
+        <XField v-slot="a" label="Rand">
+          <XInput v-if="noise" v-bind="a" v-model="item.rand" mono placeholder="1-8192" />
+          <XNumber v-else v-bind="a" block v-model="item.rand" :min="0" />
+        </XField>
         <XField v-slot="a" label="Rand Range"><XInput v-bind="a" v-model="item.randRange" mono placeholder="0-255" /></XField>
       </template>
       <XField v-else v-slot="a" label="Packet">

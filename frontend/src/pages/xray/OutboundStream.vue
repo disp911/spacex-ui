@@ -7,6 +7,7 @@ import {
 import type { Outbound } from './model'
 import { canFlow, defaultNetwork, defaultQuic, defaultXmux, items, networks, user, xhttpModes } from './outbound'
 import OutboundPackets from './OutboundPackets.vue'
+import QuicParams from './QuicParams.vue'
 
 /** The transport of the outbound window: the network first in the card, its settings, and the masks over it. */
 const props = defineProps<{ o: Outbound }>()
@@ -157,12 +158,6 @@ const kcpHeaders: Option[] = [
   { value: 'utp', label: 'uTP' },
   { value: 'wechat', label: 'WeChat Video' },
   { value: 'wireguard', label: 'WireGuard' },
-]
-const congestions: Option[] = [
-  { value: 'reno', label: 'Reno' },
-  { value: 'bbr', label: 'BBR' },
-  { value: 'brutal', label: 'Brutal' },
-  { value: 'force-brutal', label: 'Force Brutal' },
 ]
 
 // QUIC parameters: present or not, the card's switch says.
@@ -359,7 +354,7 @@ const resolverHint = computed(() => t('xray.hintExample', { v: '8.8.8.8:53' }))
             </XFieldGrid>
             <template v-if="m.type === 'noise'">
               <XListHead title="Noise" add @add="m.settings.noise.push({ ...packetItem(), delay: '' })">
-                <OutboundPackets :items="m.settings.noise" with-delay removable />
+                <OutboundPackets :items="m.settings.noise" with-delay noise removable />
               </XListHead>
             </template>
             <template v-if="m.type === 'header-custom'">
@@ -380,26 +375,7 @@ const resolverHint = computed(() => t('xray.hintExample', { v: '8.8.8.8:53' }))
       <XFieldGrid :cols="2">
         <XSwitch v-model="quicOn" boxed :label="t('inbounds.enable')" />
       </XFieldGrid>
-      <template v-if="quicOn">
-        <XFieldGrid :cols="2">
-          <XField v-slot="a" label="Congestion"><XSelect v-bind="a" v-model="qp.congestion" :options="congestions" /></XField>
-          <XSwitch v-model="qp.debug" boxed label="Debug" />
-          <template v-if="qp.congestion === 'brutal' || qp.congestion === 'force-brutal'">
-            <XField v-slot="a" label="Brutal Up"><XInput v-bind="a" v-model="qp.brutalUp" mono placeholder="65537" /></XField>
-            <XField v-slot="a" label="Brutal Down"><XInput v-bind="a" v-model="qp.brutalDown" mono placeholder="65537" /></XField>
-          </template>
-        </XFieldGrid>
-        <XFieldGrid :cols="2">
-          <XField v-slot="a" label="Max Idle Timeout (s)"><XNumber v-bind="a" block v-model="qp.maxIdleTimeout" :min="4" :max="120" /></XField>
-          <XField v-slot="a" label="Keep Alive Period (s)"><XNumber v-bind="a" block v-model="qp.keepAlivePeriod" :min="0" :max="60" /></XField>
-          <XSwitch v-model="qp.disablePathMTUDiscovery" boxed label="Disable Path MTU Dis" />
-          <XField v-slot="a" label="Max Incoming Streams"><XNumber v-bind="a" block v-model="qp.maxIncomingStreams" :min="8" :placeholder="t('xray.hintDefault', { v: '8' })" /></XField>
-          <XField v-slot="a" label="Init Stream Window"><XNumber v-bind="a" block v-model="qp.initStreamReceiveWindow" :min="16384" :placeholder="t('xray.hintDefault', { v: '8388608' })" /></XField>
-          <XField v-slot="a" label="Max Stream Window"><XNumber v-bind="a" block v-model="qp.maxStreamReceiveWindow" :min="16384" :placeholder="t('xray.hintDefault', { v: '8388608' })" /></XField>
-          <XField v-slot="a" label="Init Conn Window"><XNumber v-bind="a" block v-model="qp.initConnectionReceiveWindow" :min="16384" :placeholder="t('xray.hintDefault', { v: '20971520' })" /></XField>
-          <XField v-slot="a" label="Max Conn Window"><XNumber v-bind="a" block v-model="qp.maxConnectionReceiveWindow" :min="16384" :placeholder="t('xray.hintDefault', { v: '20971520' })" /></XField>
-        </XFieldGrid>
-      </template>
+      <QuicParams v-if="quicOn" :qp="qp" />
     </XSection>
   </XSection>
 </template>

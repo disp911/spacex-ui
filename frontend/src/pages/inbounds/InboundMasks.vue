@@ -1,14 +1,17 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { XField, XFieldGrid, XInlineButton, XInput, XListHead, XNestCard, XNumber, XSelect, XTagInput, type Option } from '../../kit'
+import { XField, XFieldGrid, XInlineButton, XInput, XListHead, XNest, XNestCard, XNumber, XSelect, XSwitch, XTagInput, type Option } from '../../kit'
 import OutboundPackets from '../xray/OutboundPackets.vue'
+import QuicParams from '../xray/QuicParams.vue'
+import { defaultQuic } from '../xray/outbound'
 import { canUdpMask, defaultTcpMask, defaultUdpMask, network, type InboundForm } from './inbound'
 
 /**
  * TCP and UDP masks of an inbound's transport, as the old panel's form had
  * them on the server side: TCP masks for raw TCP, WebSocket, gRPC,
- * HTTPUpgrade and XHTTP; UDP masks for mKCP and Hysteria.
+ * HTTPUpgrade and XHTTP; UDP masks for mKCP and Hysteria; QUIC parameters
+ * for Hysteria and XHTTP over HTTP/3.
  */
 const props = defineProps<{ f: InboundForm }>()
 const { t } = useI18n()
@@ -30,6 +33,14 @@ const list = (values: string[]): Option[] => values.map((v) => ({ value: v, labe
 const tcpMasks = computed(() => ['tcp', 'httpupgrade', 'ws', 'grpc', 'xhttp'].includes(network(props.f)))
 const udpMasks = computed(() => canUdpMask(props.f))
 const hysteria = computed(() => props.f.protocol === 'hysteria')
+const quic = computed(() => hysteria.value || network(props.f) === 'xhttp')
+const quicOn = computed({
+  get: () => !!fm.value.quicParams,
+  set: (on: boolean) => {
+    if (on) fm.value.quicParams = defaultQuic()
+    else delete fm.value.quicParams
+  },
+})
 
 const packetItem = () => ({ delay: 0, rand: 0, randRange: '0-255', type: 'array' })
 
@@ -150,11 +161,15 @@ const setTables = (m: Json, v: string) => (m.settings.customTables = v.split(','
             <XField v-if="m.type === 'xdns'" v-slot="a" label="Domains" class="x-wide">
               <XTagInput v-bind="a" v-model="m.settings.domains[0].names" mono :placeholder="t('xray.hintExample', { v: 'www.example.com' })" />
             </XField>
+            <template v-if="m.type === 'xicmp'">
+              <XField v-slot="a" label="IPs"><XTagInput v-bind="a" v-model="m.settings.ips" mono :placeholder="t('xray.hintExample', { v: '1.2.3.4' })" /></XField>
+              <XSwitch v-model="m.settings.dgram" boxed label="DGRAM" />
+            </template>
             <XField v-if="m.type === 'noise'" v-slot="a" label="Reset"><XNumber v-bind="a" block v-model="m.settings.reset" :min="0" /></XField>
           </XFieldGrid>
           <template v-if="m.type === 'noise'">
             <XListHead title="Noise" add @add="m.settings.noise.push({ rand: '1-8192', randRange: '0-255', type: 'array', delay: '10-20' })">
-              <OutboundPackets :items="m.settings.noise" with-delay removable />
+              <OutboundPackets :items="m.settings.noise" with-delay noise removable />
             </XListHead>
           </template>
           <template v-if="m.type === 'header-custom'">
@@ -168,5 +183,15 @@ const setTables = (m: Json, v: string) => (m.settings.customTables = v.split(','
         </XFieldGrid>
       </XNestCard>
     </XListHead>
+  </template>
+
+  <!-- QUIC parameters -->
+  <template v-if="quic">
+    <XSwitch v-model="quicOn" boxed label="QUIC Params" />
+    <XNest v-if="quicOn" bare>
+      <XFieldGrid :cols="1">
+        <QuicParams :qp="fm.quicParams" />
+      </XFieldGrid>
+    </XNest>
   </template>
 </template>

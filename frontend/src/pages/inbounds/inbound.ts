@@ -403,25 +403,12 @@ export function defaultUdpMask(type = 'salamander'): Json {
       return { type, settings: { client: [], server: [] } }
     case 'noise':
       return { type, settings: { reset: 0, noise: [] } }
+    case 'xicmp':
+      return { type, settings: { dgram: false, ips: [] } }
     default:
       return { type, settings: {} }
   }
 }
-
-export const defaultQuicParams = () => ({
-  congestion: 'bbr',
-  debug: false,
-  brutalUp: 65537,
-  brutalDown: 65537,
-  initStreamReceiveWindow: 8388608,
-  maxStreamReceiveWindow: 8388608,
-  initConnectionReceiveWindow: 20971520,
-  maxConnectionReceiveWindow: 20971520,
-  maxIdleTimeout: 30,
-  keepAlivePeriod: 5,
-  disablePathMTUDiscovery: false,
-  maxIncomingStreams: 1024,
-})
 
 /** External Proxy turned on: the panel's own address and the inbound's port, as the old panel began it. */
 export const defaultExternalProxy = (port: number | null) => ({ forceTls: 'same', dest: location.hostname, port: port ?? 443, remark: '' })
@@ -590,6 +577,7 @@ function finalStream(f: InboundForm, input: Json): Json | undefined {
   const fm = st.finalmask
   if (fm) {
     if (!canUdpMask(f)) delete fm.udp
+    if (f.protocol !== 'hysteria' && st.network !== 'xhttp') delete fm.quicParams
     if (empty(fm.tcp)) delete fm.tcp
     if (empty(fm.udp)) delete fm.udp
     if (empty(fm)) delete st.finalmask
