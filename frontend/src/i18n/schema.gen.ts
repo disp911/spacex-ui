@@ -175,8 +175,6 @@ export interface MessageSchema {
     "siteLoadFailed": string
     "siteMode": string
     "siteModeWhere": string
-    "siteModeRealityDesc": string
-    "siteModePortDesc": string
     "siteDomain": string
     "siteDomainReality": string
     "siteDomainPort": string
