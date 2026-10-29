@@ -32,9 +32,9 @@ onMounted(async () => {
 // --- Mode and domain ------------------------------------------------------------
 
 const pick = (s: SiteSettings): SiteSettings => ({
-  mode: s.mode, domain: s.domain, email: s.email, panelPort: s.panelPort, certFile: s.certFile, keyFile: s.keyFile,
+  mode: s.mode, domain: s.domain, panelPort: s.panelPort, certFile: s.certFile, keyFile: s.keyFile,
 })
-const form = reactive<SiteSettings>({ mode: '', domain: '', email: '', panelPort: false, certFile: '', keyFile: '' })
+const form = reactive<SiteSettings>({ mode: '', domain: '', panelPort: false, certFile: '', keyFile: '' })
 const certSource = ref<'auto' | 'files'>('auto')
 
 const modes = computed(() => [
@@ -131,7 +131,7 @@ async function renew() {
 
 <template>
   <div class="settings-tab">
-    <XSettingsSection v-model:open="open.mode" :title="t('settings.secSite')" :count="form.mode === 'reality' ? 3 : 4">
+    <XSettingsSection v-model:open="open.mode" :title="t('settings.secSite')" :count="3">
       <XSettingBlock>
         <XSkeletonText v-if="!site && !failed" width="60%" />
         <XEmpty v-else-if="failed" tone="err" icon="alert" :title="t('settings.siteLoadFailed')" />
@@ -144,9 +144,6 @@ async function renew() {
           </XFieldNote>
           <XField v-slot="a" :label="t('settings.siteDomain')" :hint="form.mode === 'reality' ? t('settings.siteDomainReality') : t('settings.siteDomainPort')" :error="errors.domain">
             <XInput v-bind="a" v-model.trim="form.domain" mono placeholder="example.com" :invalid="!!errors.domain" />
-          </XField>
-          <XField v-slot="a" :label="t('settings.siteEmail')" :hint="t('settings.siteEmailHint')">
-            <XInput v-bind="a" v-model.trim="form.email" mono placeholder="admin@example.com" />
           </XField>
           <XSwitch
             v-if="form.mode === 'reality'"

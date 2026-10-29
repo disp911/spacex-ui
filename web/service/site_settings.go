@@ -3,7 +3,6 @@ package service
 import (
 	"crypto/tls"
 	"net"
-	"net/mail"
 	"regexp"
 	"strings"
 
@@ -16,7 +15,6 @@ import (
 type SiteSettings struct {
 	Mode   string `json:"mode"`
 	Domain string `json:"domain"`
-	Email  string `json:"email"`
 	// PanelPort keeps the panel's own port open behind REALITY.
 	PanelPort bool `json:"panelPort"`
 	// CertFile and KeyFile are the administrator's certificate on the
@@ -57,7 +55,6 @@ var hostName = regexp.MustCompile(`^([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0
 // when they are refused.
 func (s *SiteService) ApplySite(set SiteSettings) error {
 	set.Domain = strings.ToLower(strings.TrimSpace(set.Domain))
-	set.Email = strings.TrimSpace(set.Email)
 	set.CertFile = strings.TrimSpace(set.CertFile)
 	set.KeyFile = strings.TrimSpace(set.KeyFile)
 	if set.Mode != SitePort && set.Mode != SiteReality {
@@ -65,11 +62,6 @@ func (s *SiteService) ApplySite(set SiteSettings) error {
 	}
 	if set.Domain != "" && net.ParseIP(strings.Trim(set.Domain, "[]")) == nil && !hostName.MatchString(set.Domain) {
 		return common.NewErrorf("%q is neither a domain name nor an IP address", set.Domain)
-	}
-	if set.Email != "" {
-		if _, err := mail.ParseAddress(set.Email); err != nil {
-			return common.NewErrorf("%q is not an email address", set.Email)
-		}
 	}
 	files := set.Mode == SitePort
 	if files && (set.CertFile != "" || set.KeyFile != "") {
@@ -98,9 +90,6 @@ func (s *SiteService) storeSite(set SiteSettings, files bool) error {
 	if err := s.settingService.SetSiteDomain(set.Domain); err != nil {
 		return err
 	}
-	if err := s.settingService.SetSiteEmail(set.Email); err != nil {
-		return err
-	}
 	if err := s.settingService.SetSitePanelPort(set.PanelPort); err != nil {
 		return err
 	}
@@ -118,9 +107,6 @@ func (s *SiteService) siteSettings() (set SiteSettings, err error) {
 		return
 	}
 	if set.Domain, err = s.settingService.GetSiteDomain(); err != nil {
-		return
-	}
-	if set.Email, err = s.settingService.GetSiteEmail(); err != nil {
 		return
 	}
 	if set.PanelPort, err = s.settingService.GetSitePanelPort(); err != nil {

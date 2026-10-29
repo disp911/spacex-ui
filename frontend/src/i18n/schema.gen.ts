@@ -181,8 +181,6 @@ export interface MessageSchema {
     "siteDomain": string
     "siteDomainReality": string
     "siteDomainPort": string
-    "siteEmail": string
-    "siteEmailHint": string
     "sitePanelPort": string
     "sitePanelPortHint": string
     "siteCert": string

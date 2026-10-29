@@ -1062,14 +1062,6 @@ ask_domain() {
     done
 }
 
-# ask_email asks for the optional certificate email. It sets SITE_EMAIL to
-# the address, or to "-" to clear it.
-ask_email() {
-    read -rp "Email for the certificate authorities (optional; with it ZeroSSL stands by should Let's Encrypt fail): " SITE_EMAIL
-    SITE_EMAIL=$(echo "${SITE_EMAIL}" | tr -d '[:space:]')
-    [[ -z "$SITE_EMAIL" ]] && SITE_EMAIL="-"
-}
-
 # warn_port_80 tells what a busy port 80 means for the certificate.
 warn_port_80() {
     local owner
@@ -1093,9 +1085,8 @@ setup_selfsteal() {
     esac
     ask_domain
     warn_port_80
-    ask_email
     local out
-    out=$(${xui_folder}/x-ui selfsteal -domain "$SITE_NAME" -email "$SITE_EMAIL" 2>&1)
+    out=$(${xui_folder}/x-ui selfsteal -domain "$SITE_NAME" 2>&1)
     if [[ $? -ne 0 ]]; then
         echo "$out"
         LOGE "The website could not be put behind REALITY."
@@ -1143,13 +1134,11 @@ setup_own_port() {
             [[ -s "$cert" && -s "$key" ]] && break
             LOGE "Both files must exist and not be empty."
         done
-        SITE_EMAIL="-"
     else
         cert=""
         if [[ -n "$(port_owner 80)" && -n "$(port_owner 443)" ]]; then
             echo -e "${yellow}Ports 80 and 443 are both taken: the authorities cannot check this server, and the panel serves a self-signed certificate until one of them is free.${plain}"
         fi
-        ask_email
     fi
     ${xui_folder}/x-ui setting -port "$port" > /dev/null
     if [[ -n "$cert" ]]; then
@@ -1158,7 +1147,7 @@ setup_own_port() {
         ${xui_folder}/x-ui cert -reset > /dev/null
     fi
     local out
-    out=$(${xui_folder}/x-ui site -mode port -domain "$SITE_NAME" -email "$SITE_EMAIL" 2>&1)
+    out=$(${xui_folder}/x-ui site -mode port -domain "$SITE_NAME" 2>&1)
     if [[ $? -ne 0 ]]; then
         echo "$out"
         LOGE "The panel could not be put on port ${port}."
@@ -1237,13 +1226,12 @@ site_menu() {
     echo -e "  mode: ${mode}, name: $(site_value "website name")"
     echo -e "${green}\t1.${plain} Show the panel's address"
     echo -e "${green}\t2.${plain} Set up again: REALITY on 443 or a port of its own"
-    echo -e "${green}\t3.${plain} Change the certificate email"
     if [[ "$mode" == "reality" ]]; then
         open=$(site_value "panel port behind REALITY")
         if [[ "$open" == "true" ]]; then
-            echo -e "${green}\t4.${plain} Close the panel's own port again"
+            echo -e "${green}\t3.${plain} Close the panel's own port again"
         else
-            echo -e "${green}\t4.${plain} Open the panel's own port too (a way in should REALITY break)"
+            echo -e "${green}\t3.${plain} Open the panel's own port too (a way in should REALITY break)"
         fi
     fi
     echo -e "${green}\t0.${plain} Back to Main Menu"
@@ -1262,12 +1250,6 @@ site_menu() {
             site_menu
             ;;
         3)
-            ask_email
-            ${xui_folder}/x-ui site -email "$SITE_EMAIL" > /dev/null
-            restart 0
-            site_menu
-            ;;
-        4)
             if [[ "$mode" == "reality" ]]; then
                 if [[ "$open" == "true" ]]; then
                     ${xui_folder}/x-ui site -panelPort false > /dev/null

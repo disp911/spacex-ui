@@ -270,8 +270,6 @@
 "siteDomain" = "Domain"
 "siteDomainReality" = "Required: a domain that points to this server"
 "siteDomainPort" = "The server's domain or IP address; empty means no certificate"
-"siteEmail" = "Certificate email"
-"siteEmailHint" = "Optional; with it ZeroSSL issues the certificate when Let's Encrypt refuses"
 "sitePanelPort" = "Open port {port}"
 "sitePanelPortHint" = "The panel also answers on its own port, not only through 443"
 "siteCert" = "Certificate"

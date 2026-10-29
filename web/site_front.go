@@ -139,10 +139,9 @@ func (s *Server) startReality(panel http.Handler) (ownPort bool, err error) {
 	if basePath == "/" {
 		return false, errSite("the panel needs a secret path to share port 443 with the website")
 	}
-	email, _ := s.settingService.GetSiteEmail()
 	listen, _ := s.settingService.GetListen()
 
-	certs := site.NewCerts(config.GetCertFolder(), domain, email)
+	certs := site.NewCerts(config.GetCertFolder(), domain)
 	if err := certs.Start(s.ctx); err != nil {
 		return false, err
 	}
@@ -208,7 +207,6 @@ func (s *Server) startOwnPort(panel http.Handler) (net.Listener, bool, error) {
 		return nil, false, err
 	}
 	name, _ := s.settingService.GetSiteDomain()
-	email, _ := s.settingService.GetSiteEmail()
 	certFile, _ := s.settingService.GetCertFile()
 	keyFile, _ := s.settingService.GetKeyFile()
 
@@ -225,7 +223,7 @@ func (s *Server) startOwnPort(panel http.Handler) (net.Listener, bool, error) {
 			tlsConf = &tls.Config{Certificates: []tls.Certificate{cert}, NextProtos: []string{"h2", "http/1.1"}}
 		}
 	case name != "":
-		certs := site.NewCerts(config.GetCertFolder(), name, email)
+		certs := site.NewCerts(config.GetCertFolder(), name)
 		if err := certs.Start(s.ctx); err != nil {
 			logger.Error("Certificate for", name+":", err)
 		} else {

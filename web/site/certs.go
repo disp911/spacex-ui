@@ -9,14 +9,12 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"crypto/x509/pkix"
-	"encoding/json"
 	"encoding/pem"
 	"errors"
 	"fmt"
 	"math/big"
 	"net"
 	"net/http"
-	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -24,13 +22,11 @@ import (
 	"time"
 
 	"github.com/caddyserver/certmagic"
-	"github.com/mholt/acmez/v3/acme"
 	"go.uber.org/zap"
 )
 
 // Certs obtains and renews the site's certificate on its own, with no
-// script beside the panel: from Let's Encrypt, and from ZeroSSL should that
-// fail and an email be known. A renewed certificate is served from the next
+// script beside the panel, from Let's Encrypt. A renewed certificate is served from the next
 // handshake on, with nothing restarted. The name is a domain or an IP
 // address; Let's Encrypt gives an address a certificate of some six days,
 // renewed every few. The authorities check the name over port 80 or over
@@ -64,9 +60,9 @@ type CertStatus struct {
 	ErrorAt time.Time `json:"errorAt"`
 }
 
-// NewCerts manages the certificate of domain, keeping it and the accounts in
-// folder. Without email there is no second authority.
-func NewCerts(folder, domain, email string) *Certs {
+// NewCerts manages the certificate of domain, keeping it and the account in
+// folder.
+func NewCerts(folder, domain string) *Certs {
 	domain = strings.Trim(domain, "[]")
 	c := &Certs{domain: domain, folder: folder}
 	var cfg *certmagic.Config
@@ -82,7 +78,6 @@ func NewCerts(folder, domain, email string) *Certs {
 	le := certmagic.ACMEIssuer{
 		CA:     certmagic.LetsEncryptProductionCA,
 		TestCA: certmagic.LetsEncryptStagingCA,
-		Email:  email,
 		Agreed: true,
 		Logger: zap.NewNop(),
 	}
@@ -96,9 +91,6 @@ func NewCerts(folder, domain, email string) *Certs {
 	}
 	c.le = certmagic.NewACMEIssuer(cfg, le)
 	cfg.Issuers = []certmagic.Issuer{c.le}
-	if email != "" {
-		cfg.Issuers = append(cfg.Issuers, &zeroSSL{cfg: cfg, email: email, eabURL: zeroSSLEABURL})
-	}
 	c.cfg = cfg
 	return c
 }
@@ -362,83 +354,4 @@ func (c *Certs) onEvent(_ context.Context, event string, data map[string]any) er
 		c.copyStored(certKey, keyKey)
 	}
 	return nil
-}
-
-// zeroSSLEABURL hands out the account binding ZeroSSL asks of an ACME client,
-// in exchange for an email.
-const zeroSSLEABURL = "https://api.zerossl.com/acme/eab-credentials-email"
-
-// zeroSSL issues from ZeroSSL's ACME endpoint. Its account binding is
-// fetched on the first issue, so a panel that never falls back never asks.
-type zeroSSL struct {
-	cfg    *certmagic.Config
-	email  string
-	eabURL string
-
-	mu     sync.Mutex
-	issuer *certmagic.ACMEIssuer
-}
-
-func (z *zeroSSL) IssuerKey() string {
-	return (&certmagic.ACMEIssuer{CA: certmagic.ZeroSSLProductionCA}).IssuerKey()
-}
-
-func (z *zeroSSL) Issue(ctx context.Context, csr *x509.CertificateRequest) (*certmagic.IssuedCertificate, error) {
-	issuer, err := z.acme(ctx)
-	if err != nil {
-		return nil, err
-	}
-	return issuer.Issue(ctx, csr)
-}
-
-func (z *zeroSSL) acme(ctx context.Context) (*certmagic.ACMEIssuer, error) {
-	z.mu.Lock()
-	defer z.mu.Unlock()
-	if z.issuer != nil {
-		return z.issuer, nil
-	}
-	eab, err := fetchEAB(ctx, z.eabURL, z.email)
-	if err != nil {
-		return nil, err
-	}
-	z.issuer = certmagic.NewACMEIssuer(z.cfg, certmagic.ACMEIssuer{
-		CA:              certmagic.ZeroSSLProductionCA,
-		Email:           z.email,
-		Agreed:          true,
-		ExternalAccount: eab,
-		Logger:          zap.NewNop(),
-	})
-	return z.issuer, nil
-}
-
-func fetchEAB(ctx context.Context, endpoint, email string) (*acme.EAB, error) {
-	form := url.Values{"email": {email}}
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, strings.NewReader(form.Encode()))
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("ZeroSSL account binding: %w", err)
-	}
-	defer resp.Body.Close()
-	var answer struct {
-		Success bool   `json:"success"`
-		KeyID   string `json:"eab_kid"`
-		MACKey  string `json:"eab_hmac_key"`
-		Error   struct {
-			Type string `json:"type"`
-		} `json:"error"`
-	}
-	if err := json.NewDecoder(resp.Body).Decode(&answer); err != nil {
-		return nil, fmt.Errorf("ZeroSSL account binding: %s: %w", resp.Status, err)
-	}
-	if !answer.Success || answer.KeyID == "" || answer.MACKey == "" {
-		if answer.Error.Type != "" {
-			return nil, errors.New("ZeroSSL account binding: " + answer.Error.Type)
-		}
-		return nil, errors.New("ZeroSSL account binding: " + resp.Status)
-	}
-	return &acme.EAB{KeyID: answer.KeyID, MACKey: answer.MACKey}, nil
 }

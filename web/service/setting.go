@@ -82,7 +82,6 @@ var defaultValueMap = map[string]string{
 	// The website on port 443, see SiteMode.
 	"siteMode":      "",
 	"siteDomain":    "",
-	"siteEmail":     "",
 	"sitePanelPort": "false",
 	"siteSeed":      "",
 	"siteBorn":      "",
@@ -442,16 +441,6 @@ func (s *SettingService) GetSiteDomain() (string, error) {
 
 func (s *SettingService) SetSiteDomain(domain string) error {
 	return s.setString("siteDomain", strings.ToLower(strings.TrimSpace(domain)))
-}
-
-// GetSiteEmail returns the address the certificate authorities know the
-// panel by; without it there is no second authority to fall back on.
-func (s *SettingService) GetSiteEmail() (string, error) {
-	return s.getString("siteEmail")
-}
-
-func (s *SettingService) SetSiteEmail(email string) error {
-	return s.setString("siteEmail", strings.TrimSpace(email))
 }
 
 // GetSitePanelPort reports whether the panel also keeps its own port while
