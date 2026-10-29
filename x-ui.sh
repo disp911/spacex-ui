@@ -1158,10 +1158,10 @@ setup_own_port() {
 site_setup() {
     local choice
     echo -e "${green}How is the panel to be reached?${plain}"
-    echo -e "${green}1.${plain} Website and panel on 443 behind VLESS REALITY (selfsteal; needs a domain)"
-    echo -e "${green}2.${plain} Website and panel on a port of your choice (with a domain or the IP address)"
+    echo -e "${green}1.${plain} Website and panel on a port of your choice (with a domain or the IP address)"
+    echo -e "${green}2.${plain} Website and panel on 443 behind VLESS REALITY (selfsteal; needs a domain)"
     read -rp "Choose an option [default 1]: " choice
-    if [[ "$choice" != "2" ]]; then
+    if [[ "$choice" == "2" ]]; then
         setup_selfsteal
         case $? in
             0) return 0 ;;
@@ -1220,7 +1220,7 @@ site_menu() {
     echo -e "${green}Website and certificate${plain}"
     echo -e "  mode: ${mode}, name: $(site_value "website name")"
     echo -e "${green}\t1.${plain} Show the panel's address"
-    echo -e "${green}\t2.${plain} Set up again: REALITY on 443 or a port of its own"
+    echo -e "${green}\t2.${plain} Set up again: a port of its own or REALITY on 443"
     echo -e "${green}\t0.${plain} Back to Main Menu"
     read -rp "Choose an option: " choice
     case "$choice" in
