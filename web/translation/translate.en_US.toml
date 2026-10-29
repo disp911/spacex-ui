@@ -281,7 +281,7 @@
 "certStopgap" = "Temporary self-signed"
 "certUntil" = "Valid until"
 "certCheck" = "Outside check"
-"certCheckOk" = "The website opens · {time}"
+"certCheckOk" = "Online · {time}"
 "certCheckFail" = "Does not open · {time}"
 "certCheckError" = "Check failed"
 "certCheckNone" = "Not checked yet"

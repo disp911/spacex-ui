@@ -281,7 +281,7 @@
 "certStopgap" = "Временный самоподписанный"
 "certUntil" = "Действует до"
 "certCheck" = "Проверка снаружи"
-"certCheckOk" = "Сайт открывается · {time}"
+"certCheckOk" = "Онлайн · {time}"
 "certCheckFail" = "Не открывается · {time}"
 "certCheckError" = "Ошибка проверки"
 "certCheckNone" = "Ещё не проверялся"
