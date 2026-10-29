@@ -1073,16 +1073,48 @@ warn_port_80() {
 
 # setup_selfsteal puts the website and the panel on 443 behind REALITY.
 # It returns 2 when the administrator chose the panel's own port instead.
-setup_selfsteal() {
-    if [[ "$(${xui_folder}/x-ui setting -show true | grep -Eo '^port: .+' | awk '{print $2}')" == "443" ]]; then
-        # REALITY takes 443; the panel keeps a port of its own, shut unless opened.
-        ${xui_folder}/x-ui setting -port "$(shuf -i 1024-62000 -n 1)" > /dev/null
+# ask_port asks for the panel's own port, the current one by default, and
+# sets it. With "reality" the port is the one the panel keeps shut behind
+# REALITY, a way in to open from the menu, and may be neither 443 nor 80,
+# which REALITY and the website take.
+ask_port() {
+    local reality=$1 port current
+    current=$(${xui_folder}/x-ui setting -show true | grep -Eo '^port: .+' | awk '{print $2}')
+    if [[ -n "$reality" && ("$current" == "443" || "$current" == "80") ]]; then
+        current=$(shuf -i 1024-62000 -n 1)
     fi
+    while true; do
+        if [[ -n "$reality" ]]; then
+            read -rp "Port of the panel, kept shut behind REALITY as a way in to open from the menu [default ${current}]: " port
+        else
+            read -rp "Port of the panel [default ${current}]: " port
+        fi
+        port=${port:-$current}
+        if ! [[ "$port" =~ ^[0-9]+$ ]] || ((port < 1 || port > 65535)); then
+            LOGE "A port is a number from 1 to 65535."
+            continue
+        fi
+        if [[ -n "$reality" ]] && ((port == 443 || port == 80)); then
+            LOGE "Ports 443 and 80 belong to REALITY and the website."
+            continue
+        fi
+        if [[ -n "$(port_owner "$port")" ]]; then
+            LOGE "Port ${port} is taken by $(port_owner "$port" | cut -d' ' -f1)."
+            continue
+        fi
+        break
+    done
+    ${xui_folder}/x-ui setting -port "$port" > /dev/null
+    SITE_PORT=$port
+}
+
+setup_selfsteal() {
     free_port_443
     case $? in
         1) return 1 ;;
         2) return 2 ;;
     esac
+    ask_port reality
     ask_domain
     warn_port_80
     local out
@@ -1099,21 +1131,9 @@ setup_selfsteal() {
 
 # setup_own_port puts the panel and its website on a port of its own.
 setup_own_port() {
-    local port current choice cert key
-    current=$(${xui_folder}/x-ui setting -show true | grep -Eo '^port: .+' | awk '{print $2}')
-    while true; do
-        read -rp "Port of the panel [default ${current}]: " port
-        port=${port:-$current}
-        if ! [[ "$port" =~ ^[0-9]+$ ]] || ((port < 1 || port > 65535)); then
-            LOGE "A port is a number from 1 to 65535."
-            continue
-        fi
-        if [[ -n "$(port_owner "$port")" ]]; then
-            LOGE "Port ${port} is taken by $(port_owner "$port" | cut -d' ' -f1)."
-            continue
-        fi
-        break
-    done
+    local port choice cert key
+    ask_port
+    port=$SITE_PORT
     ask_domain optional
     if [[ -z "$SITE_NAME" ]]; then
         SITE_NAME=$(server_ips | head -1)
@@ -1140,7 +1160,6 @@ setup_own_port() {
             echo -e "${yellow}Ports 80 and 443 are both taken: the authorities cannot check this server, and the panel serves a self-signed certificate until one of them is free.${plain}"
         fi
     fi
-    ${xui_folder}/x-ui setting -port "$port" > /dev/null
     if [[ -n "$cert" ]]; then
         ${xui_folder}/x-ui cert -webCert "$cert" -webCertKey "$key" > /dev/null
     else
