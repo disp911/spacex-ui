@@ -684,14 +684,6 @@ func (s *ServerService) downloadXRay(version string) (string, error) {
 	return fileName, nil
 }
 
-func (s *ServerService) UpdateXray(version string) error {
-	zipFileName, err := s.DownloadXray(version)
-	if err != nil {
-		return err
-	}
-	return s.InstallXray(zipFileName)
-}
-
 // DownloadXray fetches the release archive of the version while Xray keeps
 // running, and returns where it is.
 func (s *ServerService) DownloadXray(version string) (string, error) {
@@ -1122,14 +1114,6 @@ func (s *ServerService) GetDb() ([]byte, error) {
 	}
 
 	return fileContents, nil
-}
-
-func (s *ServerService) ImportDB(file multipart.File) error {
-	tempPath, err := s.PrepareDBImport(file)
-	if err != nil {
-		return err
-	}
-	return s.ApplyDBImport(tempPath)
 }
 
 // PrepareDBImport checks the uploaded database and keeps it beside the

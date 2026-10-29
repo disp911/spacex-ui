@@ -154,11 +154,6 @@ func (a *ServerController) getPanelUpdateInfo(c *gin.Context) {
 // installXray installs or updates Xray to the specified version.
 func (a *ServerController) installXray(c *gin.Context) {
 	version := c.Param("version")
-	if !service.SiteBehindReality() {
-		err := a.serverService.UpdateXray(version)
-		jsonMsg(c, I18nWeb(c, "pages.index.xraySwitchVersionPopover"), err)
-		return
-	}
 	zipFileName, err := a.serverService.DownloadXray(version)
 	if err != nil {
 		jsonMsg(c, I18nWeb(c, "pages.index.xraySwitchVersionPopover"), err)
@@ -174,7 +169,8 @@ func (a *ServerController) installXray(c *gin.Context) {
 
 // afterAnswer runs f a moment after the answer has gone out. Behind REALITY
 // the panel is reached through Xray, so stopping Xray drops the very
-// request that asked for it: such a request is answered first.
+// request that asked for it: such requests are answered first, in either
+// mode alike, and a failure after the answer shows in Xray's state.
 func afterAnswer(f func()) {
 	go func() {
 		time.Sleep(time.Second)
@@ -222,30 +218,14 @@ func (a *ServerController) stopXrayService(c *gin.Context) {
 
 // restartXrayService restarts the Xray service.
 func (a *ServerController) restartXrayService(c *gin.Context) {
-	if service.SiteBehindReality() {
-		jsonMsg(c, I18nWeb(c, "pages.xray.restartSuccess"), nil)
-		afterAnswer(func() {
-			if err := a.serverService.RestartXrayService(); err != nil {
-				websocket.BroadcastXrayState("error", err.Error())
-				return
-			}
-			websocket.BroadcastXrayState("running", "")
-		})
-		return
-	}
-	err := a.serverService.RestartXrayService()
-	if err != nil {
-		jsonMsg(c, I18nWeb(c, "pages.xray.restartError"), err)
-		websocket.BroadcastXrayState("error", err.Error())
-		return
-	}
-	jsonMsg(c, I18nWeb(c, "pages.xray.restartSuccess"), err)
-	websocket.BroadcastXrayState("running", "")
-	websocket.BroadcastNotification(
-		I18nWeb(c, "pages.xray.restartSuccess"),
-		"Xray service has been restarted successfully",
-		"success",
-	)
+	jsonMsg(c, I18nWeb(c, "pages.xray.restartSuccess"), nil)
+	afterAnswer(func() {
+		if err := a.serverService.RestartXrayService(); err != nil {
+			websocket.BroadcastXrayState("error", err.Error())
+			return
+		}
+		websocket.BroadcastXrayState("running", "")
+	})
 }
 
 // stopTelemtService stops the Telegram proxy until it is restarted.
@@ -400,31 +380,20 @@ func (a *ServerController) importDB(c *gin.Context) {
 		return
 	}
 	defer file.Close()
-	if service.SiteBehindReality() {
-		// The import stops Xray: the file is checked and kept now, and put
-		// in place after the answer.
-		tempPath, err := a.serverService.PrepareDBImport(file)
-		if err != nil {
-			jsonMsg(c, I18nWeb(c, "pages.index.importDatabaseError"), err)
-			return
-		}
-		jsonObj(c, I18nWeb(c, "pages.index.importDatabaseSuccess"), nil)
-		afterAnswer(func() {
-			if err := a.serverService.ApplyDBImport(tempPath); err != nil {
-				logger.Error("Importing the database failed:", err)
-			}
-			a.serverService.RestartXrayService()
-		})
-		return
-	}
-	// Always restart Xray before return
-	defer a.serverService.RestartXrayService()
-	err = a.serverService.ImportDB(file)
+	// The import stops Xray: the file is checked and kept now, and put in
+	// place after the answer.
+	tempPath, err := a.serverService.PrepareDBImport(file)
 	if err != nil {
 		jsonMsg(c, I18nWeb(c, "pages.index.importDatabaseError"), err)
 		return
 	}
 	jsonObj(c, I18nWeb(c, "pages.index.importDatabaseSuccess"), nil)
+	afterAnswer(func() {
+		if err := a.serverService.ApplyDBImport(tempPath); err != nil {
+			logger.Error("Importing the database failed:", err)
+		}
+		a.serverService.RestartXrayService()
+	})
 }
 
 // getNewX25519Cert generates a new X25519 certificate.
