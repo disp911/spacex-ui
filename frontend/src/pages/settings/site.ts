@@ -10,8 +10,6 @@ export type SiteMode = '' | 'reality'
 export interface SiteSettings {
   mode: SiteMode
   domain: string
-  /** Behind REALITY: the panel also answers on its own port. */
-  panelPort: boolean
   /** On the panel's own port: the admin's certificate; empty, the panel obtains one for the domain. */
   certFile: string
   keyFile: string

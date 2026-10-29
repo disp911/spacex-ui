@@ -270,8 +270,6 @@
 "siteDomain" = "Домен"
 "siteDomainReality" = "Обязателен: домен, который указывает на этот сервер"
 "siteDomainPort" = "Домен или IP-адрес сервера; пусто — без сертификата"
-"sitePanelPort" = "Открыть порт {port}"
-"sitePanelPortHint" = "Панель будет доступна и на своём порту, а не только через 443"
 "siteCert" = "Сертификат"
 "siteCertAuto" = "Получать автоматически"
 "siteCertFiles" = "Свои файлы"

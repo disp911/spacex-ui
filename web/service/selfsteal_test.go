@@ -142,8 +142,8 @@ func TestSwitchModeKeepsTheSiteInbound(t *testing.T) {
 	if err := inbounds.guardSite(nil, &model.Inbound{Port: 443, Enable: true, Protocol: model.Hysteria}); err != nil {
 		t.Fatalf("Hysteria on UDP 443 stays beside REALITY: %v", err)
 	}
-	if err := inbounds.guardSite(nil, &model.Inbound{Port: 2053, Enable: true, Protocol: model.Trojan}); err == nil {
-		t.Fatal("the panel's own port is the panel's")
+	if err := inbounds.guardSite(nil, &model.Inbound{Port: 2053, Enable: true, Protocol: model.Trojan}); err != nil {
+		t.Fatalf("behind REALITY the panel opens no port of its own: %v", err)
 	}
 
 	// On its own port the panel keeps the inbound, switched off.
@@ -159,6 +159,9 @@ func TestSwitchModeKeepsTheSiteInbound(t *testing.T) {
 	}
 	if err := inbounds.guardSite(nil, &model.Inbound{Port: 443, Enable: true, Protocol: model.VLESS}); err != nil {
 		t.Fatalf("on its own port the panel leaves 443 free: %v", err)
+	}
+	if err := inbounds.guardSite(nil, &model.Inbound{Port: 2053, Enable: true, Protocol: model.Trojan}); err == nil {
+		t.Fatal("on its own port the panel keeps that port")
 	}
 
 	// Back behind REALITY a new inbound is made.

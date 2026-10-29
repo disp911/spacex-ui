@@ -80,12 +80,11 @@ var defaultValueMap = map[string]string{
 	"xrayOutboundTestUrl":         "https://www.google.com/generate_204",
 
 	// The website on port 443, see SiteMode.
-	"siteMode":      "",
-	"siteDomain":    "",
-	"sitePanelPort": "false",
-	"siteSeed":      "",
-	"siteBorn":      "",
-	"siteInbound":   "0",
+	"siteMode":    "",
+	"siteDomain":  "",
+	"siteSeed":    "",
+	"siteBorn":    "",
+	"siteInbound": "0",
 
 	// LDAP defaults
 	"ldapEnable":            "false",
@@ -441,16 +440,6 @@ func (s *SettingService) GetSiteDomain() (string, error) {
 
 func (s *SettingService) SetSiteDomain(domain string) error {
 	return s.setString("siteDomain", strings.ToLower(strings.TrimSpace(domain)))
-}
-
-// GetSitePanelPort reports whether the panel also keeps its own port while
-// a REALITY inbound holds 443: a way back in should REALITY break.
-func (s *SettingService) GetSitePanelPort() (bool, error) {
-	return s.getBool("sitePanelPort")
-}
-
-func (s *SettingService) SetSitePanelPort(open bool) error {
-	return s.setBool("sitePanelPort", open)
 }
 
 // GetSiteSeed returns what the panel's own website is made from: a random

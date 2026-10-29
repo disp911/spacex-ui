@@ -266,7 +266,7 @@ func updateSetting(port int, username string, password string, webBasePath strin
 
 // updateSite sets where the website on port 443 runs and for which domain,
 // then prints what is set. Empty values are left as they are.
-func updateSite(mode, domain, panelPort string) error {
+func updateSite(mode, domain string) error {
 	err := database.InitDB(config.GetDBPath())
 	if err != nil {
 		fmt.Println("Database initialization failed:", err)
@@ -279,12 +279,6 @@ func updateSite(mode, domain, panelPort string) error {
 		}
 		if err := settingService.SetSiteDomain(domain); err != nil {
 			fmt.Println("Failed to set the website domain:", err)
-			return err
-		}
-	}
-	if panelPort != "" {
-		if err := settingService.SetSitePanelPort(panelPort == "true"); err != nil {
-			fmt.Println("Failed to set the panel port:", err)
 			return err
 		}
 	}
@@ -312,10 +306,8 @@ func updateSite(mode, domain, panelPort string) error {
 		mode = "port"
 	}
 	domain, _ = settingService.GetSiteDomain()
-	open, _ := settingService.GetSitePanelPort()
 	fmt.Println("website mode:", mode)
 	fmt.Println("website name:", domain)
-	fmt.Println("panel port behind REALITY:", open)
 	fmt.Println("website socket:", config.GetSiteSocket())
 	return nil
 }
@@ -338,7 +330,7 @@ func lookupSite(name string) error {
 // 443, which passes whoever is not a client on to the website, and prints
 // how its first client connects.
 func selfSteal(domain string) error {
-	return updateSite(service.SiteReality, domain, "")
+	return updateSite(service.SiteReality, domain)
 }
 
 func printSiteInbound(siteService *service.SiteService, ib *model.Inbound) {
@@ -484,11 +476,10 @@ func main() {
 	settingCmd.StringVar(&webKeyFile, "webCertKey", "", "Set path to private key file for panel")
 
 	siteCmd := flag.NewFlagSet("site", flag.ExitOnError)
-	var siteMode, siteDomain, sitePanelPort, siteLookup string
+	var siteMode, siteDomain, siteLookup string
 	siteCmd.StringVar(&siteMode, "mode", "", "Where the panel and its website answer: reality (443 behind REALITY) or port (the panel's own port)")
 	siteCmd.StringVar(&siteDomain, "domain", "", "Set the domain or IP address the panel gets its certificate for, - to clear it")
 	siteCmd.StringVar(&siteLookup, "lookup", "", "Print the addresses a domain resolves to")
-	siteCmd.StringVar(&sitePanelPort, "panelPort", "", "Keep the panel's own port open behind REALITY: true or false")
 
 	selfStealCmd := flag.NewFlagSet("selfsteal", flag.ExitOnError)
 	var stealDomain string
@@ -557,7 +548,7 @@ func main() {
 			}
 			return
 		}
-		if updateSite(siteMode, siteDomain, sitePanelPort) != nil {
+		if updateSite(siteMode, siteDomain) != nil {
 			os.Exit(1)
 		}
 	case "selfsteal":

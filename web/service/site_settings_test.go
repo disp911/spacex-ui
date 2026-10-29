@@ -24,8 +24,8 @@ func TestApplySiteKeepsNothingWhenRefused(t *testing.T) {
 	settings := SettingService{}
 
 	// REALITY wants a domain name: the address is refused, and the domain
-	// and the panel's port stay as they were.
-	err := sites.ApplySite(SiteSettings{Mode: SiteReality, Domain: "203.0.113.7", PanelPort: true})
+	// stays as it was.
+	err := sites.ApplySite(SiteSettings{Mode: SiteReality, Domain: "203.0.113.7"})
 	if err == nil || !strings.Contains(err.Error(), "domain name") {
 		t.Fatalf("err %v", err)
 	}
@@ -33,7 +33,7 @@ func TestApplySiteKeepsNothingWhenRefused(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if set.Domain != "docs.example.com" || set.PanelPort || set.Mode != SitePort {
+	if set.Domain != "docs.example.com" || set.Mode != SitePort {
 		t.Fatalf("kept %+v", set)
 	}
 

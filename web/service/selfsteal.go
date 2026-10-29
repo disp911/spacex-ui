@@ -56,9 +56,6 @@ func (s *SiteService) SwitchMode(mode string) (*model.Inbound, error) {
 		if p, _ := s.settingService.GetBasePath(); p == "/" {
 			return nil, common.NewError("the panel needs a secret path to share port 443 with the website")
 		}
-		if port == 443 {
-			return nil, common.NewError("the panel's own port is 443, which REALITY takes: set another one first")
-		}
 	}
 
 	ib, err := s.SiteInbound()
@@ -430,8 +427,9 @@ func siteTarget(ib *model.Inbound) bool {
 // guardSite refuses a change that would take a port from the panel or its
 // website. Behind REALITY TCP 443 is the website's, and the site inbound
 // carries the website and the panel itself, so it stays on, on 443, and
-// without limits that would one day switch it off. The panel's own port is
-// the panel's in either mode. Inbounds over UDP share both. old is nil for
+// without limits that would one day switch it off. On its own port the
+// panel keeps that port; behind REALITY it opens none. Inbounds over UDP
+// share both. old is nil for
 // a new inbound and next is nil for a deleted one.
 func (s *InboundService) guardSite(old, next *model.Inbound) error {
 	settings := SettingService{}
@@ -464,6 +462,9 @@ func (s *InboundService) guardSite(old, next *model.Inbound) error {
 	}
 	if mode == SiteReality && next.Port == 443 {
 		return common.NewError("TCP port 443 belongs to the panel's website behind REALITY. Inbounds over UDP, such as Hysteria, may use 443.")
+	}
+	if mode == SiteReality {
+		return nil
 	}
 	port, _ := settings.GetPort()
 	listen, _ := settings.GetListen()

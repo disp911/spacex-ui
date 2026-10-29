@@ -5,7 +5,7 @@ import { api } from '../../api'
 import { formatDate, formatRelative } from '../../i18n/format'
 import {
   toast, XButton, XConfirm, XEmpty, XField, XFieldGrid, XFieldNote, XInput, XKeyValue, XSegmented, XSettingBlock, XSettingsSection,
-  XSkeletonText, XStatusText, XSwitch,
+  XSkeletonText, XStatusText,
 } from '../../kit'
 import { cause, useSettingsForm } from './form'
 import { addressAfterSite } from './restart'
@@ -32,9 +32,9 @@ onMounted(async () => {
 // --- Mode and domain ------------------------------------------------------------
 
 const pick = (s: SiteSettings): SiteSettings => ({
-  mode: s.mode, domain: s.domain, panelPort: s.panelPort, certFile: s.certFile, keyFile: s.keyFile,
+  mode: s.mode, domain: s.domain, certFile: s.certFile, keyFile: s.keyFile,
 })
-const form = reactive<SiteSettings>({ mode: '', domain: '', panelPort: false, certFile: '', keyFile: '' })
+const form = reactive<SiteSettings>({ mode: '', domain: '', certFile: '', keyFile: '' })
 const certSource = ref<'auto' | 'files'>('auto')
 
 const modes = computed(() => [
@@ -131,7 +131,7 @@ async function renew() {
 
 <template>
   <div class="settings-tab">
-    <XSettingsSection v-model:open="open.mode" :title="t('settings.secSite')" :count="3">
+    <XSettingsSection v-model:open="open.mode" :title="t('settings.secSite')" :count="form.mode === 'reality' ? 2 : 3">
       <XSettingBlock>
         <XSkeletonText v-if="!site && !failed" width="60%" />
         <XEmpty v-else-if="failed" tone="err" icon="alert" :title="t('settings.siteLoadFailed')" />
@@ -145,14 +145,7 @@ async function renew() {
           <XField v-slot="a" :label="t('settings.siteDomain')" :hint="form.mode === 'reality' ? t('settings.siteDomainReality') : t('settings.siteDomainPort')" :error="errors.domain">
             <XInput v-bind="a" v-model.trim="form.domain" mono placeholder="example.com" :invalid="!!errors.domain" />
           </XField>
-          <XSwitch
-            v-if="form.mode === 'reality'"
-            v-model="form.panelPort"
-            boxed
-            :label="t('settings.sitePanelPort', { port: site?.port })"
-            :help="t('settings.sitePanelPortHint')"
-          />
-          <template v-else>
+          <template v-if="form.mode === ''">
             <XField v-slot="a" :label="t('settings.siteCert')" class="x-wide">
               <XSegmented v-bind="a" v-model="certSource" :options="sources" block />
             </XField>

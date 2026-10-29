@@ -1065,29 +1065,16 @@ warn_port_80() {
     return 1
 }
 
-# ask_port asks for the panel's own port, the current one by default, and
-# sets it. With "reality" the port is the one the panel keeps shut behind
-# REALITY, a way in to open from the menu, and may be neither 443 nor 80,
-# which REALITY and the website take.
+# ask_port asks for the panel's port, the current one by default, and sets
+# it. The website and the panel answer on it.
 ask_port() {
-    local reality=$1 port current
+    local port current
     current=$(${xui_folder}/x-ui setting -show true | grep -Eo '^port: .+' | awk '{print $2}')
-    if [[ -n "$reality" && ("$current" == "443" || "$current" == "80") ]]; then
-        current=$(shuf -i 1024-62000 -n 1)
-    fi
     while true; do
-        if [[ -n "$reality" ]]; then
-            read -rp "Port of the panel, kept shut behind REALITY as a way in to open from the menu [default ${current}]: " port
-        else
-            read -rp "Port of the panel [default ${current}]: " port
-        fi
+        read -rp "Port of the panel [default ${current}]: " port
         port=${port:-$current}
         if ! [[ "$port" =~ ^[0-9]+$ ]] || ((port < 1 || port > 65535)); then
             LOGE "A port is a number from 1 to 65535."
-            continue
-        fi
-        if [[ -n "$reality" ]] && ((port == 443 || port == 80)); then
-            LOGE "Ports 443 and 80 belong to REALITY and the website."
             continue
         fi
         if [[ -n "$(port_owner "$port")" ]]; then
@@ -1104,7 +1091,6 @@ ask_port() {
 # It returns 2 when 443 stays taken and the panel goes on a port of its own.
 setup_selfsteal() {
     free_port_443 || return 2
-    ask_port reality
     ask_domain
     warn_port_80
     local out
@@ -1229,20 +1215,12 @@ site_status() {
 
 # site_menu is the menu of the website, the panel's address and certificate.
 site_menu() {
-    local mode open
+    local mode
     mode=$(site_value "website mode")
     echo -e "${green}Website and certificate${plain}"
     echo -e "  mode: ${mode}, name: $(site_value "website name")"
     echo -e "${green}\t1.${plain} Show the panel's address"
     echo -e "${green}\t2.${plain} Set up again: REALITY on 443 or a port of its own"
-    if [[ "$mode" == "reality" ]]; then
-        open=$(site_value "panel port behind REALITY")
-        if [[ "$open" == "true" ]]; then
-            echo -e "${green}\t3.${plain} Close the panel's own port again"
-        else
-            echo -e "${green}\t3.${plain} Open the panel's own port too (a way in should REALITY break)"
-        fi
-    fi
     echo -e "${green}\t0.${plain} Back to Main Menu"
     read -rp "Choose an option: " choice
     case "$choice" in
@@ -1255,18 +1233,6 @@ site_menu() {
                 restart 0
                 site_status wait
                 [[ -n "$SITE_CLIENT" ]] && echo "$SITE_CLIENT"
-            fi
-            site_menu
-            ;;
-        3)
-            if [[ "$mode" == "reality" ]]; then
-                if [[ "$open" == "true" ]]; then
-                    ${xui_folder}/x-ui site -panelPort false > /dev/null
-                else
-                    ${xui_folder}/x-ui site -panelPort true > /dev/null
-                    LOGI "The panel opens on its own port too: https://$(site_value "website name"):$(${xui_folder}/x-ui setting -show true | grep -Eo '^port: .+' | awk '{print $2}')$(${xui_folder}/x-ui setting -show true | grep -Eo '^webBasePath: .+' | awk '{print $2}')"
-                fi
-                restart 0
             fi
             site_menu
             ;;

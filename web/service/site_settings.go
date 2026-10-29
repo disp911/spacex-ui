@@ -15,8 +15,6 @@ import (
 type SiteSettings struct {
 	Mode   string `json:"mode"`
 	Domain string `json:"domain"`
-	// PanelPort keeps the panel's own port open behind REALITY.
-	PanelPort bool `json:"panelPort"`
 	// CertFile and KeyFile are the administrator's certificate on the
 	// panel's own port; empty, the panel obtains one for Domain itself.
 	// Behind REALITY they are kept as they are.
@@ -90,9 +88,6 @@ func (s *SiteService) storeSite(set SiteSettings, files bool) error {
 	if err := s.settingService.SetSiteDomain(set.Domain); err != nil {
 		return err
 	}
-	if err := s.settingService.SetSitePanelPort(set.PanelPort); err != nil {
-		return err
-	}
 	if !files {
 		return nil
 	}
@@ -107,9 +102,6 @@ func (s *SiteService) siteSettings() (set SiteSettings, err error) {
 		return
 	}
 	if set.Domain, err = s.settingService.GetSiteDomain(); err != nil {
-		return
-	}
-	if set.PanelPort, err = s.settingService.GetSitePanelPort(); err != nil {
 		return
 	}
 	if set.CertFile, err = s.settingService.GetCertFile(); err != nil {

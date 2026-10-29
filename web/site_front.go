@@ -121,40 +121,39 @@ var quietLog = log.New(io.Discard, "", 0)
 
 // startReality opens the website on the socket the REALITY inbound on 443
 // passes visitors to, with the panel at its secret path, plus port 80 for
-// the authorities' checks and a redirect to HTTPS. It reports whether the
-// panel's own port is to be opened as well, a way back in should REALITY
-// break.
-func (s *Server) startReality(panel http.Handler) (ownPort bool, err error) {
+// the authorities' checks and a redirect to HTTPS. The panel opens no port
+// of its own then.
+func (s *Server) startReality(panel http.Handler) error {
 	domain, err := s.settingService.GetSiteDomain()
 	if err != nil {
-		return false, err
+		return err
 	}
 	if domain == "" {
-		return false, errSite("no domain is set for the website")
+		return errSite("no domain is set for the website")
 	}
 	basePath, err := s.settingService.GetBasePath()
 	if err != nil {
-		return false, err
+		return err
 	}
 	if basePath == "/" {
-		return false, errSite("the panel needs a secret path to share port 443 with the website")
+		return errSite("the panel needs a secret path to share port 443 with the website")
 	}
 	listen, _ := s.settingService.GetListen()
 
 	certs := site.NewCerts(config.GetCertFolder(), domain)
 	if err := certs.Start(s.ctx); err != nil {
-		return false, err
+		return err
 	}
 	ln, err := siteSocket(config.GetSiteSocket())
 	if err != nil {
 		certs.Stop()
-		return false, err
+		return err
 	}
 	pages, err := s.sitePages(domain)
 	if err != nil {
 		ln.Close()
 		certs.Stop()
-		return false, err
+		return err
 	}
 	s.siteFront = siteFront{basePath: basePath, panel: panel, site: pages}
 	s.siteHandler = asCaddy(webProxyFront{panel: s.siteFront, route: service.TelemtWebRoute})
@@ -185,7 +184,7 @@ func (s *Server) startReality(panel http.Handler) (ownPort bool, err error) {
 	service.SetSiteStatus(&service.SiteState{Scheme: "https", Host: domain, Reality: true, Certs: certs, Checker: s.siteCheck})
 	siteRunning.Store(true)
 
-	return s.settingService.GetSitePanelPort()
+	return nil
 }
 
 // startOwnPort opens the panel on its own port with the website at the
@@ -301,24 +300,6 @@ func (s *Server) sitePages(domain string) (http.Handler, error) {
 		return site.Files(fsys), nil
 	}
 	return site.Feedback(docsite.FeedbackPath, site.Files(fsys)), nil
-}
-
-// listenOwnPort opens the panel's own port while the website runs: the same
-// answers as on 443, with the website's certificate.
-func (s *Server) listenOwnPort() (net.Listener, error) {
-	listen, err := s.settingService.GetListen()
-	if err != nil {
-		return nil, err
-	}
-	port, err := s.settingService.GetPort()
-	if err != nil {
-		return nil, err
-	}
-	ln, err := net.Listen("tcp", net.JoinHostPort(listen, strconv.Itoa(port)))
-	if err != nil {
-		return nil, err
-	}
-	return tls.NewListener(network.NewAutoHttpsListener(ln), s.siteTLS), nil
 }
 
 // checkSite looks at the website from outside and logs when it goes down or

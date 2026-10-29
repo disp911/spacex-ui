@@ -337,26 +337,20 @@ func (s *Server) Start() (err error) {
 		return err
 	}
 
-	// Behind REALITY the panel shares port 443 with its website and keeps
-	// its own port only if asked; should REALITY's side fail to start, the
-	// panel opens on its own port instead.
+	// Behind REALITY the panel shares port 443 with its website and opens
+	// no port of its own; should REALITY's side fail to start, the panel
+	// opens on its own port instead.
 	ownPort, httpsOn443 := true, false
 	if mode, _ := s.settingService.GetSiteMode(); mode == service.SiteReality {
-		if own, err := s.startReality(engine); err != nil {
+		if err := s.startReality(engine); err != nil {
 			logger.Error("Website behind REALITY:", err, "- the panel opens on its own port")
 		} else {
-			ownPort, httpsOn443 = own, true
+			ownPort, httpsOn443 = false, true
 		}
 	}
 	if ownPort {
-		var listener net.Listener
-		if s.siteTLS != nil {
-			listener, err = s.listenOwnPort()
-		} else {
-			var on443 bool
-			listener, on443, err = s.startOwnPort(engine)
-			httpsOn443 = on443
-		}
+		listener, on443, err := s.startOwnPort(engine)
+		httpsOn443 = on443
 		if err != nil {
 			return err
 		}
