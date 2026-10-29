@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { computed, reactive } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { XInput, XNumber, XSettingRow, XSettingsSection, XSwitch, XTextarea } from '../../kit'
 import AddressNote from './AddressNote.vue'
 import { useSettingsForm } from './form'
 import { panelAddress, type SettingKey } from './model'
+import { loadSite } from './site'
 
 /** The panel's address, its certificate and what it does with clients. */
 const { t } = useI18n()
@@ -19,6 +20,16 @@ const sections = {
 // A changed part of the address shows where the panel will be after a restart.
 const address = computed(() => panelAddress(f.draft))
 const moved = (k: SettingKey) => f.isDirty(k) && !f.error(k)
+
+// Behind REALITY the panel answers on 443 with its website and opens no port of its own.
+const reality = ref(false)
+onMounted(async () => {
+  try {
+    reality.value = (await loadSite()).mode === 'reality'
+  } catch {
+    // the port shows as it is stored
+  }
+})
 </script>
 
 <template>
@@ -32,7 +43,10 @@ const moved = (k: SettingKey) => f.isDirty(k) && !f.error(k)
         <XInput v-model="f.draft.webDomain" mono :modified="f.isDirty('webDomain')" />
         <template v-if="moved('webDomain')" #note><AddressNote :address="address" /></template>
       </XSettingRow>
-      <XSettingRow :title="t('settings.webPort')" :description="t('settings.webPortDesc')" narrow :modified="f.isDirty('webPort')" :error="f.error('webPort')">
+      <XSettingRow v-if="reality" :title="t('settings.webPort')" :description="t('settings.webPortReality')" narrow>
+        <XNumber :model-value="443" readonly />
+      </XSettingRow>
+      <XSettingRow v-else :title="t('settings.webPort')" :description="t('settings.webPortDesc')" narrow :modified="f.isDirty('webPort')" :error="f.error('webPort')">
         <XNumber v-model="f.draft.webPort" :modified="f.isDirty('webPort')" :invalid="!!f.error('webPort')" />
         <template v-if="moved('webPort')" #note><AddressNote :address="address" /></template>
       </XSettingRow>

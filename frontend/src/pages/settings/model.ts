@@ -129,11 +129,12 @@ function subPathOf(uri: string, path: string) {
 }
 
 /** What the security banner warns about in the saved settings, as translation keys. */
-export function securityAlerts(s: AllSetting) {
+/** reality: the panel answers on 443 behind REALITY and opens no port of its own. */
+export function securityAlerts(s: AllSetting, reality = false) {
   const alerts: Text[] = []
   // The certificate may be the panel's own, obtained by itself: what counts is how this page came.
   if (location.protocol !== 'https:') alerts.push('settings.securityTls')
-  if (s.webPort === 2053) alerts.push('settings.securityPort')
+  if (!reality && s.webPort === 2053) alerts.push('settings.securityPort')
   if (s.webBasePath === '/') alerts.push('settings.securityPath')
   if (s.subEnable && subPathOf(s.subURI, s.subPath) === '/sub/') alerts.push('settings.securitySubPath')
   if (s.subJsonEnable && subPathOf(s.subJsonURI, s.subJsonPath) === '/json/') alerts.push('settings.securityJsonPath')

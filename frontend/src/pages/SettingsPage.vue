@@ -10,6 +10,7 @@ import AppPage from '../layout/AppPage.vue'
 import { cause, formKey } from './settings/form'
 import { securityAlerts, settingErrors, tabs, type AllSetting, type SettingKey, type TabKey, type Text } from './settings/model'
 import { addressAfterRestart, waitForPanel } from './settings/restart'
+import { loadSite } from './settings/site'
 import PanelTab from './settings/PanelTab.vue'
 import SiteTab from './settings/SiteTab.vue'
 import UiTab from './settings/UiTab.vue'
@@ -117,7 +118,16 @@ watch(tab, () => nextTick(() => window.scrollTo({ top: 0 })))
 // --- Security banner --------------------------------------------------------
 
 const bannerClosed = ref(false)
-const alerts = computed(() => (saved.value ? securityAlerts(saved.value).map((key) => t(key)) : []))
+// Behind REALITY the panel's port is not open, so its number is no risk.
+const reality = ref(false)
+onMounted(async () => {
+  try {
+    reality.value = (await loadSite()).mode === 'reality'
+  } catch {
+    // the port counts as it is stored
+  }
+})
+const alerts = computed(() => (saved.value ? securityAlerts(saved.value, reality.value).map((key) => t(key)) : []))
 const showBanner = computed(() => ready.value && !bannerClosed.value && alerts.value.length > 0)
 
 // --- Save -------------------------------------------------------------------
