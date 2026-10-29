@@ -400,10 +400,25 @@ func (a *ServerController) importDB(c *gin.Context) {
 		return
 	}
 	defer file.Close()
+	if service.SiteBehindReality() {
+		// The import stops Xray: the file is checked and kept now, and put
+		// in place after the answer.
+		tempPath, err := a.serverService.PrepareDBImport(file)
+		if err != nil {
+			jsonMsg(c, I18nWeb(c, "pages.index.importDatabaseError"), err)
+			return
+		}
+		jsonObj(c, I18nWeb(c, "pages.index.importDatabaseSuccess"), nil)
+		afterAnswer(func() {
+			if err := a.serverService.ApplyDBImport(tempPath); err != nil {
+				logger.Error("Importing the database failed:", err)
+			}
+			a.serverService.RestartXrayService()
+		})
+		return
+	}
 	// Always restart Xray before return
 	defer a.serverService.RestartXrayService()
-	// lastGetStatusTime removed; no longer needed
-	// Import it
 	err = a.serverService.ImportDB(file)
 	if err != nil {
 		jsonMsg(c, I18nWeb(c, "pages.index.importDatabaseError"), err)
