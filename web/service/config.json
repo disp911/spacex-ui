@@ -31,8 +31,7 @@
       "protocol": "freedom",
       "settings": {
         "domainStrategy": "AsIs",
-        "redirect": "",
-        "noises": []
+        "redirect": ""
       }
     },
     {
