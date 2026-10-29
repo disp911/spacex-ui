@@ -282,7 +282,7 @@
 "certUntil" = "Valid until"
 "certCheck" = "Outside check"
 "certCheckOk" = "Online · {time}"
-"certCheckFail" = "Does not open · {time}"
+"certCheckFail" = "Offline · {time}"
 "certCheckError" = "Check failed"
 "certCheckNone" = "Not checked yet"
 "certError" = "Obtaining failed"

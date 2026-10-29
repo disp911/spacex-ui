@@ -282,7 +282,7 @@
 "certUntil" = "Действует до"
 "certCheck" = "Проверка снаружи"
 "certCheckOk" = "Онлайн · {time}"
-"certCheckFail" = "Не открывается · {time}"
+"certCheckFail" = "Офлайн · {time}"
 "certCheckError" = "Ошибка проверки"
 "certCheckNone" = "Ещё не проверялся"
 "certError" = "Ошибка получения"
