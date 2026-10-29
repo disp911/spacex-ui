@@ -624,6 +624,19 @@ func (s *ServerService) StopXrayService() error {
 	return nil
 }
 
+// RestartXrayLater restarts Xray a moment from now, after the answer to the
+// request that asked for it: behind REALITY that request runs through Xray,
+// which a restart would drop. A failure is logged under what and shows in
+// Xray's state.
+func (s *ServerService) RestartXrayLater(what string) {
+	go func() {
+		time.Sleep(time.Second)
+		if err := s.RestartXrayService(); err != nil {
+			logger.Warning(what+": restart xray:", err)
+		}
+	}()
+}
+
 func (s *ServerService) RestartXrayService() error {
 	err := s.xrayService.RestartXray(true)
 	if err != nil {
@@ -1377,10 +1390,7 @@ func (s *ServerService) UpdateGeofile(fileName string) error {
 		}
 	}
 
-	err := s.RestartXrayService()
-	if err != nil {
-		errorMessages = append(errorMessages, fmt.Sprintf("Updated Geofile '%s' but Failed to start Xray: %v", fileName, err))
-	}
+	s.RestartXrayLater("geofile update")
 
 	if len(errorMessages) > 0 {
 		return common.NewErrorf("%s", strings.Join(errorMessages, "\r\n"))

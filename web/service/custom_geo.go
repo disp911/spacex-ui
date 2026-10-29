@@ -80,7 +80,7 @@ func NewCustomGeoService() *CustomGeoService {
 	}
 	s.updateAllGetAll = s.GetAll
 	s.updateAllApply = s.applyDownloadAndPersist
-	s.updateAllRestart = func() error { return s.serverService.RestartXrayService() }
+	s.updateAllRestart = func() error { s.serverService.RestartXrayLater("custom geo update all"); return nil }
 	return s
 }
 
@@ -507,9 +507,7 @@ func (s *CustomGeoService) Create(r *model.CustomGeoResource) error {
 		return err
 	}
 	logger.Infof("custom geo created id=%d type=%s alias=%s skipped=%v", r.Id, r.Type, r.Alias, skipped)
-	if err = s.serverService.RestartXrayService(); err != nil {
-		logger.Warning("custom geo create: restart xray:", err)
-	}
+	s.serverService.RestartXrayLater("custom geo create")
 	return nil
 }
 
@@ -569,9 +567,7 @@ func (s *CustomGeoService) Update(id int, r *model.CustomGeoResource) error {
 		return err
 	}
 	logger.Infof("custom geo updated id=%d", id)
-	if err = s.serverService.RestartXrayService(); err != nil {
-		logger.Warning("custom geo update: restart xray:", err)
-	}
+	s.serverService.RestartXrayLater("custom geo update")
 	return nil
 }
 
@@ -597,9 +593,7 @@ func (s *CustomGeoService) Delete(id int) (displayName string, err error) {
 		}
 	}
 	logger.Infof("custom geo deleted id=%d", id)
-	if err := s.serverService.RestartXrayService(); err != nil {
-		logger.Warning("custom geo delete: restart xray:", err)
-	}
+	s.serverService.RestartXrayLater("custom geo delete")
 	return displayName, nil
 }
 
@@ -669,9 +663,7 @@ func (s *CustomGeoService) TriggerUpdate(id int) (string, error) {
 	if err != nil {
 		return displayName, err
 	}
-	if err = s.serverService.RestartXrayService(); err != nil {
-		logger.Warning("custom geo manual update: restart xray:", err)
-	}
+	s.serverService.RestartXrayLater("custom geo manual update")
 	return displayName, nil
 }
 
@@ -713,7 +705,7 @@ func (s *CustomGeoService) TriggerUpdateAll() (*CustomGeoUpdateAllResult, error)
 		if s.updateAllRestart != nil {
 			restartErr = s.updateAllRestart()
 		} else {
-			restartErr = s.serverService.RestartXrayService()
+			s.serverService.RestartXrayLater("custom geo update all")
 		}
 		if restartErr != nil {
 			logger.Warning("custom geo update all: restart xray:", restartErr)
