@@ -42,6 +42,24 @@
   box-shadow: 0 0 0 3px var(--err-ring);
 }
 
+/*
+ * Browser autofill paints the text box alone, a band inside the field that
+ * leaves out its padding and buttons. Its colours are held off for good, so
+ * the field keeps its own background in every state and the text its colour.
+ */
+.x-field-box input:-webkit-autofill {
+  -webkit-text-fill-color: var(--fg);
+  caret-color: var(--fg);
+  transition: background-color 0s 600000s, color 0s 600000s;
+}
+
+/* Apart: a browser that knows only one of the two names drops a list with the other. */
+.x-field-box input:autofill {
+  -webkit-text-fill-color: var(--fg);
+  caret-color: var(--fg);
+  transition: background-color 0s 600000s, color 0s 600000s;
+}
+
 /* The warning triangle at the right of a field with a mistake: the colour is not the only sign. */
 .x-field-alert {
   flex: none;
