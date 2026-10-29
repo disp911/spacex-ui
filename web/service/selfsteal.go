@@ -292,7 +292,6 @@ func newSiteInbound(domain, socket string) (*model.Inbound, *model.Client, error
 		return nil, nil, err
 	}
 	ib := &model.Inbound{
-		Remark:         domain,
 		Enable:         true,
 		TrafficReset:   "never",
 		Port:           443,
@@ -391,12 +390,16 @@ func (s *SiteService) FirstClientLinks(ib *model.Inbound) (link, sub string, err
 	if c.Flow != "" {
 		q.Set("flow", c.Flow)
 	}
+	name := c.Email
+	if ib.Remark != "" {
+		name = ib.Remark + "-" + c.Email
+	}
 	link = (&url.URL{
 		Scheme:   "vless",
 		User:     url.User(c.ID),
 		Host:     net.JoinHostPort(domain, "443"),
 		RawQuery: q.Encode(),
-		Fragment: ib.Remark + "-" + c.Email,
+		Fragment: name,
 	}).String()
 
 	if on, _ := s.settingService.GetSubEnable(); on && c.SubID != "" {

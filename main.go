@@ -334,7 +334,7 @@ func selfSteal(domain string) error {
 }
 
 func printSiteInbound(siteService *service.SiteService, ib *model.Inbound) {
-	fmt.Printf("REALITY inbound %q (id %d) on port %d, target %s\n", ib.Remark, ib.Id, ib.Port, config.GetSiteSocket())
+	fmt.Printf("REALITY inbound id %d on port %d, target %s\n", ib.Id, ib.Port, config.GetSiteSocket())
 	link, sub, err := siteService.FirstClientLinks(ib)
 	if err != nil {
 		fmt.Println("Failed to read the inbound's first client:", err)
