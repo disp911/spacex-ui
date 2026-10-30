@@ -112,11 +112,13 @@ const dash = '—'
   min-width: 0;
 }
 
+/* Each figure as wide as it is, one after another from the left with equal gaps. */
 .service__stats {
   grid-area: stats;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(3, auto);
+  justify-content: start;
+  gap: 12px 35px;
 }
 
 .service__actions {
@@ -181,6 +183,10 @@ const dash = '—'
       'state actions'
       'stats stats';
     align-items: center;
+  }
+
+  .service__stats {
+    column-gap: 25px;
   }
 }
 </style>

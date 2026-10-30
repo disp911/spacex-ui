@@ -135,7 +135,7 @@
 "httpTitle" = "Connection is not secure (HTTP)"
 "httpText" = "Do not enter sensitive data until an SSL certificate is installed"
 "telegram" = "Telegram proxy"
-"running" = "Running"
+"running" = "Active"
 "stopped" = "Stopped"
 "error" = "Error"
 "unknown" = "Unknown"

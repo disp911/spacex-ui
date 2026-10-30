@@ -445,7 +445,7 @@ const dash = '—'
   display: flex;
   flex-wrap: wrap;
   align-items: flex-start;
-  gap: 16px 24px;
+  gap: 16px 35px;
 }
 
 .system__uptime {
@@ -504,6 +504,10 @@ const dash = '—'
   /* Two rows of two, each figure under its total: four in a row leave no room for a speed. */
   .net-figures {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .system {
+    column-gap: 25px;
   }
 
   .tile__total {
