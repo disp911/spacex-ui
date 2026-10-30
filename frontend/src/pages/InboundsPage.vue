@@ -39,6 +39,9 @@ const thresholds = computed(() => store.defaults ?? { expireDiff: 0, trafficDiff
 
 // --- Summary ---------------------------------------------------------------------
 
+/** The table shows its phone columns, and the summary its phone layout with it. */
+const compact = ref(false)
+
 const totals = computed(() => {
   let up = 0
   let down = 0
@@ -405,12 +408,12 @@ const clientFilter = computed<Filter>(() => (mode.value === 'filter' ? filter.va
 
     <template v-else>
       <XCard class="inbounds__summary">
-        <div class="inbounds__stats">
-          <XSummaryStat icon="updown" :label="t('inbounds.statSentReceived')" :value="`${formatBytes(totals.up)} / ${formatBytes(totals.down)}`" />
-          <XSummaryStat icon="database" :label="t('inbounds.statTraffic')" :value="formatBytes(totals.up + totals.down)" />
-          <XSummaryStat icon="clock" :label="t('inbounds.statAllTime')" :value="formatBytes(totals.allTime)" />
-          <XSummaryStat icon="swap" :label="t('inbounds.statInbounds')" :value="String(store.list.length)" />
-          <XSummaryStat icon="user" :label="t('inbounds.clients')" class="inbounds__clients">
+        <div :class="['inbounds__stats', { 'inbounds__stats--compact': compact }]">
+          <XSummaryStat icon="updown" :compact="compact" :label="t('inbounds.statSentReceived')" :value="`${formatBytes(totals.up)} / ${formatBytes(totals.down)}`" />
+          <XSummaryStat icon="database" :compact="compact" :label="t('inbounds.statTraffic')" :value="formatBytes(totals.up + totals.down)" />
+          <XSummaryStat icon="clock" :compact="compact" :label="t('inbounds.statAllTime')" :value="formatBytes(totals.allTime)" />
+          <XSummaryStat icon="swap" :compact="compact" :label="t('inbounds.statInbounds')" :value="String(store.list.length)" />
+          <XSummaryStat icon="user" :compact="compact" :label="t('inbounds.clients')" class="inbounds__clients">
             <ClientCounts :counts="allCounts" labelled />
           </XSummaryStat>
         </div>
@@ -426,6 +429,7 @@ const clientFilter = computed<Filter>(() => (mode.value === 'filter' ? filter.va
         :muted="(ib) => !ib.enable"
         :toggle-label="t('inbounds.clients')"
         :compact-below="1000"
+        @compact="compact = $event"
       >
         <template #tools>
           <InboundsTools v-model:mode="mode" v-model:search="search" v-model:filter="filter" :subscription="subscription" @action="actAll" @create="openInbound(null)" />
@@ -654,11 +658,9 @@ const clientFilter = computed<Filter>(() => (mode.value === 'filter' ? filter.va
   justify-content: flex-end;
 }
 
-@media (max-width: 767px) {
-  /* One a row: at phone type sizes two side by side cut their labels and figures. */
-  .inbounds__stats {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 14px;
-  }
+/* One a row with the table's phone columns, as on a phone. */
+.inbounds__stats--compact {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
 }
 </style>

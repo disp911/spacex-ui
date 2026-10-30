@@ -1,13 +1,17 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import XIcon from './XIcon.vue'
 import type { IconName } from './icons'
+import { usePhone } from './media'
 
-/** A figure of a summary card: an icon in a small frame, the label (two lines at most) and the value, or the slot in its place, e.g. counts. */
-defineProps<{ icon: IconName; label: string; value?: string }>()
+/** A figure of a summary card: an icon in a small frame, the label (two lines at most) and the value, or the slot in its place, e.g. counts. Compact as on a phone, which it is there unless told otherwise. */
+const props = withDefaults(defineProps<{ icon: IconName; label: string; value?: string; compact?: boolean }>(), { value: undefined, compact: undefined })
+const phone = usePhone()
+const compact = computed(() => props.compact ?? phone.value)
 </script>
 
 <template>
-  <div class="x-sum">
+  <div :class="['x-sum', { 'x-sum--compact': compact }]">
     <span class="x-sum__icon"><XIcon :name="icon" :size="16" /></span>
     <div class="x-sum__body">
       <div class="x-sum__label">{{ label }}</div>
@@ -65,16 +69,14 @@ defineProps<{ icon: IconName; label: string; value?: string }>()
   text-overflow: ellipsis;
 }
 
-/* Phones stack them one a row, so a label needs no room for a second line; the square grows with its icon. */
-@media (max-width: 767px) {
-  .x-sum__icon {
-    width: 40px;
-    height: 40px;
-    border-radius: var(--r-10);
-  }
+/* Compact ones stand one a row, so a label needs no room for a second line; the square grows with its icon. */
+.x-sum--compact .x-sum__icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--r-10);
+}
 
-  .x-sum__label {
-    min-height: 0;
-  }
+.x-sum--compact .x-sum__label {
+  min-height: 0;
 }
 </style>

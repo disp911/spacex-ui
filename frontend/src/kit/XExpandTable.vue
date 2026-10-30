@@ -1,5 +1,5 @@
 <script setup lang="ts" generic="T">
-import { computed, onBeforeUnmount, onMounted, provide, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, provide, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import XCollapse from './XCollapse.vue'
 import XIcon from './XIcon.vue'
@@ -27,7 +27,8 @@ export interface ExpandColumn {
  * disabled inbound, dims its cells. A cell shows the `cell-<key>` slot on
  * desktop and `phone-<key>` on phones. With compactBelow it takes its phone
  * columns whenever it is narrower than that, e.g. a laptop screen too small
- * for every column; the lists its rows open onto follow it.
+ * for every column; the lists its rows open onto follow it, and `compact`
+ * tells the page.
  */
 const props = defineProps<{
   columns: ExpandColumn[]
@@ -43,6 +44,7 @@ const props = defineProps<{
   compactBelow?: number
 }>()
 const open = defineModel<(string | number)[]>('open', { default: () => [] })
+const emit = defineEmits<{ compact: [compact: boolean] }>()
 const { t } = useI18n()
 const screenPhone = usePhone()
 const root = ref<HTMLElement | null>(null)
@@ -60,6 +62,7 @@ onBeforeUnmount(() => observer?.disconnect())
 /** Phone columns on a phone, or wherever the desktop ones do not fit. */
 const phone = computed(() => screenPhone.value || narrow.value)
 provide(compactKey, phone)
+watch(phone, (v) => emit('compact', v), { immediate: true })
 
 const columns = computed(() => (phone.value ? props.phoneColumns : props.columns))
 const template = computed(() =>
