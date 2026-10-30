@@ -197,10 +197,7 @@ async function download() {
 <template>
   <XModal v-model:open="open" :title="t('dashboard.xlogTitle')" size="wide" flush full>
     <template #subtitle>
-      <template v-if="data?.date">
-        <span class="xlog-wide">{{ t('dashboard.xlogSubtitle', { n: formatNumber(total), date: day }, total) }}</span>
-        <span class="xlog-narrow">{{ t('dashboard.xlogSubtitleShort', { n: formatNumber(total), date: day }, total) }}</span>
-      </template>
+      <template v-if="data?.date">{{ t('dashboard.xlogSubtitle', { n: formatNumber(total), date: day }, total) }}</template>
       <template v-else>{{ t('dashboard.logEmpty') }}</template>
     </template>
 
@@ -391,7 +388,7 @@ async function download() {
   text-overflow: ellipsis;
 }
 
-/* The table and its tools on wide screens; cards, a types menu and a short subtitle on phones. */
+/* The table and its tools on wide screens; cards and a types menu on phones. */
 @media (min-width: 768px) {
   .xlog-narrow {
     display: none;

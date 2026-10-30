@@ -54,9 +54,7 @@ export interface MessageSchema {
     "xrayError": string
     "telegramError": string
     "online": string
-    "onlineShort": string
     "uptime": string
-    "uptimeShort": string
     "memory": string
     "restart": string
     "stop": string
@@ -86,8 +84,6 @@ export interface MessageSchema {
     "network": string
     "sent": string
     "received": string
-    "sentShort": string
-    "receivedShort": string
     "upload": string
     "download": string
     "ip": string
@@ -101,9 +97,9 @@ export interface MessageSchema {
     "update": string
     "system": string
     "osUptime": string
+    "panelUptime": string
+    "panelProcess": string
     "load": string
-    "loadShort": string
-    "loadHint": string
     "logLines": string
     "logRows": string
     "logLevel": string
@@ -142,7 +138,6 @@ export interface MessageSchema {
     "panelUpdating": string
     "xlogTitle": string
     "xlogSubtitle": string
-    "xlogSubtitleShort": string
     "xlogDate": string
     "xlogClient": string
     "xlogAllClients": string

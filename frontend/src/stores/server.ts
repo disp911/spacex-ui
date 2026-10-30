@@ -33,6 +33,8 @@ export interface ServerStatus {
   netIO: { up: number; down: number }
   netTraffic: { sent: number; recv: number }
   publicIP: { ipv4: string; ipv6: string }
+  /** The panel's own process: uptime in seconds, memory, goroutines. */
+  appStats: { uptime: number; mem: number; threads: number }
 }
 
 /** Live server status while someone watches it. */

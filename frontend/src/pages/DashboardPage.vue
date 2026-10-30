@@ -3,7 +3,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { api, ApiError } from '../api'
 import { config } from '../config'
-import { bytesParts, formatDuration, formatNumber, formatSpeed } from '../i18n/format'
+import { bytesParts, formatBytes, formatDuration, formatNumber, formatSpeed } from '../i18n/format'
 import { toast, XButton, XIcon, XInlineButton, XNotice, XRowLink, XSkeletonText, XStatusDot } from '../kit'
 import AppPage from '../layout/AppPage.vue'
 import { useServerStatus } from '../stores/server'
@@ -229,7 +229,7 @@ const dash = '—'
             <div class="tile tile--total">
               <div class="x-caps tile__label">
                 <XIcon name="arrowUp" :size="12" class="up" />
-                <span class="long">{{ t('dashboard.sent') }}</span><span class="short">{{ t('dashboard.sentShort') }}</span>
+                {{ t('dashboard.sent') }}
               </div>
               <div class="tile__total up">
                 <XSkeletonText v-if="loading" :width="88" />
@@ -239,7 +239,7 @@ const dash = '—'
             <div class="tile tile--total">
               <div class="x-caps tile__label">
                 <XIcon name="arrowDown" :size="12" class="down" />
-                <span class="long">{{ t('dashboard.received') }}</span><span class="short">{{ t('dashboard.receivedShort') }}</span>
+                {{ t('dashboard.received') }}
               </div>
               <div class="tile__total down">
                 <XSkeletonText v-if="loading" :width="88" />
@@ -262,17 +262,20 @@ const dash = '—'
         <DashCard :title="t('dashboard.system')" class="area-system">
           <div class="system">
             <DashStat :label="t('dashboard.osUptime')" :value="status ? formatDuration(status.uptime) : dash" :loading="loading" class="system__uptime" />
-            <div class="system__load">
-              <DashStat :label="t('dashboard.load')" :short="t('dashboard.loadShort')" value="" :loading="loading">
-                <template v-if="status?.loads?.length">
-                  <template v-for="(l, i) in status.loads" :key="i">
-                    <span v-if="i" class="system__sep"> | </span>{{ formatNumber(l, 2) }}
-                  </template>
-                </template>
-                <template v-else>{{ dash }}</template>
-              </DashStat>
-              <p class="system__hint">{{ t('dashboard.loadHint') }}</p>
+            <div class="system__uptime">
+              <DashStat :label="t('dashboard.panelUptime')" :value="status ? formatDuration(status.appStats.uptime) : dash" :loading="loading" />
+              <p v-if="status" class="system__process">
+                {{ t('dashboard.panelProcess', { mem: formatBytes(status.appStats.mem), n: formatNumber(status.appStats.threads) }, status.appStats.threads) }}
+              </p>
             </div>
+            <DashStat :label="t('dashboard.load')" value="" :loading="loading" class="system__load">
+              <template v-if="status?.loads?.length">
+                <template v-for="(l, i) in status.loads" :key="i">
+                  <span v-if="i" class="system__sep"> | </span>{{ formatNumber(l, 2) }}
+                </template>
+              </template>
+              <template v-else>{{ dash }}</template>
+            </DashStat>
           </div>
         </DashCard>
       </div>
@@ -420,10 +423,6 @@ const dash = '—'
   color: var(--acc);
 }
 
-.short {
-  display: none;
-}
-
 /* Network figures: two pairs under the two totals. */
 .net-figures,
 .net-figures__pair {
@@ -440,11 +439,13 @@ const dash = '—'
   padding: 0 14px;
 }
 
-/* System */
+/* System: the OS, the panel's own process and the load side by side; where
+   the load does not fit, it goes under the uptimes. */
 .system {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
-  gap: 24px;
+  gap: 16px 24px;
 }
 
 .system__uptime {
@@ -452,18 +453,18 @@ const dash = '—'
 }
 
 .system__load {
-  flex: 1;
-  min-width: 0;
+  flex: 1 0 auto;
 }
 
 .system__sep {
   color: var(--faint);
 }
 
-.system__hint {
+.system__process {
   margin: 4px 0 0;
   color: var(--dim);
   font-size: var(--fs-11);
+  white-space: nowrap;
 }
 
 @media (max-width: 1100px) {
@@ -505,30 +506,8 @@ const dash = '—'
     grid-template-columns: minmax(0, 1fr);
   }
 
-  /* The three load figures need the whole width. */
-  .system {
-    flex-direction: column;
-    gap: 16px;
-  }
-
   .tile__total {
     font-size: var(--fs-18);
-  }
-
-  .long {
-    display: none;
-  }
-
-  .short {
-    display: inline;
-  }
-
-  .system {
-    gap: 20px;
-  }
-
-  .system__hint {
-    display: none;
   }
 
   /* On phones the update offer is a full-width button under the version. */

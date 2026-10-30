@@ -108,6 +108,9 @@ type Status struct {
 	} `json:"appStats"`
 }
 
+// panelStart is when this panel process started; its uptime counts from it.
+var panelStart = time.Now()
+
 // Release represents information about a software release from GitHub.
 type Release struct {
 	TagName string `json:"tag_name"` // The tag name of the release
@@ -432,11 +435,7 @@ func (s *ServerService) GetStatus(lastStatus *Status) *Status {
 	runtime.ReadMemStats(&rtm)
 	status.AppStats.Mem = rtm.Sys
 	status.AppStats.Threads = uint32(runtime.NumGoroutine())
-	if p != nil && p.IsRunning() {
-		status.AppStats.Uptime = p.GetUptime()
-	} else {
-		status.AppStats.Uptime = 0
-	}
+	status.AppStats.Uptime = uint64(time.Since(panelStart).Seconds())
 
 	return status
 }

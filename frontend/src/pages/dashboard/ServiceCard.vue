@@ -71,8 +71,8 @@ const dash = '—'
       </div>
 
       <div class="service__stats">
-        <DashStat :label="t('dashboard.online')" :short="t('dashboard.onlineShort')" :value="running ? formatNumber(service!.online) : dash" :loading="loading" />
-        <DashStat :label="t('dashboard.uptime')" :short="t('dashboard.uptimeShort')" :value="running ? formatDuration(service!.uptime) : dash" :loading="loading" />
+        <DashStat :label="t('dashboard.online')" :value="running ? formatNumber(service!.online) : dash" :loading="loading" />
+        <DashStat :label="t('dashboard.uptime')" :value="running ? formatDuration(service!.uptime) : dash" :loading="loading" />
         <DashStat :label="t('dashboard.memory')" :value="running ? formatBytes(service!.mem) : dash" :loading="loading" />
       </div>
 
